@@ -1,0 +1,71 @@
+/* General page background */
+body {
+    background-color: #f4f6f8; /* light gray, Airbnb-like */
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Main content wrapper */
+.main-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Reduce top spacing */
+.page-wrapper {
+    padding-top: 1.5rem;
+}
+
+/* Navbar separation */
+.navbar {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Headings */
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+.carousel img {
+    height: 420px;
+    object-fit: cover;
+}
+
+.carousel {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.amenities div {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.amenities i {
+    color: #198754;
+    margin-right: 6px;
+    font-size: 1.2rem;
+}
+
+.lead {
+    font-size: 1.1rem;
+    color: #444;
+}
+
+.map-container {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #198754;
+  border-color: #198754;
+}
+
+.flatpickr-day.disabled {
+  color: #ccc;
+  text-decoration: line-through;
+}

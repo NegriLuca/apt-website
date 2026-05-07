@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}FAQ{% endblock %}
+
+{% block content %}
+<h2>Frequently Asked Questions</h2>
+
+<div class="accordion mt-4" id="faqAccordion">
+
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+        What time is check-in and check-out?
+      </button>
+    </h2>
+    <div id="faq1" class="accordion-collapse collapse show">
+      <div class="accordion-body">
+        Check-in is from 3:00 PM, check-out is by 11:00 AM.
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+        Is the apartment pet-friendly?
+      </button>
+    </h2>
+    <div id="faq2" class="accordion-collapse collapse">
+      <div class="accordion-body">
+        Small pets are allowed upon request.
+      </div>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+        Is parking available?
+      </button>
+    </h2>
+    <div id="faq3" class="accordion-collapse collapse">
+      <div class="accordion-body">
+        Free street parking is available nearby.
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

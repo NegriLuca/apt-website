@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Booking confirmed{% endblock %}
+
+{% block content %}
+<div class="text-center mt-5">
+
+  <h1>Booking confirmed 🎉</h1>
+
+  <p class="lead mt-3">
+    Thank you <strong>{{ reservation.guest_name }}</strong>!
+  </p>
+
+  <p>
+    Your stay is confirmed from<br>
+    <strong>{{ reservation.check_in }}</strong>
+    to
+    <strong>{{ reservation.check_out }}</strong>
+  </p>
+
+  <p>
+    Guests: {{ reservation.num_guests }}
+  </p>
+
+  <p class="text-muted mt-3">
+    A confirmation email has been sent to<br>
+    {{ reservation.guest_email }}
+  </p>
+
+  <hr class="my-4">
+
+  <a href="{{ url_for('routes.home') }}" class="btn btn-primary">
+    Back to home
+  </a>
+
+</div>
+{% endblock %}
