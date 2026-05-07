@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Complete your booking{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <h2 class="mb-4">Review & Pay</h2>
+
+    <!-- Booking summary card -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <strong>Booking Summary</strong>
+      </div>
+      <div class="card-body">
+        <table class="table table-borderless mb-0">
+          <tbody>
+            <tr>
+              <td class="text-muted">Apartment</td>
+              <td><strong>{{ apartment.name }}</strong></td>
+            </tr>
+            <tr>
+              <td class="text-muted">Guest</td>
+              <td>{{ pending.guest_name }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Email</td>
+              <td>{{ pending.guest_email }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Check-in</td>
+              <td>{{ check_in.strftime('%d %b %Y') }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Check-out</td>
+              <td>{{ check_out.strftime('%d %b %Y') }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Nights</td>
+              <td>{{ nights }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Guests</td>
+              <td>{{ pending.num_guests }}</td>
+            </tr>
+            <tr class="table-light">
+              <td><strong>Total</strong></td>
+              <td><strong class="text-success fs-5">€{{ "%.2f"|format(total) }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment button -->
+    <form action="{{ url_for('routes.create_checkout_session') }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-success btn-lg w-100">
+        🔒 Pay securely with Stripe
+      </button>
+    </form>
+
+    <p class="text-muted text-center mt-3 small">
+      You will be redirected to Stripe's secure checkout page. <br>
+      We accept Visa, Mastercard, and other major cards.
+    </p>
+
+    <a href="{{ url_for('routes.reserve') }}" class="d-block text-center mt-2 text-muted small">
+      ← Go back and change dates
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -21,11 +21,11 @@ class User(db.Model, UserMixin):
         return bcrypt.check_password_hash(self.password, raw_password)
 
 class Apartment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=False)
+    id              = db.Column(db.Integer, primary_key=True)
+    name            = db.Column(db.String(100), nullable=False)
+    description     = db.Column(db.Text, nullable=False)
     price_per_night = db.Column(db.Float, nullable=False)
-    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
+    image_file      = db.Column(db.String(20), nullable=False, default='default.jpg')
 
 
 class Reservation(db.Model):
@@ -39,31 +39,47 @@ class Reservation(db.Model):
     
     __tablename__ = "reservation"
 
-    id = db.Column(db.Integer, primary_key=True)
-    guest_name = db.Column(db.String(100), nullable=False)
-    guest_email = db.Column(db.String(120), nullable=False)
-    check_in = db.Column(db.Date, nullable=False)
-    check_out = db.Column(db.Date, nullable=False)
-    num_guests = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(20),nullable=False, default='pending')
-    created_at = db.Column(db.DateTime,default=datetime.utcnow)
-    cancel_token = db.Column(db.String(128), unique=True, index=True)
-    source = db.Column(db.String(20), default="direct")
-    external_uid = db.Column(db.String(128), unique=True, index=True)
+    id              = db.Column(db.Integer, primary_key=True)
+    guest_name      = db.Column(db.String(100), nullable=False)
+    guest_email     = db.Column(db.String(120))                # nullable for external bookings
+    check_in        = db.Column(db.Date, nullable=False)
+    check_out       = db.Column(db.Date, nullable=False)
+    num_guests      = db.Column(db.Integer, nullable=False)
+    status          = db.Column(db.String(20), nullable=False, default='pending')
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    cancel_token    = db.Column(db.String(128), unique=True, index=True)
+    source          = db.Column(db.String(20), default="direct")
+    external_uid    = db.Column(db.String(128), unique=True, index=True)
+
+    # ── Stripe ────────────────────────────────────────────────────────────────
+    stripe_payment_intent_id = db.Column(db.String(128), unique=True, index=True)
+
     __table_args__ = (
-        db.CheckConstraint("check_out > check_in", name="ck_dates_valid"),
+        db.CheckConstraint("check_out > check_in",      name="ck_dates_valid"),
         db.CheckConstraint("num_guests >= 1 AND num_guests <= 4", name="ck_guests_range"),
-        db.UniqueConstraint("external_uid", name="uq_reservation_external_uid"),
-        db.UniqueConstraint("cancel_token", name="uq_reservation_cancel_token"),
+        db.UniqueConstraint("external_uid",  name="uq_reservation_external_uid"),
+        db.UniqueConstraint("cancel_token",  name="uq_reservation_cancel_token"),
         db.CheckConstraint(
             "status IN ('pending', 'confirmed', 'cancelled')",
             name="ck_reservation_status"
         ),
     )
 
+    @property
+    def nights(self):
+        return (self.check_out - self.check_in).days
+
+    @property
+    def total_price(self):
+        apt = Apartment.query.first()
+        if apt:
+            return self.nights * apt.price_per_night
+        return 0
+
+
 class ICalFeed(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    source = db.Column(db.String(20))  # airbnb / vrbo / booking
-    url = db.Column(db.Text, nullable=False)
+    id            = db.Column(db.Integer, primary_key=True)
+    source        = db.Column(db.String(20))   # airbnb / vrbo / booking
+    url           = db.Column(db.Text, nullable=False)
     last_synced_at = db.Column(db.DateTime)
-    active = db.Column(db.Boolean, default=True)
+    active        = db.Column(db.Boolean, default=True)

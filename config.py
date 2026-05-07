@@ -24,5 +24,13 @@ class Config:
     # Host e-mail for admin notifications
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL') or os.environ.get('MAIL_USERNAME')
 
+    # ── Stripe ────────────────────────────────────────────────────────────────
+    STRIPE_SECRET_KEY      = os.environ.get('STRIPE_SECRET_KEY', '')
+    STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
+    STRIPE_WEBHOOK_SECRET  = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
     # ── iCal scheduler ────────────────────────────────────────────────────────
     ICAL_SYNC_INTERVAL_MINUTES = int(os.environ.get('ICAL_SYNC_INTERVAL_MINUTES', 30))
+
+    # ── App public URL (used for Stripe redirect URLs) ────────────────────────
+    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
