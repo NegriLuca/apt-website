@@ -1,22 +1,8 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Our Favorite Spots Nearby</title>
-<style>
-body {font-family: Arial, sans-serif; max-width:900px; margin:auto; padding:20px;}
-h2 {margin-bottom:10px;}
-.lead {color:#555;}
-ul {margin-top:10px;}
-li {margin-bottom:10px;}
-small {color:#777;}
-a {color:#8c6f4e; text-decoration:none;}
-a:hover {text-decoration:underline;}
-</style>
-</head>
-<body>
+{% extends "base.html" %}
 
+{% block title %}Our Favorite Spots Nearby{% endblock %}
+
+{% block content %}
 <h2>Our Favorite Spots Nearby</h2>
 
 <p class="lead">
@@ -104,3 +90,4 @@ Discover our favorite places to eat, drink, and experience the real Rome – jus
 
 </body>
 </html>
+{% endblock %}
