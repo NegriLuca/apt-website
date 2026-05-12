@@ -1,49 +1,156 @@
 {% extends "base.html" %}
+
 {% block title %}FAQ{% endblock %}
 
 {% block content %}
-<h2>Frequently Asked Questions</h2>
+  
+<h4 class="mt-4">❓ Frequently Asked Questions</h4>
 
-<div class="accordion mt-4" id="faqAccordion">
+<p class="lead">
+Everything you need to know for a smooth and comfortable stay.
+</p>
 
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-        What time is check-in and check-out?
-      </button>
-    </h2>
-    <div id="faq1" class="accordion-collapse collapse show">
-      <div class="accordion-body">
-        Check-in is from 3:00 PM, check-out is by 11:00 AM.
-      </div>
+<style>
+.faq-item {
+  border-bottom: 1px solid #eee;
+  padding: 12px 0;
+}
+
+.faq-question {
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-answer {
+  display: none;
+  margin-top: 8px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.faq-item.active .faq-answer {
+  display: block;
+}
+
+.faq-icon {
+  font-size: 14px;
+}
+</style>
+
+<div class="faq mt-3">
+
+  <div class="faq-item">
+    <div class="faq-question">🕓 Check-in & check-out <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Check-in is from 15:00 and check-out is by 10:00.  
+      We will send you all the access details shortly before your arrival.
     </div>
   </div>
 
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-        Is the apartment pet-friendly?
-      </button>
-    </h2>
-    <div id="faq2" class="accordion-collapse collapse">
-      <div class="accordion-body">
-        Small pets are allowed upon request.
-      </div>
+  <div class="faq-item">
+    <div class="faq-question">🔑 How does check-in work? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Check-in is self-service. You will receive simple step-by-step instructions before arrival.
     </div>
   </div>
 
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-        Is parking available?
-      </button>
-    </h2>
-    <div id="faq3" class="accordion-collapse collapse">
-      <div class="accordion-body">
-        Free street parking is available nearby.
-      </div>
+  <div class="faq-item">
+    <div class="faq-question">📍 Where is the apartment located? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      The apartment is located in the Garbatella area, one of Rome’s most vibrant and authentic neighborhoods, well connected to the city center.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">🚇 Is public transport nearby? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Yes, metro line B and several bus lines are within walking distance.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">🚆 How can I get there from Termini station? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Take Metro Line B (direction Laurentina) and get off at Garbatella or Basilica San Paolo, then walk about 10 minutes.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">✈️ How can I get there from the airport? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      From Fiumicino Airport, take the train to Ostiense station.  
+      From Ciampino Airport, take a shuttle to Termini and then Metro Line B.  
+      Taxi and private transfers are also available.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">🚗 Is parking available? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      We do not have a private parking space, but free street parking is available nearby.  
+      It may require a short search, and we’ll be happy to give tips.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">🧳 Can I leave my luggage? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Depending on availability, we may offer early check-in or luggage drop-off.  
+      Please contact us in advance.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">📶 Is Wi-Fi available? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Yes, fast and free Wi-Fi is available throughout the apartment.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">❄️ Is there air conditioning and heating? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Yes, the apartment is fully equipped with both air conditioning and heating.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">🐾 Are pets allowed? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      We love animals, but unfortunately we cannot host pets.  
+      Thank you for your understanding.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">👶 Is a baby crib available? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Yes, a baby crib is available free of charge upon request.  
+      Please let us know in advance.
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-question">💬 Can we contact you during our stay? <span class="faq-icon">+</span></div>
+    <div class="faq-answer">
+      Of course! We’re always available and happy to help.
     </div>
   </div>
 
 </div>
+
+<script>
+document.querySelectorAll(".faq-question").forEach(item => {
+  item.addEventListener("click", () => {
+    const parent = item.parentElement;
+    parent.classList.toggle("active");
+
+    const icon = item.querySelector(".faq-icon");
+    icon.textContent = parent.classList.contains("active") ? "–" : "+";
+  });
+});
+</script>
 {% endblock %}
