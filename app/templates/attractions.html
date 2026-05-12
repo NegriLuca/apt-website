@@ -1,77 +1,372 @@
 {% extends "base.html" %}
 
-{% block title %}Attractions{% endblock %}
+{% block title %}Rome's Attractions{% endblock %}
 
 {% block content %}
-<h2>🏛 Attractions</h2>
-<ul>
-  <li>
-    <strong>Centrale Montemartini</strong> – Unique museum blending ancient Roman sculptures and industrial architecture – 
-    <a href="https://maps.google.com/?q=Centrale+Montemartini" target="_blank">📍 Open in Google Maps</a>
-  </li>
 
-  <li>
-    <strong>Basilica San Paolo Fuori le Mura</strong> – One of Rome’s most impressive and less crowded basilicas – 
-    <a href="https://maps.google.com/?q=Basilica+San+Paolo+Fuori+le+Mura" target="_blank">📍 Open in Google Maps</a>
-  </li>
+<div class="container-fluid px-2 px-md-4">
 
-  <li>
-    <strong>Colosseum & Roman Forum</strong> – Rome’s most iconic ancient landmarks – 
-    <a href="https://maps.google.com/?q=Colosseum+Rome" target="_blank">📍 Open in Google Maps</a>
-  </li>
+  <!-- PAGE TITLE -->
+  <div class="mb-4">
+    <h2 class="fw-bold">🏛 Rome's Attractions</h2>
+    <p class="text-muted mb-0">
+      Click any card to open directions in Google Maps.
+    </p>
+  </div>
 
-  <li>
-    <strong>Pantheon</strong> – One of the best-preserved ancient buildings in Rome – 
-    <a href="https://maps.google.com/?q=Pantheon+Rome" target="_blank">📍 Open in Google Maps</a>
-  </li>
+  <!-- GOOGLE MY MAP -->
+  <div class="map-container shadow-sm mb-5">
+    <iframe
+      src="https://www.google.com/maps/d/embed?mid=18yPpSdyy_3Ne9V0uecLXD5O8hHUyf68&ehbc=2E312F"
+      width="100%"
+      height="500"
+      style="border:0;"
+      loading="lazy">
+    </iframe>
+  </div>
 
-</ul>
+  <!-- ========================= -->
+  <!-- ATTRACTIONS -->
+  <!-- ========================= -->
 
+  <section class="mb-5">
 
-<h4 class="mt-4">🚶 Walks & Neighborhood</h4>
-<ul>
-  <li>
-    <strong>Garbatella</strong> – Charming historic neighborhood – 
-    <a href="https://maps.google.com/?q=Garbatella+Roma" target="_blank">📍 Open in Google Maps</a>
-  </li>
+    <h3 class="section-title">🏛 Historic Monuments</h3>
 
-  <li>
-    <strong>Ostiense District</strong> – Vibrant area with street art and local life – 
-    <a href="https://maps.google.com/?q=Ostiense+Roma" target="_blank">📍 Open in Google Maps</a>
-  </li>
+    <div class="row g-3 mt-1">
 
-  <li>
-    <strong>Trastevere</strong> – One of the most beautiful areas in Rome – 
-    <a href="https://maps.google.com/?q=Trastevere+Rome" target="_blank">📍 Open in Google Maps</a>
-  </li>
+      <!-- Centrale Montemartini -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Centrale+Montemartini"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
 
-  <li>
-    <strong>Historic Center Walk</strong> – From Pantheon to Piazza Navona and Campo de’ Fiori – 
-    <a href="https://maps.google.com/?q=Piazza+Navona+Rome" target="_blank">📍 Open in Google Maps</a>
-  </li>
-</ul>
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
 
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">
+                  Centrale Montemartini
+                </h5>
 
-<h4 class="mt-4">🌿 Outdoor & Relax</h4>
-<ul>
-  <li>
-    <strong>Parco della Caffarella ⭐</strong> – One of Rome’s most beautiful parks, with ruins, nature and walking paths – 
-    <a href="https://maps.google.com/?q=Parco+della+Caffarella+Roma" target="_blank">📍 Open in Google Maps</a>
-  </li>
+                <span class="map-icon">📍</span>
+              </div>
 
-  <li>
-    <strong>Lungotevere Ostiense</strong> – Scenic walk along the river, especially at sunset – 
-    <a href="https://maps.google.com/?q=Lungotevere+Ostiense" target="_blank">📍 Open in Google Maps</a>
-  </li>
+              <p class="card-text text-muted">
+                Unique museum blending ancient Roman sculptures and industrial architecture.
+              </p>
 
-  <li>
-    <strong>Parco Schuster</strong> – Green area near the Basilica, ideal for relaxing – 
-    <a href="https://maps.google.com/?q=Parco+Schuster+Roma" target="_blank">📍 Open in Google Maps</a>
-  </li>
+            </div>
+          </div>
 
-  <li>
-    <strong>Gianicolo Hill</strong> – Stunning panoramic view over Rome – 
-    <a href="https://maps.google.com/?q=Gianicolo+Rome" target="_blank">📍 Open in Google Maps</a>
-  </li>
-</ul>
+        </a>
+      </div>
+
+      <!-- Basilica -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Basilica+San+Paolo+Fuori+le+Mura"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">
+                  Basilica San Paolo Fuori le Mura
+                </h5>
+
+                <span class="map-icon">⛪</span>
+              </div>
+
+              <p class="card-text text-muted">
+                One of Rome’s most impressive and less crowded basilicas.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Colosseum -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Colosseum+Rome"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">
+                  Colosseum & Roman Forum
+                </h5>
+
+                <span class="map-icon">🏛</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Rome’s most iconic ancient landmarks.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Pantheon -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Pantheon+Rome"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">
+                  Pantheon
+                </h5>
+
+                <span class="map-icon">🏛</span>
+              </div>
+
+              <p class="card-text text-muted">
+                One of the best-preserved ancient buildings in Rome.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- WALKS -->
+  <!-- ========================= -->
+
+  <section class="mb-5">
+
+    <h3 class="section-title">🚶 Walks & Neighborhoods</h3>
+
+    <div class="row g-3 mt-1">
+
+      <!-- Garbatella -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Garbatella+Roma"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Garbatella</h5>
+                <span class="map-icon">🚶</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Charming historic neighborhood with authentic Roman atmosphere.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Ostiense -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Ostiense+Roma"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Ostiense District</h5>
+                <span class="map-icon">🎨</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Vibrant district full of street art, cafés and local life.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Trastevere -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Trastevere+Rome"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Trastevere</h5>
+                <span class="map-icon">🍷</span>
+              </div>
+
+              <p class="card-text text-muted">
+                One of Rome’s most beautiful and lively neighborhoods.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Historic Walk -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Piazza+Navona+Rome"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Historic Center Walk</h5>
+                <span class="map-icon">🗺</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Walk from the Pantheon to Piazza Navona and Campo de’ Fiori.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- OUTDOOR -->
+  <!-- ========================= -->
+
+  <section class="mb-5">
+
+    <h3 class="section-title">🌿 Outdoor & Relax</h3>
+
+    <div class="row g-3 mt-1">
+
+      <!-- Caffarella -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Parco+della+Caffarella+Roma"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">
+                  Parco della Caffarella ⭐
+                </h5>
+
+                <span class="map-icon">🌳</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Beautiful park with ruins, nature and walking paths.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Lungotevere -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Lungotevere+Ostiense"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Lungotevere Ostiense</h5>
+                <span class="map-icon">🌅</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Scenic riverside walk especially beautiful at sunset.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Parco Schuster -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Parco+Schuster+Roma"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Parco Schuster</h5>
+                <span class="map-icon">🌿</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Relaxing green area near the Basilica.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+      <!-- Gianicolo -->
+      <div class="col-md-6">
+        <a href="https://maps.google.com/?q=Gianicolo+Rome"
+           target="_blank"
+           class="place-card text-decoration-none text-dark">
+
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-2">Gianicolo Hill</h5>
+                <span class="map-icon">🌄</span>
+              </div>
+
+              <p class="card-text text-muted">
+                Stunning panoramic view over Rome.
+              </p>
+
+            </div>
+          </div>
+
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
 {% endblock %}

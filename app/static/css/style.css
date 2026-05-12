@@ -53,9 +53,10 @@ h1, h2, h3 {
 }
 
 .map-container {
-    border-radius: 10px;
+    border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: white;
 }
 
 .flatpickr-day.selected,
@@ -68,4 +69,51 @@ h1, h2, h3 {
 .flatpickr-day.disabled {
   color: #ccc;
   text-decoration: line-through;
+}
+
+
+.map-container iframe {
+    display: block;
+    width: 100%;
+    min-height: 500px;
+}
+
+.section-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #222;
+}
+
+.place-card {
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.place-card:hover {
+    transform: translateY(-3px);
+}
+
+.place-card .card {
+    border-radius: 16px;
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.place-card:hover .card {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.card-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.map-icon {
+    font-size: 1.2rem;
 }

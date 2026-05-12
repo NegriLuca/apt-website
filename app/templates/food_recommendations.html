@@ -3,91 +3,260 @@
 {% block title %}Food & Drinks{% endblock %}
 
 {% block content %}
-<h2>🍝🍸 Food & Drinks</h2>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+  .page {
+    display: flex;
+    height: 80vh;
+    gap: 18px;
+  }
+
+  #sidebar {
+    width: 360px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+
+  #map {
+    flex: 1;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+
+  .item {
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+
+  .item:hover {
+    background: #f6f3ef;
+  }
+
+  h2 {
+    margin-bottom: 5px;
+  }
+
+  .tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #f3f1ee;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+</style>
+
+<h2>🍝🍸 Food & Drinks</h2>
 <p class="lead">
-Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from the apartment.
+Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.
 </p>
 
-<p><small>⭐ Our personal favorites</small></p>
+<div class="tag">⭐ Curated local picks near Garbatella</div>
 
-<h4>🍝 Restaurants</h4>
-<ul>
-  <li>
-    <strong>Porto Fluviale</strong> – Modern trattoria (8 min walk) – 
-    <a href="https://maps.app.goo.gl/R3XybNG6XBTwsnmr8" target="_blank">📍 Open in Google Maps</a>
-  </li>
+<div class="page">
+  <div id="sidebar">
+    <h3>📍 Nearby places</h3>
+    <div id="list"></div>
+  </div>
 
-  <li>
-    <strong>Mariu Trattoria Gentile ⭐</strong> – Cozy Roman cuisine (4 min walk) – 
-    <a href="https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5" target="_blank">📍 Open in Google Maps</a>
-  </li>
+  <div id="map"></div>
+</div>
 
-  <li>
-    <strong>Trattoria da Me (Garbatella)</strong> – Authentic Roman dishes (5 min walk) – 
-    <a href="https://maps.app.goo.gl/SuQnhNMFUvLZLXp77" target="_blank">📍 Open in Google Maps</a>
-  </li>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <li>
-    <strong>Tanto pe' Magna</strong> – Informal Roman restaurant (10 min walk) – 
-    <a href="https://maps.app.goo.gl/mfww4D1RxmgoXZUEA" target="_blank">📍 Open in Google Maps</a>
-  </li>
+<script>
+  // 🏠 BnB location
+  const bnb = [41.8667, 12.4789];
 
-  <li>
-    <strong>Ar Grottino der Traslocatore ⭐</strong> – Very authentic Roman trattoria (15 min walk) – 
-    <a href="https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9" target="_blank">📍 Open in Google Maps</a>
-  </li>
+  const map = L.map('map').setView(bnb, 15);
 
-  <li>
-    <strong>Eataly Roma</strong> – Large Italian food hall (10 min walk) – 
-    <a href="https://maps.app.goo.gl/TgY3UYhoL91Qwuya9" target="_blank">📍 Open in Google Maps</a>
-  </li>
-</ul>
+  // 🎨 Warm map style (not grey)
+  L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    {
+      attribution: '&copy; OpenStreetMap & CARTO'
+    }
+  ).addTo(map);
 
-<h4>🍕 Pizzerias</h4>
-<ul>
-  <li>
-    <strong>Panonto</strong> – Casual pizza (13 min walk) – 
-    <a href="https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8" target="_blank">📍 Open in Google Maps</a>
-  </li>
+  // =========================
+  // 🎯 ICONS
+  // =========================
+  function icon(url) {
+    return L.icon({
+      iconUrl: url,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -28]
+    });
+  }
 
-  <li>
-    <strong>Donna Cira</strong> – Popular local pizzeria (15 min walk) – 
-    <a href="https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6" target="_blank">📍 Open in Google Maps</a>
-  </li>
-</ul>
+  const icons = {
+    restaurant: icon("https://cdn-icons-png.flaticon.com/512/1046/1046784.png"),
+    pasta: icon("https://cdn-icons-png.flaticon.com/512/3480/3480823.png"),
+    pizza: icon("https://cdn-icons-png.flaticon.com/512/6978/6978255.png"),
+    coffee: icon("https://cdn-icons-png.flaticon.com/512/2935/2935307.png"),
+    drinks: icon("https://cdn-icons-png.flaticon.com/512/2738/2738730.png"),
+    home: icon("https://cdn-icons-png.flaticon.com/512/25/25694.png")
+  };
 
-<h4>☕ Cafés & Breakfast</h4>
-<ul>
-  <li>
-    <strong>Nero Vaniglia ⭐</strong> – Modern pastry shop (1 min walk) – 
-    <a href="https://maps.app.goo.gl/DKDodvhsHYczV8hx6" target="_blank">📍 Open in Google Maps</a>
-  </li>
-</ul>
+  // 🏠 BnB marker
+  L.marker(bnb, { icon: icons.home })
+    .addTo(map)
+    .bindPopup("<b>Your BnB</b><br>Via Circonvallazione Ostiense 235");
 
-<h4>🍸 Aperitivo & Drinks</h4>
-<ul>
-  <li>
-    <strong>Biffi ⭐</strong> – Perfect for a quick drink (2 min walk) – 
-    <a href="https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7" target="_blank">📍 Open in Google Maps</a>
-  </li>
+  // =========================
+  // 📍 DATA
+  // =========================
+  const places = [
+    {
+      name: "Porto Fluviale",
+      category: "🍝 Restaurants",
+      type: "restaurant",
+      desc: "Modern trattoria (8 min walk)",
+      coords: [41.8725121,12.4752003,17],
+      url: "https://maps.app.goo.gl/R3XybNG6XBTwsnmr8"
+    },
+    {
+      name: "Mariu Trattoria Gentile ⭐",
+      category: "🍝 Restaurants",
+      type: "pasta",
+      desc: "Cozy Roman cuisine (4 min walk)",
+      coords: [41.8679796, 12.4938781,17],
+      url: "https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5"
+    },
+    {
+      name: "Trattoria da Me (Garbatella)",
+      category: "🍝 Restaurants",
+      type: "pasta",
+      desc: "Authentic Roman dishes (5 min walk)",
+      coords: [41.8663237,12.4880734,17],
+      url: "https://maps.app.goo.gl/SuQnhNMFUvLZLXp77"
+    },
+    {
+      name: "Tanto pe' Magna",
+      category: "🍝 Restaurants",
+      type: "pasta",
+      desc: "Informal Roman restaurant (10 min walk)",
+      coords: [41.8613652,12.4911645,17],
+      url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA"
+    },
+    {
+      name: "Ar Grottino der Traslocatore ⭐",
+      category: "🍝 Restaurants",
+      type: "pasta",
+      desc: "Very authentic Roman trattoria (15 min walk)",
+      coords: [41.8604954,12.4846997,17],
+      url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9"
+    },
+    {
+      name: "Eataly Roma",
+      category: "🍝 Restaurants",
+      type: "restaurant",
+      desc: "Large Italian food hall (10 min walk)",
+      coords: [41.8711959,12.4817421,16],
+      url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9"
+    },
 
-  <li>
-    <strong>Bauhaus Rome</strong> – Stylish cocktail bar (2 min walk) – 
-    <a href="https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6" target="_blank">📍 Open in Google Maps</a>
-  </li>
+    {
+      name: "Panonto",
+      category: "🍕 Pizzerias",
+      type: "pizza",
+      desc: "Casual pizza (13 min walk)",
+      coords: [41.8624022,12.4849386,17],
+      url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8"
+    },
+    {
+      name: "Donna Cira",
+      category: "🍕 Pizzerias",
+      type: "pizza",
+      desc: "Popular local pizzeria (15 min walk)",
+      coords: [41.8720865,12.4809422,16],
+      url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6"
+    },
 
-  <li>
-    <strong>Tre di Tutto</strong> – Aperitivo and casual dinner (12 min walk) – 
-    <a href="https://maps.app.goo.gl/Bf7AaUdiSC4q8A6t7" target="_blank">📍 Open in Google Maps</a>
-  </li>
+    {
+      name: "Nero Vaniglia ⭐",
+      category: "☕ Cafés",
+      type: "coffee",
+      desc: "Modern pastry shop (1 min walk)",
+      coords: [41.8674526,12.4899657,17],
+      url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6"
+    },
 
-  <li>
-    <strong>Sgarbato</strong> – Craft beer bar (14 min walk) – 
-    <a href="https://maps.app.goo.gl/FQ3VgJFTagzX8nd19" target="_blank">📍 Open in Google Maps</a>
-  </li>
-</ul>
+    {
+      name: "Biffi ⭐",
+      category: "🍸 Drinks",
+      type: "drinks",
+      desc: "Perfect for a quick drink (2 min walk)",
+      coords: [41.8667445,12.4898635,17],
+      url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7"
+    },
+    {
+      name: "Bauhaus Rome",
+      category: "🍸 Drinks",
+      type: "drinks",
+      desc: "Stylish cocktail bar (2 min walk)",
+      coords: [41.8663237,12.4880734,17],
+      url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6"
+    }
+  ];
 
-</body>
-</html>
+  // =========================
+  // 📍 MARKERS + SIDEBAR
+  // =========================
+  const list = document.getElementById("list");
+
+  const grouped = {};
+
+  places.forEach(p => {
+    // marker
+    const marker = L.marker(p.coords, {
+      icon: icons[p.type] || icons.restaurant
+    }).addTo(map);
+
+    marker.bindPopup(`
+      <b>${p.name}</b><br>
+      <small>${p.desc}</small><br><br>
+      <a href="${p.url}" target="_blank">📍 Open in Google Maps</a>
+    `);
+
+    // sidebar grouping
+    if (!grouped[p.category]) grouped[p.category] = [];
+    grouped[p.category].push({ ...p, marker });
+  });
+
+  Object.keys(grouped).forEach(cat => {
+
+    const title = document.createElement("h4");
+    title.innerText = cat;
+    title.style.marginTop = "14px";
+    list.appendChild(title);
+
+    grouped[cat].forEach(p => {
+
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <strong>${p.name}</strong><br>
+        <small>${p.desc}</small>
+      `;
+
+      div.onclick = () => {
+        map.setView(p.coords, 17);
+        p.marker.openPopup();
+      };
+
+      list.appendChild(div);
+    });
+  });
+
+</script>
 {% endblock %}
