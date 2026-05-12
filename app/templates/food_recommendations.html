@@ -6,114 +6,88 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-<style>
-  .page {
-    display: flex;
-    height: 80vh;
-    gap: 18px;
-  }
-
-  #sidebar {
-    width: 360px;
-    background: #fff;
-    border-radius: 14px;
-    padding: 18px;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  }
-
-  #map {
-    flex: 1;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  }
-
-  .item {
-    padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-bottom: 8px;
-  }
-
-  .item:hover {
-    background: #f6f3ef;
-  }
-
-  h2 {
-    margin-bottom: 5px;
-  }
-
-  .tag {
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: #f3f1ee;
-    display: inline-block;
-    margin-bottom: 10px;
-  }
-</style>
 
 <h2>🍝🍸 Food & Drinks</h2>
 <p class="lead">
 Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.
 </p>
 
-<div class="tag">⭐ Curated local picks near Garbatella</div>
+<div class="tag" id="contextTag">⭐ Curated local picks near Garbatella</div>
+
+<!-- FILTERS -->
+<div id="filters">
+  <button class="filter active" data-type="all">🌍 All</button>
+  <button class="filter" data-type="curated">⭐ Curated</button>
+  <button class="filter" data-type="pasta">🍝 Trattorie</button>
+  <button class="filter" data-type="pizza">🍕 Pizza</button>
+  <button class="filter" data-type="coffee">☕ Cafés</button>
+  <button class="filter" data-type="drinks">🍸 Drinks</button>
+  <button class="filter" data-type="restaurant">🍴 Restaurants</button>
+</div>
 
 <div class="page">
   <div id="sidebar">
-    <h3>📍 Nearby places</h3>
     <div id="list"></div>
   </div>
-
   <div id="map"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-  // 🏠 BnB location
-  const bnb = [41.8667, 12.4789];
+
+  // 🏠 BnB
+  const bnb = [41.86731700, 12.49094300];
 
   const map = L.map('map').setView(bnb, 15);
 
-  // 🎨 Warm map style (not grey)
+  // modern map (not grey)
   L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    {
-      attribution: '&copy; OpenStreetMap & CARTO'
-    }
+    { attribution: '&copy; OpenStreetMap & CARTO' }
   ).addTo(map);
 
   // =========================
-  // 🎯 ICONS
+  // ICONS (emoji markers)
   // =========================
-  function icon(url) {
-    return L.icon({
-      iconUrl: url,
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -28]
-    });
-  }
+const icons = {
+  restaurant: L.divIcon({
+    className: "emoji-icon",
+    html: "<div class='pin'>🍴</div>"
+  }),
 
-  const icons = {
-    restaurant: icon("https://cdn-icons-png.flaticon.com/512/1046/1046784.png"),
-    pasta: icon("https://cdn-icons-png.flaticon.com/512/3480/3480823.png"),
-    pizza: icon("https://cdn-icons-png.flaticon.com/512/6978/6978255.png"),
-    coffee: icon("https://cdn-icons-png.flaticon.com/512/2935/2935307.png"),
-    drinks: icon("https://cdn-icons-png.flaticon.com/512/2738/2738730.png"),
-    home: icon("https://cdn-icons-png.flaticon.com/512/25/25694.png")
-  };
+  pasta: L.divIcon({
+    className: "emoji-icon",
+    html: "<div class='pin'>🍝</div>"
+  }),
 
+  pizza: L.divIcon({
+    className: "emoji-icon",
+    html: "<div class='pin'>🍕</div>"
+  }),
+
+  coffee: L.divIcon({
+    className: "emoji-icon",
+    html: "<div class='pin'>☕</div>"
+  }),
+
+  drinks: L.divIcon({
+    className: "emoji-icon",
+    html: "<div class='pin'>🍸</div>"
+  }),
+
+  home: L.divIcon({
+    className: "emoji-home",
+    html: "<div class='pin-home'>🏠</div>"
+  })
+};
   // 🏠 BnB marker
   L.marker(bnb, { icon: icons.home })
     .addTo(map)
     .bindPopup("<b>Your BnB</b><br>Via Circonvallazione Ostiense 235");
 
   // =========================
-  // 📍 DATA
+  // DATA
   // =========================
   const places = [
     {
@@ -210,14 +184,13 @@ Discover our favorite places to eat, drink, and experience the real Rome – jus
   ];
 
   // =========================
-  // 📍 MARKERS + SIDEBAR
+  // MARKERS
   // =========================
   const list = document.getElementById("list");
-
-  const grouped = {};
+  const markers = [];
 
   places.forEach(p => {
-    // marker
+
     const marker = L.marker(p.coords, {
       icon: icons[p.type] || icons.restaurant
     }).addTo(map);
@@ -228,9 +201,18 @@ Discover our favorite places to eat, drink, and experience the real Rome – jus
       <a href="${p.url}" target="_blank">📍 Open in Google Maps</a>
     `);
 
-    // sidebar grouping
+    markers.push({ marker, data: p });
+  });
+
+  // =========================
+  // SIDEBAR (grouped)
+  // =========================
+  const sidebarItems = [];
+  const grouped = {};
+
+  places.forEach(p => {
     if (!grouped[p.category]) grouped[p.category] = [];
-    grouped[p.category].push({ ...p, marker });
+    grouped[p.category].push(p);
   });
 
   Object.keys(grouped).forEach(cat => {
@@ -244,6 +226,10 @@ Discover our favorite places to eat, drink, and experience the real Rome – jus
 
       const div = document.createElement("div");
       div.className = "item";
+      div.dataset.type = p.type;
+
+      const markerObj = markers.find(m => m.data.name === p.name);
+
       div.innerHTML = `
         <strong>${p.name}</strong><br>
         <small>${p.desc}</small>
@@ -251,12 +237,74 @@ Discover our favorite places to eat, drink, and experience the real Rome – jus
 
       div.onclick = () => {
         map.setView(p.coords, 17);
-        p.marker.openPopup();
+        markerObj.marker.openPopup();
+      };
+
+      div.onmouseenter = () => {
+        markerObj.marker.openPopup();
       };
 
       list.appendChild(div);
     });
-  });
+  });  
+  
+  // =========================
+  // FILTERS
+  // =========================
+  const tag = document.getElementById("contextTag");
 
+  const tagText = {
+    all: "⭐ Curated local picks near Garbatella",
+    pasta: "🍝 Best traditional Roman trattorie nearby",
+    pizza: "🍕 Best pizza spots near Garbatella",
+    coffee: "☕ Best cafés & breakfast spots nearby",
+    drinks: "🍸 Aperitivo & nightlife near Garbatella",
+    restaurant: "🍴 Top restaurants around Garbatella"
+  };
+
+  const buttons = document.querySelectorAll(".filter");
+
+  buttons.forEach(btn => {
+    btn.onclick = () => {
+
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+    const type = btn.dataset.type;
+
+    // update tag text (optional)
+    tag.innerText = tagText[type] || tagText.all;
+
+    // MARKERS FILTER
+    markers.forEach(obj => {
+
+      const p = obj.data;
+
+      let match = false;
+
+      if (type === "all") match = true;
+      else if (type === "curated") match = p.name.includes("⭐");
+      else match = p.type === type;
+
+      if (match) map.addLayer(obj.marker);
+      else map.removeLayer(obj.marker);
+    });
+
+    // SIDEBAR FILTER
+    document.querySelectorAll(".item").forEach(el => {
+
+      const isCurated = el.innerText.includes("⭐");
+
+      let match = false;
+
+      if (type === "all") match = true;
+      else if (type === "curated") match = isCurated;
+      else match = el.dataset.type === type;
+
+      el.style.display = match ? "block" : "none";
+    });    
+  };
+  });
 </script>
+
 {% endblock %}
