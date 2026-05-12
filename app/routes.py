@@ -87,9 +87,13 @@ def faq():
     return render_template('faq.html')
 
 
-@bp.route('/recommendations')
-def recommendations():
-    return render_template('recommendations.html')
+@bp.route('/food_recommendations')
+def food_recommendations():
+    return render_template('food_recommendations.html')
+
+@bp.route('/attractions')
+def attractions():
+    return render_template('attractions.html')
 
 
 # ── Reservation / booking flow ────────────────────────────────────────────────
