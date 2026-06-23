@@ -12,6 +12,7 @@ from datetime import datetime, date, timedelta
 import secrets
 from sqlalchemy.exc import IntegrityError
 import stripe
+import requests
 import threading
 
 bp = Blueprint('routes', __name__)
@@ -32,56 +33,65 @@ def is_available(check_in, check_out):
 
 
 def _send_confirmation_emails(reservation):
-    """Sends confirmation emails on the main thread to ensure Railway completes the handshake."""
+    """Sends confirmation emails via Brevo's Web API over unblockable HTTPS Port 443."""
     try:
-        # Generate URL safely on the active request context
         cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
         apt = get_apartment()
-        nights = reservation.nights
-        total = reservation.total_price
         payment_summary = get_payment_summary(reservation)
+        
+        # Grab your Brevo credentials from your Railway variables
+        brevo_api_key = current_app.config.get('MAIL_PASSWORD')
+        sender_email = "lotto235roma@gmail.com"  # Your verified Brevo sender email
 
-        sender_email = current_app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
-        print(f"📬 MAIN THREAD: Dispatching emails from {sender_email}...", flush=True)
+        print("📬 HTTPS API: Dispatching emails via Brevo Web API...", flush=True)
 
-        # 1. Guest Email
-        msg1 = Message(
-            subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
-            sender=sender_email,
-            recipients=[reservation.guest_email],
-            html=render_template(
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": brevo_api_key
+        }
+
+        # 1. Dispatch to Guest
+        guest_payload = {
+            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
+            "to": [{"email": reservation.guest_email}],
+            "subject": f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
+            "htmlContent": render_template(
                 'email_confirmation.html',
                 reservation=reservation,
                 cancel_url=cancel_url,
-                nights=nights,
-                total=total,
+                nights=reservation.nights,
+                total=reservation.total_price,
                 apartment=apt,
                 payment_summary=payment_summary
             )
-        )
-        mail.send(msg1)
-        print("✅ Guest email successfully accepted by Gmail SMTP!", flush=True)
+        }
+        
+        response1 = requests.post(url, headers=headers, data=json.dumps(guest_payload))
+        print(f"✅ Brevo API Response (Guest): {response1.status_code}", flush=True)
 
-        # 2. Admin Email
-        msg2 = Message(
-            subject="New booking received",
-            sender=sender_email,
-            recipients=[current_app.config['ADMIN_EMAIL']],
-            body=(
+        # 2. Dispatch to Admin
+        admin_payload = {
+            "sender": {"name": "Booking System", "email": sender_email},
+            "to": [{"email": current_app.config.get('ADMIN_EMAIL', sender_email)}],
+            "subject": "New booking received",
+            "textContent": (
                 f"New booking details:\n\n"
                 f"Guest: {reservation.guest_name}\n"
-                f"Dates: {reservation.check_in} → {reservation.check_out} ({nights} nights)\n"
+                f"Dates: {reservation.check_in} → {reservation.check_out} ({reservation.nights} nights)\n"
                 f"{payment_summary}\n"
                 f"Status: {reservation.payment_status.upper()}\n"
-                )
             )
-        mail.send(msg2)
-        print("✅ Admin email successfully accepted by Gmail SMTP!", flush=True)
+        }
+        
+        response2 = requests.post(url, headers=headers, data=json.dumps(admin_payload))
+        print(f"✅ Brevo API Response (Admin): {response2.status_code}", flush=True)
 
     except Exception as exc:
-        print('!!! SMTP EMAIL DISPATCH FAILURE !!!', flush=True)
+        print('!!! BREVO API FAILURE !!!', flush=True)
         print(f'Error detail: {str(exc)}', flush=True)
-        
+
 # ── Public pages ──────────────────────────────────────────────────────────────
 @bp.route('/')
 def home():
