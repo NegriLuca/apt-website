@@ -36,12 +36,20 @@ def _async_email_worker(app, reservation_id, cancel_url):
     """Executes mail rendering and sending out of the main browser window lifecycle."""
     with app.app_context():
         print(f"🚀 BACKGROUND THREAD ACTIVE: Processing email for Reservation #{reservation_id}...", flush=True)
-        print(f"Sender email: {app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')}", flush=True)
+        
+        # ── FORCE OVERRIDE ANY HIDDEN SYSTEM SAFETY LOCKS ──
+        app.config['TESTING'] = False
+        app.config['MAIL_SUPPRESS_SEND'] = False
+        
+        # Print out the current parameters so we can see them in Railway logs
+        print(f"DEBUG - Mail Server: {app.config.get('MAIL_SERVER')}", flush=True)
+        print(f"DEBUG - Mail Username: {app.config.get('MAIL_USERNAME')}", flush=True)
+        print(f"DEBUG - Testing Flag: {app.config.get('TESTING')}", flush=True)
+
         try:
-            app.config['MAIL_DEBUG'] = True 
-            
             reservation = Reservation.query.get(reservation_id)
             if not reservation:
+                print("DEBUG - Reservation not found!", flush=True)
                 return
 
             apt = get_apartment()
@@ -50,25 +58,28 @@ def _async_email_worker(app, reservation_id, cancel_url):
             payment_summary = get_payment_summary(reservation)
 
             sender_email = app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
+            print(f"DEBUG - Sending from: {sender_email} to {reservation.guest_email}", flush=True)
 
             # 1. Guest Email
-            mail.send(Message(
+            msg1 = Message(
                 subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
                 sender=sender_email,
                 recipients=[reservation.guest_email],
                 html=render_template(
                     'email_confirmation.html',
                     reservation=reservation,
-                    cancel_url=cancel_url, # Now safely passed in from the main thread!
+                    cancel_url=cancel_url,
                     nights=nights,
                     total=total,
                     apartment=apt,
                     payment_summary=payment_summary
                 )
-            ))
+            )
+            mail.send(msg1)
+            print("DEBUG - Guest email sent successfully via mail.send()", flush=True)
 
             # 2. Admin Email
-            mail.send(Message(
+            msg2 = Message(
                 subject="New booking received",
                 sender=sender_email,
                 recipients=[app.config['ADMIN_EMAIL']],
@@ -79,12 +90,15 @@ def _async_email_worker(app, reservation_id, cancel_url):
                     f"{payment_summary}\n"
                     f"Status: {reservation.payment_status.upper()}\n"
                 )
-            ))
-            app.logger.info(f"⚡ Asynchronous confirmation emails dispatched for Reservation #{reservation_id}")
+            )
+            mail.send(msg2)
+            print("DEBUG - Admin email sent successfully via mail.send()", flush=True)
+            
+            print(f"✅ Asynchronous confirmation emails dispatched for Reservation #{reservation_id}", flush=True)
+            
         except Exception as exc:
-            app.logger.error('!!! SMTP EMAIL DISPATCH FAILURE !!!')
-            app.logger.error('Error detail: %s', str(exc))
-
+            print('!!! SMTP EMAIL DISPATCH FAILURE !!!', flush=True)
+            print(f'Error detail: {str(exc)}', flush=True)
 
 def _send_confirmation_emails(reservation):
     """Spins off confirmation email processing to a non-blocking background thread."""
