@@ -101,11 +101,25 @@ def attractions():
 
 
 # ── Reservation / booking flow ────────────────────────────────────────────────
+from datetime import timedelta
+from flask import render_template, redirect, url_for, flash, request, session
+from app.forms import ReservationForm
+from app.models import Reservation
+# Assuming 'is_available' and 'get_apartment' are imported at the top of your file
 
 @bp.route('/reserve', methods=['GET', 'POST'])
 def reserve():
     apartment = get_apartment()
     form = ReservationForm()
+
+    # Guard clause: If your DB reset wiped out the apartment, handle it gracefully
+    if not apartment:
+        return render_template(
+            'reservation.html',
+            form=form,
+            apartment=None,
+            disabled_dates=[]
+        )
 
     reservations = Reservation.query.filter(
         Reservation.status != 'cancelled'
@@ -149,6 +163,7 @@ def reserve():
         }
         return redirect(url_for('routes.checkout'))
 
+    # Render your unified template file 
     return render_template(
         'reservation.html',
         form=form,
