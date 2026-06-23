@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <div style="max-width: 550px; margin: 40px auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        
+        <table style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px;">
+            <tr>
+                <td>
+                    <h2 style="color: #0f172a; margin: 0; font-size: 20px; font-weight: 700;">🏠 New Booking Received</h2>
+                </td>
+                <td style="text-align: right;">
+                    <span style="background-color: #dcfce7; color: #15803d; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;">
+                        {{ reservation.payment_status.upper() }}
+                    </span>
+                </td>
+            </tr>
+        </table>
+        
+        <div style="background-color: #f8fafc; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+            <h4 style="color: #64748b; text-transform: uppercase; font-size: 11px; margin: 0 0 8px 0; letter-spacing: 0.5px;">Guest Details</h4>
+            <p style="color: #1e293b; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">👤 {{ reservation.guest_name }}</p>
+            <p style="color: #64748b; font-size: 14px; margin: 0;">✉️ <a href="mailto:{{ reservation.guest_email }}" style="color: #2563eb; text-decoration: none;">{{ reservation.guest_email }}</a></p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+            <tr>
+                <td style="padding: 8px 0; color: #64748b; font-weight: 500;">📅 Check-In:</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ reservation.check_in }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #64748b; font-weight: 500;">📅 Check-Out:</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ reservation.check_out }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #64748b; font-weight: 500;">🌙 Total Stay:</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ reservation.nights }} Nights</td>
+            </tr>
+            <tr style="border-top: 1px dashed #e2e8f0;">
+                <td style="padding: 12px 0 0 0; color: #0f172a; font-weight: 700; font-size: 16px;">💰 Revenue Total:</td>
+                <td style="padding: 12px 0 0 0; color: #2563eb; font-weight: 700; font-size: 18px; text-align: right;">
+                    €{{ "{:,.2f}".format(reservation.total_price) if reservation.total_price else "0.00" }}
+                </td>
+            </tr>
+        </table>
+
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #f1f5f9; text-align: center;">
+            <a href="{{ admin_cancel_url }}" style="display: inline-block; width: 100%; max-width: 250px; background-color: #dc2626; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; text-align: center; padding: 12px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
+                🛑 Cancel Booking & Refund
+            </a>
+            <p style="font-size: 11px; color: #94a3b8; margin: 8px 0 0 0;">
+                Warning: Clicking this immediately triggers an official transaction reversal on Stripe.
+            </p>
+        </div>
+        <div style="font-size: 12px; color: #94a3b8; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 20px;">
+            ⚡ Automated notification via your Railway App engine.
+        </div>
+    </div>
+</body>
+</html>
