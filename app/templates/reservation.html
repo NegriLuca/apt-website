@@ -127,8 +127,10 @@ document.addEventListener("DOMContentLoaded", function() {
           return;
         }
 
-        if (hiddenCheckIn) hiddenCheckIn.value = checkIn.toISOString().split("T")[0];
-        if (hiddenCheckOut) hiddenCheckOut.value = checkOut.toISOString().split("T")[0];
+        // FIXED: Replaced native .toISOString() with Flatpickr's text formatter 
+        // to block browser timezone conversions from rolling back the date by 1 day.
+        if (hiddenCheckIn) hiddenCheckIn.value = instance.formatDate(checkIn, "Y-m-d");
+        if (hiddenCheckOut) hiddenCheckOut.value = instance.formatDate(checkOut, "Y-m-d");
 
         if (nightsEl) nightsEl.textContent = nights;
         if (totalEl) totalEl.textContent = nights * pricePerNight;

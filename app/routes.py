@@ -24,15 +24,14 @@ bp = Blueprint('routes', __name__)
 def get_apartment():
     return Apartment.query.first()
 
-
 def is_available(check_in, check_out):
+    # Match the calendar loop exactly by checking against anything that IS NOT cancelled
     conflicts = Reservation.query.filter(
-        Reservation.status == "confirmed",
+        Reservation.status != "cancelled",
         Reservation.check_in < check_out,
         Reservation.check_out > check_in
     ).count()
     return conflicts == 0
-
 
 def _send_confirmation_emails(reservation):
     """Sends confirmation emails via Brevo's Web API over unblockable HTTPS Port 443."""
