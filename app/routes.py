@@ -19,8 +19,6 @@ bp = Blueprint('routes', __name__)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
 def get_apartment():
     return Apartment.query.first()
 
@@ -34,16 +32,16 @@ def is_available(check_in, check_out):
     return conflicts == 0
 
 
-def _async_email_worker(app, reservation_id):
+def _async_email_worker(app, reservation_id, cancel_url):
     """Executes mail rendering and sending out of the main browser window lifecycle."""
     with app.app_context():
         try:
-            # Re-query inside the isolated context to ensure state hydration
+            app.config['MAIL_DEBUG'] = True 
+            
             reservation = Reservation.query.get(reservation_id)
             if not reservation:
                 return
 
-            cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
             apt = get_apartment()
             nights = reservation.nights
             total = reservation.total_price
@@ -59,7 +57,7 @@ def _async_email_worker(app, reservation_id):
                 html=render_template(
                     'email_confirmation.html',
                     reservation=reservation,
-                    cancel_url=cancel_url,
+                    cancel_url=cancel_url, # Now safely passed in from the main thread!
                     nights=nights,
                     total=total,
                     apartment=apt,
@@ -82,18 +80,22 @@ def _async_email_worker(app, reservation_id):
             ))
             app.logger.info(f"⚡ Asynchronous confirmation emails dispatched for Reservation #{reservation_id}")
         except Exception as exc:
-            app.logger.error('Failed to run asynchronous worker mail task: %s', exc)
+            app.logger.error('!!! SMTP EMAIL DISPATCH FAILURE !!!')
+            app.logger.error('Error detail: %s', str(exc))
 
 
 def _send_confirmation_emails(reservation):
     """Spins off confirmation email processing to a non-blocking background thread."""
+    # ── GENERATE URL ON THE MAIN REQUEST THREAD ──
+    # Doing this here means Flask knows your exact domain name perfectly!
+    cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
+    
     flask_app = current_app._get_current_object()
     thread = threading.Thread(
         target=_async_email_worker, 
-        args=[flask_app, reservation.id]
+        args=[flask_app, reservation.id, cancel_url] # Pass cancel_url down to the worker
     )
-    thread.start()
-    
+    thread.start()    
 # ── Public pages ──────────────────────────────────────────────────────────────
 
 @bp.route('/')
