@@ -12,9 +12,12 @@ from datetime import datetime, date, timedelta
 import secrets
 from sqlalchemy.exc import IntegrityError
 import stripe
+import threading
 
 bp = Blueprint('routes', __name__)
 
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -31,46 +34,66 @@ def is_available(check_in, check_out):
     return conflicts == 0
 
 
+def _async_email_worker(app, reservation_id):
+    """Executes mail rendering and sending out of the main browser window lifecycle."""
+    with app.app_context():
+        try:
+            # Re-query inside the isolated context to ensure state hydration
+            reservation = Reservation.query.get(reservation_id)
+            if not reservation:
+                return
+
+            cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
+            apt = get_apartment()
+            nights = reservation.nights
+            total = reservation.total_price
+            payment_summary = get_payment_summary(reservation)
+
+            sender_email = app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
+
+            # 1. Guest Email
+            mail.send(Message(
+                subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
+                sender=sender_email,
+                recipients=[reservation.guest_email],
+                html=render_template(
+                    'email_confirmation.html',
+                    reservation=reservation,
+                    cancel_url=cancel_url,
+                    nights=nights,
+                    total=total,
+                    apartment=apt,
+                    payment_summary=payment_summary
+                )
+            ))
+
+            # 2. Admin Email
+            mail.send(Message(
+                subject="New booking received",
+                sender=sender_email,
+                recipients=[app.config['ADMIN_EMAIL']],
+                body=(
+                    f"New booking details:\n\n"
+                    f"Guest: {reservation.guest_name}\n"
+                    f"Dates: {reservation.check_in} → {reservation.check_out} ({nights} nights)\n"
+                    f"{payment_summary}\n"
+                    f"Status: {reservation.payment_status.upper()}\n"
+                )
+            ))
+            app.logger.info(f"⚡ Asynchronous confirmation emails dispatched for Reservation #{reservation_id}")
+        except Exception as exc:
+            app.logger.error('Failed to run asynchronous worker mail task: %s', exc)
+
+
 def _send_confirmation_emails(reservation):
-    """Send booking confirmation to guest and host."""
-    cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
-    apt = get_apartment()
-    nights = reservation.nights
-    total = reservation.total_price
-    payment_summary = get_payment_summary(reservation) # Use your new helper
-
-    sender_email = current_app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
-
-    # 1. Guest Email
-    mail.send(Message(
-        subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
-        sender=sender_email,
-        recipients=[reservation.guest_email],
-        html=render_template(
-            'email_confirmation.html',
-            reservation=reservation,
-            cancel_url=cancel_url,
-            nights=nights,
-            total=total,
-            apartment=apt,
-            payment_summary=payment_summary # PASS THIS TO THE TEMPLATE
-        )
-    ))
-
-    # 2. Admin Email (Updated to include payment status)
-    mail.send(Message(
-        subject="New booking received",
-        sender=sender_email,
-        recipients=[current_app.config['ADMIN_EMAIL']],
-        body=(
-            f"New booking details:\n\n"
-            f"Guest: {reservation.guest_name}\n"
-            f"Dates: {reservation.check_in} → {reservation.check_out} ({nights} nights)\n"
-            f"{payment_summary}\n"
-            f"Status: {reservation.payment_status.upper()}\n"
-        )
-    ))
-
+    """Spins off confirmation email processing to a non-blocking background thread."""
+    flask_app = current_app._get_current_object()
+    thread = threading.Thread(
+        target=_async_email_worker, 
+        args=[flask_app, reservation.id]
+    )
+    thread.start()
+    
 # ── Public pages ──────────────────────────────────────────────────────────────
 
 @bp.route('/')
@@ -101,11 +124,6 @@ def attractions():
 
 
 # ── Reservation / booking flow ────────────────────────────────────────────────
-from datetime import timedelta
-from flask import render_template, redirect, url_for, flash, request, session
-from app.forms import ReservationForm
-from app.models import Reservation
-# Assuming 'is_available' and 'get_apartment' are imported at the top of your file
 
 @bp.route('/reserve', methods=['GET', 'POST'])
 def reserve():
