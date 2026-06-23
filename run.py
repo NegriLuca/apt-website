@@ -34,7 +34,17 @@ with app.app_context():
     else:
         print("⚠️ Warning: ADMIN_PASSWORD not found in .env file. Admin setup skipped.")
 
-
+    default_apartment = Apartment.query.first()
+    if not default_apartment:
+        print("🏠 No properties found. Seeding default apartment profile...")
+        default_apartment = Apartment(
+            name="My Cozy Suite",
+            price_per_night=120.00  # Set your preferred default base price here
+        )
+        db.session.add(default_apartment)
+        db.session.commit()
+        print("✅ Default apartment successfully seeded!")
+        
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=False)
