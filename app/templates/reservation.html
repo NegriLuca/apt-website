@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}Reserve {{ apartment.name }}{% endblock %}
-
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <h2>Reserve {{ apartment.name }}</h2>
 <p>Price per night: ${{ apartment.price_per_night }}</p>
 
