@@ -15,14 +15,14 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ── Email ─────────────────────────────────────────────────────────────────
-    MAIL_SERVER  = 'smtp.gmail.com'
-    MAIL_PORT    = 465
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
+    MAIL_SERVER  = 'smtp-relay.brevo.com'
+    MAIL_PORT    = 587
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
     TESTING      = False
     MAIL_USERNAME       = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD       = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_USERNAME')
+    MAIL_DEFAULT_SENDER = os.environ.get('ADMIN_EMAIL')
 
     # Host e-mail for admin notifications
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL') or os.environ.get('MAIL_USERNAME')
