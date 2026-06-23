@@ -66,14 +66,13 @@
                     <span class="text-muted"><small>Processed by Channel</small></span>
                 {% endif %}
             </td>
-
             <td>
                 {% if r.source in ['direct', 'stripe'] %}
                     {% if r.payment_status not in ['cancelled', 'refunded'] %}
-                        <form action="{{ url_for('routes.admin_cancel_reservation', token=r.cancel_token) }}" 
-                              method="GET" 
-                              onsubmit="return confirm('⚠️ WARNING: Are you sure you want to cancel this booking and automatically issue a full Stripe refund to {{ r.guest_name }}? This action cannot be reversed.');" 
-                              class="d-inline">
+                        <form action="{{ url_for('routes.admin_cancel_via_token', token=r.cancel_token) }}" 
+                            method="GET" 
+                            onsubmit="return confirm('⚠️ WARNING: Are you sure you want to cancel this booking and automatically issue a full Stripe refund to {{ r.guest_name }}? This action cannot be reversed.');" 
+                            class="d-inline">
                             <button type="submit" class="btn btn-sm btn-danger" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">
                                 🛑 Cancel & Refund
                             </button>
