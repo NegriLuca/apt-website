@@ -44,13 +44,23 @@ class Reservation(db.Model):
     guest_email     = db.Column(db.String(120))                # nullable for external bookings
     check_in        = db.Column(db.Date, nullable=False)
     check_out       = db.Column(db.Date, nullable=False)
-    num_guests      = db.Column(db.Integer, nullable=False)
+    num_guests      = db.Column(db.Integer, nullable=False, default=1)
     status          = db.Column(db.String(20), nullable=False, default='pending')
+    source          = db.Column(db.String(50), nullable=False, default="direct")
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
     cancel_token    = db.Column(db.String(128), unique=True, index=True)
     source          = db.Column(db.String(20), default="direct")
     external_uid    = db.Column(db.String(128), unique=True, index=True)
 
+    @property
+    def nights(self):
+        if self.check_out and self.check_in:
+            return (self.check_out - self.check_in).days
+        return 0
+    # New Fields for Payment Tracking
+    total_price = db.Column(db.Float, nullable=False, default=0.0) 
+    payment_status = db.Column(db.String(20), default='unpaid')
+    payment_method = db.Column(db.String(50), default='n/a')
     # ── Stripe ────────────────────────────────────────────────────────────────
     stripe_payment_intent_id = db.Column(db.String(128), unique=True, index=True)
 
@@ -68,14 +78,6 @@ class Reservation(db.Model):
     @property
     def nights(self):
         return (self.check_out - self.check_in).days
-
-    @property
-    def total_price(self):
-        apt = Apartment.query.first()
-        if apt:
-            return self.nights * apt.price_per_night
-        return 0
-
 
 class ICalFeed(db.Model):
     id            = db.Column(db.Integer, primary_key=True)

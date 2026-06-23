@@ -6,28 +6,121 @@
 <h2>Admin Dashboard</h2>
 <p>All reservations:</p>
 
-<table class="table table-striped table-hover mt-3">
-  <thead class="table-dark">
-    <tr>
-      <th>Guest Name</th>
-      <th>Email</th>
-      <th>Apartment</th>
-      <th>Check-in</th>
-      <th>Check-out</th>
-      <th>Guests</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in reservations %}
-    <tr>
-      <td>{{ r.guest_name }}</td>
-      <td>{{ r.guest_email }}</td>
-      <td>{{ r.apartment.name if r.apartment else "N/A" }}</td>
-      <td>{{ r.check_in.strftime('%Y-%m-%d') }}</td>
-      <td>{{ r.check_out.strftime('%Y-%m-%d') }}</td>
-      <td>{{ r.num_guests }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Guest Name / Contact</th>
+            <th>Source Channel</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Nights</th>
+            <th>Total Revenue</th>
+            <th>Payment Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in reservations %}
+        <tr>
+            <td><span class="text-muted">#{{ r.id }}</span></td>
+            
+            <td>
+                <strong>{{ r.guest_name }}</strong>
+                <br>
+                <small class="text-muted">{{ r.guest_email or 'No email provided via sync' }}</small>
+            </td>
+            
+            <td>
+                {% if r.source == 'direct' or r.source == 'stripe' %}
+                    <span class="badge bg-success" style="background-color: #28a745 !important;">Direct (Stripe)</span>
+                {% elif r.source == 'airbnb' %}
+                    <span class="badge bg-danger" style="background-color: #ff5a5f !important;">Airbnb</span>
+                {% elif r.source == 'booking_com' %}
+                    <span class="badge bg-primary" style="background-color: #003580 !important;">Booking.com</span>
+                {% else %}
+                    <span class="badge bg-secondary text-uppercase">{{ r.source }}</span>
+                {% endif %}
+            </td>
+            
+            <td>{{ r.check_in }}</td>
+            <td>{{ r.check_out }}</td>
+            <td>{{ r.nights }} nights</td>
+            
+            <td>
+                {% if r.total_price > 0 %}
+                    <strong>€{{ "%.2f"|format(r.total_price) }}</strong>
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+            
+            <td>
+                {% if r.payment_status == 'paid' %}
+                    <span class="badge bg-light text-success border border-success">Paid via {{ r.payment_method | upper }}</span>
+                {% elif r.payment_status == 'unpaid' %}
+                    <span class="badge bg-light text-danger border border-danger">Unpaid</span>
+                {% else %}
+                    <span class="text-muted"><small>Processed by Channel</small></span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<hr class="my-5">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>External iCal Feeds</h3>
+    <div>
+        <a href="{{ url_for('routes.add_feed') }}" class="btn btn-primary">Add iCal Feed</a>
+        
+        <form action="{{ url_for('routes.sync_feeds_now') }}" method="POST" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-success">Sync Feeds Now</button>
+        </form>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Platform</th>
+                <th>URL</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feed in feeds %}
+            <tr>
+                <td class="text-capitalize"><strong>{{ feed.source }}</strong></td>
+                <td class="text-muted"><small><code>{{ feed.url }}</code></small></td>
+                <td>
+                    {% if feed.active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('routes.edit_feed', feed_id=feed.id) }}" class="btn btn-outline-secondary">Edit</a>
+                        
+                        <form action="{{ url_for('routes.delete_feed', feed_id=feed.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this feed?');" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>            
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted py-3">No external calendar feeds added yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}

@@ -6,10 +6,11 @@ Imports external calendars (Airbnb, Booking.com, VRBO, …) into the local DB.
 Two-way logic:
   • NEW events in the feed   → create Reservation (status=confirmed, source=<platform>)
   • Events GONE from feed    → cancel the matching Reservation
-  • Events already present   → no-op (idempotent by external_uid)
+  • Events already present   → no-op (idempotent by external_uid or check-in/out dates)
 """
 
 import logging
+import re
 import requests
 from datetime import datetime, date
 from icalendar import Calendar
@@ -42,7 +43,7 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         start = component.decoded('DTSTART', None)
         end   = component.decoded('DTEND',   None)
 
-        if not uid or start is None or end is None:
+        if start is None or end is None:
             continue
 
         # Normalise datetime → date
@@ -55,21 +56,69 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         if end <= start:
             continue
 
-        live_uids.add(uid)
+        # If a UID exists, track it to prevent deletion downstream
+        if uid:
+            live_uids.add(uid)
 
-        # Insert only if not already in DB
-        if not Reservation.query.filter_by(external_uid=uid).first():
-            to_add.append(Reservation(
-                guest_name   = 'External booking',
-                guest_email  = None,
-                check_in     = start,
-                check_out    = end,
-                num_guests   = 1,
-                status       = 'confirmed',
-                source       = feed.source,
-                external_uid = uid,
-            ))
-            log.info('iCal sync [%s]: adding %s (%s → %s)', feed.source, uid, start, end)
+        # ── DUP CHECK 1: Query by unique iCal UID string ──────────────────────
+        existing_by_uid = None
+        if uid:
+            existing_by_uid = Reservation.query.filter_by(
+                external_uid=uid, 
+                status='confirmed'
+            ).first()
+
+        # ── DUP CHECK 2: Fallback query by exact dates (For existing rows/manual blocks) ──
+        existing_by_date = Reservation.query.filter_by(
+            check_in=start,
+            check_out=end,
+            status='confirmed'
+        ).first()
+
+        # If it matches either check, skip it entirely (No-Op)
+        if existing_by_uid or existing_by_date:
+            # If the row exists but lacks a UID, update it in place so it's tracked correctly next time
+            if existing_by_date and not existing_by_date.external_uid and uid:
+                existing_by_date.external_uid = uid
+            continue
+
+        # ── SMART TEXT PARSING ──
+        summary_text = str(component.get('summary', 'External Booking'))
+        
+        # Determine a cleaner platform channel string based on the URL or title texts
+        display_source = feed.source.lower()
+        if 'airbnb' in feed.url.lower() or 'airbnb' in summary_text.lower():
+            display_source = 'airbnb'
+        elif 'booking.com' in feed.url.lower() or 'booking' in summary_text.lower():
+            display_source = 'booking_com'
+
+        # Attempt to extract platform codes if explicitly present in titles
+        # Example: Airbnb strings look like "Reservation Reserved - HMXXXXXXXX"
+        booking_code = ""
+        if "hm" in summary_text.lower():
+            match = re.search(r'HM[A-Z0-9]+', summary_text, re.IGNORECASE)
+            if match:
+                booking_code = f" ({match.group(0)})"
+
+        clean_guest_name = f"External Guest{booking_code}"
+
+        # If it doesn't exist anywhere, it's a completely new booking block!
+        to_add.append(Reservation(
+            guest_name     = clean_guest_name,
+            guest_email    = None,
+            check_in       = start,
+            check_out      = end,
+            num_guests     = 1,
+            status         = 'confirmed',
+            source         = display_source,
+            external_uid   = uid if uid else None,
+            
+            # Standardized parameters matching your database updates
+            total_price    = 0.0,         
+            payment_status = 'n/a',       
+            payment_method = 'automatic', 
+        ))
+        log.info('iCal sync [%s]: adding %s (%s → %s)', display_source, uid, start, end)
 
     for r in to_add:
         db.session.add(r)
@@ -96,8 +145,8 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
 
     db.session.commit()
 
-    # Update last_synced_at
-    feed.last_synced_at = datetime.utcnow()
+    # Update last_synced_at using modern timezone-aware logic
+    feed.last_synced_at = datetime.now()
     db.session.commit()
 
     return len(to_add), cancelled

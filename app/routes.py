@@ -5,12 +5,13 @@ from flask import (
 from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm
 from app.models import Reservation, User, Apartment, ICalFeed
 from app.services.ical_sync import sync_all_feeds
-from app import db, mail
+from app import db, mail, csrf
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from datetime import datetime, date, timedelta
 import secrets
 from sqlalchemy.exc import IntegrityError
+import stripe
 
 bp = Blueprint('routes', __name__)
 
@@ -32,17 +33,18 @@ def is_available(check_in, check_out):
 
 def _send_confirmation_emails(reservation):
     """Send booking confirmation to guest and host."""
-    cancel_url = url_for(
-        'routes.cancel_reservation',
-        token=reservation.cancel_token,
-        _external=True
-    )
+    cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
     apt = get_apartment()
     nights = reservation.nights
-    total  = reservation.total_price
+    total = reservation.total_price
+    payment_summary = get_payment_summary(reservation) # Use your new helper
 
+    sender_email = current_app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
+
+    # 1. Guest Email
     mail.send(Message(
-        subject="Booking confirmation — " + (apt.name if apt else "My Apartment"),
+        subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
+        sender=sender_email,
         recipients=[reservation.guest_email],
         html=render_template(
             'email_confirmation.html',
@@ -51,22 +53,23 @@ def _send_confirmation_emails(reservation):
             nights=nights,
             total=total,
             apartment=apt,
+            payment_summary=payment_summary # PASS THIS TO THE TEMPLATE
         )
     ))
 
+    # 2. Admin Email (Updated to include payment status)
     mail.send(Message(
         subject="New booking received",
+        sender=sender_email,
         recipients=[current_app.config['ADMIN_EMAIL']],
         body=(
-            f"New booking:\n\n"
-            f"Guest: {reservation.guest_name} <{reservation.guest_email}>\n"
+            f"New booking details:\n\n"
+            f"Guest: {reservation.guest_name}\n"
             f"Dates: {reservation.check_in} → {reservation.check_out} ({nights} nights)\n"
-            f"Guests: {reservation.num_guests}\n"
-            f"Total: €{total:.2f}\n"
-            f"Source: {reservation.source}\n"
+            f"{payment_summary}\n"
+            f"Status: {reservation.payment_status.upper()}\n"
         )
     ))
-
 
 # ── Public pages ──────────────────────────────────────────────────────────────
 
@@ -90,6 +93,7 @@ def faq():
 @bp.route('/food_recommendations')
 def food_recommendations():
     return render_template('food_recommendations.html')
+
 
 @bp.route('/attractions')
 def attractions():
@@ -127,6 +131,9 @@ def reserve():
         if nights > 28:
             flash("You can book a maximum of 28 nights.", "danger")
             return redirect(request.url)
+
+        # Clear any old traces from memory before applying validation loops
+        session.pop('pending_reservation', None)
 
         if not is_available(check_in, check_out):
             flash('Selected dates are not available.', 'danger')
@@ -185,22 +192,19 @@ def create_checkout_session():
         flash('Session expired. Please start again.', 'warning')
         return redirect(url_for('routes.reserve'))
 
-    apartment = get_apartment()
+    apartment = get_apartment() 
     check_in  = date.fromisoformat(pending['check_in'])
     check_out = date.fromisoformat(pending['check_out'])
     nights    = (check_out - check_in).days
     total_cents = int(nights * apartment.price_per_night * 100) if apartment else 0
 
-    # Double-check availability before creating payment
     if not is_available(check_in, check_out):
         session.pop('pending_reservation', None)
         flash('Sorry, those dates were just booked. Please choose again.', 'danger')
         return redirect(url_for('routes.reserve'))
 
     try:
-        import stripe
         stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
-
         base_url = current_app.config.get('BASE_URL', request.host_url.rstrip('/'))
 
         checkout_session = stripe.checkout.Session.create(
@@ -234,116 +238,127 @@ def create_checkout_session():
         current_app.logger.error('Stripe error: %s', exc)
         flash('Payment provider error. Please try again later.', 'danger')
         return redirect(url_for('routes.checkout'))
+    
+
+@bp.route('/checkout/test-bypass', methods=['POST'])
+@csrf.exempt
+def test_bypass_booking():
+    """Bypasses Stripe entirely and creates a confirmed booking for testing."""
+    pending = session.get('pending_reservation')
+    if not pending:
+        flash('Session expired. Please start again.', 'warning')
+        return redirect(url_for('routes.reserve'))
+
+    check_in  = date.fromisoformat(pending['check_in'])
+    check_out = date.fromisoformat(pending['check_out'])
+
+    if not is_available(check_in, check_out):
+        session.pop('pending_reservation', None)
+        flash('Sorry, those dates were just booked.', 'danger')
+        return redirect(url_for('routes.reserve'))
+
+    reservation = Reservation(
+        guest_name   = pending['guest_name'],
+        guest_email  = pending['guest_email'],
+        check_in     = check_in,
+        check_out    = check_out,
+        num_guests   = int(pending['num_guests']),
+        status       = 'confirmed',
+        source       = 'direct',
+        cancel_token = secrets.token_urlsafe(32),
+        stripe_payment_intent_id = f"test_bypass_{secrets.token_hex(8)}"
+    )
+    
+    db.session.add(reservation)
+    db.session.commit()
+    
+    try:
+        _send_confirmation_emails(reservation)
+        flash('Confirmation emails sent successfully!', 'info')
+    except Exception as exc:
+        current_app.logger.error('Failed to send confirmation email in test bypass: %s', exc)
+        flash('Reservation saved, but email sending failed.', 'warning')
+
+    session.pop('pending_reservation', None)
+    return redirect(url_for('routes.booking_confirmed', reservation_id=reservation.id))
 
 
 @bp.route('/payment/success')
 def payment_success():
-    """
-    Stripe redirects here after a successful payment.
-    We verify the session and confirm the reservation.
-    The Stripe webhook (/stripe/webhook) is the authoritative confirmation path;
-    this page just gives the guest immediate feedback.
-    """
+    """Stripe redirects here after a successful payment transaction."""
     session_id = request.args.get('session_id')
     reservation = None
 
     if session_id:
         try:
-            import stripe
             stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
             cs = stripe.checkout.Session.retrieve(session_id)
+            
+            # FIXED: Directly pull structural object property reference
             pi_id = cs.payment_intent
 
-            # Check if webhook already created the reservation
-            reservation = Reservation.query.filter_by(
-                stripe_payment_intent_id=pi_id
-            ).first()
+            if pi_id:
+                reservation = Reservation.query.filter_by(
+                    stripe_payment_intent_id=pi_id
+                ).first()
 
-            if not reservation:
-                # Webhook may not have fired yet — create reservation now
-                # (the webhook will be idempotent if it fires later)
+            # Local transaction fallback processing link
+            if not reservation and cs.payment_status == 'paid':
                 reservation = _create_reservation_from_stripe(cs)
 
         except Exception as exc:
             current_app.logger.error('payment_success lookup error: %s', exc)
 
     session.pop('pending_reservation', None)
-
     return render_template('booking_confirmed.html', reservation=reservation)
 
 
-@bp.route('/stripe/webhook', methods=['POST'])
-def stripe_webhook():
-    """Handle Stripe webhook events (authoritative booking confirmation)."""
-    import stripe
-    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
-    webhook_secret = current_app.config.get('STRIPE_WEBHOOK_SECRET', '')
-
-    payload   = request.get_data()
-    sig_header = request.headers.get('Stripe-Signature', '')
-
-    try:
-        if webhook_secret:
-            event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
-        else:
-            event = stripe.Event.construct_from(
-                stripe.util.convert_to_stripe_object(
-                    stripe.util.json.loads(payload)
-                ),
-                stripe.api_key
-            )
-    except (ValueError, stripe.error.SignatureVerificationError) as e:
-        current_app.logger.warning('Stripe webhook signature error: %s', e)
-        abort(400)
-
-    if event['type'] == 'checkout.session.completed':
-        cs = event['data']['object']
-        if cs.get('payment_status') == 'paid':
-            try:
-                _create_reservation_from_stripe(cs)
-            except Exception as exc:
-                current_app.logger.error('Webhook reservation creation error: %s', exc)
-                return '', 500
-
-    return '', 200
-
-
 def _create_reservation_from_stripe(cs) -> Reservation:
-    """
-    Create (or return existing) a confirmed Reservation from a Stripe
-    Checkout Session object. Idempotent on stripe_payment_intent_id.
-    """
-    pi_id = cs.payment_intent
+    """Safely build a database confirmed Reservation from a Stripe session."""
+    data = cs.to_dict() if hasattr(cs, 'to_dict') else cs
+    pi_id = data.get('payment_intent') or f"stripe_session_{data.get('id')}"
+    
     existing = Reservation.query.filter_by(stripe_payment_intent_id=pi_id).first()
     if existing:
         return existing
 
-    meta       = cs.get('metadata', {})
+    meta = data.get('metadata') or {}
     guest_name  = meta.get('guest_name', 'Guest')
-    guest_email = meta.get('guest_email') or cs.get('customer_email', '')
-    check_in   = date.fromisoformat(meta['check_in'])
-    check_out  = date.fromisoformat(meta['check_out'])
-    num_guests = int(meta.get('num_guests', 1))
+    guest_email = data.get('customer_email') or meta.get('guest_email') or 'info@myapartment.com'
+    
+    # --- NIGHT COMPUTATION ---
+    try:
+        check_in  = date.fromisoformat(meta.get('check_in'))
+        check_out = date.fromisoformat(meta.get('check_out'))
+    except (TypeError, ValueError):
+        pending = session.get('pending_reservation') or {}
+        check_in  = date.fromisoformat(pending.get('check_in', date.today().isoformat()))
+        check_out = date.fromisoformat(pending.get('check_out', (date.today() + timedelta(days=1)).isoformat()))
+    
+    # Calculate price safely
+    apartment = get_apartment()
+    nights = (check_out - check_in).days
+    total_price = nights * (apartment.price_per_night if apartment else 0)
+    # --------------------------
 
     reservation = Reservation(
         guest_name               = guest_name,
         guest_email              = guest_email,
         check_in                 = check_in,
         check_out                = check_out,
-        num_guests               = num_guests,
+        num_guests               = int(meta.get('num_guests', 1)),
         status                   = 'confirmed',
         source                   = 'direct',
         cancel_token             = secrets.token_urlsafe(32),
+        total_price              = total_price,
+        payment_status           = 'paid' if data.get('payment_status') == 'paid' else 'unpaid',
+        payment_method           = 'stripe',
         stripe_payment_intent_id = pi_id,
     )
+    
     db.session.add(reservation)
-    try:
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        return Reservation.query.filter_by(stripe_payment_intent_id=pi_id).first()
-
-    # Send confirmation emails
+    db.session.commit()
+    
     try:
         _send_confirmation_emails(reservation)
     except Exception as exc:
@@ -351,6 +366,31 @@ def _create_reservation_from_stripe(cs) -> Reservation:
 
     return reservation
 
+@bp.route('/stripe/webhook', methods=['POST'])
+@csrf.exempt
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    endpoint_secret = current_app.config['STRIPE_WEBHOOK_SECRET']
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except Exception:
+        return "Invalid signature", 400
+
+    if event.type == 'checkout.session.completed':
+        # Extract the dictionary representation directly
+        cs = event.data.object
+        data = cs.to_dict() if hasattr(cs, 'to_dict') else cs
+        
+        if data.get('payment_status') == 'paid':
+            try:
+                _create_reservation_from_stripe(cs)
+            except Exception as e:
+                current_app.logger.error("Error creating reservation: %s", e)
+                return "Internal database error", 500
+
+    return "Success", 200
 
 @bp.route("/booking/confirmed/<int:reservation_id>")
 def booking_confirmed(reservation_id):
@@ -384,34 +424,73 @@ def cancel_reservation(token):
             message="Cancellation is no longer possible after check-in."
         )
 
+    refund_failed_warning = False
+    if reservation.stripe_payment_intent_id:
+        try:
+            stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+            stripe.Refund.create(
+                payment_intent=reservation.stripe_payment_intent_id,
+                reason='requested_by_customer'
+            )
+            current_app.logger.info(f"Stripe Refund issued for Guest Cancel: Res #{reservation.id}")
+            
+        except stripe.error.StripeError as e:
+            current_app.logger.error(f"Stripe refund transaction failed: {str(e)}")
+            refund_failed_warning = True
+
     reservation.status = "cancelled"
     db.session.commit()
 
+    refund_notice = ""
+    if refund_failed_warning:
+        refund_notice = "\n\n⚠️ Note: There was a delay processing your automatic refund. Our team has been flagged to verify it manually."
+
+    sender_email = current_app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
+
     mail.send(Message(
         subject="Your reservation has been cancelled",
+        sender=sender_email,
         recipients=[reservation.guest_email],
         body=(
             f"Hello {reservation.guest_name},\n\n"
             f"Your reservation from {reservation.check_in} to {reservation.check_out} "
-            f"has been successfully cancelled.\n\n— My Apartment"
+            f"has been successfully cancelled.{refund_notice}\n\n— My Apartment"
         )
     ))
+    
     mail.send(Message(
-        subject="Reservation cancelled",
+        subject="Reservation cancelled" + (" [REFUND MANUAL CHECK REQUIRED]" if refund_failed_warning else ""),
+        sender=sender_email,
         recipients=[current_app.config['ADMIN_EMAIL']],
         body=(
             f"Reservation cancelled:\n\n"
             f"Guest: {reservation.guest_name}\n"
             f"Dates: {reservation.check_in} → {reservation.check_out}\n"
+            f"Stripe Refund Status: {'⚠️ FAILED / MANUAL CHECK REQUIRED' if refund_failed_warning else '✅ Fully Refunded Automatically'}\n"
         )
     ))
+
+    final_ui_message = "Your reservation has been cancelled successfully."
+    if not refund_failed_warning and reservation.stripe_payment_intent_id:
+        final_ui_message += " A full refund has been issued back to your payment card."
+    elif refund_failed_warning:
+        final_ui_message += " Your dates are released, but there was an issue processing your automatic refund. We will review it manually."
 
     return render_template(
         "cancellation_result.html",
         success=True,
-        message="Your reservation has been cancelled successfully."
+        message=final_ui_message
     )
 
+def get_payment_summary(reservation):
+    """Generates a human-readable payment summary for emails."""
+    if reservation.payment_method == 'stripe':
+        return f"Paid via Stripe (Total: €{reservation.total_price:.2f})"
+    elif reservation.payment_method == 'iban':
+        return f"Pending Bank Transfer (Total: €{reservation.total_price:.2f})"
+    elif reservation.payment_method == 'cash':
+        return f"Cash on Arrival (Total: €{reservation.total_price:.2f})"
+    return f"Total: €{reservation.total_price:.2f}"
 
 # ── Contact ───────────────────────────────────────────────────────────────────
 
@@ -530,9 +609,27 @@ def admin_cancel_reservation(res_id):
     if reservation.status == 'cancelled':
         flash('Reservation is already cancelled.', 'warning')
     else:
+        refund_failed_warning = False
+        if reservation.stripe_payment_intent_id and not reservation.stripe_payment_intent_id.startswith("test_bypass_"):
+            try:
+                stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+                stripe.Refund.create(
+                    payment_intent=reservation.stripe_payment_intent_id,
+                    reason='requested_by_customer'
+                )
+                current_app.logger.info(f"Stripe Refund issued by Admin for Res #{reservation.id}")
+            except stripe.error.StripeError as e:
+                current_app.logger.error(f"Admin Stripe refund failed: {str(e)}")
+                refund_failed_warning = True
+
         reservation.status = 'cancelled'
         db.session.commit()
-        flash(f'Reservation #{res_id} cancelled.', 'success')
+        
+        if refund_failed_warning:
+            flash(f'Reservation #{res_id} cancelled locally, but Stripe refund failed.', 'warning')
+        else:
+            flash(f'Reservation #{res_id} cancelled and fully refunded successfully.', 'success')
+            
     return redirect(url_for('routes.admin_dashboard'))
 
 
@@ -584,6 +681,7 @@ def delete_feed(feed_id):
 
 @bp.route('/admin/feeds/sync', methods=['POST'])
 @login_required
+@csrf.exempt
 def sync_feeds_now():
     if not current_user.is_admin:
         abort(403)

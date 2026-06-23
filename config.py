@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 
+import stripe
 # Load .env file when running locally.
 # In production (Heroku, Railway, VPS) set these as real env vars instead.
 load_dotenv()
@@ -28,9 +29,10 @@ class Config:
     STRIPE_SECRET_KEY      = os.environ.get('STRIPE_SECRET_KEY', '')
     STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
     STRIPE_WEBHOOK_SECRET  = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 
     # ── iCal scheduler ────────────────────────────────────────────────────────
     ICAL_SYNC_INTERVAL_MINUTES = int(os.environ.get('ICAL_SYNC_INTERVAL_MINUTES', 30))
 
     # ── App public URL (used for Stripe redirect URLs) ────────────────────────
-    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5001')

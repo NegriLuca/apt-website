@@ -8,17 +8,6 @@
     <h2>Contact</h2>
     <p>If you have any questions, feel free to reach out.</p>
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} mt-3">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
     <form method="POST" class="mt-4">
       {{ form.hidden_tag() }}
 

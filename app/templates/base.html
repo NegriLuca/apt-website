@@ -60,14 +60,25 @@
 
   <!-- Main content -->
   <main class="flex-grow-1 p-4" style="background:#f4f6f8;">
-    <div class="container-xl">
-      <div class="main-content">
-        {% block content %}{% endblock %}
-      </div>
-    </div>
-  </main>
+      <div class="container-xl">
+        <div class="main-content">
+          
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category in ['error', 'danger'] else 'success' if category == 'info' else category }} alert-dismissible fade show shadow-sm mb-3" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
 
-</div>
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </main>
+  </div>
 
 
 <!-- Bootstrap JS -->
