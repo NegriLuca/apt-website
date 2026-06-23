@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Reserve {{ apartment.name }}{% endblock %}
+{% block title %}Reserve {{ apartment.name if apartment else "Apartment" }}{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
+{% if apartment %}
 <h2>Reserve {{ apartment.name }}</h2>
 <p>Price per night: ${{ apartment.price_per_night }}</p>
 
@@ -48,18 +49,27 @@
 
   {{ form.submit(class="btn btn-primary") }}
 </form>
+{% else %}
+<div class="alert alert-warning mt-4">
+  <h5>No apartment selected</h5>
+  <p>Please navigate back to the listings page and choose an apartment to book.</p>
+</div>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
-// Wrap initialization inside DOMContentLoaded to ensure elements are available on Railway
 document.addEventListener("DOMContentLoaded", function() {
-  const pricePerNight = {{ apartment.price_per_night }};
-  const disabledDates = {{ disabled_dates | tojson }};
+  // Safe fallbacks to prevent empty expressions causing syntax errors
+  const pricePerNight = {{ apartment.price_per_night | default(0) if apartment else 0 }};
+  const disabledDates = {{ disabled_dates | tojson | default('[]') }};
+
+  // If elements don't exist on the page, stop script setup gracefully
+  const dateRangeEl = document.getElementById("date_range");
+  if (!dateRangeEl) return;
 
   const nightsEl = document.getElementById("nights");
   const totalEl = document.getElementById("total");
-
   const hiddenCheckIn = document.getElementById("check_in");
   const hiddenCheckOut = document.getElementById("check_out");
 
@@ -75,10 +85,10 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function resetPrice() {
-    nightsEl.textContent = "0";
-    totalEl.textContent = "0";
-    hiddenCheckIn.value = "";
-    hiddenCheckOut.value = "";
+    if (nightsEl) nightsEl.textContent = "0";
+    if (totalEl) totalEl.textContent = "0";
+    if (hiddenCheckIn) hiddenCheckIn.value = "";
+    if (hiddenCheckOut) hiddenCheckOut.value = "";
   }
 
   const picker = flatpickr("#date_range", {
@@ -88,53 +98,40 @@ document.addEventListener("DOMContentLoaded", function() {
     disable: disabledDates,
 
     onChange: function(selectedDates, dateStr, instance) {
-
-      /* RESET */
-      if (selectedDates.length === 0) {
+      if (selectedDates.length === 0 || selectedDates.length === 1) {
         resetPrice();
         return;
       }
 
-      /* CHECK-IN SELECTED */
-      if (selectedDates.length === 1) {
-        resetPrice();
-        return;
-      }
-
-      /* FULL RANGE */
       if (selectedDates.length === 2) {
         let checkIn = selectedDates[0];
         let checkOut = selectedDates[1];
 
         const nextBooked = findNextDisabledDate(checkIn);
-
         const max28 = new Date(checkIn);
         max28.setDate(max28.getDate() + 28);
 
         let maxAllowed = max28;
-
         if (nextBooked && nextBooked < maxAllowed) {
           maxAllowed = nextBooked;
         }
 
-        /* ⛔ clamp checkout if invalid */
         if (checkOut > maxAllowed) {
           checkOut = maxAllowed;
           instance.setDate([checkIn, checkOut], false);
         }
 
         const nights = daysBetween(checkIn, checkOut);
-
         if (nights <= 0) {
           resetPrice();
           return;
         }
 
-        hiddenCheckIn.value = checkIn.toISOString().split("T")[0];
-        hiddenCheckOut.value = checkOut.toISOString().split("T")[0];
+        if (hiddenCheckIn) hiddenCheckIn.value = checkIn.toISOString().split("T")[0];
+        if (hiddenCheckOut) hiddenCheckOut.value = checkOut.toISOString().split("T")[0];
 
-        nightsEl.textContent = nights;
-        totalEl.textContent = nights * pricePerNight;
+        if (nightsEl) nightsEl.textContent = nights;
+        if (totalEl) totalEl.textContent = nights * pricePerNight;
       }
     }
   });
