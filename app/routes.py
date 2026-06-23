@@ -18,7 +18,6 @@ bp = Blueprint('routes', __name__)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
 def get_apartment():
     return Apartment.query.first()
 
@@ -32,88 +31,58 @@ def is_available(check_in, check_out):
     return conflicts == 0
 
 
-def _async_email_worker(app, reservation_id, cancel_url):
-    """Executes mail rendering and sending out of the main browser window lifecycle."""
-    with app.app_context():
-        print(f"🚀 BACKGROUND THREAD ACTIVE: Processing email for Reservation #{reservation_id}...", flush=True)
-        
-        # ── FORCE OVERRIDE ANY HIDDEN SYSTEM SAFETY LOCKS ──
-        app.config['TESTING'] = False
-        app.config['MAIL_SUPPRESS_SEND'] = False
-        
-        # Print out the current parameters so we can see them in Railway logs
-        print(f"DEBUG - Mail Server: {app.config.get('MAIL_SERVER')}", flush=True)
-        print(f"DEBUG - Mail Username: {app.config.get('MAIL_USERNAME')}", flush=True)
-        print(f"DEBUG - Testing Flag: {app.config.get('TESTING')}", flush=True)
-
-        try:
-            reservation = Reservation.query.get(reservation_id)
-            if not reservation:
-                print("DEBUG - Reservation not found!", flush=True)
-                return
-
-            apt = get_apartment()
-            nights = reservation.nights
-            total = reservation.total_price
-            payment_summary = get_payment_summary(reservation)
-
-            sender_email = app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
-            print(f"DEBUG - Sending from: {sender_email} to {reservation.guest_email}", flush=True)
-
-            # 1. Guest Email
-            msg1 = Message(
-                subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
-                sender=sender_email,
-                recipients=[reservation.guest_email],
-                html=render_template(
-                    'email_confirmation.html',
-                    reservation=reservation,
-                    cancel_url=cancel_url,
-                    nights=nights,
-                    total=total,
-                    apartment=apt,
-                    payment_summary=payment_summary
-                )
-            )
-            mail.send(msg1)
-            print("DEBUG - Guest email sent successfully via mail.send()", flush=True)
-
-            # 2. Admin Email
-            msg2 = Message(
-                subject="New booking received",
-                sender=sender_email,
-                recipients=[app.config['ADMIN_EMAIL']],
-                body=(
-                    f"New booking details:\n\n"
-                    f"Guest: {reservation.guest_name}\n"
-                    f"Dates: {reservation.check_in} → {reservation.check_out} ({nights} nights)\n"
-                    f"{payment_summary}\n"
-                    f"Status: {reservation.payment_status.upper()}\n"
-                )
-            )
-            mail.send(msg2)
-            print("DEBUG - Admin email sent successfully via mail.send()", flush=True)
-            
-            print(f"✅ Asynchronous confirmation emails dispatched for Reservation #{reservation_id}", flush=True)
-            
-        except Exception as exc:
-            print('!!! SMTP EMAIL DISPATCH FAILURE !!!', flush=True)
-            print(f'Error detail: {str(exc)}', flush=True)
-
 def _send_confirmation_emails(reservation):
-    """Spins off confirmation email processing to a non-blocking background thread."""
-    # ── GENERATE URL ON THE MAIN REQUEST THREAD ──
-    # Doing this here means Flask knows your exact domain name perfectly!
-    cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
-    
-    flask_app = current_app._get_current_object()
-    thread = threading.Thread(
-        target=_async_email_worker, 
-        args=[flask_app, reservation.id, cancel_url] # Pass cancel_url down to the worker
-    )
-    thread.start()    
-# ── Public pages ──────────────────────────────────────────────────────────────
+    """Sends confirmation emails on the main thread to ensure Railway completes the handshake."""
+    try:
+        # Generate URL safely on the active request context
+        cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
+        apt = get_apartment()
+        nights = reservation.nights
+        total = reservation.total_price
+        payment_summary = get_payment_summary(reservation)
 
+        sender_email = current_app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
+        print(f"📬 MAIN THREAD: Dispatching emails from {sender_email}...", flush=True)
+
+        # 1. Guest Email
+        msg1 = Message(
+            subject=f"Booking confirmation — {apt.name if apt else 'My Apartment'}",
+            sender=sender_email,
+            recipients=[reservation.guest_email],
+            html=render_template(
+                'email_confirmation.html',
+                reservation=reservation,
+                cancel_url=cancel_url,
+                nights=nights,
+                total=total,
+                apartment=apt,
+                payment_summary=payment_summary
+            )
+        )
+        mail.send(msg1)
+        print("✅ Guest email successfully accepted by Gmail SMTP!", flush=True)
+
+        # 2. Admin Email
+        msg2 = Message(
+            subject="New booking received",
+            sender=sender_email,
+            recipients=[current_app.config['ADMIN_EMAIL']],
+            body=(
+                f"New booking details:\n\n"
+                f"Guest: {reservation.guest_name}\n"
+                f"Dates: {reservation.check_in} → {reservation.check_out} ({nights} nights)\n"
+                f"{payment_summary}\n"
+                f"Status: {reservation.payment_status.upper()}\n"
+                )
+            )
+        mail.send(msg2)
+        print("✅ Admin email successfully accepted by Gmail SMTP!", flush=True)
+
+    except Exception as exc:
+        print('!!! SMTP EMAIL DISPATCH FAILURE !!!', flush=True)
+        print(f'Error detail: {str(exc)}', flush=True)
+        
+# ── Public pages ──────────────────────────────────────────────────────────────
 @bp.route('/')
 def home():
     apartment = get_apartment()
