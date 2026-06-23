@@ -35,6 +35,8 @@ def is_available(check_in, check_out):
 def _async_email_worker(app, reservation_id, cancel_url):
     """Executes mail rendering and sending out of the main browser window lifecycle."""
     with app.app_context():
+        print(f"🚀 BACKGROUND THREAD ACTIVE: Processing email for Reservation #{reservation_id}...", flush=True)
+        print(f"Sender email: {app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')}", flush=True)
         try:
             app.config['MAIL_DEBUG'] = True 
             
