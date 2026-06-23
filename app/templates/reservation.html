@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Reserve {{ apartment.name }}{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
@@ -39,12 +40,11 @@
   </div>
 
   <div class="mt-3">
-  <p>
-    <strong>Nights:</strong> <span id="nights">0</span><br>
-    <strong>Total price:</strong> €<span id="total">0</span>
-  </p>
+    <p>
+      <strong>Nights:</strong> <span id="nights">0</span><br>
+      <strong>Total price:</strong> €<span id="total">0</span>
+    </p>
   </div>
-
 
   {{ form.submit(class="btn btn-primary") }}
 </form>
@@ -52,90 +52,92 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
-const pricePerNight = {{ apartment.price_per_night }};
-const disabledDates = {{ disabled_dates | tojson }};
+// Wrap initialization inside DOMContentLoaded to ensure elements are available on Railway
+document.addEventListener("DOMContentLoaded", function() {
+  const pricePerNight = {{ apartment.price_per_night }};
+  const disabledDates = {{ disabled_dates | tojson }};
 
-const nightsEl = document.getElementById("nights");
-const totalEl = document.getElementById("total");
+  const nightsEl = document.getElementById("nights");
+  const totalEl = document.getElementById("total");
 
-const hiddenCheckIn = document.getElementById("check_in");
-const hiddenCheckOut = document.getElementById("check_out");
+  const hiddenCheckIn = document.getElementById("check_in");
+  const hiddenCheckOut = document.getElementById("check_out");
 
-function daysBetween(a, b) {
-  return Math.round((b - a) / (1000 * 60 * 60 * 24));
-}
+  function daysBetween(a, b) {
+    return Math.round((b - a) / (1000 * 60 * 60 * 24));
+  }
 
-function findNextDisabledDate(startDate) {
-  return disabledDates
-    .map(d => new Date(d))
-    .filter(d => d > startDate)
-    .sort((a, b) => a - b)[0] || null;
-}
+  function findNextDisabledDate(startDate) {
+    return disabledDates
+      .map(d => new Date(d))
+      .filter(d => d > startDate)
+      .sort((a, b) => a - b)[0] || null;
+  }
 
-function resetPrice() {
-  nightsEl.textContent = "0";
-  totalEl.textContent = "0";
-  hiddenCheckIn.value = "";
-  hiddenCheckOut.value = "";
-}
+  function resetPrice() {
+    nightsEl.textContent = "0";
+    totalEl.textContent = "0";
+    hiddenCheckIn.value = "";
+    hiddenCheckOut.value = "";
+  }
 
-const picker = flatpickr("#date_range", {
-  mode: "range",
-  dateFormat: "Y-m-d",
-  minDate: "today",
-  disable: disabledDates,
+  const picker = flatpickr("#date_range", {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    minDate: "today",
+    disable: disabledDates,
 
-  onChange: function(selectedDates, dateStr, instance) {
+    onChange: function(selectedDates, dateStr, instance) {
 
-    /* RESET */
-    if (selectedDates.length === 0) {
-      resetPrice();
-      return;
-    }
-
-    /* CHECK-IN SELECTED */
-    if (selectedDates.length === 1) {
-      resetPrice();
-      return;
-    }
-
-    /* FULL RANGE */
-    if (selectedDates.length === 2) {
-      let checkIn = selectedDates[0];
-      let checkOut = selectedDates[1];
-
-      const nextBooked = findNextDisabledDate(checkIn);
-
-      const max28 = new Date(checkIn);
-      max28.setDate(max28.getDate() + 28);
-
-      let maxAllowed = max28;
-
-      if (nextBooked && nextBooked < maxAllowed) {
-        maxAllowed = nextBooked;
-      }
-
-      /* ⛔ clamp checkout if invalid */
-      if (checkOut > maxAllowed) {
-        checkOut = maxAllowed;
-        instance.setDate([checkIn, checkOut], false);
-      }
-
-      const nights = daysBetween(checkIn, checkOut);
-
-      if (nights <= 0) {
+      /* RESET */
+      if (selectedDates.length === 0) {
         resetPrice();
         return;
       }
 
-      hiddenCheckIn.value = checkIn.toISOString().split("T")[0];
-      hiddenCheckOut.value = checkOut.toISOString().split("T")[0];
+      /* CHECK-IN SELECTED */
+      if (selectedDates.length === 1) {
+        resetPrice();
+        return;
+      }
 
-      nightsEl.textContent = nights;
-      totalEl.textContent = nights * pricePerNight;
+      /* FULL RANGE */
+      if (selectedDates.length === 2) {
+        let checkIn = selectedDates[0];
+        let checkOut = selectedDates[1];
+
+        const nextBooked = findNextDisabledDate(checkIn);
+
+        const max28 = new Date(checkIn);
+        max28.setDate(max28.getDate() + 28);
+
+        let maxAllowed = max28;
+
+        if (nextBooked && nextBooked < maxAllowed) {
+          maxAllowed = nextBooked;
+        }
+
+        /* ⛔ clamp checkout if invalid */
+        if (checkOut > maxAllowed) {
+          checkOut = maxAllowed;
+          instance.setDate([checkIn, checkOut], false);
+        }
+
+        const nights = daysBetween(checkIn, checkOut);
+
+        if (nights <= 0) {
+          resetPrice();
+          return;
+        }
+
+        hiddenCheckIn.value = checkIn.toISOString().split("T")[0];
+        hiddenCheckOut.value = checkOut.toISOString().split("T")[0];
+
+        nightsEl.textContent = nights;
+        totalEl.textContent = nights * pricePerNight;
+      }
     }
-  }
+  });
 });
 </script>
-
 {% endblock %}
