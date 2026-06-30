@@ -572,7 +572,7 @@ def export_ical():
 
 # ── Admin dashboard ───────────────────────────────────────────────────────────
 
-# 1. CENTRAL HUBS / OVERVIEW HOMEPAGE (Combines Ledger & iCal Sync)
+# 1. CENTRAL HUBS / OVERVIEW HOMEPAGE
 @bp.route('/admin')
 @login_required
 def admin_dashboard():
@@ -591,11 +591,11 @@ def admin_dashboard():
         'cancelled': Reservation.query.filter_by(status='cancelled').count(),
     }
     
-    # We pull the feeds directly here so they populate the bottom of admin_dashboard.html
     feeds = ICalFeed.query.order_by(ICalFeed.source).all()
     
+    # FIX: Changed from 'admin/dashboard.html' to match your flat layout file name
     return render_template(
-        'admin/dashboard.html', 
+        'admin_dashboard.html', 
         reservations=query.all(), 
         status_filter=status_filter, 
         stats=stats, 
@@ -609,7 +609,8 @@ def admin_dashboard():
 def admin_calendar():
     if not current_user.is_admin: 
         abort(403)
-    return render_template('admin/calendar.html')
+    # FIX: Changed from 'admin/calendar.html'
+    return render_template('admin_calendar.html')
 
 
 # 3. DYNAMIC PRICING & COUPONS SETTINGS PAGE
@@ -628,7 +629,8 @@ def admin_pricing():
             flash('Nightly rate updated successfully!', 'success')
             return redirect(url_for('routes.admin_pricing'))
 
-    return render_template('admin/pricing.html', apartment=apartment)
+    # FIX: Changed from 'admin/pricing.html'
+    return render_template('admin_pricing.html', apartment=apartment)
 
 
 # 4. FIXED API FOR FULLCALENDAR JSON STREAM
