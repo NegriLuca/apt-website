@@ -1,6 +1,6 @@
 from flask import (
     Blueprint, Response, render_template, redirect, url_for,
-    flash, request, current_app, session, abort
+    flash, request, current_app, session, abort, jsonify
 )
 from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm
 from app.models import Reservation, User, Apartment, ICalFeed
@@ -602,6 +602,62 @@ def admin_dashboard():
         status_filter=status_filter,
     )
 
+# Add this under your existing @bp.route('/admin') endpoint block
+
+@bp.route('/admin/calendar')
+@login_required
+def admin_calendar():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('routes.home'))
+    # Renders the full screen visually consistent template panel
+    return render_template('admin_calendar.html')
+
+
+@bp.route('/api/admin/calendar-reservations')
+@login_required
+def api_calendar_reservations():
+    if not current_user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    # Get all active or non-purged dates from database
+    reservations = Reservation.query.all()
+    events = []
+    
+    for r in reservations:
+        # Match colors to your existing Bootstrap table badge styles exactly
+        if r.status == 'cancelled':
+            color = '#dc3545'  # Danger/Red for cancelled entries
+        elif r.source in ['direct', 'stripe']:
+            color = '#28a745'  # Success/Green
+        elif r.source == 'airbnb':
+            color = '#ff5a5f'  # Airbnb branded red-orange
+        elif r.source == 'booking_com':
+            color = '#003580'  # Booking.com corporate dark navy
+        else:
+            color = '#6c757d'  # Secondary grey
+            
+        # Format the event titles cleanly to convey status at a glance
+        status_flag = " (CANCELLED)" if r.status == 'cancelled' else ""
+        
+        events.append({
+            "id": r.id,
+            "title": f"#{r.id} {r.guest_name}{status_flag}",
+            "start": r.check_in.isoformat() if hasattr(r.check_in, 'isoformat') else str(r.check_in),
+            # FullCalendar excludes the end date visually in multi-day grids, 
+            # so we ensure it maps precisely to checkout
+            "end": r.check_out.isoformat() if hasattr(r.check_out, 'isoformat') else str(r.check_out),
+            "backgroundColor": color,
+            "borderColor": color,
+            "extendedProps": {
+                "source": r.source,
+                "payment_status": r.payment_status or 'unpaid',
+                "status": r.status,
+                "total": f"€{r.total_price:.2f}" if r.total_price else "—"
+            }
+        })
+        
+    return jsonify(events)
 
 @bp.route('/admin/reservations/<int:res_id>/confirm', methods=['POST'])
 @login_required
