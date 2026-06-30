@@ -3,7 +3,7 @@ from flask import (
     flash, request, current_app, session, abort, jsonify
 )
 from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm
-from app.models import Reservation, User, Apartment, ICalFeed
+from app.models import Reservation, User, Apartment, ICalFeed, Coupon
 from app.services.ical_sync import sync_all_feeds
 from app import db, mail, csrf
 from flask_login import login_user, logout_user, login_required, current_user
@@ -635,6 +635,70 @@ def admin_pricing():
             return redirect(url_for('routes.admin_pricing'))
 
     return render_template('admin_pricing.html', apartment=apartment)
+
+# CREATE COUPON ACTION
+@bp.route('/admin/coupons/create', methods=['POST'])
+@login_required
+def admin_create_coupon():
+    if not current_user.is_admin: abort(403)
+    
+    code = request.form.get('coupon_code', '').strip().upper()
+    discount_type = request.form.get('discount_type', 'percentage')
+    try:
+        discount_value = float(request.form.get('discount_value', 0))
+    except ValueError:
+        flash('Discount value must be a valid number.', 'danger')
+        return redirect(url_for('routes.admin_pricing'))
+
+    if not code:
+        flash('Voucher string code field cannot be empty.', 'danger')
+        return redirect(url_for('routes.admin_pricing'))
+
+    existing = Coupon.query.filter_by(code=code).first()
+    if existing:
+        flash('A coupon voucher with this exact string code already exists!', 'warning')
+        return redirect(url_for('routes.admin_pricing'))
+
+    new_coupon = Coupon(code=code, discount_type=discount_type, discount_value=discount_value, active=True)
+    db.session.add(new_coupon)
+    db.session.commit()
+    
+    flash(f'Promotional code "{code}" has been published successfully!', 'success')
+    return redirect(url_for('routes.admin_pricing'))
+
+
+# REMOVE/DELETE COUPON ACTION
+@bp.route('/admin/coupons/<int:coupon_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_coupon(coupon_id):
+    if not current_user.is_admin: abort(403)
+    
+    coupon = Coupon.query.get_or_404(coupon_id)
+    db.session.delete(coupon)
+    db.session.commit()
+    
+    flash('Promotional voucher successfully purged from system.', 'success')
+    return redirect(url_for('routes.admin_pricing'))
+
+@bp.route('/api/validate-coupon')
+def validate_coupon():
+    code = request.args.get('code', '').strip().upper()
+    try:
+        subtotal = float(request.args.get('subtotal', 0))
+    except ValueError:
+        return jsonify({"valid": False, "message": "Invalid price subtotal format."}), 400
+
+    coupon = Coupon.query.filter_by(code=code, active=True).first()
+    if not coupon:
+        return jsonify({"valid": False, "message": "Invalid or expired voucher code."})
+
+    new_total = coupon.apply_discount(subtotal)
+    return jsonify({
+        "valid": True,
+        "code": coupon.code,
+        "new_total": new_total,
+        "message": "Coupon successfully calculated."
+    })
 
 # 4. JSON STREAM FOR FULLCALENDAR 
 @bp.route('/api/admin/calendar-reservations')

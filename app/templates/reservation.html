@@ -7,7 +7,7 @@
 
 {% if apartment %}
 <h2>Reserve {{ apartment.name }}</h2>
-<p>Price per night: ${{ apartment.price_per_night }}</p>
+<p>Price per night: €{{ apartment.price_per_night }}</p>
 
 <form method="POST" class="mt-3" style="max-width: 500px;">
   {{ form.hidden_tag() }}
@@ -40,14 +40,26 @@
     {{ form.num_guests(class="form-select") }}
   </div>
 
-  <div class="mt-3">
+  <!-- Operational Coupon System Input Block -->
+  <div class="card p-3 mb-3 bg-light border-0 shadow-sm">
+    <label class="form-label fw-bold text-muted small text-uppercase">Have a Promo Code?</label>
+    <div class="input-group">
+      <input type="text" id="coupon_box" class="form-control text-uppercase font-monospace" placeholder="e.g. SUMMER10">
+      <button class="btn btn-dark fw-bold" type="button" id="apply_coupon_btn">Apply</button>
+    </div>
+    <div id="coupon_message" class="small mt-1 fw-bold"></div>
+    <!-- Hidden input to pass the code string cleanly to the server context upon form submission -->
+    <input type="hidden" name="applied_coupon_code" id="applied_coupon_code" value="">
+  </div>
+
+  <div class="mt-3 border-top pt-2">
     <p>
       <strong>Nights:</strong> <span id="nights">0</span><br>
-      <strong>Total price:</strong> €<span id="total">0</span>
+      <strong>Total price:</strong> <span id="price_calculation_row">€<span id="total">0</span></span>
     </p>
   </div>
 
-  {{ form.submit(class="btn btn-primary") }}
+  {{ form.submit(class="btn btn-primary w-100 fw-bold mt-2") }}
 </form>
 {% else %}
 <div class="alert alert-warning mt-4">
@@ -64,6 +76,9 @@ document.addEventListener("DOMContentLoaded", function() {
   const pricePerNight = {{ apartment.price_per_night | default(0) if apartment else 0 }};
   const disabledDates = {{ disabled_dates | tojson | default('[]') }};
 
+  // State variables to track active bookings
+  let currentBaseTotal = 0;
+
   // If elements don't exist on the page, stop script setup gracefully
   const dateRangeEl = document.getElementById("date_range");
   if (!dateRangeEl) return;
@@ -72,6 +87,13 @@ document.addEventListener("DOMContentLoaded", function() {
   const totalEl = document.getElementById("total");
   const hiddenCheckIn = document.getElementById("check_in");
   const hiddenCheckOut = document.getElementById("check_out");
+  
+  // Coupon Element Targets
+  const couponBox = document.getElementById("coupon_box");
+  const applyCouponBtn = document.getElementById("apply_coupon_btn");
+  const couponMessage = document.getElementById("coupon_message");
+  const appliedCouponHiddenInput = document.getElementById("applied_coupon_code");
+  const priceCalculationRow = document.getElementById("price_calculation_row");
 
   function daysBetween(a, b) {
     return Math.round((b - a) / (1000 * 60 * 60 * 24));
@@ -85,10 +107,55 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function resetPrice() {
+    currentBaseTotal = 0;
     if (nightsEl) nightsEl.textContent = "0";
-    if (totalEl) totalEl.textContent = "0";
+    if (priceCalculationRow) priceCalculationRow.innerHTML = '€<span id="total">0</span>';
     if (hiddenCheckIn) hiddenCheckIn.value = "";
     if (hiddenCheckOut) hiddenCheckOut.value = "";
+    
+    // Clear coupon forms on date resets
+    if (couponBox) couponBox.value = "";
+    if (couponMessage) couponMessage.innerText = "";
+    if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
+  }
+
+  // Live Coupon API Validation Call Engine
+  if (applyCouponBtn) {
+    applyCouponBtn.addEventListener('click', function() {
+      const code = couponBox.value.trim().upperCase ? couponBox.value.trim().toUpperCase() : couponBox.value.trim();
+      if (!code) return;
+      
+      if (currentBaseTotal <= 0) {
+        couponMessage.className = "small mt-1 text-danger";
+        couponMessage.innerText = "Please select a valid check-in date range first.";
+        return;
+      }
+
+      fetch(`/api/validate-coupon?code=${encodeURIComponent(code)}&subtotal=${currentBaseTotal}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.valid) {
+            couponMessage.className = "small mt-1 text-success";
+            couponMessage.innerText = "Success! Code applied.";
+            if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = data.code;
+            
+            // Graphically adjust the price layout to show a strikethrough markdown discount
+            if (priceCalculationRow) {
+              priceCalculationRow.innerHTML = `<del class="text-muted">€${currentBaseTotal.toFixed(2)}</del> <span class="text-success fw-bold">€${data.new_total.toFixed(2)}</span>`;
+            }
+          } else {
+            couponMessage.className = "small mt-1 text-danger";
+            couponMessage.innerText = data.message;
+            if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
+            if (priceCalculationRow) priceCalculationRow.innerHTML = `€<span id="total">${currentBaseTotal.toFixed(2)}</span>`;
+          }
+        })
+        .catch(err => {
+          console.error("Coupon calculation stream failed:", err);
+          couponMessage.className = "small mt-1 text-danger";
+          couponMessage.innerText = "Connection validation runtime warning.";
+        });
+    });
   }
 
   const picker = flatpickr("#date_range", {
@@ -127,13 +194,20 @@ document.addEventListener("DOMContentLoaded", function() {
           return;
         }
 
-        // FIXED: Replaced native .toISOString() with Flatpickr's text formatter 
-        // to block browser timezone conversions from rolling back the date by 1 day.
         if (hiddenCheckIn) hiddenCheckIn.value = instance.formatDate(checkIn, "Y-m-d");
         if (hiddenCheckOut) hiddenCheckOut.value = instance.formatDate(checkOut, "Y-m-d");
 
+        currentBaseTotal = nights * pricePerNight;
+
         if (nightsEl) nightsEl.textContent = nights;
-        if (totalEl) totalEl.textContent = nights * pricePerNight;
+        if (priceCalculationRow) {
+          priceCalculationRow.innerHTML = `€<span id="total">${currentBaseTotal.toFixed(2)}</span>`;
+        }
+
+        // Wipe old applied data states if the user shifts dates to force re-validation
+        if (couponBox) couponBox.value = "";
+        if (couponMessage) couponMessage.innerText = "";
+        if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
       }
     }
   });

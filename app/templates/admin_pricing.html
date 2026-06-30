@@ -49,8 +49,9 @@
         <div class="col-md-7">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center fw-bold">
-                    <span>🎟️ Promotional Vouchers (Read Only)</span>
-                    <button class="btn btn-xs btn-light text-dark py-0 px-2 font-monospace fw-bold disabled" style="font-size:0.75rem; opacity: 0.6;">+ Create Code</button>
+                    <span>🎟️ Operational System Vouchers</span>
+                    <!-- Trigger Modal Form Pop-Up for code injection safely -->
+                    <button class="btn btn-sm btn-light text-dark py-1 px-2 fw-bold" data-bs-toggle="modal" data-bs-target="#createCouponModal">+ Create Code</button>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover align-middle mb-0">
@@ -63,27 +64,64 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for c in coupons %}
                             <tr>
-                                <td><span class="badge bg-light text-success border border-success font-monospace px-2">SUMMER10</span></td>
-                                <td><strong>10% OFF</strong></td>
-                                <td class="text-muted small">Cart Percentage</td>
+                                <td><span class="badge bg-light text-success border border-success font-monospace px-2">{{ c.code }}</span></td>
+                                <td><strong>{{ c.discount_value }}{{ '%' if c.discount_type == 'percentage' else '€' }} OFF</strong></td>
+                                <td class="text-muted small text-capitalize">{{ c.discount_type }} Deductions</td>
                                 <td class="text-end px-3">
-                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2 disabled" style="font-size:0.75rem;">Static</button>
+                                    <form action="{{ url_for('routes.admin_delete_coupon', coupon_id=c.id) }}" method="POST" onsubmit="return confirm('Purge this active promo code out of circulation?');" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:0.75rem;">Remove</button>
+                                    </form>
                                 </td>
                             </tr>
+                            {% else %}
                             <tr>
-                                <td><span class="badge bg-light text-success border border-success font-monospace px-2">WELCOME20</span></td>
-                                <td><strong>€20.00 OFF</strong></td>
-                                <td class="text-muted small">Flat Value deduction</td>
-                                <td class="text-end px-3">
-                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2 disabled" style="font-size:0.75rem;">Static</button>
-                                </td>
+                                <td colspan="4" class="text-center text-muted py-4 small">No operational promotional vouchers found in storage.</td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal Component Form for creating codes dynamically -->
+<div class="modal fade" id="createCouponModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{{ url_for('routes.admin_create_coupon') }}" method="POST" class="modal-content">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold">Generate New Coupon</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">COUPON STRING CODE</label>
+                    <input type="text" name="coupon_code" class="form-control text-uppercase font-monospace" placeholder="e.g., WINTER25" required>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">DISCOUNT TYPE</label>
+                        <select name="discount_type" class="form-select">
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="flat">Flat Value (€)</option>
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">VALUE AMOUNT</label>
+                        <input type="number" step="0.01" name="discount_value" class="form-control" placeholder="10" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-success fw-bold">Publish Code</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

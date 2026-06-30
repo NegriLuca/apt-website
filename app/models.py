@@ -51,6 +51,7 @@ class Reservation(db.Model):
     cancel_token    = db.Column(db.String(128), unique=True, index=True)
     source          = db.Column(db.String(20), default="direct")
     external_uid    = db.Column(db.String(128), unique=True, index=True)
+    coupon_code     = db.Column(db.String(20), nullable=True)
 
     @property
     def nights(self):
@@ -85,3 +86,22 @@ class ICalFeed(db.Model):
     url           = db.Column(db.Text, nullable=False)
     last_synced_at = db.Column(db.DateTime)
     active        = db.Column(db.Boolean, default=True)
+
+
+class Coupon(db.Model):
+    __tablename__ = 'coupons'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    discount_type = db.Column(db.String(20), nullable=False, default='percentage') # 'percentage' or 'flat'
+    discount_value = db.Column(db.Float, nullable=False)
+    active = db.Column(db.Boolean, default=True)
+
+    def apply_discount(self, original_price):
+        if not self.active:
+            return original_price
+        if self.discount_type == 'percentage':
+            return max(0.0, original_price * (1 - (self.discount_value / 100.0)))
+        elif self.discount_type == 'flat':
+            return max(0.0, original_price - self.discount_value)
+        return original_price
