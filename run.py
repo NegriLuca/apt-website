@@ -7,6 +7,24 @@ app = create_app()
 with app.app_context():
     db.create_all()  # Create tables if they don't exist
 
+    # ── DB SCHEMA PATCH: Force inject missing column if using an existing DB ──
+    try:
+        # Check if coupon_code already exists, if not, add it dynamically
+        engine = db.engine
+        with engine.connect() as conn:
+            # For PostgreSQL / SQLite: Safely try to alter the table
+            # Wrap in try/except so it doesn't fail if the column is already there
+            try:
+                from sqlalchemy import text
+                conn.execute(text("ALTER TABLE reservations ADD COLUMN coupon_code VARCHAR(20) NULL;"))
+                conn.commit()
+                print("🛠️ Database schema updated: coupon_code column injected into reservations.")
+            except Exception:
+                # If it fails, the column likely already exists, which is perfect
+                pass
+    except Exception as e:
+        print(f"ℹ️ Schema check skipped or unneeded: {e}")
+
     # ── AUTO-CREATE & SYNC ADMIN FROM .ENV ──
     env_password = os.environ.get('ADMIN_PASSWORD')
     
@@ -40,9 +58,9 @@ with app.app_context():
         print("🏠 No properties found. Seeding default apartment profile...")
         default_apartment = Apartment(
             name="My Cozy Suite",
-            description="Welcome to our beautiful, fully equipped rental property.", # Added to fix NOT NULL error
+            description="Welcome to our beautiful, fully equipped rental property.", 
             price_per_night=120.00,
-            image_file="apartment/living_room.jpg" # Safe fallback asset name
+            image_file="apartment/living_room.jpg" 
         )
         db.session.add(default_apartment)
         db.session.commit()
