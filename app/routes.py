@@ -572,7 +572,7 @@ def export_ical():
 
 # ── Admin dashboard ───────────────────────────────────────────────────────────
 
-# 1. CENTRAL HUBS / OVERVIEW HOMEPAGE
+# 1. MAIN HUB (Overview Dashboard)
 @bp.route('/admin')
 @login_required
 def admin_dashboard():
@@ -593,7 +593,6 @@ def admin_dashboard():
     
     feeds = ICalFeed.query.order_by(ICalFeed.source).all()
     
-    # FIX: Changed from 'admin/dashboard.html' to match your flat layout file name
     return render_template(
         'admin_dashboard.html', 
         reservations=query.all(), 
@@ -602,38 +601,42 @@ def admin_dashboard():
         feeds=feeds
     )
 
-
-# 2. VISUAL CALENDAR PAGE
+# 2. VISUAL CALENDAR MAP PAGE
 @bp.route('/admin/calendar')
 @login_required
 def admin_calendar():
     if not current_user.is_admin: 
         abort(403)
-    # FIX: Changed from 'admin/calendar.html'
     return render_template('admin_calendar.html')
 
-
-# 3. DYNAMIC PRICING & COUPONS SETTINGS PAGE
+# 3. SETTINGS & PRICING PAGE
 @bp.route('/admin/pricing', methods=['GET', 'POST'])
 @login_required
 def admin_pricing():
     if not current_user.is_admin: 
         abort(403)
+        
+    # Attempt to fetch the apartment row; create a default if database is empty
     apartment = Apartment.query.first()
+    if not apartment:
+        apartment = Apartment(price_per_night=120.00)
+        db.session.add(apartment)
+        db.session.commit()
     
     if request.method == 'POST':
         new_price = request.form.get('price_per_night')
-        if new_price and apartment:
-            apartment.price_per_night = float(new_price)
-            db.session.commit()
-            flash('Nightly rate updated successfully!', 'success')
+        if new_price:
+            try:
+                apartment.price_per_night = float(new_price)
+                db.session.commit()
+                flash('Nightly base rate updated successfully!', 'success')
+            except ValueError:
+                flash('Invalid price format entered.', 'danger')
             return redirect(url_for('routes.admin_pricing'))
 
-    # FIX: Changed from 'admin/pricing.html'
     return render_template('admin_pricing.html', apartment=apartment)
 
-
-# 4. FIXED API FOR FULLCALENDAR JSON STREAM
+# 4. JSON STREAM FOR FULLCALENDAR 
 @bp.route('/api/admin/calendar-reservations')
 @login_required
 def api_calendar_reservations():
@@ -672,7 +675,7 @@ def api_calendar_reservations():
             }
         })
         
-    return jsonify(events)  # Requires the Flask 'jsonify' import fixed above
+    return jsonify(events)
 
 @bp.route('/admin/reservations/<int:res_id>/confirm', methods=['POST'])
 @login_required
@@ -818,15 +821,14 @@ def delete_feed(feed_id):
 
 @bp.route('/admin/feeds/sync', methods=['POST'])
 @login_required
-@csrf.exempt
 def sync_feeds_now():
     if not current_user.is_admin:
         abort(403)
-    added, removed, errors = sync_all_feeds()
+    added, removed, errors = sync_all_feeds() # Assumes this background function exists in your system
     if errors:
-        flash(f'Sync completed with errors: {"; ".join(errors)}', 'warning')
+        flash(f'Sync finished with warnings: {"; ".join(errors)}', 'warning')
     else:
-        flash(f'Sync complete — {added} added, {removed} cancelled.', 'success')
+        flash(f'Sync complete! Added {added}, removed {removed}.', 'success')
     return redirect(url_for('routes.admin_dashboard'))
 
 
