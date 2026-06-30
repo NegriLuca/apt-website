@@ -572,80 +572,93 @@ def export_ical():
 
 # ── Admin dashboard ───────────────────────────────────────────────────────────
 
+# 1. CENTRAL HUBS / OVERVIEW HOMEPAGE (Combines Ledger & iCal Sync)
 @bp.route('/admin')
 @login_required
 def admin_dashboard():
-    if not current_user.is_admin:
-        flash('Access denied.', 'danger')
-        return redirect(url_for('routes.home'))
-
+    if not current_user.is_admin: 
+        abort(403)
+        
     status_filter = request.args.get('status', 'all')
     query = Reservation.query.order_by(Reservation.check_in.desc())
     if status_filter != 'all':
         query = query.filter(Reservation.status == status_filter)
-
-    reservations = query.all()
-    feeds        = ICalFeed.query.order_by(ICalFeed.source).all()
-
+        
     stats = {
         'total':     Reservation.query.count(),
         'confirmed': Reservation.query.filter_by(status='confirmed').count(),
         'pending':   Reservation.query.filter_by(status='pending').count(),
         'cancelled': Reservation.query.filter_by(status='cancelled').count(),
     }
-
+    
+    # We pull the feeds directly here so they populate the bottom of admin_dashboard.html
+    feeds = ICalFeed.query.order_by(ICalFeed.source).all()
+    
     return render_template(
-        'admin_dashboard.html',
-        reservations=reservations,
-        feeds=feeds,
-        stats=stats,
-        status_filter=status_filter,
+        'admin/dashboard.html', 
+        reservations=query.all(), 
+        status_filter=status_filter, 
+        stats=stats, 
+        feeds=feeds
     )
 
-# Add this under your existing @bp.route('/admin') endpoint block
 
+# 2. VISUAL CALENDAR PAGE
 @bp.route('/admin/calendar')
 @login_required
 def admin_calendar():
-    if not current_user.is_admin:
-        flash('Access denied.', 'danger')
-        return redirect(url_for('routes.home'))
-    # Renders the full screen visually consistent template panel
-    return render_template('admin_calendar.html')
+    if not current_user.is_admin: 
+        abort(403)
+    return render_template('admin/calendar.html')
 
 
+# 3. DYNAMIC PRICING & COUPONS SETTINGS PAGE
+@bp.route('/admin/pricing', methods=['GET', 'POST'])
+@login_required
+def admin_pricing():
+    if not current_user.is_admin: 
+        abort(403)
+    apartment = Apartment.query.first()
+    
+    if request.method == 'POST':
+        new_price = request.form.get('price_per_night')
+        if new_price and apartment:
+            apartment.price_per_night = float(new_price)
+            db.session.commit()
+            flash('Nightly rate updated successfully!', 'success')
+            return redirect(url_for('routes.admin_pricing'))
+
+    return render_template('admin/pricing.html', apartment=apartment)
+
+
+# 4. FIXED API FOR FULLCALENDAR JSON STREAM
 @bp.route('/api/admin/calendar-reservations')
 @login_required
 def api_calendar_reservations():
     if not current_user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
         
-    # Get all active or non-purged dates from database
     reservations = Reservation.query.all()
     events = []
     
     for r in reservations:
-        # Match colors to your existing Bootstrap table badge styles exactly
         if r.status == 'cancelled':
-            color = '#dc3545'  # Danger/Red for cancelled entries
+            color = '#dc3545'
         elif r.source in ['direct', 'stripe']:
-            color = '#28a745'  # Success/Green
+            color = '#28a745'
         elif r.source == 'airbnb':
-            color = '#ff5a5f'  # Airbnb branded red-orange
+            color = '#ff5a5f'
         elif r.source == 'booking_com':
-            color = '#003580'  # Booking.com corporate dark navy
+            color = '#003580'
         else:
-            color = '#6c757d'  # Secondary grey
+            color = '#6c757d'
             
-        # Format the event titles cleanly to convey status at a glance
         status_flag = " (CANCELLED)" if r.status == 'cancelled' else ""
         
         events.append({
             "id": r.id,
             "title": f"#{r.id} {r.guest_name}{status_flag}",
             "start": r.check_in.isoformat() if hasattr(r.check_in, 'isoformat') else str(r.check_in),
-            # FullCalendar excludes the end date visually in multi-day grids, 
-            # so we ensure it maps precisely to checkout
             "end": r.check_out.isoformat() if hasattr(r.check_out, 'isoformat') else str(r.check_out),
             "backgroundColor": color,
             "borderColor": color,
@@ -657,7 +670,7 @@ def api_calendar_reservations():
             }
         })
         
-    return jsonify(events)
+    return jsonify(events)  # Requires the Flask 'jsonify' import fixed above
 
 @bp.route('/admin/reservations/<int:res_id>/confirm', methods=['POST'])
 @login_required
