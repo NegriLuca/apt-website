@@ -125,7 +125,6 @@ def attractions():
 
 
 # ── Reservation / booking flow ────────────────────────────────────────────────
-
 @bp.route('/reserve', methods=['GET', 'POST'])
 def reserve():
     apartment = get_apartment()
@@ -170,12 +169,27 @@ def reserve():
             flash('Selected dates are not available.', 'danger')
             return redirect(request.url)
 
+        # ── BACKEND COUPON VALIDATION ──
+        coupon_code = request.form.get('applied_coupon_code', '').strip().upper()
+        base_total = nights * apartment.price_per_night
+        final_total = base_total
+        validated_code = None
+
+        if coupon_code:
+            coupon = Coupon.query.filter_by(code=coupon_code, active=True).first()
+            if coupon:
+                final_total = coupon.apply_discount(base_total)
+                validated_code = coupon.code
+
         session['pending_reservation'] = {
             'guest_name':  form.guest_name.data,
             'guest_email': form.guest_email.data,
             'check_in':    check_in.isoformat(),
             'check_out':   check_out.isoformat(),
             'num_guests':  form.num_guests.data,
+            'base_total':  base_total,
+            'total_price': final_total,        # Track the actual discounted price
+            'coupon_code': validated_code       # Attach code identifier to session payload
         }
         return redirect(url_for('routes.checkout'))
 
@@ -198,7 +212,10 @@ def checkout():
     check_in  = date.fromisoformat(pending['check_in'])
     check_out = date.fromisoformat(pending['check_out'])
     nights    = (check_out - check_in).days
-    total     = nights * apartment.price_per_night if apartment else 0
+    
+    # Use pre-calculated session prices if available; fallback to legacy logic
+    base_total = pending.get('base_total', nights * apartment.price_per_night if apartment else 0)
+    total_price = pending.get('total_price', base_total)
 
     stripe_pub = current_app.config.get('STRIPE_PUBLISHABLE_KEY', '')
 
@@ -207,7 +224,8 @@ def checkout():
         pending=pending,
         apartment=apartment,
         nights=nights,
-        total=total,
+        base_total=base_total,
+        total=total_price,               # Draws discounted total inside checkout page matrix
         stripe_publishable_key=stripe_pub,
         check_in=check_in,
         check_out=check_out,
@@ -225,7 +243,10 @@ def create_checkout_session():
     check_in  = date.fromisoformat(pending['check_in'])
     check_out = date.fromisoformat(pending['check_out'])
     nights    = (check_out - check_in).days
-    total_cents = int(nights * apartment.price_per_night * 100) if apartment else 0
+    
+    # Crucial: Calculate unit amount from discounted total price variable
+    total_price = pending.get('total_price', nights * apartment.price_per_night if apartment else 0)
+    total_cents = int(total_price * 100)
 
     if not is_available(check_in, check_out):
         session.pop('pending_reservation', None)
@@ -244,7 +265,7 @@ def create_checkout_session():
                     'unit_amount': total_cents,
                     'product_data': {
                         'name': f"{apartment.name if apartment else 'Apartment'} — {nights} night{'s' if nights != 1 else ''}",
-                        'description': f"Check-in: {check_in}  /  Check-out: {check_out}",
+                        'description': f"Check-in: {check_in} / Check-out: {check_out}" + (f" (Promo: {pending['coupon_code']})" if pending.get('coupon_code') else ""),
                     },
                 },
                 'quantity': 1,
@@ -259,6 +280,8 @@ def create_checkout_session():
                 'check_in':    pending['check_in'],
                 'check_out':   pending['check_out'],
                 'num_guests':  str(pending['num_guests']),
+                'coupon_code': pending.get('coupon_code', ''), # Forward metadata context flags down into stripe webhooks
+                'total_price': str(total_price)
             }
         )
         return redirect(checkout_session.url, code=303)
@@ -277,13 +300,18 @@ def test_bypass_booking():
         flash('Session expired. Please start again.', 'warning')
         return redirect(url_for('routes.reserve'))
 
+    apartment = get_apartment()
     check_in  = date.fromisoformat(pending['check_in'])
     check_out = date.fromisoformat(pending['check_out'])
+    nights    = (check_out - check_in).days
 
     if not is_available(check_in, check_out):
         session.pop('pending_reservation', None)
         flash('Sorry, those dates were just booked.', 'danger')
         return redirect(url_for('routes.reserve'))
+
+    # Collect correct totals out of fallback models
+    total_price = pending.get('total_price', nights * apartment.price_per_night if apartment else 0)
 
     reservation = Reservation(
         guest_name   = pending['guest_name'],
@@ -293,6 +321,10 @@ def test_bypass_booking():
         num_guests   = int(pending['num_guests']),
         status       = 'confirmed',
         source       = 'direct',
+        total_price  = total_price,
+        coupon_code  = pending.get('coupon_code'),  # Write applied code profile directly onto database target
+        payment_status = 'paid',
+        payment_method = 'bypass',
         cancel_token = secrets.token_urlsafe(32),
         stripe_payment_intent_id = f"test_bypass_{secrets.token_hex(8)}"
     )
@@ -357,9 +389,13 @@ def _create_reservation_from_stripe(cs) -> Reservation:
         check_in  = date.fromisoformat(pending.get('check_in', date.today().isoformat()))
         check_out = date.fromisoformat(pending.get('check_out', (date.today() + timedelta(days=1)).isoformat()))
     
-    apartment = get_apartment()
-    nights = (check_out - check_in).days
-    total_price = nights * (apartment.price_per_night if apartment else 0)
+    # Determine absolute system costs safely across fallback profiles
+    try:
+        total_price = float(meta.get('total_price'))
+    except (TypeError, ValueError):
+        apartment = get_apartment()
+        nights = (check_out - check_in).days
+        total_price = nights * (apartment.price_per_night if apartment else 0)
 
     reservation = Reservation(
         guest_name               = guest_name,
@@ -371,6 +407,7 @@ def _create_reservation_from_stripe(cs) -> Reservation:
         source                   = 'direct',
         cancel_token             = secrets.token_urlsafe(32),
         total_price              = total_price,
+        coupon_code              = meta.get('coupon_code') if meta.get('coupon_code') else None, # Saves applied promo code string via Stripe Webhook payload pipeline
         payment_status           = 'paid' if data.get('payment_status') == 'paid' else 'unpaid',
         payment_method           = 'stripe',
         stripe_payment_intent_id = pi_id,
@@ -385,6 +422,7 @@ def _create_reservation_from_stripe(cs) -> Reservation:
         current_app.logger.error('Failed to send confirmation email: %s', exc)
 
     return reservation
+
 
 @bp.route('/stripe/webhook', methods=['POST'])
 @csrf.exempt
@@ -500,6 +538,20 @@ def cancel_reservation(token):
         success=True,
         message=final_ui_message
     )
+
+@bp.route('/review-and-pay')
+def review_and_pay():
+    booking_data = session.get('booking_data')
+    if not booking_data:
+        return redirect(url_for('routes.index'))
+        
+    # FIX: Read the pre-calculated, discounted total price from the session!
+    total_to_charge = booking_data['total_price']
+    
+    # When sending total_to_charge to Stripe, remember to convert to cents:
+    # int(total_to_charge * 100)
+    
+    return render_template('review_and_pay.html', booking=booking_data, total=total_to_charge)
 
 def get_payment_summary(reservation):
     if reservation.payment_method == 'stripe':
@@ -634,7 +686,8 @@ def admin_pricing():
                 flash('Invalid price format entered.', 'danger')
             return redirect(url_for('routes.admin_pricing'))
 
-    return render_template('admin_pricing.html', apartment=apartment)
+    all_coupons = Coupon.query.all()
+    return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
 
 # CREATE COUPON ACTION
 @bp.route('/admin/coupons/create', methods=['POST'])
