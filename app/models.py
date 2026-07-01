@@ -24,7 +24,7 @@ class Apartment(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     name            = db.Column(db.String(100), nullable=False)
     price_per_night = db.Column(db.Float, nullable=False)
-    image_file      = db.Column(db.String(20), nullable=False, default='default.jpg')
+    image_file      = db.Column(db.String(100), nullable=False, default='default.jpg')
 
 
 class Reservation(db.Model):
