@@ -285,7 +285,7 @@ def reserve():
 def checkout():
     pending = session.get('pending_reservation')
     if not pending:
-        flash('Please fill in the booking form first.', 'warning')
+        flash(_('Please fill in the booking form first.'), 'warning')
         return redirect(url_for('routes.reserve'))
 
     apartment = get_apartment()
@@ -293,8 +293,12 @@ def checkout():
     check_out = date.fromisoformat(pending['check_out'])
     nights    = (check_out - check_in).days
     
-    # Use pre-calculated session prices if available; fallback to legacy logic
-    base_total = pending.get('base_total', nights * apartment.price_per_night if apartment else 0)
+    # Calcola il prezzo base dinamico usando la tua funzione giorno per giorno
+    base_rate = apartment.price_per_night if apartment else 0
+    calculated_base = calculate_dynamic_total(check_in, check_out, base_rate)
+    
+    # Se esiste già un prezzo scontato/modificato da coupon in sessione usa quello, altrimenti usa il calcolato dinamico
+    base_total = pending.get('base_total', calculated_base)
     total_price = pending.get('total_price', base_total)
 
     stripe_pub = current_app.config.get('STRIPE_PUBLISHABLE_KEY', '')
@@ -305,7 +309,7 @@ def checkout():
         apartment=apartment,
         nights=nights,
         base_total=base_total,
-        total=total_price,               # Draws discounted total inside checkout page matrix
+        total=total_price,               
         stripe_publishable_key=stripe_pub,
         check_in=check_in,
         check_out=check_out,
@@ -316,113 +320,104 @@ def process_payment():
     method = request.form.get('payment_method')
     
     if method == 'bypass':
-        # Chiama direttamente la tua vecchia funzione di bypass di test
         return test_bypass_booking()
         
     elif method == 'stripe':
-        # Chiama la tua vecchia funzione che crea la sessione su Stripe
         return create_checkout_session()
         
     elif method == 'wire_transfer':
-        # Gestione del Bonifico Bancario
-        # 1. Recuperiamo i dati della prenotazione temporanea dalla sessione
-        pending_booking = session.get('pending_booking')
-        if not pending_booking:
+        pending = session.get('pending_reservation')
+        if not pending:
             flash(_('Session expired. Please try again.'), 'danger')
             return redirect(url_for('routes.reserve'))
             
-        # 2. Convertiamo le date da stringa a oggetti datetime per salvarle nel DB
-        from datetime import datetime
-        check_in_dt = datetime.strptime(pending_booking['check_in'], '%Y-%m-%d').date()
-        check_out_dt = datetime.strptime(pending_booking['check_out'], '%Y-%m-%d').date()
+        apartment = get_apartment()
+        check_in_dt = date.fromisoformat(pending['check_in'])
+        check_out_dt = date.fromisoformat(pending['check_out'])
         
-        # 3. Creiamo la prenotazione ufficiale impostando lo stato su "pending" o "wire_pending"
-        from app.models import Reservation
+        # Fallback sicuro sul prezzo dinamico calcolato se total_price manca
+        base_rate = apartment.price_per_night if apartment else 0
+        fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, base_rate)
+        total_price = pending.get('total_price', fallback_total)
+        
         new_reservation = Reservation(
-            apartment_id=pending_booking['apartment_id'],
-            guest_name=pending_booking['guest_name'],
-            guest_email=pending_booking['guest_email'],
+            guest_name=pending['guest_name'],
+            guest_email=pending['guest_email'],
             check_in=check_in_dt,
             check_out=check_out_dt,
-            num_guests=pending_booking['num_guests'],
-            total_price=session.get('checkout_total', 0.0),
-            status='pending'  # Rimarrà pending finché non verifichi l'accredito
+            num_guests=int(pending['num_guests']),
+            status='pending',
+            source='direct',
+            total_price=total_price,
+            coupon_code=pending.get('coupon_code'),
+            payment_status='unpaid',
+            payment_method='wire_transfer',
+            cancel_token=secrets.token_urlsafe(32)
         )
         
         db.session.add(new_reservation)
         db.session.commit()
         
-        # Salviamo l'ID appena generato e il totale in sessione per mostrarli nella pagina di conferma
         session['completed_wire_res_id'] = new_reservation.id
         session['completed_wire_total'] = new_reservation.total_price
         
-        # Puliamo i dati temporanei della prenotazione vecchia
-        session.pop('pending_booking', None)
-        
+        session.pop('pending_reservation', None)
         return redirect(url_for('routes.wire_transfer_instructions'))
     
     elif method == 'paypal':
-        # 1. Recuperiamo i dati temporanei della prenotazione
-        pending_booking = session.get('pending_booking')
-        if not pending_booking:
+        pending = session.get('pending_reservation')
+        if not pending:
             flash(_('Session expired. Please try again.'), 'danger')
             return redirect(url_for('routes.reserve'))
             
-        # 2. Convertiamo le date per salvarla nel database
-        from datetime import datetime
-        check_in_dt = datetime.strptime(pending_booking['check_in'], '%Y-%m-%d').date()
-        check_out_dt = datetime.strptime(pending_booking['check_out'], '%Y-%m-%d').date()
-        total_price = session.get('checkout_total', 0.0)
+        apartment = get_apartment()
+        check_in_dt = date.fromisoformat(pending['check_in'])
+        check_out_dt = date.fromisoformat(pending['check_out'])
         
-        # 3. Creiamo la prenotazione con stato 'pending'
-        from app.models import Reservation
+        # Fallback sicuro sul prezzo dinamico calcolato se total_price manca
+        base_rate = apartment.price_per_night if apartment else 0
+        fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, base_rate)
+        total_price = pending.get('total_price', fallback_total)
+        
         new_reservation = Reservation(
-            apartment_id=pending_booking['apartment_id'],
-            guest_name=pending_booking['guest_name'],
-            guest_email=pending_booking['guest_email'],
+            guest_name=pending['guest_name'],
+            guest_email=pending['guest_email'],
             check_in=check_in_dt,
             check_out=check_out_dt,
-            num_guests=pending_booking['num_guests'],
+            num_guests=int(pending['num_guests']),
+            status='pending',
+            source='direct',
             total_price=total_price,
-            status='pending'  # In attesa che tu controlli l'effettivo accredito su PayPal
+            coupon_code=pending.get('coupon_code'),
+            payment_status='unpaid',
+            payment_method='paypal',
+            cancel_token=secrets.token_urlsafe(32)
         )
         
         db.session.add(new_reservation)
         db.session.commit()
         
-        # Puliamo la sessione temporanea della ricerca
-        session.pop('pending_booking', None)
+        session.pop('pending_reservation', None)
         
-        # ── GENERAZIONE LINK PAYPAL.ME PERSONALE ──
-        # Sostituisci "il_tuo_username" con il tuo link PayPal.Me reale
         paypal_username = "il_tuo_username" 
-        
-        # Formattiamo il prezzo a due cifre decimali (es: 120.50)
         formatted_price = "%.2f" % total_price
-        
-        # Creiamo il link definitivo. Esempio finale: https://paypal.me/il_tuo_username/120.50EUR
-        # Nota: Puoi aggiungere testo come causale inserendolo in fondo se il tuo piano PayPal lo supporta,
-        # oppure l'utente lo vedrà semplicemente come richiesta di denaro immediata.
         paypal_url = f"https://paypal.me/{paypal_username}/{formatted_price}EUR"
         
-        # Salviamo l'ID in sessione per la pagina intermedia di reindirizzamento
         session['completed_paypal_res_id'] = new_reservation.id
         session['paypal_redirect_url'] = paypal_url
         
         return redirect(url_for('routes.paypal_redirect_page'))    
+        
     return redirect(url_for('routes.checkout'))
 
 @bp.route('/checkout/wire-transfer')
 def wire_transfer_instructions():
-    # Recuperiamo i dati salvati prima di svuotare tutto
     reservation_id = session.get('completed_wire_res_id')
     total = session.get('completed_wire_total')
     
     if not reservation_id:
-        # Protezione se l'utente prova ad accedere alla pagina rinfrescandola a caso
-        return redirect(url_for('routes.index'))
+        return redirect(url_for('routes.home'))
         
-    # Puliamo anche queste variabili così la pagina è visitabile una volta sola per sicurezza
     session.pop('completed_wire_res_id', None)
     session.pop('completed_wire_total', None)
     
@@ -434,9 +429,8 @@ def paypal_redirect_page():
     paypal_url = session.get('paypal_redirect_url')
     
     if not reservation_id or not paypal_url:
-        return redirect(url_for('routes.index'))
+        return redirect(url_for('routes.home'))
         
-    # Puliamo la sessione
     session.pop('completed_paypal_res_id', None)
     session.pop('paypal_redirect_url', None)
     
@@ -446,7 +440,7 @@ def paypal_redirect_page():
 def create_checkout_session():
     pending = session.get('pending_reservation')
     if not pending:
-        flash('Session expired. Please start again.', 'warning')
+        flash(_('Session expired. Please start again.'), 'warning')
         return redirect(url_for('routes.reserve'))
 
     apartment = get_apartment() 
@@ -454,17 +448,17 @@ def create_checkout_session():
     check_out = date.fromisoformat(pending['check_out'])
     nights    = (check_out - check_in).days
     
-    # Crucial: Calculate unit amount from discounted total price variable
+    # INTEGRATA: Forza il calcolo dinamico se total_price non è presente nel dizionario session
     total_price = pending.get('total_price')
     if total_price is None:
-        base_total = calculate_dynamic_total(check_in, check_out, apartment.price_per_night)
-        total_price = base_total
+        base_rate = apartment.price_per_night if apartment else 0
+        total_price = calculate_dynamic_total(check_in, check_out, base_rate)
 
     total_cents = int(total_price * 100)
 
     if not is_available(check_in, check_out):
         session.pop('pending_reservation', None)
-        flash('Sorry, those dates were just booked. Please choose again.', 'danger')
+        flash(_('Sorry, those dates were just booked. Please choose again.'), 'danger')
         return redirect(url_for('routes.reserve'))
 
     try:
@@ -494,7 +488,7 @@ def create_checkout_session():
                 'check_in':    pending['check_in'],
                 'check_out':   pending['check_out'],
                 'num_guests':  str(pending['num_guests']),
-                'coupon_code': pending.get('coupon_code', ''), # Forward metadata context flags down into stripe webhooks
+                'coupon_code': pending.get('coupon_code', ''), 
                 'total_price': str(total_price)
             }
         )
@@ -502,30 +496,30 @@ def create_checkout_session():
 
     except Exception as exc:
         current_app.logger.error('Stripe error: %s', exc)
-        flash('Payment provider error. Please try again later.', 'danger')
+        flash(_('Payment provider error. Please try again later.'), 'danger')
         return redirect(url_for('routes.checkout'))
     
 
 @bp.route('/checkout/test-bypass', methods=['POST'])
-@csrf.exempt
 def test_bypass_booking():
     pending = session.get('pending_reservation')
     if not pending:
-        flash('Session expired. Please start again.', 'warning')
+        flash(_('Session expired. Please start again.'), 'warning')
         return redirect(url_for('routes.reserve'))
 
     apartment = get_apartment()
     check_in  = date.fromisoformat(pending['check_in'])
     check_out = date.fromisoformat(pending['check_out'])
-    nights    = (check_out - check_in).days
 
     if not is_available(check_in, check_out):
         session.pop('pending_reservation', None)
-        flash('Sorry, those dates were just booked.', 'danger')
+        flash(_('Sorry, those dates were just booked.'), 'danger')
         return redirect(url_for('routes.reserve'))
 
-    # Collect correct totals out of fallback models
-    total_price = pending.get('total_price', nights * apartment.price_per_night if apartment else 0)
+    # INTEGRATA: Fallback dinamico anche per il bypass di sviluppo locale
+    base_rate = apartment.price_per_night if apartment else 0
+    fallback_total = calculate_dynamic_total(check_in, check_out, base_rate)
+    total_price = pending.get('total_price', fallback_total)
 
     reservation = Reservation(
         guest_name   = pending['guest_name'],
@@ -536,7 +530,7 @@ def test_bypass_booking():
         status       = 'confirmed',
         source       = 'direct',
         total_price  = total_price,
-        coupon_code  = pending.get('coupon_code'),  # Write applied code profile directly onto database target
+        coupon_code  = pending.get('coupon_code'),  
         payment_status = 'paid',
         payment_method = 'bypass',
         cancel_token = secrets.token_urlsafe(32),
@@ -548,14 +542,13 @@ def test_bypass_booking():
     
     try:
         _send_confirmation_emails(reservation)
-        flash('Confirmation emails sent successfully!', 'info')
+        flash(_('Confirmation emails sent successfully!'), 'info')
     except Exception as exc:
         current_app.logger.error('Failed to send confirmation email in test bypass: %s', exc)
-        flash('Reservation saved, but email sending failed.', 'warning')
+        flash(_('Reservation saved, but email sending failed.'), 'warning')
 
     session.pop('pending_reservation', None)
     return redirect(url_for('routes.booking_confirmed', reservation_id=reservation.id))
-
 
 @bp.route('/payment/success')
 def payment_success():

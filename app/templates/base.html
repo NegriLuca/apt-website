@@ -25,11 +25,49 @@
             
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}">{{ _('Apartment') }}</a></li>
+                    
                     <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.reserve') }}">{{ _('Reserve') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="#">{{ _('Food & Drinks') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="#">{{ _('Attractions') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="#">{{ _('FAQ') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="#">{{ _('Contact') }}</a></li>
+                    
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#food-drinks">{{ _('Food & Drinks') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#attractions">{{ _('Attractions') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#faq">{{ _('FAQ') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#contact">{{ _('Contact') }}</a></li>
+                    
+                    <li class="nav-item dropdown ms-2">
+                        <a class="nav-link-luxury dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-globe me-1 text-muted"></i>
+                            <span class="text-uppercase fw-bold">{{ get_locale() }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end rounded-0 border-muted shadow-sm m-0" aria-labelledby="langDropdown" style="font-size: 13px; min-width: 120px;">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" href="?lang=it">
+                                    <span class="me-2">🇮🇹</span> IT
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" href="?lang=en">
+                                    <span class="me-2">🇬🇧</span> EN
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" href="?lang=fr">
+                                    <span class="me-2">🇫🇷</span> FR
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" href="?lang=de">
+                                    <span class="me-2">🇩🇪</span> DE
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" href="?lang=es">
+                                    <span class="me-2">🇪🇸</span> ES
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     {% if current_user.is_authenticated and current_user.is_admin %}
                         <li class="nav-item"><a class="btn btn-dark btn-sm ms-3 px-3 rounded-0" href="{{ url_for('routes.admin_dashboard') }}">Admin</a></li>
                     {% endif %}
