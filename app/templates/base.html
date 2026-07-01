@@ -25,14 +25,14 @@
             
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav align-items-center">
-                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}">{{ _('Apartment') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.apartment') }}">{{ _('Apartment') }}</a></li>
                     
                     <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.reserve') }}">{{ _('Reserve') }}</a></li>
                     
-                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#food-drinks">{{ _('Food & Drinks') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#attractions">{{ _('Attractions') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#faq">{{ _('FAQ') }}</a></li>
-                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.home') }}#contact">{{ _('Contact') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.food_recommendations') }}">{{ _('Food & Drinks') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.attractions') }}">{{ _('Attractions') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.faq') }}">{{ _('FAQ') }}</a></li>
+                    <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.contact') }}">{{ _('Contact') }}</a></li>
                     
                     <li class="nav-item dropdown ms-2">
                         <a class="nav-link-luxury dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
