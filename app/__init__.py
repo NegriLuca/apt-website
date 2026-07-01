@@ -6,8 +6,7 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from flask_bcrypt import Bcrypt
-from flask_babel import Babel
-
+from flask_babel import Babel, format_date, format_datetime
 from config import Config
 
 db = SQLAlchemy()
@@ -51,6 +50,8 @@ def create_app():
 
     # Initialize Babel with the context selector function configuration
     babel.init_app(app, locale_selector=get_locale)
+    app.jinja_env.filters['format_date'] = format_date
+    app.jinja_env.filters['format_datetime'] = format_datetime
 
     from app import routes
     app.register_blueprint(routes.bp)

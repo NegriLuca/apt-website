@@ -28,11 +28,11 @@
             </tr>
             <tr>
               <td class="text-muted">{{ _('Check-in') }}</td>
-              <td>{{ format_date(check_in, format='medium') }}</td>
+              <td>{{ check_in | format_date(format='medium') }}</td>
             </tr>
             <tr>
               <td class="text-muted">{{ _('Check-out') }}</td>
-              <td>{{ format_date(check_out, format='medium') }}</td>
+              <td>{{ check_out | format_date(format='medium') }}</td>
             </tr>
             <tr>
               <td class="text-muted">{{ _('Nights') }}</td>
