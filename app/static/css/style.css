@@ -1,76 +1,118 @@
-/* General page background */
+/* ==========================================================================
+   💎 PREMIUM RESTYLING - LOTTO 235 GARBATELLA ROMA (LUXURY MINIMAL CHIC)
+   ========================================================================== */
+
+/* Importazione Font Luxury */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+/* Sfondo della pagina e impostazioni globali */
 body {
-    background-color: #f4f6f8; /* light gray, Airbnb-like */
-    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background-color: #FCFCFB; /* Grigio caldissimo, quasi impercettibile */
+    font-family: 'Inter', sans-serif;
+    color: #2D2D2D;
+    letter-spacing: -0.1px;
 }
 
-/* Main content wrapper */
-.main-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-
-/* Reduce top spacing */
-.page-wrapper {
-    padding-top: 1.5rem;
-}
-
-/* Navbar separation */
+/* Navbar Superiore */
 .navbar {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background-color: #FFFFFF !important;
+    border-bottom: 1px solid #EAEAEA;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
 }
 
-/* Headings */
-h1, h2, h3 {
-    font-weight: 600;
+/* Navigazione custom di lusso */
+.logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #1A1A1A;
+    line-height: 1.1;
+}
+
+.nav-link-luxury {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #555555;
+    text-decoration: none;
+    padding: 8px 16px;
+    display: inline-block;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link-luxury:hover {
+    color: #C5A880; /* Colore oro/fango morbido */
+}
+
+/* Titoli */
+h1, h2, h3, .section-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    color: #1A1A1A;
+    letter-spacing: -0.5px;
+}
+
+h2 { margin-bottom: 15px; }
+
+/* Contenitore principale */
+.main-content {
+    background: #FFFFFF;
+    padding: 2.5rem;
+    border-radius: 0px; /* Angoli retti molto d'impatto, stile boutique hotel */
+    border: 1px solid #EAEAEA;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+}
+
+/* Riduzione spaziatura superiore */
+.page-wrapper {
+    padding-top: 2.5rem;
+}
+
+/* Carosello Immagini */
+.carousel {
+    border-radius: 0px;
+    overflow: hidden;
+    box-shadow: 0 15px 45px rgba(0,0,0,0.07);
 }
 
 .carousel img {
-    height: 420px;
+    height: 480px; /* Un pelo più alto per dare respiro */
     object-fit: cover;
 }
 
-.carousel {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-
+/* Servizi (Amenities) */
 .amenities div {
-    margin-bottom: 10px;
-    font-size: 1rem;
+    margin-bottom: 14px;
+    font-size: 0.95rem;
+    color: #444;
 }
 
 .amenities i {
-    color: #198754;
-    margin-right: 6px;
+    color: #C5A880; /* Cambiato il verde con l'oro soft luxury */
+    margin-right: 8px;
     font-size: 1.2rem;
 }
 
 .lead {
-    font-size: 1.1rem;
-    color: #444;
+    font-size: 1.15rem;
+    color: #555;
+    font-weight: 300;
+    line-height: 1.7;
 }
 
+/* Mappa e Contenitori Generali */
 .map-container {
-    border-radius: 16px;
+    border-radius: 0px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #EAEAEA;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
     background: white;
 }
-
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.endRange {
-  background: #198754;
-  border-color: #198754;
-}
-
-.flatpickr-day.disabled {
-  color: #ccc;
-  text-decoration: line-through;
-}
-
 
 .map-container iframe {
     display: block;
@@ -78,160 +120,224 @@ h1, h2, h3 {
     min-height: 500px;
 }
 
-.section-title {
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: #222;
+/* Calendario Flatpickr Custom Premium */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #1A1A1A !important; /* Nero anziché verde per un'estetica Haute Couture */
+  border-color: #1A1A1A !important;
+  border-radius: 0px;
 }
 
+.flatpickr-day.disabled {
+  color: #E0E0E0;
+  text-decoration: line-through;
+}
+
+/* Cards dei Posti / Attrazioni */
 .place-card {
     display: block;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
 }
 
 .place-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 }
 
 .place-card .card {
-    border-radius: 16px;
-    transition:
-        box-shadow 0.2s ease,
-        transform 0.2s ease;
+    border-radius: 0px !important;
+    border: 1px solid #EAEAEA !important;
+    transition: box-shadow 0.3s ease;
 }
 
 .place-card:hover .card {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06) !important;
+    border-color: #C5A880 !important; /* Evidenzia in oro al passaggio */
 }
 
 .card-title {
+    font-family: 'Playfair Display', serif;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
+    color: #1A1A1A;
 }
 
 .card-text {
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #666;
 }
 
+/* Moduli di Interazione ed Elenchi Mappa della Città */
+.page {
+    display: flex;
+    height: 80vh;
+    gap: 24px;
+}
+
+#sidebar {
+    width: 380px;
+    background: #FFFFFF;
+    border-radius: 0px;
+    border: 1px solid #EAEAEA;
+    padding: 24px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+#map {
+    flex: 1;
+    border-radius: 0px;
+    border: 1px solid #EAEAEA;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+/* Elemento Lista nella Sidebar della Mappa */
+.item {
+    padding: 14px;
+    border-radius: 0px;
+    border-bottom: 1px solid #F4F4F3;
+    cursor: pointer;
+    margin-bottom: 0px;
+    transition: all 0.2s ease;
+}
+
+.item:hover {
+    background: #FCFCFB;
+    transform: translateX(4px);
+    border-bottom-color: #C5A880;
+}
+
+/* Tag ed Elementi di Categorizzazione */
+.tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 0px;
+    background: #F4F4F3;
+    color: #555;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+/* FILTRI MAPPA ATTRAZIONI */
+#filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 16px 0;
+}
+
+.filter {
+    border: 1px solid #EAEAEA;
+    padding: 6px 14px;
+    border-radius: 0px;
+    background: #FFFFFF;
+    color: #555;
+    cursor: pointer;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.filter:hover {
+    background: #FCFCFB;
+    border-color: #1A1A1A;
+    color: #1A1A1A;
+}
+
+.filter.active {
+    background: #1A1A1A;
+    border-color: #1A1A1A;
+    color: #FFFFFF;
+    font-weight: 500;
+}
+
+/* Bottoni Minimal Luxury Generici */
+.btn-dark {
+    background-color: #1A1A1A;
+    border: 1px solid #1A1A1A;
+    border-radius: 0px !important;
+    padding: 12px 28px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.btn-dark:hover {
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+    border-color: #1A1A1A;
+}
+
+/* Card di riepilogo raddrizzate */
+.card-header.bg-primary {
+    background-color: #1A1A1A !important;
+    border-radius: 0px !important;
+    border: none;
+}
+
+.badge.bg-secondary {
+    background-color: #F4F4F3 !important;
+    color: #1A1A1A !important;
+    border-radius: 0px;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   📍 SEZIONE MAP MARKERS (Mantiene compatibilità assoluta con Leaflet/JS)
+   ========================================================================== */
 .map-icon {
     font-size: 1.2rem;
 }
 
 .pin {
-  font-size: 26px;
-  background: white;
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
-  border: 2px solid #fff;
+    font-size: 24px;
+    background: #FFFFFF;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 1px solid #EAEAEA;
 }
 
 .pin-home {
-  font-size: 28px;
-  background: #fff3ec;
-  width: 46px;
-  height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  box-shadow: 0 10px 22px rgba(0,0,0,0.3);
-  border: 2px solid #fff;
+    font-size: 26px;
+    background: #FFFFFF;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(197, 168, 128, 0.3);
+    border: 2px solid #C5A880; /* Evidenzia la casa in oro */
 }
 
-
-.page {
-display: flex;
-height: 80vh;
-gap: 18px;
-}
-
-#sidebar {
-width: 360px;
-background: #fff;
-border-radius: 14px;
-padding: 18px;
-overflow-y: auto;
-box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-#map {
-flex: 1;
-border-radius: 14px;
-overflow: hidden;
-box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-.item {
-padding: 10px;
-border-radius: 10px;
-cursor: pointer;
-margin-bottom: 8px;
-transition: 0.2s;
-}
-
-.item:hover {
-background: #f6f3ef;
-transform: translateX(3px);
-}
-
-h2 { margin-bottom: 5px; }
-
-.tag {
-font-size: 12px;
-padding: 4px 10px;
-border-radius: 20px;
-background: #f3f1ee;
-display: inline-block;
-margin-bottom: 10px;
-}
-
-/* FILTERS */
-#filters {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-margin: 10px 0;
-}
-
-.filter {
-border: none;
-padding: 6px 10px;
-border-radius: 20px;
-background: #f3f1ee;
-cursor: pointer;
-font-size: 13px;
-}
-
-.filter.active {
-background: #2b2b2b;
-color: white;
-}
-
-.filter:hover {
-background: #e9e3dc;
-}
-
-/* emoji markers */
 .emoji-icon {
-font-size: 22px;
-text-align: center;
-line-height: 30px;
-background: white;
-border-radius: 50%;
-box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 20px;
+    text-align: center;
+    line-height: 32px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .emoji-home {
-font-size: 26px;
-text-align: center;
-line-height: 34px;
-background: #fff5f0;
-border-radius: 50%;
-box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    font-size: 24px;
+    text-align: center;
+    line-height: 36px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    box-shadow: 0 6px 18px rgba(197, 168, 128, 0.25);
+    border: 1px solid #C5A880;
 }
