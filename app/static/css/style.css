@@ -2,370 +2,70 @@
    💎 PREMIUM RESTYLING - LOTTO 235 GARBATELLA ROMA (LUXURY MINIMAL CHIC)
    ========================================================================== */
 
-/* Importazione Font Luxury */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
-/* Sfondo della pagina e impostazioni globali */
+html {
+    -webkit-text-size-adjust: 100%; /* Impedisce cambiamenti strani del font durante rotazione */
+}
+
 body {
-    background-color: #FCFCFB; /* Grigio caldissimo, quasi impercettibile */
+    background-color: #FCFCFB;
     font-family: 'Inter', sans-serif;
     color: #2D2D2D;
     letter-spacing: -0.1px;
+    overflow-x: hidden; /* Blocca lo scroll orizzontale su rotazione */
 }
 
-/* Navbar Superiore */
-.navbar {
-    background-color: #FFFFFF !important;
-    border-bottom: 1px solid #EAEAEA;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
-    padding-top: 1.2rem;
-    padding-bottom: 1.2rem;
+/* Navbar & Typography */
+.navbar { background-color: #FFFFFF !important; border-bottom: 1px solid #EAEAEA; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important; padding-top: 1.2rem; padding-bottom: 1.2rem; }
+.logo-text { font-family: 'Playfair Display', serif; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; color: #1A1A1A; line-height: 1.1; }
+h1, h2, h3, .section-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; color: #1A1A1A; letter-spacing: -0.5px; }
+
+/* Layout & Containers */
+.main-content { background: #FFFFFF; padding: 2.5rem; border-radius: 0px; border: 1px solid #EAEAEA; box-shadow: 0 10px 40px rgba(0,0,0,0.02); }
+.page-wrapper { padding-top: 2.5rem; }
+
+/* Mappa e Responsività (Fix per Mobile e Rotazione) */
+.page { 
+    display: flex; 
+    height: 70vh; /* Leggermente ridotto per garantire visibilità su schermi piccoli */
+    gap: 24px; 
+    transition: all 0.3s ease;
 }
 
-/* Navigazione custom di lusso */
-.logo-text {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: #1A1A1A;
-    line-height: 1.1;
+#sidebar { width: 380px; background: #FFFFFF; border-radius: 0px; border: 1px solid #EAEAEA; padding: 24px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+#map { flex: 1; border-radius: 0px; border: 1px solid #EAEAEA; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); min-height: 300px; }
+
+/* MEDIA QUERY PER MOBILE E ROTAZIONE */
+@media (max-width: 768px) {
+  .page { flex-direction: column; height: auto; }
+  #sidebar { width: 100%; height: 250px; margin-bottom: 15px; }
+  #map { height: 350px; width: 100%; }
 }
 
-.nav-link-luxury {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #555555;
-    text-decoration: none;
-    padding: 8px 16px;
-    display: inline-block;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
+/* Attrazioni & Liste */
+.item { padding: 14px; border-radius: 0px; border-bottom: 1px solid #F4F4F3; cursor: pointer; transition: all 0.2s ease; }
+.item:hover { background: #FCFCFB; transform: translateX(4px); border-bottom-color: #C5A880; }
+.tag { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; border-radius: 0px; background: #F4F4F3; color: #555; display: inline-block; margin-bottom: 12px; }
 
-.nav-link-luxury:hover {
-    color: #C5A880; /* Colore oro/fango morbido */
-}
+/* Filtri Mappa */
+#filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filter { border: 1px solid #EAEAEA; padding: 6px 14px; border-radius: 0px; background: #FFFFFF; color: #555; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s ease; }
+.filter.active { background: #1A1A1A; border-color: #1A1A1A; color: #FFFFFF; }
 
-/* Titoli */
-h1, h2, h3, .section-title {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-weight: 700;
-    color: #1A1A1A;
-    letter-spacing: -0.5px;
-}
+/* Bottoni & Cards */
+.btn-dark { background-color: #1A1A1A; border-radius: 0px !important; padding: 12px 28px; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+.card { border-radius: 0px !important; border: 1px solid #EAEAEA !important; }
 
-h2 { margin-bottom: 15px; }
+/* Map Markers - Ottimizzati per evitare glitch visivi su rotazione */
+.emoji-icon { font-size: 20px; text-align: center; line-height: 32px; background: #FFFFFF; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+.emoji-home { font-size: 24px; text-align: center; line-height: 36px; background: #FFFFFF; border-radius: 50%; box-shadow: 0 4px 12px rgba(197, 168, 128, 0.25); border: 1px solid #C5A880; }
 
-/* Contenitore principale */
-.main-content {
-    background: #FFFFFF;
-    padding: 2.5rem;
-    border-radius: 0px; /* Angoli retti molto d'impatto, stile boutique hotel */
-    border: 1px solid #EAEAEA;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.02);
-}
+/* Calendario Admin */
+.fc-header-toolbar { padding: 10px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; }
+.event-pending { background-color: #ffc107 !important; color: #000 !important; border-left: 4px solid #fd7e14; }
 
-/* Riduzione spaziatura superiore */
-.page-wrapper {
-    padding-top: 2.5rem;
-}
-
-/* Carosello Immagini */
-.carousel {
-    border-radius: 0px;
-    overflow: hidden;
-    box-shadow: 0 15px 45px rgba(0,0,0,0.07);
-}
-
-.carousel img {
-    height: 480px; /* Un pelo più alto per dare respiro */
-    object-fit: cover;
-}
-
-/* Servizi (Amenities) */
-.amenities div {
-    margin-bottom: 14px;
-    font-size: 0.95rem;
-    color: #444;
-}
-
-.amenities i {
-    color: #C5A880; /* Cambiato il verde con l'oro soft luxury */
-    margin-right: 8px;
-    font-size: 1.2rem;
-}
-
-.lead {
-    font-size: 1.15rem;
-    color: #555;
-    font-weight: 300;
-    line-height: 1.7;
-}
-
-/* Mappa e Contenitori Generali */
-.map-container {
-    border-radius: 0px;
-    overflow: hidden;
-    border: 1px solid #EAEAEA;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-    background: white;
-}
-
-.map-container iframe {
-    display: block;
-    width: 100%;
-    min-height: 500px;
-}
-
-/* Calendario Flatpickr Custom Premium */
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.endRange {
-  background: #1A1A1A !important; /* Nero anziché verde per un'estetica Haute Couture */
-  border-color: #1A1A1A !important;
-  border-radius: 0px;
-}
-
-.flatpickr-day.disabled {
-  color: #E0E0E0;
-  text-decoration: line-through;
-}
-
-/* Cards dei Posti / Attrazioni */
-.place-card {
-    display: block;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    text-decoration: none;
-}
-
-.place-card:hover {
-    transform: translateY(-4px);
-}
-
-.place-card .card {
-    border-radius: 0px !important;
-    border: 1px solid #EAEAEA !important;
-    transition: box-shadow 0.3s ease;
-}
-
-.place-card:hover .card {
-    box-shadow: 0 20px 40px rgba(0,0,0,0.06) !important;
-    border-color: #C5A880 !important; /* Evidenzia in oro al passaggio */
-}
-
-.card-title {
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
-    font-size: 1.2rem;
-    color: #1A1A1A;
-}
-
-.card-text {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: #666;
-}
-
-/* Moduli di Interazione ed Elenchi Mappa della Città */
-.page {
-    display: flex;
-    height: 80vh;
-    gap: 24px;
-}
-
-#sidebar {
-    width: 380px;
-    background: #FFFFFF;
-    border-radius: 0px;
-    border: 1px solid #EAEAEA;
-    padding: 24px;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-}
-
-#map {
-    flex: 1;
-    border-radius: 0px;
-    border: 1px solid #EAEAEA;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-}
-
-/* Elemento Lista nella Sidebar della Mappa */
-.item {
-    padding: 14px;
-    border-radius: 0px;
-    border-bottom: 1px solid #F4F4F3;
-    cursor: pointer;
-    margin-bottom: 0px;
-    transition: all 0.2s ease;
-}
-
-.item:hover {
-    background: #FCFCFB;
-    transform: translateX(4px);
-    border-bottom-color: #C5A880;
-}
-
-/* Tag ed Elementi di Categorizzazione */
-.tag {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 4px 12px;
-    border-radius: 0px;
-    background: #F4F4F3;
-    color: #555;
-    display: inline-block;
-    margin-bottom: 12px;
-}
-
-/* FILTRI MAPPA ATTRAZIONI */
-#filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 16px 0;
-}
-
-.filter {
-    border: 1px solid #EAEAEA;
-    padding: 6px 14px;
-    border-radius: 0px;
-    background: #FFFFFF;
-    color: #555;
-    cursor: pointer;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.2s ease;
-}
-
-.filter:hover {
-    background: #FCFCFB;
-    border-color: #1A1A1A;
-    color: #1A1A1A;
-}
-
-.filter.active {
-    background: #1A1A1A;
-    border-color: #1A1A1A;
-    color: #FFFFFF;
-    font-weight: 500;
-}
-
-/* Bottoni Minimal Luxury Generici */
-.btn-dark {
-    background-color: #1A1A1A;
-    border: 1px solid #1A1A1A;
-    border-radius: 0px !important;
-    padding: 12px 28px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-size: 13px;
-    transition: all 0.2s ease;
-}
-
-.btn-dark:hover {
-    background-color: #FFFFFF;
-    color: #1A1A1A;
-    border-color: #1A1A1A;
-}
-
-/* Card di riepilogo raddrizzate */
-.card-header.bg-primary {
-    background-color: #1A1A1A !important;
-    border-radius: 0px !important;
-    border: none;
-}
-
-.badge.bg-secondary {
-    background-color: #F4F4F3 !important;
-    color: #1A1A1A !important;
-    border-radius: 0px;
-    font-weight: 500;
-}
-
-/* ==========================================================================
-   📍 SEZIONE MAP MARKERS (Mantiene compatibilità assoluta con Leaflet/JS)
-   ========================================================================== */
-.map-icon {
-    font-size: 1.2rem;
-}
-
-.pin {
-    font-size: 24px;
-    background: #FFFFFF;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    border: 1px solid #EAEAEA;
-}
-
-.pin-home {
-    font-size: 26px;
-    background: #FFFFFF;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    box-shadow: 0 8px 24px rgba(197, 168, 128, 0.3);
-    border: 2px solid #C5A880; /* Evidenzia la casa in oro */
-}
-
-.emoji-icon {
-    font-size: 20px;
-    text-align: center;
-    line-height: 32px;
-    background: #FFFFFF;
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.emoji-home {
-    font-size: 24px;
-    text-align: center;
-    line-height: 36px;
-    background: #FFFFFF;
-    border-radius: 50%;
-    box-shadow: 0 6px 18px rgba(197, 168, 128, 0.25);
-    border: 1px solid #C5A880;
-}
-
-/* Migliora la leggibilità del calendario */
-.calendar-event {
-    padding: 4px 8px;
-    margin-bottom: 2px;
-    border-radius: 4px;
-    font-size: 11px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    color: white;
-    cursor: pointer;
-}
-
-/* Stile speciale per le prenotazioni PENDING */
-.event-pending {
-    background-color: #ffc107 !important; /* Giallo avviso */
-    color: #000 !important;
-    border-left: 4px solid #fd7e14;
-}
-
-/* Fix per la parte alta che "non si legge" */
-.fc-header-toolbar {
-    padding: 10px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+/* Protezione globale per elementi che potrebbero fuoriuscire */
+img, iframe, video, .leaflet-container {
+    max-width: 100% !important;
 }

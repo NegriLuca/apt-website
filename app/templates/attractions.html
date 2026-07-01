@@ -7,14 +7,12 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-
 .page {
   display: flex;
   height: 80vh;
   gap: 18px;
 }
 
-/* SIDEBAR */
 #sidebar {
   width: 360px;
   background: #fff;
@@ -31,7 +29,22 @@
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
-/* ITEMS */
+/* Media Query per Mobile */
+@media (max-width: 768px) {
+  .page {
+    flex-direction: column;
+    height: auto;
+  }
+  #sidebar {
+    width: 100%;
+    height: 300px;
+    margin-bottom: 15px;
+  }
+  #map {
+    height: 400px;
+  }
+}
+
 .item {
   padding: 10px;
   border-radius: 10px;
@@ -45,7 +58,6 @@
   transform: translateX(3px);
 }
 
-/* FILTERS */
 #filters {
   display: flex;
   flex-wrap: wrap;
@@ -67,11 +79,6 @@
   color: white;
 }
 
-.filter:hover {
-  background: #e9e3dc;
-}
-
-/* emoji markers */
 .emoji-icon {
   font-size: 22px;
   text-align: center;
@@ -90,8 +97,6 @@
   box-shadow: 0 6px 18px rgba(0,0,0,0.2);
 }
 
-h2 { margin-bottom: 5px; }
-
 .tag {
   font-size: 12px;
   padding: 4px 10px;
@@ -100,17 +105,12 @@ h2 { margin-bottom: 5px; }
   display: inline-block;
   margin-bottom: 10px;
 }
-
 </style>
 
 <h2>🏛 {{ _("Rome's Attractions") }}</h2>
-<p class="lead">
-{{ _('Explore Rome through curated landmarks, walks and scenic spots — all easily reachable from your apartment.') }}
-</p>
-
+<p class="lead">{{ _('Explore Rome through curated landmarks, walks and scenic spots — all easily reachable from your apartment.') }}</p>
 <div class="tag">⭐ {{ _('Curated experiences around Rome') }}</div>
 
-<!-- FILTERS -->
 <div id="filters">
   <button class="filter active" data-type="all">🌍 {{ _('All') }}</button>
   <button class="filter" data-type="monument">🏛 {{ _('Monuments') }}</button>
@@ -119,31 +119,19 @@ h2 { margin-bottom: 5px; }
 </div>
 
 <div class="page">
-  <div id="sidebar">
-    <div id="list"></div>
-  </div>
-
+  <div id="sidebar"><div id="list"></div></div>
   <div id="map"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
-
-// 🏠 BnB
 const bnb = [41.86731700, 12.49094300];
+const map = L.map('map', { scrollWheelZoom: false }).setView(bnb, 13);
 
-const map = L.map('map').setView(bnb, 13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap & CARTO'
+}).addTo(map);
 
-// nicer map
-L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-  { attribution: '&copy; OpenStreetMap & CARTO' }
-).addTo(map);
-
-// =========================
-// ICONS
-// =========================
 const icons = {
   monument: L.divIcon({ className: "emoji-icon", html: "🏛", iconSize: [30,30] }),
   walk: L.divIcon({ className: "emoji-icon", html: "🚶", iconSize: [30,30] }),
@@ -151,164 +139,56 @@ const icons = {
   home: L.divIcon({ className: "emoji-home", html: "🏠", iconSize: [34,34] })
 };
 
-// BNB - Map strings loaded safely via Flask-Babel contexts
-L.marker(bnb, { icon: icons.home })
-  .addTo(map)
-  .bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
+L.marker(bnb, { icon: icons.home }).addTo(map).bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
 
-// =========================
-// DATA
-// =========================
 const places = [
-  {
-    name: `{{ _('Colosseum & Roman Forum') }}`,
-    type: "monument",
-    desc: `{{ _('Rome’s most iconic ancient landmark') }}`,
-    coords: [41.8902, 12.4922],
-    url: "https://maps.google.com/?q=Colosseum+Rome"
-  },
-  {
-    name: `{{ _('Pantheon') }}`,
-    type: "monument",
-    desc: `{{ _('Perfectly preserved ancient temple') }}`,
-    coords: [41.8986, 12.4769],
-    url: "https://maps.google.com/?q=Pantheon+Rome"
-  },
-  {
-    name: `{{ _('Centrale Montemartini') }}`,
-    type: "monument",
-    desc: `{{ _('Ancient sculptures inside industrial museum') }}`,
-    coords: [41.8709, 12.4742],
-    url: "https://maps.google.com/?q=Centrale+Montemartini"
-  },
-  {
-    name: `{{ _('Garbatella Walk') }}`,
-    type: "walk",
-    desc: `{{ _('Authentic Roman neighborhood streets') }}`,
-    coords: [41.8665, 12.4925],
-    url: "https://maps.google.com/?q=Garbatella+Roma"
-  },
-  {
-    name: `{{ _('Trastevere') }}`,
-    type: "walk",
-    desc: `{{ _('Lively historic neighborhood') }}`,
-    coords: [41.8897, 12.4663],
-    url: "https://maps.google.com/?q=Trastevere+Rome"
-  },
-  {
-    name: `{{ _('Historic Center Walk') }}`,
-    type: "walk",
-    desc: `{{ _('Pantheon → Piazza Navona → Campo de’ Fiori') }}`,
-    coords: [41.8992, 12.4731],
-    url: "https://maps.google.com/?q=Piazza+Navona+Rome"
-  },
-  {
-    name: `{{ _('Parco della Caffarella') }}`,
-    type: "nature",
-    desc: `{{ _('Green park with ruins and nature') }}`,
-    coords: [41.8602, 12.5273],
-    url: "https://maps.google.com/?q=Parco+della+Caffarella"
-  },
-  {
-    name: `{{ _('Gianicolo Hill') }}`,
-    type: "nature",
-    desc: `{{ _('Best panoramic view of Rome') }}`,
-    coords: [41.8892, 12.4608],
-    url: "https://maps.google.com/?q=Gianicolo+Rome"
-  },
-  {
-    name: `{{ _('Lungotevere Sunset Walk') }}`,
-    type: "nature",
-    desc: `{{ _('Riverside walk at sunset') }}`,
-    coords: [41.8870, 12.4770],
-    url: "https://maps.google.com/?q=Lungotevere+Ostiense"
-  }
+  { name: `{{ _('Colosseum & Roman Forum') }}`, type: "monument", desc: `{{ _('Rome’s most iconic ancient landmark') }}`, coords: [41.8902, 12.4922], url: "https://maps.google.com/?q=Colosseum+Rome" },
+  { name: `{{ _('Pantheon') }}`, type: "monument", desc: `{{ _('Perfectly preserved ancient temple') }}`, coords: [41.8986, 12.4769], url: "https://maps.google.com/?q=Pantheon+Rome" },
+  { name: `{{ _('Centrale Montemartini') }}`, type: "monument", desc: `{{ _('Ancient sculptures inside industrial museum') }}`, coords: [41.8709, 12.4742], url: "https://maps.google.com/?q=Centrale+Montemartini" },
+  { name: `{{ _('Garbatella Walk') }}`, type: "walk", desc: `{{ _('Authentic Roman neighborhood streets') }}`, coords: [41.8665, 12.4925], url: "https://maps.google.com/?q=Garbatella+Roma" },
+  { name: `{{ _('Trastevere') }}`, type: "walk", desc: `{{ _('Lively historic neighborhood') }}`, coords: [41.8897, 12.4663], url: "https://maps.google.com/?q=Trastevere+Rome" },
+  { name: `{{ _('Historic Center Walk') }}`, type: "walk", desc: `{{ _('Pantheon → Piazza Navona → Campo de’ Fiori') }}`, coords: [41.8992, 12.4731], url: "https://maps.google.com/?q=Piazza+Navona+Rome" },
+  { name: `{{ _('Parco della Caffarella') }}`, type: "nature", desc: `{{ _('Green park with ruins and nature') }}`, coords: [41.8602, 12.5273], url: "https://maps.google.com/?q=Parco+della+Caffarella" },
+  { name: `{{ _('Gianicolo Hill') }}`, type: "nature", desc: `{{ _('Best panoramic view of Rome') }}`, coords: [41.8892, 12.4608], url: "https://maps.google.com/?q=Gianicolo+Rome" },
+  { name: `{{ _('Lungotevere Sunset Walk') }}`, type: "nature", desc: `{{ _('Riverside walk at sunset') }}`, coords: [41.8870, 12.4770], url: "https://maps.google.com/?q=Lungotevere+Ostiense" }
 ];
 
-// Localized map action string literal
 const openInMapsText = `{{ _('📍 Open in Google Maps') }}`;
-
-// =========================
-// RENDER
-// =========================
 const list = document.getElementById("list");
 const markers = [];
 
 places.forEach(p => {
-
-  const marker = L.marker(p.coords, {
-    icon: icons[p.type]
-  }).addTo(map);
-
-  marker.bindPopup(`
-    <b>${p.name}</b><br>
-    <small>${p.desc}</small><br><br>
-    <a href="${p.url}" target="_blank">${openInMapsText}</a>
-  `);
-
+  const marker = L.marker(p.coords, { icon: icons[p.type] }).addTo(map);
+  marker.bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small><br><br><a href="${p.url}" target="_blank">${openInMapsText}</a>`);
   markers.push({ marker, data: p });
 });
 
-// =========================
-// SIDEBAR
-// =========================
 function renderSidebar(filter = "all") {
-
   list.innerHTML = "";
-
   places.forEach(p => {
-
     if (filter !== "all" && p.type !== filter) return;
-
     const markerObj = markers.find(m => m.data.name === p.name);
-
     const div = document.createElement("div");
     div.className = "item";
-    div.dataset.type = p.type;
-
-    div.innerHTML = `
-      <strong>${p.name}</strong><br>
-      <small>${p.desc}</small>
-    `;
-
-    div.onclick = () => {
-      map.setView(p.coords, 15);
-      markerObj.marker.openPopup();
-    };
-
-    div.onmouseenter = () => {
-      markerObj.marker.openPopup();
-    };
-
+    div.innerHTML = `<strong>${p.name}</strong><br><small>${p.desc}</small>`;
+    div.onclick = () => { map.setView(p.coords, 15); markerObj.marker.openPopup(); };
     list.appendChild(div);
   });
 }
 
 renderSidebar();
 
-// =========================
-// FILTERS
-// =========================
-const buttons = document.querySelectorAll(".filter");
-
-buttons.forEach(btn => {
+document.querySelectorAll(".filter").forEach(btn => {
   btn.onclick = () => {
-
-    buttons.forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     const type = btn.dataset.type;
-
     markers.forEach(obj => {
       const match = type === "all" || obj.data.type === type;
-      if (match) map.addLayer(obj.marker);
-      else map.removeLayer(obj.marker);
+      match ? map.addLayer(obj.marker) : map.removeLayer(obj.marker);
     });
-
     renderSidebar(type);
   };
 });
-
 </script>
-
 {% endblock %}

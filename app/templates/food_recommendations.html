@@ -6,15 +6,29 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
+<style>
+.page { display: flex; height: 80vh; gap: 24px; }
+#sidebar { width: 380px; background: #FFFFFF; border-radius: 0px; border: 1px solid #EAEAEA; padding: 24px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+#map { flex: 1; border-radius: 0px; border: 1px solid #EAEAEA; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+
+/* Fix Responsivo Mobile */
+@media (max-width: 768px) {
+  .page { flex-direction: column; height: auto; }
+  #sidebar { width: 100%; height: 300px; margin-bottom: 15px; }
+  #map { height: 400px; }
+}
+
+.item { padding: 14px; border-bottom: 1px solid #F4F4F3; cursor: pointer; transition: all 0.2s ease; }
+.item:hover { background: #FCFCFB; transform: translateX(4px); border-bottom-color: #C5A880; }
+#filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filter { border: 1px solid #EAEAEA; padding: 6px 14px; background: #FFFFFF; color: #555; cursor: pointer; font-size: 12px; text-transform: uppercase; transition: all 0.2s ease; }
+.filter.active { background: #1A1A1A; border-color: #1A1A1A; color: #FFFFFF; }
+</style>
 
 <h2>🍝🍸 {{ _('Food & Drinks') }}</h2>
-<p class="lead">
-{{ _('Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.') }}
-</p>
-
+<p class="lead">{{ _('Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.') }}</p>
 <div class="tag" id="contextTag">⭐ {{ _('Curated local picks near Garbatella') }}</div>
 
-<!-- FILTERS -->
 <div id="filters">
   <button class="filter active" data-type="all">🌍 {{ _('All') }}</button>
   <button class="filter" data-type="curated">⭐ {{ _('Curated') }}</button>
@@ -26,293 +40,93 @@
 </div>
 
 <div class="page">
-  <div id="sidebar">
-    <div id="list"></div>
-  </div>
+  <div id="sidebar"><div id="list"></div></div>
   <div id="map"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
-
-  // 🏠 BnB
   const bnb = [41.86731700, 12.49094300];
+  const map = L.map('map', { scrollWheelZoom: false }).setView(bnb, 15);
 
-  const map = L.map('map').setView(bnb, 15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap & CARTO'
+  }).addTo(map);
 
-  // modern map (not grey)
-  L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    { attribution: '&copy; OpenStreetMap & CARTO' }
-  ).addTo(map);
+  const icons = {
+    restaurant: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍴</div>" }),
+    pasta: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍝</div>" }),
+    pizza: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍕</div>" }),
+    coffee: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>☕</div>" }),
+    drinks: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍸</div>" }),
+    home: L.divIcon({ className: "emoji-home", html: "<div class='pin-home'>🏠</div>" })
+  };
 
-  // =========================
-  // ICONS (emoji markers)
-  // =========================
-const icons = {
-  restaurant: L.divIcon({
-    className: "emoji-icon",
-    html: "<div class='pin'>🍴</div>"
-  }),
+  L.marker(bnb, { icon: icons.home }).addTo(map).bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
 
-  pasta: L.divIcon({
-    className: "emoji-icon",
-    html: "<div class='pin'>🍝</div>"
-  }),
-
-  pizza: L.divIcon({
-    className: "emoji-icon",
-    html: "<div class='pin'>🍕</div>"
-  }),
-
-  coffee: L.divIcon({
-    className: "emoji-icon",
-    html: "<div class='pin'>☕</div>"
-  }),
-
-  drinks: L.divIcon({
-    className: "emoji-icon",
-    html: "<div class='pin'>🍸</div>"
-  }),
-
-  home: L.divIcon({
-    className: "emoji-home",
-    html: "<div class='pin-home'>🏠</div>"
-  })
-};
-  // 🏠 BnB marker
-  L.marker(bnb, { icon: icons.home })
-    .addTo(map)
-    .bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
-
-  // Localized template text elements evaluated directly by Flask-Babel context variables
-  const categoryRestaurants = `{{ _('🍝 Restaurants') }}`;
-  const categoryPizzerias = `{{ _('🍕 Pizzerias') }}`;
-  const categoryCafes = `{{ _('☕ Cafés') }}`;
-  const categoryDrinks = `{{ _('🍸 Drinks') }}`;
-
-  // =========================
-  // DATA
-  // =========================
   const places = [
-    {
-      name: "Porto Fluviale",
-      category: categoryRestaurants,
-      type: "restaurant",
-      desc: `{{ _('Modern trattoria (8 min walk)') }}`,
-      coords: [41.8725121,12.4752003,17],
-      url: "https://maps.app.goo.gl/R3XybNG6XBTwsnmr8"
-    },
-    {
-      name: "Mariu Trattoria Gentile ⭐",
-      category: categoryRestaurants,
-      type: "pasta",
-      desc: `{{ _('Cozy Roman cuisine (4 min walk)') }}`,
-      coords: [41.8679796, 12.4938781,17],
-      url: "https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5"
-    },
-    {
-      name: "Trattoria da Me (Garbatella)",
-      category: categoryRestaurants,
-      type: "pasta",
-      desc: `{{ _('Authentic Roman dishes (5 min walk)') }}`,
-      coords: [41.8663237,12.4880734,17],
-      url: "https://maps.app.goo.gl/SuQnhNMFUvLZLXp77"
-    },
-    {
-      name: "Tanto pe' Magna",
-      category: categoryRestaurants,
-      type: "pasta",
-      desc: `{{ _('Informal Roman restaurant (10 min walk)') }}`,
-      coords: [41.8613652,12.4911645,17],
-      url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA"
-    },
-    {
-      name: "Ar Grottino der Traslocatore ⭐",
-      category: categoryRestaurants,
-      type: "pasta",
-      desc: `{{ _('Very authentic Roman trattoria (15 min walk)') }}`,
-      coords: [41.8604954,12.4846997,17],
-      url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9"
-    },
-    {
-      name: "Eataly Roma",
-      category: categoryRestaurants,
-      type: "restaurant",
-      desc: `{{ _('Large Italian food hall (10 min walk)') }}`,
-      coords: [41.8711959,12.4817421,16],
-      url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9"
-    },
-
-    {
-      name: "Panonto",
-      category: categoryPizzerias,
-      type: "pizza",
-      desc: `{{ _('Casual pizza (13 min walk)') }}`,
-      coords: [41.8624022,12.4849386,17],
-      url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8"
-    },
-    {
-      name: "Donna Cira",
-      category: categoryPizzerias,
-      type: "pizza",
-      desc: `{{ _('Popular local pizzeria (15 min walk)') }}`,
-      coords: [41.8720865,12.4809422,16],
-      url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6"
-    },
-
-    {
-      name: "Nero Vaniglia ⭐",
-      category: categoryCafes,
-      type: "coffee",
-      desc: `{{ _('Modern pastry shop (1 min walk)') }}`,
-      coords: [41.8674526,12.4899657,17],
-      url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6"
-    },
-
-    {
-      name: "Biffi ⭐",
-      category: categoryDrinks,
-      type: "drinks",
-      desc: `{{ _('Perfect for a quick drink (2 min walk)') }}`,
-      coords: [41.8667445,12.4898635,17],
-      url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7"
-    },
-    {
-      name: "Bauhaus Rome",
-      category: categoryDrinks,
-      type: "drinks",
-      desc: `{{ _('Stylish cocktail bar (2 min walk)') }}`,
-      coords: [41.8663237,12.4880734,17],
-      url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6"
-    }
+    { name: "Porto Fluviale", category: `{{ _('🍝 Restaurants') }}`, type: "restaurant", desc: `{{ _('Modern trattoria (8 min walk)') }}`, coords: [41.8725121,12.4752003], url: "https://maps.app.goo.gl/R3XybNG6XBTwsnmr8" },
+    { name: "Mariu Trattoria Gentile ⭐", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Cozy Roman cuisine (4 min walk)') }}`, coords: [41.8679796, 12.4938781], url: "https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5" },
+    { name: "Trattoria da Me (Garbatella)", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Authentic Roman dishes (5 min walk)') }}`, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/SuQnhNMFUvLZLXp77" },
+    { name: "Tanto pe' Magna", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Informal Roman restaurant (10 min walk)') }}`, coords: [41.8613652,12.4911645], url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA" },
+    { name: "Ar Grottino der Traslocatore ⭐", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Very authentic Roman trattoria (15 min walk)') }}`, coords: [41.8604954,12.4846997], url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9" },
+    { name: "Eataly Roma", category: `{{ _('🍝 Restaurants') }}`, type: "restaurant", desc: `{{ _('Large Italian food hall (10 min walk)') }}`, coords: [41.8711959,12.4817421], url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9" },
+    { name: "Panonto", category: `{{ _('🍕 Pizzerias') }}`, type: "pizza", desc: `{{ _('Casual pizza (13 min walk)') }}`, coords: [41.8624022,12.4849386], url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8" },
+    { name: "Donna Cira", category: `{{ _('🍕 Pizzerias') }}`, type: "pizza", desc: `{{ _('Popular local pizzeria (15 min walk)') }}`, coords: [41.8720865,12.4809422], url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6" },
+    { name: "Nero Vaniglia ⭐", category: `{{ _('☕ Cafés') }}`, type: "coffee", desc: `{{ _('Modern pastry shop (1 min walk)') }}`, coords: [41.8674526,12.4899657], url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6" },
+    { name: "Biffi ⭐", category: `{{ _('🍸 Drinks') }}`, type: "drinks", desc: `{{ _('Perfect for a quick drink (2 min walk)') }}`, coords: [41.8667445,12.4898635], url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7" },
+    { name: "Bauhaus Rome", category: `{{ _('🍸 Drinks') }}`, type: "drinks", desc: `{{ _('Stylish cocktail bar (2 min walk)') }}`, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6" }
   ];
 
-  const openInMapsText = `{{ _('📍 Open in Google Maps') }}`;
-
-  // =========================
-  // MARKERS
-  // =========================
-  const list = document.getElementById("list");
-  const markers = [];
-
-  places.forEach(p => {
-
-    const marker = L.marker(p.coords, {
-      icon: icons[p.type] || icons.restaurant
-    }).addTo(map);
-
-    marker.bindPopup(`
-      <b>${p.name}</b><br>
-      <small>${p.desc}</small><br><br>
-      <a href="${p.url}" target="_blank">${openInMapsText}</a>
-    `);
-
-    markers.push({ marker, data: p });
+  const markers = places.map(p => {
+    const m = L.marker(p.coords, { icon: icons[p.type] || icons.restaurant }).addTo(map);
+    m.bindPopup(`<b>${p.name}</b><br>${p.desc}<br><br><a href="${p.url}" target="_blank">📍 Open in Maps</a>`);
+    return { marker: m, data: p };
   });
 
-  // =========================
-  // SIDEBAR (grouped)
-  // =========================
-  const sidebarItems = [];
-  const grouped = {};
+  function renderSidebar(filter = "all") {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    
+    // Raggruppa solo se il filtro è 'all' o 'curated'
+    const showGroups = (filter === "all" || filter === "curated");
+    
+    places.forEach(p => {
+      const isCurated = p.name.includes("⭐");
+      let match = (filter === "all") || (filter === "curated" && isCurated) || (p.type === filter);
+      if (!match) return;
 
-  places.forEach(p => {
-    if (!grouped[p.category]) grouped[p.category] = [];
-    grouped[p.category].push(p);
-  });
-
-  Object.keys(grouped).forEach(cat => {
-
-    const title = document.createElement("h4");
-    title.innerText = cat;
-    title.style.marginTop = "14px";
-    list.appendChild(title);
-
-    grouped[cat].forEach(p => {
+      if (showGroups && !list.querySelector(`[data-cat="${p.category}"]`)) {
+        const title = document.createElement("h5");
+        title.dataset.cat = p.category;
+        title.style.marginTop = "20px";
+        title.innerText = p.category;
+        list.appendChild(title);
+      }
 
       const div = document.createElement("div");
       div.className = "item";
-      div.dataset.type = p.type;
-
-      const markerObj = markers.find(m => m.data.name === p.name);
-
-      div.innerHTML = `
-        <strong>${p.name}</strong><br>
-        <small>${p.desc}</small>
-      `;
-
-      div.onclick = () => {
-        map.setView(p.coords, 17);
-        markerObj.marker.openPopup();
-      };
-
-      div.onmouseenter = () => {
-        markerObj.marker.openPopup();
-      };
-
+      div.innerHTML = `<strong>${p.name}</strong><br><small>${p.desc}</small>`;
+      div.onclick = () => { map.setView(p.coords, 17); markers.find(m => m.data.name === p.name).marker.openPopup(); };
       list.appendChild(div);
     });
-  });  
-  
-  // =========================
-  // FILTERS
-  // =========================
-  const tag = document.getElementById("contextTag");
+  }
 
-  const tagText = {
-    all: `{{ _('⭐ Curated local picks near Garbatella') }}`,
-    pasta: `{{ _('🍝 Best traditional Roman trattorie nearby') }}`,
-    pizza: `{{ _('🍕 Best pizza spots near Garbatella') }}`,
-    coffee: `{{ _('☕ Best cafés & breakfast spots nearby') }}`,
-    drinks: `{{ _('🍸 Aperitivo & nightlife near Garbatella') }}`,
-    restaurant: `{{ _('🍴 Top restaurants around Garbatella') }}`
-  };
+  renderSidebar();
 
-  const buttons = document.querySelectorAll(".filter");
-
-  buttons.forEach(btn => {
+  document.querySelectorAll(".filter").forEach(btn => {
     btn.onclick = () => {
-
-      buttons.forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-
-    const type = btn.dataset.type;
-
-    // update tag text (optional)
-    tag.innerText = tagText[type] || tagText.all;
-
-    // MARKERS FILTER
-    markers.forEach(obj => {
-
-      const p = obj.data;
-
-      let match = false;
-
-      if (type === "all") match = true;
-      else if (type === "curated") match = p.name.includes("⭐");
-      else match = p.type === type;
-
-      if (match) map.addLayer(obj.marker);
-      else map.removeLayer(obj.marker);
-    });
-
-    // SIDEBAR FILTER
-    document.querySelectorAll(".item").forEach(el => {
-
-      const isCurated = el.innerText.includes("⭐");
-
-      let match = false;
-
-      if (type === "all") match = true;
-      else if (type === "curated") match = isCurated;
-      else match = el.dataset.type === type;
-
-      el.style.display = match ? "block" : "none";
-    });    
-  };
+      const type = btn.dataset.type;
+      
+      markers.forEach(obj => {
+        const isCurated = obj.data.name.includes("⭐");
+        const match = (type === "all") || (type === "curated" && isCurated) || (obj.data.type === type);
+        match ? map.addLayer(obj.marker) : map.removeLayer(obj.marker);
+      });
+      renderSidebar(type);
+    };
   });
 </script>
-
 {% endblock %}
