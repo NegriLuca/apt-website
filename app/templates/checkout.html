@@ -133,7 +133,8 @@
       stripeRadio.closest('.payment-option-card').classList.add('border-primary', 'bg-light');
       submitBtn.className = "btn btn-success btn-lg w-100 fw-bold py-3 shadow-sm mb-3";
       submitBtn.innerHTML = "🔒 {{ _('Pay securely with Stripe') }}";
-      footnote.innerHTML = "{{ _(\"You will be redirected to Stripe's secure checkout page.\") }}<br>{{ _('We accept Visa, Mastercard, and other major cards.') }}";
+      // USA GLI APICI SINGOLI PER JAVASCRIPT E QUELLI DOPPI PER JINJA SENZA BACKSLASH:
+      footnote.innerHTML = '{{ _("You will be redirected to Stripe\'s secure checkout page.") }}<br>{{ _("We accept Visa, Mastercard, and other major cards.") }}';
     } else if (paypalRadio.checked) {
       paypalRadio.closest('.payment-option-card').classList.add('border-primary', 'bg-light');
       submitBtn.className = "btn btn-info btn-lg w-100 fw-bold py-3 shadow-sm mb-3 text-white";
