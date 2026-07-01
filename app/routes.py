@@ -165,12 +165,12 @@ def attractions():
 
 @bp.route('/set-language/<lang>')
 def set_language(lang):
-    if lang in ['en', 'it']:
+    if lang in ['en', 'it', 'de', 'fr', 'es']:
         session['language'] = lang
     
     # Safely redirect back to the page the user was looking at.
-    # Fallback to the blueprint's home view if referrer is missing.
-    return redirect(request.referrer or url_for('bp.home'))
+    # Updated fallback namespace from 'bp.home' to 'routes.home' to match your template
+    return redirect(request.referrer or url_for('routes.home'))
 
 # ── Reservation / booking flow ────────────────────────────────────────────────
 @bp.route('/reserve', methods=['GET', 'POST'])
