@@ -94,7 +94,9 @@
                         </td>
                         <td>
                             {% if r.source == 'direct' or r.source == 'stripe' %}
-                                <span class="badge bg-success" style="background-color: #28a745 !important;">Direct (Stripe)</span>
+                                <span class="badge text-white bg-success" style="background-color: #28a745 !important;">
+                                    Direct ({{ r.payment_method | upper if r.payment_method else 'Stripe' }})
+                                </span>
                             {% elif r.source == 'airbnb' %}
                                 <span class="badge bg-danger" style="background-color: #ff5a5f !important;">Airbnb</span>
                             {% elif r.source == 'booking_com' %}
@@ -115,32 +117,47 @@
                         </td>
                         <td>
                             {% if r.payment_status == 'paid' %}
-                                <span class="badge bg-light text-success border border-success">Paid via {{ r.payment_method | upper }}</span>
+                                <span class="badge bg-light text-success border border-success px-2 py-1 text-uppercase" style="font-size: 11px;">
+                                    Paid via {{ r.payment_method | upper if r.payment_method else 'STRIPE' }}
+                                </span>
                             {% elif r.payment_status == 'unpaid' %}
-                                <span class="badge bg-light text-danger border border-danger">Unpaid</span>
+                                <span class="badge bg-light text-danger border border-danger px-2 py-1 text-uppercase" style="font-size: 11px;">
+                                    Unpaid ({{ r.payment_method | upper if r.payment_method else 'PENDING' }})
+                                </span>
                             {% elif r.payment_status == 'cancelled' or r.payment_status == 'refunded' %}
-                                <span class="badge bg-light text-danger border border-danger">{{ r.payment_status | title }}</span>
+                                <span class="badge bg-light text-danger border border-danger px-2 py-1 text-uppercase" style="font-size: 11px;">
+                                    {{ r.payment_status | title }}
+                                </span>
                             {% else %}
                                 <span class="text-muted"><small>Processed by Channel</small></span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if r.source in ['direct', 'stripe'] %}
-                                {% if r.payment_status not in ['cancelled', 'refunded'] %}
-                                    <form action="{{ url_for('routes.admin_cancel_via_token', token=r.cancel_token) }}" 
-                                        method="GET" 
-                                        onsubmit="return confirm('⚠️ WARNING: Are you sure you want to cancel this booking and automatically issue a full Stripe refund to {{ r.guest_name }}? This action cannot be reversed.');" 
-                                        class="d-inline">
-                                        <button type="submit" class="btn btn-sm btn-danger" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">
+                            <div class="d-flex align-items-center gap-2">
+                                <!-- Pulsante Approva: solo per prenotazioni in pending -->
+                                {% if r.status == 'pending' and r.source in ['direct', 'stripe'] %}
+                                    <form action="{{ url_for('routes.admin_confirm_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-dark text-uppercase fw-bold rounded-1" style="font-size: 0.72rem; padding: 3px 8px; letter-spacing: 0.3px;">
+                                            ✅ Approve & Paid
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                <!-- Pulsante Cancellazione Nativa (Post protetto) -->
+                                {% if r.source in ['direct', 'stripe'] and r.status != 'cancelled' and r.payment_status not in ['cancelled', 'refunded'] %}
+                                    <form action="{{ url_for('routes.admin_cancel_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('⚠️ WARNING: Are you sure you want to cancel this booking and issue a full Stripe refund?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-danger text-uppercase fw-bold rounded-1" style="font-size: 0.72rem; padding: 3px 8px; letter-spacing: 0.3px;">
                                             🛑 Cancel & Refund
                                         </button>
                                     </form>
+                                {% elif r.status == 'cancelled' %}
+                                    <span class="text-muted-small" style="font-size: 0.8rem; font-style: italic; color: #94a3b8;">Cancelled</span>
                                 {% else %}
-                                    <span class="text-muted-small" style="font-size: 0.8rem; font-style: italic; color: #94a3b8;">Voided</span>
+                                    <span class="text-muted-small" style="font-size: 0.8rem; font-style: italic; color: #94a3b8;">Manage on OTA</span>
                                 {% endif %}
-                            {% else %}
-                                <span class="text-muted-small" style="font-size: 0.8rem; font-style: italic; color: #94a3b8;">Manage on OTA</span>
-                            {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% else %}

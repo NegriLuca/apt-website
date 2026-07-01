@@ -1030,19 +1030,22 @@ def admin_confirm_reservation(res_id):
     if not current_user.is_admin:
         abort(403)
     reservation = Reservation.query.get_or_404(res_id)
+    
     if reservation.status != 'pending':
         flash('Only pending reservations can be confirmed.', 'warning')
     else:
+        # Aggiungi questo: il pagamento è ora confermato manualmente
         reservation.status = 'confirmed'
+        reservation.payment_status = 'paid' 
         db.session.commit()
         
-        # ── INVIO EMAIL TRAMITE BREVO API (HTML TEMPLATE) ──
+        # Invio email
         email_sent = send_payment_verified_email(reservation)
         
         if email_sent:
-            flash(f'Reservation #{res_id} confirmed and HTML email sent successfully via Brevo.', 'success')
+            flash(f'Reservation #{res_id} confirmed and payment marked as PAID.', 'success')
         else:
-            flash(f'Reservation #{res_id} confirmed locally, but Brevo failed to dispatch the notification email.', 'warning')
+            flash(f'Reservation #{res_id} confirmed, but email failed.', 'warning')
             
     return redirect(url_for('routes.admin_dashboard'))
 
