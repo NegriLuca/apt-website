@@ -99,6 +99,36 @@ def _send_confirmation_emails(reservation):
         print('!!! BREVO API FAILURE !!!', flush=True)
         print(f'Error detail: {str(exc)}', flush=True)
 
+def send_payment_verified_email(reservation):
+    """Invia l'email HTML di conferma avvenuto pagamento via Brevo Web API (Porta 443)"""
+    try:
+        brevo_api_key = current_app.config.get('MAIL_PASSWORD')
+        sender_email = "lotto235roma@gmail.com" # Sostituisci con il mittente verificato su Brevo
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": brevo_api_key
+        }
+
+        payload = {
+            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
+            "to": [{"email": reservation.guest_email}],
+            "subject": f"✅ Pagamento Verificato e Confermato — Prenotazione #{reservation.id}",
+            "htmlContent": render_template(
+                'email_payment_verified.html',
+                reservation=reservation
+            )
+        }
+        
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        current_app.logger.info(f"📬 Brevo Verified Payment Email sent. Status: {response.status_code}")
+        return response.status_code in [200, 201, 202]
+    except Exception as e:
+        current_app.logger.error(f"!!! BREVO API FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
+        return False
+    
 def calculate_dynamic_total(check_in, check_out, base_rate):
     """
     Loops day-by-day from check_in up to (but excluding) check_out.
@@ -280,6 +310,136 @@ def checkout():
         check_out=check_out,
     )
 
+@bp.route('/process-payment', methods=['POST'])
+def process_payment():
+    method = request.form.get('payment_method')
+    
+    if method == 'bypass':
+        # Chiama direttamente la tua vecchia funzione di bypass di test
+        return test_bypass_booking()
+        
+    elif method == 'stripe':
+        # Chiama la tua vecchia funzione che crea la sessione su Stripe
+        return create_checkout_session()
+        
+    elif method == 'wire_transfer':
+        # Gestione del Bonifico Bancario
+        # 1. Recuperiamo i dati della prenotazione temporanea dalla sessione
+        pending_booking = session.get('pending_booking')
+        if not pending_booking:
+            flash(_('Session expired. Please try again.'), 'danger')
+            return redirect(url_for('routes.reserve'))
+            
+        # 2. Convertiamo le date da stringa a oggetti datetime per salvarle nel DB
+        from datetime import datetime
+        check_in_dt = datetime.strptime(pending_booking['check_in'], '%Y-%m-%d').date()
+        check_out_dt = datetime.strptime(pending_booking['check_out'], '%Y-%m-%d').date()
+        
+        # 3. Creiamo la prenotazione ufficiale impostando lo stato su "pending" o "wire_pending"
+        from app.models import Reservation
+        new_reservation = Reservation(
+            apartment_id=pending_booking['apartment_id'],
+            guest_name=pending_booking['guest_name'],
+            guest_email=pending_booking['guest_email'],
+            check_in=check_in_dt,
+            check_out=check_out_dt,
+            num_guests=pending_booking['num_guests'],
+            total_price=session.get('checkout_total', 0.0),
+            status='pending'  # Rimarrà pending finché non verifichi l'accredito
+        )
+        
+        db.session.add(new_reservation)
+        db.session.commit()
+        
+        # Salviamo l'ID appena generato e il totale in sessione per mostrarli nella pagina di conferma
+        session['completed_wire_res_id'] = new_reservation.id
+        session['completed_wire_total'] = new_reservation.total_price
+        
+        # Puliamo i dati temporanei della prenotazione vecchia
+        session.pop('pending_booking', None)
+        
+        return redirect(url_for('routes.wire_transfer_instructions'))
+    
+    elif method == 'paypal':
+        # 1. Recuperiamo i dati temporanei della prenotazione
+        pending_booking = session.get('pending_booking')
+        if not pending_booking:
+            flash(_('Session expired. Please try again.'), 'danger')
+            return redirect(url_for('routes.reserve'))
+            
+        # 2. Convertiamo le date per salvarla nel database
+        from datetime import datetime
+        check_in_dt = datetime.strptime(pending_booking['check_in'], '%Y-%m-%d').date()
+        check_out_dt = datetime.strptime(pending_booking['check_out'], '%Y-%m-%d').date()
+        total_price = session.get('checkout_total', 0.0)
+        
+        # 3. Creiamo la prenotazione con stato 'pending'
+        from app.models import Reservation
+        new_reservation = Reservation(
+            apartment_id=pending_booking['apartment_id'],
+            guest_name=pending_booking['guest_name'],
+            guest_email=pending_booking['guest_email'],
+            check_in=check_in_dt,
+            check_out=check_out_dt,
+            num_guests=pending_booking['num_guests'],
+            total_price=total_price,
+            status='pending'  # In attesa che tu controlli l'effettivo accredito su PayPal
+        )
+        
+        db.session.add(new_reservation)
+        db.session.commit()
+        
+        # Puliamo la sessione temporanea della ricerca
+        session.pop('pending_booking', None)
+        
+        # ── GENERAZIONE LINK PAYPAL.ME PERSONALE ──
+        # Sostituisci "il_tuo_username" con il tuo link PayPal.Me reale
+        paypal_username = "il_tuo_username" 
+        
+        # Formattiamo il prezzo a due cifre decimali (es: 120.50)
+        formatted_price = "%.2f" % total_price
+        
+        # Creiamo il link definitivo. Esempio finale: https://paypal.me/il_tuo_username/120.50EUR
+        # Nota: Puoi aggiungere testo come causale inserendolo in fondo se il tuo piano PayPal lo supporta,
+        # oppure l'utente lo vedrà semplicemente come richiesta di denaro immediata.
+        paypal_url = f"https://paypal.me/{paypal_username}/{formatted_price}EUR"
+        
+        # Salviamo l'ID in sessione per la pagina intermedia di reindirizzamento
+        session['completed_paypal_res_id'] = new_reservation.id
+        session['paypal_redirect_url'] = paypal_url
+        
+        return redirect(url_for('routes.paypal_redirect_page'))    
+    return redirect(url_for('routes.checkout'))
+
+@bp.route('/checkout/wire-transfer')
+def wire_transfer_instructions():
+    # Recuperiamo i dati salvati prima di svuotare tutto
+    reservation_id = session.get('completed_wire_res_id')
+    total = session.get('completed_wire_total')
+    
+    if not reservation_id:
+        # Protezione se l'utente prova ad accedere alla pagina rinfrescandola a caso
+        return redirect(url_for('routes.index'))
+        
+    # Puliamo anche queste variabili così la pagina è visitabile una volta sola per sicurezza
+    session.pop('completed_wire_res_id', None)
+    session.pop('completed_wire_total', None)
+    
+    return render_template('wire_transfer.html', reservation_id=reservation_id, total=total)
+
+@bp.route('/checkout/paypal-redirect')
+def paypal_redirect_page():
+    reservation_id = session.get('completed_paypal_res_id')
+    paypal_url = session.get('paypal_redirect_url')
+    
+    if not reservation_id or not paypal_url:
+        return redirect(url_for('routes.index'))
+        
+    # Puliamo la sessione
+    session.pop('completed_paypal_res_id', None)
+    session.pop('paypal_redirect_url', None)
+    
+    return render_template('paypal_redirect.html', reservation_id=reservation_id, paypal_url=paypal_url)
 
 @bp.route('/checkout/create-session', methods=['POST'])
 def create_checkout_session():
@@ -881,9 +1041,16 @@ def admin_confirm_reservation(res_id):
     else:
         reservation.status = 'confirmed'
         db.session.commit()
-        flash(f'Reservation #{res_id} confirmed.', 'success')
+        
+        # ── INVIO EMAIL TRAMITE BREVO API (HTML TEMPLATE) ──
+        email_sent = send_payment_verified_email(reservation)
+        
+        if email_sent:
+            flash(f'Reservation #{res_id} confirmed and HTML email sent successfully via Brevo.', 'success')
+        else:
+            flash(f'Reservation #{res_id} confirmed locally, but Brevo failed to dispatch the notification email.', 'warning')
+            
     return redirect(url_for('routes.admin_dashboard'))
-
 
 @bp.route('/admin/reservations/<int:res_id>/cancel', methods=['POST'])
 @login_required
@@ -918,7 +1085,6 @@ def admin_cancel_reservation(res_id):
             flash(f'Reservation #{res_id} cancelled and fully refunded successfully.', 'success')
             
     return redirect(url_for('routes.admin_dashboard'))
-
 
 # ── Unique Blueprint Fixed Token Route ────────────────────────────────────────
 

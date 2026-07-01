@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}PayPal Redirect{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6 text-center">
+    <div class="card p-5 shadow-sm border-0 bg-light rounded-4">
+      <div class="mb-4">
+        <div class="spinner-border text-info" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+      
+      <h3 class="fw-bold mb-2">{{ _('Connecting to PayPal...') }}</h3>
+      <p class="text-muted">
+        {{ _('Your reservation #%(id)s has been locked.', id=reservation_id) }}<br>
+        {{ _('We are opening your secure payment link on PayPal.Me.') }}
+      </p>
+      
+      <hr class="my-4 text-muted opacity-25">
+      
+      <p class="small text-secondary mb-3">{{ _('If you are not redirected within a few seconds, click the button below:') }}</p>
+      <a href="{{ paypal_url }}" class="btn btn-info btn-lg w-100 fw-bold text-white shadow-sm rounded-3">
+        <i class="bi bi-paypal me-2"></i>{{ _('Go to PayPal.Me Now') }}
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  setTimeout(function() {
+    window.location.href = "{{ paypal_url | safe }}";
+  }, 3000); // Aspetta 3 secondi e poi reindirizza
+</script>
+{% endblock %}

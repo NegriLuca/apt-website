@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Reservation Pending') }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-8 col-lg-6 text-center">
+    <div class="card p-5 shadow-sm border-0 bg-light rounded-4">
+      <div class="mb-4">
+        <i class="bi bi-clock-history text-warning" style="font-size: 4rem;"></i>
+      </div>
+      <h2 class="fw-bold mb-3">{{ _('Reservation Received!') }}</h2>
+      <p class="text-muted mb-4">
+        {{ _('Your booking is safely registered. To secure your dates, please submit the bank transfer within 24 hours.') }}
+      </p>
+      
+      <div class="alert alert-secondary text-start font-monospace p-3 bg-white border shadow-inner rounded-3">
+        <div class="mb-2"><strong>{{ _('Beneficiary:') }}</strong> Tuo Nome / Nome Struttura</div>
+        <div class="mb-2"><strong>IBAN:</strong> IT60X0000000000000000000000</div>
+        <div class="mb-2"><strong>BIC/SWIFT:</strong> XXXXXXXX</div>
+        <div class="mb-2"><strong>{{ _('Amount:') }}</strong> €{{ "%.2f"|format(total) }}</div>
+        <div class="mb-0 text-primary fw-bold"><strong>{{ _('Payment Reference:') }}</strong> Booking #{{ reservation_id }}</div>
+      </div>
+
+      <div class="text-muted small p-2 mb-4 bg-warning-subtle text-warning-deep rounded">
+        <i class="bi bi-exclamation-triangle me-1"></i> {{ _('Please make sure to include the Payment Reference exactly as shown above.') }}
+      </div>
+
+      <a href="{{ url_for('routes.index') }}" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-3">
+        <i class="bi bi-house-door me-2"></i>{{ _('Back to Homepage') }}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
