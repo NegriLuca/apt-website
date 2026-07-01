@@ -18,20 +18,20 @@
                     <a class="nav-link active fw-bold text-dark" href="{{ url_for('routes.admin_calendar') }}">📅 Visual Calendar Map</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-muted" href="/admin/pricing">💰 Price Settings & Coupons</a>
+                    <a class="nav-link text-muted" href="{{ url_for('routes.admin_pricing') }}">💰 Price Settings & Coupons</a>
                 </li>
             </ul>
         </div>
     </div>
 
-    <div class="mb-3 d-flex justify-content-between align-items-center">
-        <div>
-            <small class="text-muted fw-bold me-2">Channel Legend:</small>
-            <span class="badge bg-success" style="background-color: #28a745 !important;">Direct / Stripe</span>
-            <span class="badge bg-danger" style="background-color: #ff5a5f !important;">Airbnb</span>
-            <span class="badge bg-primary" style="background-color: #003580 !important;">Booking.com</span>
-            <span class="badge bg-secondary" style="background-color: #dc3545 !important;">Cancelled</span>
-        </div>
+    <!-- Nuova Legenda Dinamica -->
+    <div class="mb-4 d-flex flex-wrap gap-2 align-items-center">
+        <small class="text-muted fw-bold me-2">Legend:</small>
+        <span class="badge bg-success">Direct (Confirmed)</span>
+        <span class="badge" style="background-color: #ffc107; color: #000;">Pending Verification</span>
+        <span class="badge" style="background-color: #ff5a5f;">Airbnb</span>
+        <span class="badge" style="background-color: #003580;">Booking.com</span>
+        <span class="badge bg-dark">Cancelled</span>
     </div>
 
     <div class="card shadow-sm mb-5 border-0">
@@ -43,11 +43,20 @@
 
 <style>
     .fc { font-family: inherit; background: #ffffff; }
-    .fc .fc-button-primary { background-color: #343a40 !important; border-color: #343a40 !important; font-size: 0.9rem; }
-    .fc .fc-button-primary:hover { background-color: #23272b !important; }
-    .fc .fc-button-active { background-color: #111215 !important; }
-    .fc th { background-color: #f8f9fa; color: #495057; padding: 8px 0 !important; font-weight: 600; }
-    .fc-event { cursor: pointer; padding: 3px 6px; font-size: 0.8rem; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .fc-header-toolbar { padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px !important; }
+    .fc .fc-button-primary { background-color: #343a40 !important; border-color: #343a40 !important; }
+    
+    /* Eventi: altezza fissa e testo troncato per non rompere il layout */
+    .fc-event { 
+        cursor: pointer; 
+        padding: 2px 4px; 
+        font-size: 0.75rem; 
+        border: none !important; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
+    }
+    .pending-event { background-color: #ffc107 !important; color: #000 !important; border-left: 3px solid #d39e00 !important; }
 </style>
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.min.css" rel="stylesheet">
@@ -58,24 +67,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
+        eventSources: [{
+            url: "{{ url_for('routes.api_calendar_reservations') }}",
+            success: function(content) {
+                // Modifica dinamica degli eventi prima di renderli
+                return content.map(function(event) {
+                    // Imposta classe speciale se pending
+                    if (event.extendedProps.status === 'pending') {
+                        event.classNames = ['pending-event'];
+                    }
+                    // Aggiungi il metodo di pagamento al titolo se disponibile
+                    let method = event.extendedProps.payment_method ? event.extendedProps.payment_method.toUpperCase() : 'N/A';
+                    event.title = event.title + ' (' + method + ')';
+                    return event;
+                });
+            }
+        }],
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek'
         },
-        events: "{{ url_for('routes.api_calendar_reservations') }}",
         eventClick: function(info) {
             let details = info.event.extendedProps;
             alert(
                 "📋 Booking Details\n" +
                 "-----------------------------------\n" +
-                "Title: " + info.event.title + "\n" +
-                "Source Channel: " + details.source.toUpperCase() + "\n" +
-                "Check-in Date: " + info.event.startStr + "\n" +
-                "Check-out Date: " + info.event.endStr + "\n" +
-                "Total Revenue: " + details.total + "\n" +
-                "Payment Status: " + details.payment_status.toUpperCase() + "\n" +
-                "Reservation Status: " + details.status.toUpperCase()
+                "Guest: " + info.event.title + "\n" +
+                "Source: " + details.source.toUpperCase() + "\n" +
+                "Payment: " + (details.payment_method || 'N/A').toUpperCase() + "\n" +
+                "Status: " + details.status.toUpperCase() + " | " + details.payment_status.toUpperCase() + "\n" +
+                "Revenue: " + details.total
             );
         }
     });

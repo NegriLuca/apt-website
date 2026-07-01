@@ -341,3 +341,31 @@ h2 { margin-bottom: 15px; }
     box-shadow: 0 6px 18px rgba(197, 168, 128, 0.25);
     border: 1px solid #C5A880;
 }
+
+/* Migliora la leggibilità del calendario */
+.calendar-event {
+    padding: 4px 8px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    color: white;
+    cursor: pointer;
+}
+
+/* Stile speciale per le prenotazioni PENDING */
+.event-pending {
+    background-color: #ffc107 !important; /* Giallo avviso */
+    color: #000 !important;
+    border-left: 4px solid #fd7e14;
+}
+
+/* Fix per la parte alta che "non si legge" */
+.fc-header-toolbar {
+    padding: 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
