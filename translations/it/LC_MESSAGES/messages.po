@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-01 10:40+0200\n"
+"POT-Creation-Date: 2026-07-01 11:41+0200\n"
 "PO-Revision-Date: 2026-07-01 10:40+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: it\n"
@@ -17,6 +17,80 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: app/forms.py:12
+msgid "Name"
+msgstr "Nome"
+
+#: app/forms.py:13 app/templates/checkout.html:26
+msgid "Email"
+msgstr "Email"
+
+#: app/forms.py:14 app/templates/checkout.html:30
+msgid "Check-in"
+msgstr "Check-in"
+
+#: app/forms.py:15 app/templates/checkout.html:34
+msgid "Check-out"
+msgstr "Check-out"
+
+#: app/forms.py:17 app/templates/checkout.html:42
+msgid "Guests"
+msgstr "Ospiti"
+
+#: app/forms.py:22
+msgid "Proceed to payment"
+msgstr "Procedi al pagamento"
+
+#: app/forms.py:25
+msgid "Username"
+msgstr "Username"
+
+#: app/forms.py:26
+msgid "Password"
+msgstr "Password"
+
+#: app/forms.py:27
+msgid "Remember Me"
+msgstr "Ricordami"
+
+#: app/forms.py:28 app/templates/base.html:55
+msgid "Login"
+msgstr "Accedi"
+
+#: app/forms.py:31
+#, fuzzy
+msgid "Your name"
+msgstr "Il tuo nome"
+
+#: app/forms.py:32
+msgid "Email address"
+msgstr "Indirizzo Email"
+
+#: app/forms.py:33
+#, fuzzy
+msgid "Message"
+msgstr "Messaggio"
+
+#: app/forms.py:34 app/templates/contact.html:39
+msgid "Send message"
+msgstr "Invia messaggio"
+
+#: app/forms.py:38
+msgid "Platform"
+msgstr "Piattaforma"
+
+#: app/forms.py:47
+msgid "iCal URL"
+msgstr "iCal URL"
+
+#: app/forms.py:48
+msgid "Active"
+msgstr "Attivo"
+
+#: app/forms.py:49
+msgid "Save"
+msgstr "Salva"
 
 #: app/templates/apartment.html:49
 msgid "Perfect for couples or solo travelers"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-01 10:40+0200\n"
+"POT-Creation-Date: 2026-07-01 11:41+0200\n"
 "PO-Revision-Date: 2026-07-01 10:40+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -17,6 +17,78 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: app/forms.py:12
+msgid "Name"
+msgstr ""
+
+#: app/forms.py:13 app/templates/checkout.html:26
+msgid "Email"
+msgstr ""
+
+#: app/forms.py:14 app/templates/checkout.html:30
+msgid "Check-in"
+msgstr ""
+
+#: app/forms.py:15 app/templates/checkout.html:34
+msgid "Check-out"
+msgstr ""
+
+#: app/forms.py:17 app/templates/checkout.html:42
+msgid "Guests"
+msgstr ""
+
+#: app/forms.py:22
+msgid "Proceed to payment"
+msgstr ""
+
+#: app/forms.py:25
+msgid "Username"
+msgstr ""
+
+#: app/forms.py:26
+msgid "Password"
+msgstr ""
+
+#: app/forms.py:27
+msgid "Remember Me"
+msgstr ""
+
+#: app/forms.py:28 app/templates/base.html:55
+msgid "Login"
+msgstr ""
+
+#: app/forms.py:31
+msgid "Your name"
+msgstr ""
+
+#: app/forms.py:32
+msgid "Email address"
+msgstr ""
+
+#: app/forms.py:33
+msgid "Message"
+msgstr ""
+
+#: app/forms.py:34 app/templates/contact.html:39
+msgid "Send message"
+msgstr ""
+
+#: app/forms.py:38
+msgid "Platform"
+msgstr ""
+
+#: app/forms.py:47
+msgid "iCal URL"
+msgstr ""
+
+#: app/forms.py:48
+msgid "Active"
+msgstr ""
+
+#: app/forms.py:49
+msgid "Save"
+msgstr ""
 
 #: app/templates/apartment.html:49
 msgid "Perfect for couples or solo travelers"
@@ -228,10 +300,6 @@ msgstr ""
 msgid "Logout"
 msgstr ""
 
-#: app/templates/base.html:55
-msgid "Login"
-msgstr ""
-
 #: app/templates/base.html:62
 msgid "Language"
 msgstr ""
@@ -320,24 +388,8 @@ msgstr ""
 msgid "Guest"
 msgstr ""
 
-#: app/templates/checkout.html:26
-msgid "Email"
-msgstr ""
-
-#: app/templates/checkout.html:30
-msgid "Check-in"
-msgstr ""
-
-#: app/templates/checkout.html:34
-msgid "Check-out"
-msgstr ""
-
 #: app/templates/checkout.html:38 app/templates/email_admin_alert.html:40
 msgid "Nights"
-msgstr ""
-
-#: app/templates/checkout.html:42
-msgid "Guests"
 msgstr ""
 
 #: app/templates/checkout.html:46
@@ -366,10 +418,6 @@ msgstr ""
 
 #: app/templates/contact.html:9
 msgid "If you have any questions, feel free to reach out."
-msgstr ""
-
-#: app/templates/contact.html:39
-msgid "Send message"
 msgstr ""
 
 #: app/templates/contact.html:45

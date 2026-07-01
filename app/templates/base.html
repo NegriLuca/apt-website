@@ -63,7 +63,10 @@
       <div class="btn-group btn-group-sm" role="group">
         <a href="{{ url_for('routes.set_language', lang='en') }}" class="btn btn-outline-light {% if session.get('language') == 'en' %}active{% endif %}">EN</a>
         <a href="{{ url_for('routes.set_language', lang='it') }}" class="btn btn-outline-light {% if session.get('language') == 'it' %}active{% endif %}">IT</a>
-      </div>
+        <a href="{{ url_for('routes.set_language', lang='de') }}" class="btn btn-outline-light {% if session.get('language') == 'de' %}active{% endif %}">DE</a>
+        <a href="{{ url_for('routes.set_language', lang='fr') }}" class="btn btn-outline-light {% if session.get('language') == 'fr' %}active{% endif %}">FR</a>
+        <a href="{{ url_for('routes.set_language', lang='es') }}" class="btn btn-outline-light {% if session.get('language') == 'es' %}active{% endif %}">ES</a>
+      </div>    
     </div>
   </nav>
 
