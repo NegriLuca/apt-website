@@ -10,7 +10,7 @@ try:
     # Executes: pybabel compile -d app/translations
     # We target 'app/translations' to match your app.root_path configuration
     result = subprocess.run(
-        ["pybabel", "compile", "-d", "app/translations"],
+        ["pybabel", "compile", "-d", "translations"],
         capture_output=True,
         text=True
     )
