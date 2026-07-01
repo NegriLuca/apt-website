@@ -16,6 +16,8 @@ import stripe
 import requests
 import threading
 import os
+import holidays
+
 
 bp = Blueprint('routes', __name__)
 
@@ -96,6 +98,44 @@ def _send_confirmation_emails(reservation):
         print('!!! BREVO API FAILURE !!!', flush=True)
         print(f'Error detail: {str(exc)}', flush=True)
 
+def calculate_dynamic_total(check_in, check_out, base_rate):
+    """
+    Loops day-by-day from check_in up to (but excluding) check_out.
+    Applies surcharges based on the day of the week or Italian bank holidays.
+    """
+    # Initialize the Italian holiday registry (targeting IT / Lazio region)
+    it_holidays = holidays.Italy(years=[check_in.year, check_out.year])
+    
+    total_cost = 0.0
+    current_date = check_in
+    
+    while current_date < check_out:
+        day_rate = base_rate
+        is_premium_day = False
+        reason = "Base Rate"
+        
+        # 1. Check for Italian National Bank Holidays
+        if current_date in it_holidays:
+            day_rate = base_rate * 1.30  # 30% increase for holidays
+            is_premium_day = True
+            reason = f"Holiday ({it_holidays.get(current_date)})"
+            
+        # 2. Check for Summer Season peak (June, July, August)
+        elif current_date.month in [6, 7, 8]:
+            day_rate = base_rate * 1.15  # 15% seasonal increase
+            reason = "Summer Peak Season"
+            
+        # 3. Check for Weekends (Friday night and Saturday night check-ins)
+        # weekday(): 4 is Friday, 5 is Saturday
+        if not is_premium_day and current_date.weekday() in [4, 5]:
+            day_rate = base_rate * 1.10  # 10% increase for weekends
+            reason = "Weekend Pricing"
+            
+        total_cost += day_rate
+        current_date += timedelta(days=1)
+        
+    return round(total_cost, 2)
+
 # ── Public pages ──────────────────────────────────────────────────────────────
 @bp.route('/')
 def home():
@@ -171,7 +211,7 @@ def reserve():
 
         # ── BACKEND COUPON VALIDATION ──
         coupon_code = request.form.get('applied_coupon_code', '').strip().upper()
-        base_total = nights * apartment.price_per_night
+        base_total = calculate_dynamic_total(check_in, check_out, apartment.price_per_night)
         final_total = base_total
         validated_code = None
 
@@ -245,7 +285,11 @@ def create_checkout_session():
     nights    = (check_out - check_in).days
     
     # Crucial: Calculate unit amount from discounted total price variable
-    total_price = pending.get('total_price', nights * apartment.price_per_night if apartment else 0)
+    total_price = pending.get('total_price')
+    if total_price is None:
+        base_total = calculate_dynamic_total(check_in, check_out, apartment.price_per_night)
+        total_price = base_total
+
     total_cents = int(total_price * 100)
 
     if not is_available(check_in, check_out):
@@ -394,8 +438,7 @@ def _create_reservation_from_stripe(cs) -> Reservation:
         total_price = float(meta.get('total_price'))
     except (TypeError, ValueError):
         apartment = get_apartment()
-        nights = (check_out - check_in).days
-        total_price = nights * (apartment.price_per_night if apartment else 0)
+        total_price = calculate_dynamic_total(check_in, check_out, apartment.price_per_night) if apartment else 0
 
     reservation = Reservation(
         guest_name               = guest_name,
@@ -794,6 +837,30 @@ def api_calendar_reservations():
         
     return jsonify(events)
 
+@bp.route('/api/calculate-price')
+def api_calculate_price():
+    check_in_str = request.args.get('check_in')
+    check_out_str = request.args.get('check_out')
+    
+    if not check_in_str or not check_out_str:
+        return jsonify({"error": "Missing dates"}), 400
+        
+    try:
+        check_in = date.fromisoformat(check_in_str)
+        check_out = date.fromisoformat(check_out_str)
+        apartment = get_apartment()
+        
+        base_rate = apartment.price_per_night if apartment else 120.00
+        dynamic_total = calculate_dynamic_total(check_in, check_out, base_rate)
+        nights = (check_out - check_in).days
+        
+        return jsonify({
+            "nights": nights,
+            "total": dynamic_total
+        })
+    except ValueError:
+        return jsonify({"error": "Invalid date format"}), 400
+    
 @bp.route('/admin/reservations/<int:res_id>/confirm', methods=['POST'])
 @login_required
 def admin_confirm_reservation(res_id):

@@ -7,7 +7,7 @@
 
 {% if apartment %}
 <h2>Reserve {{ apartment.name }}</h2>
-<p>Price per night: €{{ apartment.price_per_night }}</p>
+<p class="text-muted small"><i class="bi bi-info-circle"></i> Rates vary depending on season, weekends, and holidays.</p>
 
 <form method="POST" class="mt-3" style="max-width: 500px;">
   {{ form.hidden_tag() }}
@@ -72,11 +72,9 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  // Safe fallbacks to prevent empty expressions causing syntax errors
-  const pricePerNight = {{ apartment.price_per_night | default(0) if apartment else 0 }};
   const disabledDates = {{ disabled_dates | tojson | default('[]') }};
 
-  // State variables to track active bookings
+  // State variable to track active booking cost calculated from dynamic pricing engine
   let currentBaseTotal = 0;
 
   // If elements don't exist on the page, stop script setup gracefully
@@ -84,7 +82,6 @@ document.addEventListener("DOMContentLoaded", function() {
   if (!dateRangeEl) return;
 
   const nightsEl = document.getElementById("nights");
-  const totalEl = document.getElementById("total");
   const hiddenCheckIn = document.getElementById("check_in");
   const hiddenCheckOut = document.getElementById("check_out");
   
@@ -94,10 +91,6 @@ document.addEventListener("DOMContentLoaded", function() {
   const couponMessage = document.getElementById("coupon_message");
   const appliedCouponHiddenInput = document.getElementById("applied_coupon_code");
   const priceCalculationRow = document.getElementById("price_calculation_row");
-
-  function daysBetween(a, b) {
-    return Math.round((b - a) / (1000 * 60 * 60 * 24));
-  }
 
   function findNextDisabledDate(startDate) {
     return disabledDates
@@ -122,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Live Coupon API Validation Call Engine
   if (applyCouponBtn) {
     applyCouponBtn.addEventListener('click', function() {
-      const code = couponBox.value.trim().upperCase ? couponBox.value.trim().toUpperCase() : couponBox.value.trim();
+      const code = couponBox.value.trim().toUpperCase();
       if (!code) return;
       
       if (currentBaseTotal <= 0) {
@@ -188,23 +181,37 @@ document.addEventListener("DOMContentLoaded", function() {
           instance.setDate([checkIn, checkOut], false);
         }
 
-        const nights = daysBetween(checkIn, checkOut);
-        if (nights <= 0) {
-          resetPrice();
-          return;
-        }
+        // Format exact string structures to protect timezone offsets
+        const checkInStr = instance.formatDate(checkIn, "Y-m-d");
+        const checkOutStr = instance.formatDate(checkOut, "Y-m-d");
 
-        if (hiddenCheckIn) hiddenCheckIn.value = instance.formatDate(checkIn, "Y-m-d");
-        if (hiddenCheckOut) hiddenCheckOut.value = instance.formatDate(checkOut, "Y-m-d");
+        if (hiddenCheckIn) hiddenCheckIn.value = checkInStr;
+        if (hiddenCheckOut) hiddenCheckOut.value = checkOutStr;
 
-        currentBaseTotal = nights * pricePerNight;
+        // ── CALL DYNAMIC PRICING SYSTEM ENGINE API ──
+        fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) {
+              console.error("Pricing Engine Fault:", data.error);
+              resetPrice();
+              return;
+            }
 
-        if (nightsEl) nightsEl.textContent = nights;
-        if (priceCalculationRow) {
-          priceCalculationRow.innerHTML = `€<span id="total">${currentBaseTotal.toFixed(2)}</span>`;
-        }
+            // Sync backend price matrix down to front-end layout parameters
+            currentBaseTotal = data.total;
 
-        // Wipe old applied data states if the user shifts dates to force re-validation
+            if (nightsEl) nightsEl.textContent = data.nights;
+            if (priceCalculationRow) {
+              priceCalculationRow.innerHTML = `€<span id="total">${data.total.toFixed(2)}</span>`;
+            }
+          })
+          .catch(err => {
+            console.error("Failed to connect to backend pricing calculus stream:", err);
+            resetPrice();
+          });
+
+        // Wipe old coupon code states when dates fluctuate to avoid outdated totals
         if (couponBox) couponBox.value = "";
         if (couponMessage) couponMessage.innerText = "";
         if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
