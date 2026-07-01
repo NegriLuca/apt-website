@@ -1,4 +1,5 @@
-from flask import Flask, request, session
+import os
+from flask import Flask, request, session, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -25,19 +26,21 @@ def get_locale():
     if 'language' in session:
         return session['language']
     
-    # 2. Otherwise, fall back to the user's browser settings
-    return request.accept_languages.best_match(['en', 'it', 'de', 'fr', 'es'])
-
-def create_app():
-    app = Flask(__name__)
+    # 2. Check if a directory override configuration exists
+    # Using current_app ensures we don't hardcode language availability arrays
+    supported_languages = current_app.config.get('LANGUAGES', ['en', 'it', 'de', 'fr', 'es'])
     
+    # 3. Otherwise, fall back to the user's browser settings
+    return request.accept_languages.best_match(supported_languages)
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    # Core Babel Config Setup Engine Parameters
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-    app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
+    app.config['LANGUAGES'] = ['en', 'it', 'de', 'fr', 'es']
+    app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(app.root_path, 'translations')
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -46,7 +49,7 @@ def create_app():
     mail.init_app(app)
     bcrypt.init_app(app)
 
-    # Initialize Babel with the selector function
+    # Initialize Babel with the context selector function configuration
     babel.init_app(app, locale_selector=get_locale)
 
     from app import routes
@@ -64,7 +67,6 @@ def _start_scheduler(app: Flask):
     Only starts when NOT inside a Flask CLI command or when Werkzeug reloader
     is active (to avoid double-start in debug mode).
     """
-    import os
     # Werkzeug starts two processes in debug mode; only schedule in the child.
     if os.environ.get('WERKZEUG_RUN_MAIN') == 'false':
         return
