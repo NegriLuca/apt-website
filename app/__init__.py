@@ -55,6 +55,13 @@ def create_app():
     from app import routes
     app.register_blueprint(routes.bp)
 
+    @app.context_processor
+    def inject_apartment():
+        from app.models import Apartment
+        # Recupera l'appartamento una sola volta per qualsiasi richiesta
+        apartment = Apartment.query.first()
+        return dict(apartment=apartment)
+
     # ── Start APScheduler for periodic iCal sync ──────────────────────────────
     _start_scheduler(app)
 
