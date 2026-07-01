@@ -1,0 +1,23 @@
+<div class="row mb-4 mt-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center bg-dark text-white p-3 rounded shadow-sm mb-3">
+            <h2 class="mb-0 text-white">Lotto235 Control Panel</h2>
+            <span class="badge bg-light text-dark">Admin Mode</span>
+        </div>
+        
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'routes.admin_dashboard' %}active fw-bold text-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_dashboard') }}">📊 Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'routes.admin_calendar' %}active fw-bold text-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_calendar') }}">📅 Calendar</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'routes.admin_pricing' %}active fw-bold text-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_pricing') }}">💰 Pricing</a>
+            </li>
+        </ul>
+    </div>
+</div>
