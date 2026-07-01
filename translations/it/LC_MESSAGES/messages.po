@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-01 11:41+0200\n"
+"POT-Creation-Date: 2026-07-01 11:54+0200\n"
 "PO-Revision-Date: 2026-07-01 10:40+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: it\n"
@@ -92,6 +92,10 @@ msgstr "Attivo"
 msgid "Save"
 msgstr "Salva"
 
+#: app/templates/apartment.html:45 app/templates/home.html:14
+msgid "Welcome to our beautiful, fully equipped rental property."
+msgstr Benvenuti nella nostra splendida struttura, dotata di ogni comfort."
+
 #: app/templates/apartment.html:49
 msgid "Perfect for couples or solo travelers"
 msgstr "Perfetto per coppie o viaggiatori singoli"
@@ -110,7 +114,9 @@ msgstr "Self check-in disponibile"
 
 #: app/templates/apartment.html:56
 msgid "Rates vary depending on season, weekends, and holidays"
-msgstr "Le tariffe variano a seconda della stagione, dei fine settimana e delle festività"
+msgstr ""
+"Le tariffe variano a seconda della stagione, dei fine settimana e delle "
+"festività"
 
 #: app/templates/apartment.html:61
 msgid "Reserve now"
@@ -157,7 +163,9 @@ msgstr "Attrazioni di Roma"
 msgid ""
 "Explore Rome through curated landmarks, walks and scenic spots — all "
 "easily reachable from your apartment."
-msgstr "Esplora Roma attraverso monumenti selezionati, passeggiate e punti panoramici — tutti facilmente raggiungibili dal tuo appartamento."
+msgstr ""
+"Esplora Roma attraverso monumenti selezionati, passeggiate e punti "
+"panoramici — tutti facilmente raggiungibili dal tuo appartamento."
 
 #: app/templates/attractions.html:111
 msgid "Curated experiences around Rome"
@@ -302,10 +310,6 @@ msgstr "Amministrazione"
 msgid "Logout"
 msgstr "Disconnetti"
 
-#: app/templates/base.html:55
-msgid "Login"
-msgstr "Accedi"
-
 #: app/templates/base.html:62
 msgid "Language"
 msgstr "Lingua"
@@ -356,7 +360,10 @@ msgstr "Stiamo finalizzando la registrazione della tua prenotazione..."
 msgid ""
 "Your payment was fully secured. A confirmation email with receipt records"
 " will land in your inbox within a few moments."
-msgstr "Il tuo pagamento è andato a buon fine in modo sicuro. Un'email di conferma contenente la ricevuta arriverà nella tua casella di posta tra pochi istanti."
+msgstr ""
+"Il tuo pagamento è andato a buon fine in modo sicuro. Un'email di "
+"conferma contenente la ricevuta arriverà nella tua casella di posta tra "
+"pochi istanti."
 
 #: app/templates/booking_confirmed.html:40
 msgid "Back to Home"
@@ -394,25 +401,9 @@ msgstr "Riepilogo prenotazione"
 msgid "Guest"
 msgstr "Ospite"
 
-#: app/templates/checkout.html:26
-msgid "Email"
-msgstr "Email"
-
-#: app/templates/checkout.html:30
-msgid "Check-in"
-msgstr "Check-in"
-
-#: app/templates/checkout.html:34
-msgid "Check-out"
-msgstr "Check-out"
-
 #: app/templates/checkout.html:38 app/templates/email_admin_alert.html:40
 msgid "Nights"
 msgstr "Notti"
-
-#: app/templates/checkout.html:42
-msgid "Guests"
-msgstr "Ospiti"
 
 #: app/templates/checkout.html:46
 msgid "Total"
@@ -441,10 +432,6 @@ msgstr "Torna indietro e modifica le date"
 #: app/templates/contact.html:9
 msgid "If you have any questions, feel free to reach out."
 msgstr "Se hai domande, non esitare a contattarci."
-
-#: app/templates/contact.html:39
-msgid "Send message"
-msgstr "Invia messaggio"
 
 #: app/templates/contact.html:45
 msgid "Phone:"
@@ -482,7 +469,9 @@ msgstr "Cancella Prenotazione e Rimborsa"
 msgid ""
 "Warning: Clicking this immediately triggers an official transaction "
 "reversal on Stripe."
-msgstr "Attenzione: Facendo clic qui verrà avviato immediatamente uno storno ufficiale della transazione su Stripe."
+msgstr ""
+"Attenzione: Facendo clic qui verrà avviato immediatamente uno storno "
+"ufficiale della transazione su Stripe."
 
 #: app/templates/email_admin_alert.html:59
 msgid "Automated notification via your Railway App engine."
@@ -540,7 +529,9 @@ msgstr "Stato:"
 msgid ""
 "If you need to cancel or modify your stay, you can do so by clicking the "
 "link below:"
-msgstr "Se hai bisogno di cancellare o modificare il tuo soggiorno, puoi farlo facendo clic sul link sottostante:"
+msgstr ""
+"Se hai bisogno di cancellare o modificare il tuo soggiorno, puoi farlo "
+"facendo clic sul link sottostante:"
 
 #: app/templates/email_confirmation.html:43
 msgid "Cancel Reservation"
@@ -548,7 +539,9 @@ msgstr "Cancella Prenotazione"
 
 #: app/templates/email_confirmation.html:48
 msgid "This is an automated message from your property booking engine."
-msgstr "Questo è un messaggio automatizzato inviato dal sistema di prenotazione della struttura."
+msgstr ""
+"Questo è un messaggio automatizzato inviato dal sistema di prenotazione "
+"della struttura."
 
 #: app/templates/faq.html:7
 msgid "Frequently Asked Questions"
@@ -566,7 +559,9 @@ msgstr "Check-in e check-out"
 msgid ""
 "Check-in is from 13:00 and check-out is by 10:00. We will send you all "
 "the access details shortly before your arrival."
-msgstr "Il check-in è a partire dalle 13:00 e il check-out è entro le 10:00. Ti invieremo tutti i dettagli per l'accesso poco prima del tuo arrivo."
+msgstr ""
+"Il check-in è a partire dalle 13:00 e il check-out è entro le 10:00. Ti "
+"invieremo tutti i dettagli per l'accesso poco prima del tuo arrivo."
 
 #: app/templates/faq.html:53
 msgid "How does check-in work?"
@@ -576,7 +571,9 @@ msgstr "Come funziona il check-in?"
 msgid ""
 "Check-in is self-service. You will receive simple step-by-step "
 "instructions before arrival."
-msgstr "Il check-in è in modalità self-service. Riceverai delle semplici istruzioni passo dopo passo prima del tuo arrivo."
+msgstr ""
+"Il check-in è in modalità self-service. Riceverai delle semplici "
+"istruzioni passo dopo passo prima del tuo arrivo."
 
 #: app/templates/faq.html:60
 msgid "Where is the apartment located?"
@@ -586,7 +583,9 @@ msgstr "Dove si trova l'appartamento?"
 msgid ""
 "The apartment is located in the Garbatella area, one of Rome’s most "
 "vibrant and authentic neighborhoods, well connected to the city center."
-msgstr "L'appartamento si trova in zona Garbatella, uno dei quartieri più vivaci e autentici di Roma, ottimamente collegato al centro della città."
+msgstr ""
+"L'appartamento si trova in zona Garbatella, uno dei quartieri più vivaci "
+"e autentici di Roma, ottimamente collegato al centro della città."
 
 #: app/templates/faq.html:67
 msgid "Is public transport nearby?"
@@ -594,7 +593,9 @@ msgstr "Ci sono trasporti pubblici nelle vicinanze?"
 
 #: app/templates/faq.html:69
 msgid "Yes, metro line B and several bus lines are within walking distance."
-msgstr "Sì, la linea B della metropolitana e diverse linee di autobus si trovano a pochi passi."
+msgstr ""
+"Sì, la linea B della metropolitana e diverse linee di autobus si trovano "
+"a pochi passi."
 
 #: app/templates/faq.html:74
 msgid "How can I get there from Termini station?"
@@ -604,7 +605,10 @@ msgstr "Come posso arrivare dalla stazione Termini?"
 msgid ""
 "Take Metro Line B (direction Laurentina) and get off at Garbatella or "
 "Basilica San Paolo, then walk about 10 minutes."
-msgstr "Prendi la linea B della metropolitana (direzione Laurentina) e scendi alla fermata Garbatella o Basilica San Paolo, poi cammina per circa 10 minuti."
+msgstr ""
+"Prendi la linea B della metropolitana (direzione Laurentina) e scendi "
+"alla fermata Garbatella o Basilica San Paolo, poi cammina per circa 10 "
+"minuti."
 
 #: app/templates/faq.html:81
 msgid "How can I get there from the airport?"
@@ -615,7 +619,11 @@ msgid ""
 "From Fiumicino Airport, take the train to Ostiense station. From Ciampino"
 " Airport, take a shuttle to Termini and then Metro Line B. Taxi and "
 "private transfers are also available."
-msgstr "Dall'aeroporto di Fiumicino, prendi il treno fino alla stazione Ostiense. Dall'aeroporto di Ciampino, prendi una navetta per Termini e poi la linea B della metropolitana. Sono disponibili anche taxi e trasferimenti privati."
+msgstr ""
+"Dall'aeroporto di Fiumicino, prendi il treno fino alla stazione Ostiense."
+" Dall'aeroporto di Ciampino, prendi una navetta per Termini e poi la "
+"linea B della metropolitana. Sono disponibili anche taxi e trasferimenti "
+"privati."
 
 #: app/templates/faq.html:88
 msgid "Is parking available?"
@@ -626,7 +634,10 @@ msgid ""
 "We do not have a private parking space, but free street parking is "
 "available nearby. It may require a short search, and we’ll be happy to "
 "give tips."
-msgstr "Non disponiamo di un parcheggio privato, ma nelle vicinanze è disponibile il parcheggio gratuito in strada. Potrebbe richiedere una breve ricerca e saremo felici di darti dei consigli."
+msgstr ""
+"Non disponiamo di un parcheggio privato, ma nelle vicinanze è disponibile"
+" il parcheggio gratuito in strada. Potrebbe richiedere una breve ricerca "
+"e saremo felici di darti dei consigli."
 
 #: app/templates/faq.html:95
 msgid "Can I leave my luggage?"
@@ -636,7 +647,9 @@ msgstr "Posso lasciare i bagagli?"
 msgid ""
 "Depending on availability, we may offer early check-in or luggage drop-"
 "off. Please contact us in advance."
-msgstr "A seconda della disponibilità, potremmo offrire il check-in anticipato o il deposito bagagli. Ti preghiamo di contattarci in anticipo."
+msgstr ""
+"A seconda della disponibilità, potremmo offrire il check-in anticipato o "
+"il deposito bagagli. Ti preghiamo di contattarci in anticipo."
 
 #: app/templates/faq.html:102
 msgid "Is Wi-Fi available?"
@@ -644,7 +657,9 @@ msgstr "È disponibile il Wi-Fi?"
 
 #: app/templates/faq.html:104
 msgid "Yes, fast and free Wi-Fi is available throughout the apartment."
-msgstr "Sì, una connessione Wi-Fi veloce e gratuita è disponibile in tutto l'appartamento."
+msgstr ""
+"Sì, una connessione Wi-Fi veloce e gratuita è disponibile in tutto "
+"l'appartamento."
 
 #: app/templates/faq.html:109
 msgid "Is there air conditioning and heating?"
@@ -654,7 +669,9 @@ msgstr "Ci sono l'aria condizionata e il riscaldamento?"
 msgid ""
 "Yes, the apartment is fully equipped with both air conditioning and "
 "heating."
-msgstr "Sì, l'appartamento è completamente attrezzato sia con aria condizionata che con riscaldamento."
+msgstr ""
+"Sì, l'appartamento è completamente attrezzato sia con aria condizionata "
+"che con riscaldamento."
 
 #: app/templates/faq.html:116
 msgid "Are pets allowed?"
@@ -664,7 +681,9 @@ msgstr "Sono ammessi animali domestici?"
 msgid ""
 "We love animals, but unfortunately we cannot host pets. Thank you for "
 "your understanding."
-msgstr "Amiamo gli animali, ma sfortunatamente non possiamo ospitare animali domestici. Grazie per la comprensione."
+msgstr ""
+"Amiamo gli animali, ma sfortunatamente non possiamo ospitare animali "
+"domestici. Grazie per la comprensione."
 
 #: app/templates/faq.html:123
 msgid "Is a baby crib available?"
@@ -674,7 +693,9 @@ msgstr "È disponibile una culla per bambini?"
 msgid ""
 "Yes, a baby crib is available free of charge upon request. Please let us "
 "know in advance."
-msgstr "Sì, una culla è disponibile gratuitamente su richiesta. Ti preghiamo di informarci in anticipo."
+msgstr ""
+"Sì, una culla è disponibile gratuitamente su richiesta. Ti preghiamo di "
+"informarci in anticipo."
 
 #: app/templates/faq.html:130
 msgid "Can we contact you during our stay?"
@@ -688,7 +709,9 @@ msgstr "Certamente! Siamo sempre a disposizione e felici di aiutare."
 msgid ""
 "Discover our favorite places to eat, drink, and experience the real Rome "
 "– just a few minutes from your apartment."
-msgstr "Scopri i nostri posti preferiti dove mangiare, bere e vivere la vera Roma – a pochi minuti dal tuo appartamento."
+msgstr ""
+"Scopri i nostri posti preferiti dove mangiare, bere e vivere la vera Roma"
+" – a pochi minuti dal tuo appartamento."
 
 #: app/templates/food_recommendations.html:15
 msgid "Curated local picks near Garbatella"
@@ -816,7 +839,9 @@ msgstr "Prenota ora"
 
 #: app/templates/reservation.html:10
 msgid "Rates vary depending on season, weekends, and holidays."
-msgstr "Le tariffe variano a seconda della stagione, dei fine settimana e delle festività."
+msgstr ""
+"Le tariffe variano a seconda della stagione, dei fine settimana e delle "
+"festività."
 
 #: app/templates/reservation.html:26
 msgid "Dates"
@@ -848,7 +873,9 @@ msgstr "Nessun appartamento selezionato"
 
 #: app/templates/reservation.html:65
 msgid "Please navigate back to the listings page and choose an apartment to book."
-msgstr "Per favore, torna alla pagina degli annunci e seleziona un appartamento da prenotare."
+msgstr ""
+"Per favore, torna alla pagina degli annunci e seleziona un appartamento "
+"da prenotare."
 
 #: app/templates/reservation.html:95
 msgid "Please select a valid check-in date range first."
@@ -861,3 +888,4 @@ msgstr "Successo! Codice applicato."
 #: app/templates/reservation.html:97
 msgid "Connection validation runtime warning."
 msgstr "Avviso di runtime durante la validazione della connessione."
+

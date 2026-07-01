@@ -68,11 +68,6 @@ with app.app_context():
         print("🏠 No properties found. Seeding default apartment profile...")
         default_apartment = Apartment(
             name="Lotto 235 Garbatella",
-            description_en="Welcome to our beautiful, fully equipped rental property.", 
-            description_it="Benvenuti nella nostra splendida struttura, dotata di ogni comfort.", 
-            description_de="Willkommen in unserem wunderschönen, voll ausgestatteten Mietobjekt.", 
-            description_es="Le damos la bienvenida a nuestra hermosa propiedad de alquiler, totalmente equipada.", 
-            description_fr="Bienvenue dans la magnifique propriété de location, entièrement équipée.",            
             price_per_night=120.00,
             image_file="apartment/living_room.jpg" 
         )

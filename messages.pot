@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-01 11:41+0200\n"
+"POT-Creation-Date: 2026-07-01 11:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -87,6 +87,10 @@ msgstr ""
 
 #: app/forms.py:49
 msgid "Save"
+msgstr ""
+
+#: app/templates/apartment.html:45 app/templates/home.html:14
+msgid "Welcome to our beautiful, fully equipped rental property."
 msgstr ""
 
 #: app/templates/apartment.html:49

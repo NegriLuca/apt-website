@@ -6,7 +6,7 @@ from wtforms import (
 from wtforms.validators import DataRequired, Email, Length, URL, Optional
 
 # CRITICAL IMPORT: Utilizziamo lazy_get_text per gli oggetti globali come i form
-from flask_babel import lazy_get_text as _
+from flask_babel import lazy_gettext as _
 
 class ReservationForm(FlaskForm):
     guest_name  = StringField(_('Name'),  validators=[DataRequired()])
