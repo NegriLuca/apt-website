@@ -38,6 +38,24 @@
         </div>
     </nav>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container mt-4">
+          {% for category, message in messages %}
+            {# Converte 'success' nel tono scuro minimale 'dark', altrimenti usa un grigio elegante #}
+            <div class="alert alert-{{ 'dark' if category == 'success' else 'secondary' }} text-uppercase small border-0 rounded-0 shadow-sm py-3 px-4 mb-2 d-flex align-items-center" role="alert" style="letter-spacing: 1px; font-weight: 500;">
+              {% if category == 'success' %}
+                <i class="bi bi-check-circle-fill me-2 text-muted"></i>
+              {% else %}
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+              {% endif %}
+              <div>{{ message }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <main class="py-5 bg-luxury-floor">
         <div class="container">
             {% block content %}{% endblock %}
