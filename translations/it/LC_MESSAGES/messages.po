@@ -59,7 +59,6 @@ msgid "Login"
 msgstr "Accedi"
 
 #: app/forms.py:31
-#, fuzzy
 msgid "Your name"
 msgstr "Il tuo nome"
 
@@ -68,7 +67,6 @@ msgid "Email address"
 msgstr "Indirizzo Email"
 
 #: app/forms.py:33
-#, fuzzy
 msgid "Message"
 msgstr "Messaggio"
 
@@ -94,7 +92,7 @@ msgstr "Salva"
 
 #: app/templates/apartment.html:45 app/templates/home.html:14
 msgid "Welcome to our beautiful, fully equipped rental property."
-msgstr Benvenuti nella nostra splendida struttura, dotata di ogni comfort."
+msgstr "Benvenuti nella nostra splendida struttura, dotata di ogni comfort."
 
 #: app/templates/apartment.html:49
 msgid "Perfect for couples or solo travelers"
