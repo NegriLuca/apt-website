@@ -1,6 +1,26 @@
 import os
+import subprocess
 from app import create_app, db
 from app.models import User, Apartment, Reservation
+
+# ── AUTO-COMPILE BABEL TRANSLATIONS ──
+# This builds your binary .mo files directly inside the Railway container on startup
+try:
+    print("🌐 Compiling application translation catalogs via Babel...")
+    # Executes: pybabel compile -d app/translations
+    # We target 'app/translations' to match your app.root_path configuration
+    result = subprocess.run(
+        ["pybabel", "compile", "-d", "app/translations"],
+        capture_output=True,
+        text=True
+    )
+    if result.returncode == 0:
+        print("✅ Translation compilation successful!")
+    else:
+        print(f"⚠️ Babel compilation returned non-zero setup: {result.stderr}")
+except Exception as e:
+    print(f"❌ Failed to run pybabel compile programmatically: {e}")
+
 
 app = create_app()
 
@@ -9,18 +29,14 @@ with app.app_context():
 
     # ── DB SCHEMA PATCH: Force inject missing column if using an existing DB ──
     try:
-        # Check if coupon_code already exists, if not, add it dynamically
         engine = db.engine
         with engine.connect() as conn:
-            # For PostgreSQL / SQLite: Safely try to alter the table
-            # Wrap in try/except so it doesn't fail if the column is already there
             try:
                 from sqlalchemy import text
                 conn.execute(text("ALTER TABLE reservations ADD COLUMN coupon_code VARCHAR(20) NULL;"))
                 conn.commit()
                 print("🛠️ Database schema updated: coupon_code column injected into reservations.")
             except Exception:
-                # If it fails, the column likely already exists, which is perfect
                 pass
     except Exception as e:
         print(f"ℹ️ Schema check skipped or unneeded: {e}")
@@ -29,30 +45,24 @@ with app.app_context():
     env_password = os.environ.get('ADMIN_PASSWORD')
     
     if env_password:
-        # Query using the exact 'username' field on your model
         admin_user = User.query.filter_by(username='admin').first()
         
         if not admin_user:
             print("👤 Admin user not found. Creating a fresh admin account...")
             admin_user = User(
                 username='admin',
-                # Ensure they are granted admin privileges in the database
                 is_admin=True 
             )
             db.session.add(admin_user)
         
-        # Explicitly make sure an existing account is flagged as admin just in case
         admin_user.is_admin = True
-        
-        # Safely hash the password using your model's native method
         admin_user.set_password(env_password)
-        
         db.session.commit()
         print("🔒 Admin account verified and password securely synchronized!")
     else:
         print("⚠️ Warning: ADMIN_PASSWORD not found in .env file. Admin setup skipped.")
 
-    # ── 2. AUTO-CREATE DEFAULT APARTMENT IF EMPTY ──
+    # ── AUTO-CREATE DEFAULT APARTMENT IF EMPTY ──
     default_apartment = Apartment.query.first()
     if not default_apartment:
         print("🏠 No properties found. Seeding default apartment profile...")
