@@ -24,8 +24,8 @@
         <div class="details">
             <h3>{{ _('Stay Details:') }}</h3>
             <ul>
-                <li><strong>{{ _('Check-in:') }}</strong> {{ format_date(reservation.check_in, format='medium') }}</li>
-                <li><strong>{{ _('Check-out:') }}</strong> {{ format_date(reservation.check_out, format='medium') }}</li>
+                <li><strong>{{ _('Check-in:') }}</strong> {{ reservation.check_in | format_date(format='medium') }}</li>
+                <li><strong>{{ _('Check-out:') }}</strong> {{ reservation.check_out | format_date(format='medium') }}</li>
                 <li><strong>{{ _('Duration:') }}</strong> {{ nights }} {{ _('night(s)') }}</li>
                 <li><strong>{{ _('Guests:') }}</strong> {{ reservation.num_guests }}</li>
                 <li><strong>{{ _('Total Paid:') }}</strong> €{{ "%.2f"|format(total) }}</li>

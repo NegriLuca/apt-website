@@ -29,11 +29,11 @@
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
             <tr>
                 <td style="padding: 8px 0; color: #64748b; font-weight: 500;">📅 {{ _('Check-In:') }}</td>
-                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ format_date(reservation.check_in, format='medium') }}</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ reservation.check_in | format_date(format='medium') }}</td>
             </tr>
             <tr>
                 <td style="padding: 8px 0; color: #64748b; font-weight: 500;">📅 {{ _('Check-Out:') }}</td>
-                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ format_date(reservation.check_out, format='medium') }}</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 600; text-align: right;">{{ reservation.check_out | format_date(format='medium') }}</td>
             </tr>
             <tr>
                 <td style="padding: 8px 0; color: #64748b; font-weight: 500;">🌙 {{ _('Total Stay:') }}</td>

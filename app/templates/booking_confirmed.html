@@ -17,7 +17,7 @@
             <p class="mb-2"><strong>{{ _('Guest:') }}</strong> {{ reservation.guest_name }}</p>
             <p class="mb-2">
               <strong>{{ _('Dates:') }}</strong> 
-              {{ format_date(reservation.check_in, format='medium') }} → {{ format_date(reservation.check_out, format='medium') }}
+              {{ reservation.check_in | format_date(format='medium') }} → {{ reservation.check_out | format_date(format='medium') }}
             </p>
             <p class="mb-2"><strong>{{ _('Guests:') }}</strong> {{ reservation.num_guests }}</p>
             <p class="mb-0"><strong>{{ _('Email:') }}</strong> {{ reservation.guest_email }}</p>
