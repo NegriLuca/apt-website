@@ -8,6 +8,8 @@ from app.services.ical_sync import sync_all_feeds
 from app import db, mail, csrf
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
+from flask_babel import get_locale as babel_get_locale
+
 from datetime import datetime, date, timedelta
 import json
 import secrets
@@ -139,6 +141,10 @@ def calculate_dynamic_total(check_in, check_out, base_rate):
 # ── Public pages ──────────────────────────────────────────────────────────────
 @bp.route('/')
 def home():
+    print("--- BABEL DEBUG ENGINE ---")
+    print(f"Session state language string: {session.get('language')}")
+    print(f"Active locale read by Babel: {babel_get_locale()}")
+    print("--------------------------")
     apartment = get_apartment()
     return render_template('home.html', apartment=apartment)
 
