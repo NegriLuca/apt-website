@@ -7,104 +7,27 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-.page {
-  display: flex;
-  height: 80vh;
-  gap: 18px;
+/* Layout fluido senza forzature di altezza */
+.page { display: flex; gap: 24px; min-height: 500px; }
+
+#sidebar { width: 380px; background: #fff; border-radius: 0px; padding: 24px; overflow-y: auto; border: 1px solid #EAEAEA; }
+#map { flex: 1; border-radius: 0px; overflow: hidden; min-height: 400px; border: 1px solid #EAEAEA; }
+
+/* Media Query coerente con la rotazione */
+@media (max-width: 991px) {
+  .page { flex-direction: column; }
+  #sidebar { width: 100%; height: auto; max-height: 400px; }
+  #map { height: 300px; }
 }
 
-#sidebar {
-  width: 360px;
-  background: #fff;
-  border-radius: 14px;
-  padding: 18px;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
+.item { padding: 14px; border-bottom: 1px solid #F4F4F3; cursor: pointer; transition: 0.2s; }
+.item:hover { background: #FCFCFB; transform: translateX(4px); border-bottom-color: #C5A880; }
 
-#map {
-  flex: 1;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
+#filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filter { border: 1px solid #EAEAEA; padding: 6px 14px; background: #FFFFFF; color: #555; cursor: pointer; font-size: 12px; text-transform: uppercase; transition: 0.2s; }
+.filter.active { background: #1A1A1A; border-color: #1A1A1A; color: #FFFFFF; }
 
-/* Media Query per Mobile */
-@media (max-width: 768px) {
-  .page {
-    flex-direction: column;
-    height: auto;
-  }
-  #sidebar {
-    width: 100%;
-    height: 300px;
-    margin-bottom: 15px;
-  }
-  #map {
-    height: 400px;
-  }
-}
-
-.item {
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-bottom: 8px;
-  transition: 0.2s;
-}
-
-.item:hover {
-  background: #f6f3ef;
-  transform: translateX(3px);
-}
-
-#filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0 15px 0;
-}
-
-.filter {
-  border: none;
-  padding: 6px 10px;
-  border-radius: 20px;
-  background: #f3f1ee;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.filter.active {
-  background: #2b2b2b;
-  color: white;
-}
-
-.emoji-icon {
-  font-size: 22px;
-  text-align: center;
-  line-height: 30px;
-  background: white;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.emoji-home {
-  font-size: 26px;
-  text-align: center;
-  line-height: 34px;
-  background: #fff5f0;
-  border-radius: 50%;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-}
-
-.tag {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: #f3f1ee;
-  display: inline-block;
-  margin-bottom: 10px;
-}
+.tag { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; background: #F4F4F3; color: #555; display: inline-block; margin-bottom: 12px; }
 </style>
 
 <h2>🏛 {{ _("Rome's Attractions") }}</h2>
@@ -132,6 +55,11 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
   attribution: '&copy; OpenStreetMap & CARTO'
 }).addTo(map);
 
+// Handler per ridimensionamento mappa su rotazione
+window.addEventListener("orientationchange", () => {
+    setTimeout(() => { map.invalidateSize(); }, 300);
+});
+
 const icons = {
   monument: L.divIcon({ className: "emoji-icon", html: "🏛", iconSize: [30,30] }),
   walk: L.divIcon({ className: "emoji-icon", html: "🚶", iconSize: [30,30] }),
@@ -155,12 +83,10 @@ const places = [
 
 const openInMapsText = `{{ _('📍 Open in Google Maps') }}`;
 const list = document.getElementById("list");
-const markers = [];
-
-places.forEach(p => {
+const markers = places.map(p => {
   const marker = L.marker(p.coords, { icon: icons[p.type] }).addTo(map);
   marker.bindPopup(`<b>${p.name}</b><br><small>${p.desc}</small><br><br><a href="${p.url}" target="_blank">${openInMapsText}</a>`);
-  markers.push({ marker, data: p });
+  return { marker, data: p };
 });
 
 function renderSidebar(filter = "all") {

@@ -13,10 +13,10 @@ body {
     font-family: 'Inter', sans-serif;
     color: #2D2D2D;
     letter-spacing: -0.1px;
-    overflow-x: hidden;
+    /* Rimosso overflow-x: hidden per permettere il ricalcolo fluido del layout */
 }
 
-/* NAVBAR & NAV-LINKS - Ripristino stile elegante e spaziato */
+/* NAVBAR & NAV-LINKS */
 .navbar { 
     background-color: #FFFFFF !important; 
     border-bottom: 1px solid #EAEAEA; 
@@ -63,23 +63,23 @@ h1, h2, h3, .section-title {
 .main-content { background: #FFFFFF; padding: 2.5rem; border-radius: 0px; border: 1px solid #EAEAEA; box-shadow: 0 10px 40px rgba(0,0,0,0.02); }
 .page-wrapper { padding-top: 2.5rem; }
 
-/* MAPPA E RESPONSIVITÀ */
+/* MAPPA E RESPONSIVITÀ (Resa elastica per rotazione) */
 .page { 
     display: flex; 
-    height: 70vh; 
+    min-height: 400px; /* Altezza minima garantita */
+    height: auto;      /* Altezza flessibile per adattarsi all'orientamento */
     gap: 24px; 
-    transition: all 0.3s ease;
 }
 
 #sidebar { width: 380px; background: #FFFFFF; border-radius: 0px; border: 1px solid #EAEAEA; padding: 24px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
 #map { flex: 1; border-radius: 0px; border: 1px solid #EAEAEA; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); min-height: 300px; }
 
-/* MEDIA QUERY MOBILE E ROTAZIONE */
+/* MEDIA QUERY MOBILE */
 @media (max-width: 991px) {
   .navbar-collapse { padding-top: 1rem; }
-  .page { flex-direction: column; height: auto; }
-  #sidebar { width: 100%; height: 250px; margin-bottom: 15px; }
-  #map { height: 350px; width: 100%; }
+  .page { flex-direction: column; }
+  #sidebar { width: 100%; height: auto; max-height: 300px; margin-bottom: 15px; }
+  #map { height: 300px; width: 100%; }
 }
 
 /* Attrazioni & Liste */

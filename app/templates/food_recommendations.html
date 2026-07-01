@@ -7,15 +7,17 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-.page { display: flex; height: 80vh; gap: 24px; }
-#sidebar { width: 380px; background: #FFFFFF; border-radius: 0px; border: 1px solid #EAEAEA; padding: 24px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
-#map { flex: 1; border-radius: 0px; border: 1px solid #EAEAEA; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+/* Rimosso l'altezza fissa 80vh per evitare conflitti su mobile/rotazione */
+.page { display: flex; gap: 24px; min-height: 500px; }
 
-/* Fix Responsivo Mobile */
-@media (max-width: 768px) {
-  .page { flex-direction: column; height: auto; }
-  #sidebar { width: 100%; height: 300px; margin-bottom: 15px; }
-  #map { height: 400px; }
+#sidebar { width: 380px; background: #FFFFFF; border-radius: 0px; border: 1px solid #EAEAEA; padding: 24px; overflow-y: auto; }
+#map { flex: 1; border-radius: 0px; border: 1px solid #EAEAEA; min-height: 400px; }
+
+/* Media Query coerente con il nuovo layout fluido */
+@media (max-width: 991px) {
+  .page { flex-direction: column; }
+  #sidebar { width: 100%; height: auto; max-height: 400px; }
+  #map { height: 350px; }
 }
 
 .item { padding: 14px; border-bottom: 1px solid #F4F4F3; cursor: pointer; transition: all 0.2s ease; }
@@ -47,6 +49,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
   const bnb = [41.86731700, 12.49094300];
+  // scrollWheelZoom: false è un'ottima scelta per mobile
   const map = L.map('map', { scrollWheelZoom: false }).setView(bnb, 15);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -87,8 +90,6 @@
   function renderSidebar(filter = "all") {
     const list = document.getElementById("list");
     list.innerHTML = "";
-    
-    // Raggruppa solo se il filtro è 'all' o 'curated'
     const showGroups = (filter === "all" || filter === "curated");
     
     places.forEach(p => {
@@ -100,6 +101,8 @@
         const title = document.createElement("h5");
         title.dataset.cat = p.category;
         title.style.marginTop = "20px";
+        title.style.fontSize = "14px";
+        title.style.textTransform = "uppercase";
         title.innerText = p.category;
         list.appendChild(title);
       }
@@ -107,7 +110,10 @@
       const div = document.createElement("div");
       div.className = "item";
       div.innerHTML = `<strong>${p.name}</strong><br><small>${p.desc}</small>`;
-      div.onclick = () => { map.setView(p.coords, 17); markers.find(m => m.data.name === p.name).marker.openPopup(); };
+      div.onclick = () => { 
+          map.setView(p.coords, 17); 
+          markers.find(m => m.data.name === p.name).marker.openPopup(); 
+      };
       list.appendChild(div);
     });
   }
