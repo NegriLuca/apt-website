@@ -40,7 +40,7 @@ def create_app():
     # Core Babel Config Setup Engine Parameters
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
     app.config['LANGUAGES'] = ['en', 'it', 'de', 'fr', 'es']
-    app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(app.root_path, 'translations')
+    app.config['BABEL_TRANSLATION_DIRECTORIES'] = os.path.join(app.root_path, '..', 'translations')
 
     db.init_app(app)
     migrate.init_app(app, db)
