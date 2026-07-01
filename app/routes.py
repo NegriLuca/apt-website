@@ -163,6 +163,14 @@ def food_recommendations():
 def attractions():
     return render_template('attractions.html')
 
+@bp.route('/set-language/<lang>')
+def set_language(lang):
+    if lang in ['en', 'it']:
+        session['language'] = lang
+    
+    # Safely redirect back to the page the user was looking at.
+    # Fallback to the blueprint's home view if referrer is missing.
+    return redirect(request.referrer or url_for('bp.home'))
 
 # ── Reservation / booking flow ────────────────────────────────────────────────
 @bp.route('/reserve', methods=['GET', 'POST'])

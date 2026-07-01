@@ -1,0 +1,789 @@
+# Italian translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-07-01 10:40+0200\n"
+"PO-Revision-Date: 2026-07-01 10:40+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: it\n"
+"Language-Team: it <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/templates/apartment.html:49
+msgid "Perfect for couples or solo travelers"
+msgstr "Perfetto per coppie o viaggiatori singoli"
+
+#: app/templates/apartment.html:50
+msgid "Quiet neighborhood"
+msgstr "Quartiere tranquillo"
+
+#: app/templates/apartment.html:51
+msgid "Close to public transport"
+msgstr "Vicino ai trasporti pubblici"
+
+#: app/templates/apartment.html:52
+msgid "Self check‑in available"
+msgstr "Self check-in disponibile"
+
+#: app/templates/apartment.html:56
+msgid "Rates vary depending on season, weekends, and holidays"
+msgstr "Le tariffe variano a seconda della stagione, dei fine settimana e delle festività"
+
+#: app/templates/apartment.html:61
+msgid "Reserve now"
+msgstr "Prenota ora"
+
+#: app/templates/apartment.html:68
+msgid "Amenities"
+msgstr "Servizi"
+
+#: app/templates/apartment.html:71
+msgid "Free Wi‑Fi"
+msgstr "Wi-Fi gratuito"
+
+#: app/templates/apartment.html:72
+msgid "Air conditioning"
+msgstr "Aria condizionata"
+
+#: app/templates/apartment.html:73
+msgid "Heating"
+msgstr "Riscaldamento"
+
+#: app/templates/apartment.html:74
+msgid "TV"
+msgstr "TV"
+
+#: app/templates/apartment.html:75
+msgid "Free parking"
+msgstr "Parcheggio gratuito"
+
+#: app/templates/apartment.html:76
+msgid "Kitchen"
+msgstr "Cucina"
+
+#: app/templates/apartment.html:80
+msgid "Location"
+msgstr "Posizione"
+
+#: app/templates/attractions.html:3 app/templates/attractions.html:106
+#: app/templates/base.html:33
+msgid "Rome's Attractions"
+msgstr "Attrazioni di Roma"
+
+#: app/templates/attractions.html:108
+msgid ""
+"Explore Rome through curated landmarks, walks and scenic spots — all "
+"easily reachable from your apartment."
+msgstr "Esplora Roma attraverso monumenti selezionati, passeggiate e punti panoramici — tutti facilmente raggiungibili dal tuo appartamento."
+
+#: app/templates/attractions.html:111
+msgid "Curated experiences around Rome"
+msgstr "Esperienze selezionate nei dintorni di Roma"
+
+#: app/templates/attractions.html:115
+#: app/templates/food_recommendations.html:19
+msgid "All"
+msgstr "Tutti"
+
+#: app/templates/attractions.html:116
+msgid "Monuments"
+msgstr "Monumenti"
+
+#: app/templates/attractions.html:117
+msgid "Walks"
+msgstr "Passeggiate"
+
+#: app/templates/attractions.html:118
+msgid "Outdoor"
+msgstr "All'aperto"
+
+#: app/templates/attractions.html:157
+#: app/templates/food_recommendations.html:87
+msgid "Your BnB"
+msgstr "Il tuo BnB"
+
+#: app/templates/attractions.html:164
+msgid "Colosseum & Roman Forum"
+msgstr "Colosseo e Foro Romano"
+
+#: app/templates/attractions.html:166
+msgid "Rome’s most iconic ancient landmark"
+msgstr "Il monumento antico più iconico di Roma"
+
+#: app/templates/attractions.html:171
+msgid "Pantheon"
+msgstr "Pantheon"
+
+#: app/templates/attractions.html:173
+msgid "Perfectly preserved ancient temple"
+msgstr "Tempio antico perfettamente conservato"
+
+#: app/templates/attractions.html:178
+msgid "Centrale Montemartini"
+msgstr "Centrale Montemartini"
+
+#: app/templates/attractions.html:180
+msgid "Ancient sculptures inside industrial museum"
+msgstr "Sculture antiche all'interno di un museo industriale"
+
+#: app/templates/attractions.html:185
+msgid "Garbatella Walk"
+msgstr "Passeggiata alla Garbatella"
+
+#: app/templates/attractions.html:187
+msgid "Authentic Roman neighborhood streets"
+msgstr "Le strade di un autentico quartiere romano"
+
+#: app/templates/attractions.html:192
+msgid "Trastevere"
+msgstr "Trastevere"
+
+#: app/templates/attractions.html:194
+msgid "Lively historic neighborhood"
+msgstr "Vivace quartiere storico"
+
+#: app/templates/attractions.html:199
+msgid "Historic Center Walk"
+msgstr "Passeggiata nel Centro Storico"
+
+#: app/templates/attractions.html:201
+msgid "Pantheon → Piazza Navona → Campo de’ Fiori"
+msgstr "Pantheon → Piazza Navona → Campo de’ Fiori"
+
+#: app/templates/attractions.html:206
+msgid "Parco della Caffarella"
+msgstr "Parco della Caffarella"
+
+#: app/templates/attractions.html:208
+msgid "Green park with ruins and nature"
+msgstr "Parco verde con rovine e natura"
+
+#: app/templates/attractions.html:213
+msgid "Gianicolo Hill"
+msgstr "Colle del Gianicolo"
+
+#: app/templates/attractions.html:215
+msgid "Best panoramic view of Rome"
+msgstr "La migliore vista panoramica di Roma"
+
+#: app/templates/attractions.html:220
+msgid "Lungotevere Sunset Walk"
+msgstr "Passeggiata al tramonto sul Lungotevere"
+
+#: app/templates/attractions.html:222
+msgid "Riverside walk at sunset"
+msgstr "Passeggiata lungo il fiume al tramonto"
+
+#: app/templates/attractions.html:229
+#: app/templates/food_recommendations.html:192
+msgid "📍 Open in Google Maps"
+msgstr "📍 Apri in Google Maps"
+
+#: app/templates/base.html:5 app/templates/base.html:18
+msgid "My Apartment"
+msgstr "Il mio appartamento"
+
+#: app/templates/base.html:21
+msgid "Home"
+msgstr "Home"
+
+#: app/templates/base.html:24 app/templates/checkout.html:18
+#: app/templates/reservation.html:3
+msgid "Apartment"
+msgstr "Appartamento"
+
+#: app/templates/base.html:27 app/templates/reservation.html:3
+#: app/templates/reservation.html:9
+msgid "Reserve"
+msgstr "Prenota"
+
+#: app/templates/base.html:30 app/templates/food_recommendations.html:3
+#: app/templates/food_recommendations.html:10
+msgid "Food & Drinks"
+msgstr "Cibo e Bevande"
+
+#: app/templates/base.html:36 app/templates/faq.html:3
+msgid "FAQ"
+msgstr "FAQ"
+
+#: app/templates/base.html:39 app/templates/contact.html:2
+#: app/templates/contact.html:8
+msgid "Contact"
+msgstr "Contatti"
+
+#: app/templates/base.html:47
+msgid "Admin"
+msgstr "Amministrazione"
+
+#: app/templates/base.html:51
+msgid "Logout"
+msgstr "Disconnetti"
+
+#: app/templates/base.html:55
+msgid "Login"
+msgstr "Accedi"
+
+#: app/templates/base.html:62
+msgid "Language"
+msgstr "Lingua"
+
+#: app/templates/booking_confirmed.html:3
+msgid "Booking Confirmed!"
+msgstr "Prenotazione Confermata!"
+
+#: app/templates/booking_confirmed.html:11
+#: app/templates/email_confirmation.html:18
+msgid "Booking Confirmed! 🎉"
+msgstr "Prenotazione Confermata! 🎉"
+
+#: app/templates/booking_confirmed.html:12
+msgid "Thank you for choosing us!"
+msgstr "Grazie per averci scelto!"
+
+#: app/templates/booking_confirmed.html:16
+msgid "Reservation Details"
+msgstr "Dettagli della prenotazione"
+
+#: app/templates/booking_confirmed.html:17
+msgid "Guest:"
+msgstr "Ospite:"
+
+#: app/templates/booking_confirmed.html:19
+msgid "Dates:"
+msgstr "Date:"
+
+#: app/templates/booking_confirmed.html:22
+#: app/templates/email_confirmation.html:30
+msgid "Guests:"
+msgstr "Ospiti:"
+
+#: app/templates/booking_confirmed.html:23 app/templates/contact.html:44
+msgid "Email:"
+msgstr "Email:"
+
+#: app/templates/booking_confirmed.html:26
+msgid "A secure confirmation email has been dispatched to"
+msgstr "È stata inviata un'email di conferma sicura a"
+
+#: app/templates/booking_confirmed.html:31
+msgid "We are finalizing your reservation processing ledger..."
+msgstr "Stiamo finalizzando la registrazione della tua prenotazione..."
+
+#: app/templates/booking_confirmed.html:33
+msgid ""
+"Your payment was fully secured. A confirmation email with receipt records"
+" will land in your inbox within a few moments."
+msgstr "Il tuo pagamento è andato a buon fine in modo sicuro. Un'email di conferma contenente la ricevuta arriverà nella tua casella di posta tra pochi istanti."
+
+#: app/templates/booking_confirmed.html:40
+msgid "Back to Home"
+msgstr "Torna alla Home"
+
+#: app/templates/cancellation_result.html:3
+msgid "Reservation Cancellation"
+msgstr "Cancellazione della prenotazione"
+
+#: app/templates/cancellation_result.html:17
+msgid "Cancellation Confirmed"
+msgstr "Cancellazione Confermata"
+
+#: app/templates/cancellation_result.html:27
+msgid "Unable to Cancel"
+msgstr "Impossibile Cancellare"
+
+#: app/templates/cancellation_result.html:36
+msgid "Return to Homepage"
+msgstr "Torna alla pagina principale"
+
+#: app/templates/checkout.html:2
+msgid "Complete your booking"
+msgstr "Completa la tua prenotazione"
+
+#: app/templates/checkout.html:7
+msgid "Review & Pay"
+msgstr "Rivedi e Paga"
+
+#: app/templates/checkout.html:12
+msgid "Booking Summary"
+msgstr "Riepilogo prenotazione"
+
+#: app/templates/checkout.html:22
+msgid "Guest"
+msgstr "Ospite"
+
+#: app/templates/checkout.html:26
+msgid "Email"
+msgstr "Email"
+
+#: app/templates/checkout.html:30
+msgid "Check-in"
+msgstr "Check-in"
+
+#: app/templates/checkout.html:34
+msgid "Check-out"
+msgstr "Check-out"
+
+#: app/templates/checkout.html:38 app/templates/email_admin_alert.html:40
+msgid "Nights"
+msgstr "Notti"
+
+#: app/templates/checkout.html:42
+msgid "Guests"
+msgstr "Ospiti"
+
+#: app/templates/checkout.html:46
+msgid "Total"
+msgstr "Totale"
+
+#: app/templates/checkout.html:59
+msgid "Complete Booking (Test Bypass)"
+msgstr "Completa prenotazione (Simulazione Test)"
+
+#: app/templates/checkout.html:65
+msgid "Pay securely with Stripe"
+msgstr "Paga in modo sicuro con Stripe"
+
+#: app/templates/checkout.html:70
+msgid "You will be redirected to Stripe's secure checkout page."
+msgstr "Verrai reindirizzato alla pagina di pagamento sicuro di Stripe."
+
+#: app/templates/checkout.html:71
+msgid "We accept Visa, Mastercard, and other major cards."
+msgstr "Accettiamo Visa, Mastercard e altre carte principali."
+
+#: app/templates/checkout.html:75
+msgid "Go back and change dates"
+msgstr "Torna indietro e modifica le date"
+
+#: app/templates/contact.html:9
+msgid "If you have any questions, feel free to reach out."
+msgstr "Se hai domande, non esitare a contattarci."
+
+#: app/templates/contact.html:39
+msgid "Send message"
+msgstr "Invia messaggio"
+
+#: app/templates/contact.html:45
+msgid "Phone:"
+msgstr "Telefono:"
+
+#: app/templates/email_admin_alert.html:13
+msgid "New Booking Received"
+msgstr "Nuova Prenotazione Ricevuta"
+
+#: app/templates/email_admin_alert.html:24
+msgid "Guest Details"
+msgstr "Dettagli dell'Ospite"
+
+#: app/templates/email_admin_alert.html:31
+msgid "Check-In:"
+msgstr "Check-In:"
+
+#: app/templates/email_admin_alert.html:35
+msgid "Check-Out:"
+msgstr "Check-Out:"
+
+#: app/templates/email_admin_alert.html:39
+msgid "Total Stay:"
+msgstr "Soggiorno Totale:"
+
+#: app/templates/email_admin_alert.html:43
+msgid "Revenue Total:"
+msgstr "Totale Incasso:"
+
+#: app/templates/email_admin_alert.html:52
+msgid "Cancel Booking & Refund"
+msgstr "Cancella Prenotazione e Rimborsa"
+
+#: app/templates/email_admin_alert.html:55
+msgid ""
+"Warning: Clicking this immediately triggers an official transaction "
+"reversal on Stripe."
+msgstr "Attenzione: Facendo clic qui verrà avviato immediatamente uno storno ufficiale della transazione su Stripe."
+
+#: app/templates/email_admin_alert.html:59
+msgid "Automated notification via your Railway App engine."
+msgstr "Notifica automatica tramite la tua applicazione su Railway."
+
+#: app/templates/email_confirmation.html:5
+msgid "Booking Confirmation"
+msgstr "Conferma della prenotazione"
+
+#: app/templates/email_confirmation.html:21
+msgid "Hi"
+msgstr "Ciao"
+
+#: app/templates/email_confirmation.html:22
+msgid "Thank you for your booking! We are excited to host you at"
+msgstr "Grazie per la tua prenotazione! Siamo felici di ospitarti presso"
+
+#: app/templates/email_confirmation.html:22
+msgid "Our Cozy Apartment"
+msgstr "Il Nostro Accogliente Appartamento"
+
+#: app/templates/email_confirmation.html:25
+msgid "Stay Details:"
+msgstr "Dettagli del soggiorno:"
+
+#: app/templates/email_confirmation.html:27
+msgid "Check-in:"
+msgstr "Check-in:"
+
+#: app/templates/email_confirmation.html:28
+msgid "Check-out:"
+msgstr "Check-out:"
+
+#: app/templates/email_confirmation.html:29
+msgid "Duration:"
+msgstr "Durata:"
+
+#: app/templates/email_confirmation.html:29
+msgid "night(s)"
+msgstr "notti"
+
+#: app/templates/email_confirmation.html:31
+msgid "Total Paid:"
+msgstr "Totale Pagato:"
+
+#: app/templates/email_confirmation.html:36
+msgid "Payment Details"
+msgstr "Dettagli di Pagamento"
+
+#: app/templates/email_confirmation.html:38
+msgid "Status:"
+msgstr "Stato:"
+
+#: app/templates/email_confirmation.html:41
+msgid ""
+"If you need to cancel or modify your stay, you can do so by clicking the "
+"link below:"
+msgstr "Se hai bisogno di cancellare o modificare il tuo soggiorno, puoi farlo facendo clic sul link sottostante:"
+
+#: app/templates/email_confirmation.html:43
+msgid "Cancel Reservation"
+msgstr "Cancella Prenotazione"
+
+#: app/templates/email_confirmation.html:48
+msgid "This is an automated message from your property booking engine."
+msgstr "Questo è un messaggio automatizzato inviato dal sistema di prenotazione della struttura."
+
+#: app/templates/faq.html:7
+msgid "Frequently Asked Questions"
+msgstr "Domande Frequenti"
+
+#: app/templates/faq.html:10
+msgid "Everything you need to know for a smooth and comfortable stay."
+msgstr "Tutto quello che c'è da sapere per un soggiorno sereno e confortevole."
+
+#: app/templates/faq.html:46
+msgid "Check-in & check-out"
+msgstr "Check-in e check-out"
+
+#: app/templates/faq.html:48
+msgid ""
+"Check-in is from 13:00 and check-out is by 10:00. We will send you all "
+"the access details shortly before your arrival."
+msgstr "Il check-in è a partire dalle 13:00 e il check-out è entro le 10:00. Ti invieremo tutti i dettagli per l'accesso poco prima del tuo arrivo."
+
+#: app/templates/faq.html:53
+msgid "How does check-in work?"
+msgstr "Come funziona il check-in?"
+
+#: app/templates/faq.html:55
+msgid ""
+"Check-in is self-service. You will receive simple step-by-step "
+"instructions before arrival."
+msgstr "Il check-in è in modalità self-service. Riceverai delle semplici istruzioni passo dopo passo prima del tuo arrivo."
+
+#: app/templates/faq.html:60
+msgid "Where is the apartment located?"
+msgstr "Dove si trova l'appartamento?"
+
+#: app/templates/faq.html:62
+msgid ""
+"The apartment is located in the Garbatella area, one of Rome’s most "
+"vibrant and authentic neighborhoods, well connected to the city center."
+msgstr "L'appartamento si trova in zona Garbatella, uno dei quartieri più vivaci e autentici di Roma, ottimamente collegato al centro della città."
+
+#: app/templates/faq.html:67
+msgid "Is public transport nearby?"
+msgstr "Ci sono trasporti pubblici nelle vicinanze?"
+
+#: app/templates/faq.html:69
+msgid "Yes, metro line B and several bus lines are within walking distance."
+msgstr "Sì, la linea B della metropolitana e diverse linee di autobus si trovano a pochi passi."
+
+#: app/templates/faq.html:74
+msgid "How can I get there from Termini station?"
+msgstr "Come posso arrivare dalla stazione Termini?"
+
+#: app/templates/faq.html:76
+msgid ""
+"Take Metro Line B (direction Laurentina) and get off at Garbatella or "
+"Basilica San Paolo, then walk about 10 minutes."
+msgstr "Prendi la linea B della metropolitana (direzione Laurentina) e scendi alla fermata Garbatella o Basilica San Paolo, poi cammina per circa 10 minuti."
+
+#: app/templates/faq.html:81
+msgid "How can I get there from the airport?"
+msgstr "Come posso arrivare dall'aeroporto?"
+
+#: app/templates/faq.html:83
+msgid ""
+"From Fiumicino Airport, take the train to Ostiense station. From Ciampino"
+" Airport, take a shuttle to Termini and then Metro Line B. Taxi and "
+"private transfers are also available."
+msgstr "Dall'aeroporto di Fiumicino, prendi il treno fino alla stazione Ostiense. Dall'aeroporto di Ciampino, prendi una navetta per Termini e poi la linea B della metropolitana. Sono disponibili anche taxi e trasferimenti privati."
+
+#: app/templates/faq.html:88
+msgid "Is parking available?"
+msgstr "È disponibile un parcheggio?"
+
+#: app/templates/faq.html:90
+msgid ""
+"We do not have a private parking space, but free street parking is "
+"available nearby. It may require a short search, and we’ll be happy to "
+"give tips."
+msgstr "Non disponiamo di un parcheggio privato, ma nelle vicinanze è disponibile il parcheggio gratuito in strada. Potrebbe richiedere una breve ricerca e saremo felici di darti dei consigli."
+
+#: app/templates/faq.html:95
+msgid "Can I leave my luggage?"
+msgstr "Posso lasciare i bagagli?"
+
+#: app/templates/faq.html:97
+msgid ""
+"Depending on availability, we may offer early check-in or luggage drop-"
+"off. Please contact us in advance."
+msgstr "A seconda della disponibilità, potremmo offrire il check-in anticipato o il deposito bagagli. Ti preghiamo di contattarci in anticipo."
+
+#: app/templates/faq.html:102
+msgid "Is Wi-Fi available?"
+msgstr "È disponibile il Wi-Fi?"
+
+#: app/templates/faq.html:104
+msgid "Yes, fast and free Wi-Fi is available throughout the apartment."
+msgstr "Sì, una connessione Wi-Fi veloce e gratuita è disponibile in tutto l'appartamento."
+
+#: app/templates/faq.html:109
+msgid "Is there air conditioning and heating?"
+msgstr "Ci sono l'aria condizionata e il riscaldamento?"
+
+#: app/templates/faq.html:111
+msgid ""
+"Yes, the apartment is fully equipped with both air conditioning and "
+"heating."
+msgstr "Sì, l'appartamento è completamente attrezzato sia con aria condizionata che con riscaldamento."
+
+#: app/templates/faq.html:116
+msgid "Are pets allowed?"
+msgstr "Sono ammessi animali domestici?"
+
+#: app/templates/faq.html:118
+msgid ""
+"We love animals, but unfortunately we cannot host pets. Thank you for "
+"your understanding."
+msgstr "Amiamo gli animali, ma sfortunatamente non possiamo ospitare animali domestici. Grazie per la comprensione."
+
+#: app/templates/faq.html:123
+msgid "Is a baby crib available?"
+msgstr "È disponibile una culla per bambini?"
+
+#: app/templates/faq.html:125
+msgid ""
+"Yes, a baby crib is available free of charge upon request. Please let us "
+"know in advance."
+msgstr "Sì, una culla è disponibile gratuitamente su richiesta. Ti preghiamo di informarci in anticipo."
+
+#: app/templates/faq.html:130
+msgid "Can we contact you during our stay?"
+msgstr "Possiamo contattarvi durante il nostro soggiorno?"
+
+#: app/templates/faq.html:132
+msgid "Of course! We’re always available and happy to help."
+msgstr "Certamente! Siamo sempre a disposizione e felici di aiutare."
+
+#: app/templates/food_recommendations.html:12
+msgid ""
+"Discover our favorite places to eat, drink, and experience the real Rome "
+"– just a few minutes from your apartment."
+msgstr "Scopri i nostri posti preferiti dove mangiare, bere e vivere la vera Roma – a pochi minuti dal tuo appartamento."
+
+#: app/templates/food_recommendations.html:15
+msgid "Curated local picks near Garbatella"
+msgstr "Posti selezionati vicino alla Garbatella"
+
+#: app/templates/food_recommendations.html:20
+msgid "Curated"
+msgstr "Selezionati"
+
+#: app/templates/food_recommendations.html:21
+msgid "Trattorie"
+msgstr "Trattorie"
+
+#: app/templates/food_recommendations.html:22
+msgid "Pizza"
+msgstr "Pizzerie"
+
+#: app/templates/food_recommendations.html:23
+msgid "Cafés"
+msgstr "Caffè"
+
+#: app/templates/food_recommendations.html:24
+msgid "Drinks"
+msgstr "Drink"
+
+#: app/templates/food_recommendations.html:25
+msgid "Restaurants"
+msgstr "Ristoranti"
+
+#: app/templates/food_recommendations.html:90
+msgid "🍝 Restaurants"
+msgstr "🍝 Ristoranti"
+
+#: app/templates/food_recommendations.html:91
+msgid "🍕 Pizzerias"
+msgstr "🍕 Pizzerie"
+
+#: app/templates/food_recommendations.html:92
+msgid "☕ Cafés"
+msgstr "☕ Caffetterie"
+
+#: app/templates/food_recommendations.html:93
+msgid "🍸 Drinks"
+msgstr "🍸 Bar e Drink"
+
+#: app/templates/food_recommendations.html:103
+msgid "Modern trattoria (8 min walk)"
+msgstr "Trattoria moderna (8 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:111
+msgid "Cozy Roman cuisine (4 min walk)"
+msgstr "Cucina romana accogliente (4 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:119
+msgid "Authentic Roman dishes (5 min walk)"
+msgstr "Autentici piatti romani (5 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:127
+msgid "Informal Roman restaurant (10 min walk)"
+msgstr "Ristorante romano informale (10 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:135
+msgid "Very authentic Roman trattoria (15 min walk)"
+msgstr "Trattoria romana verace (15 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:143
+msgid "Large Italian food hall (10 min walk)"
+msgstr "Grande mercato gastronomico italiano (10 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:152
+msgid "Casual pizza (13 min walk)"
+msgstr "Pizzeria informale (13 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:160
+msgid "Popular local pizzeria (15 min walk)"
+msgstr "Pizzeria locale molto frequentata (15 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:169
+msgid "Modern pastry shop (1 min walk)"
+msgstr "Pasticceria moderna (1 minuto a piedi)"
+
+#: app/templates/food_recommendations.html:178
+msgid "Perfect for a quick drink (2 min walk)"
+msgstr "Perfetto per un drink veloce (2 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:186
+msgid "Stylish cocktail bar (2 min walk)"
+msgstr "Cocktail bar elegante (2 minuti a piedi)"
+
+#: app/templates/food_recommendations.html:265
+msgid "⭐ Curated local picks near Garbatella"
+msgstr "⭐ Posti consigliati vicino alla Garbatella"
+
+#: app/templates/food_recommendations.html:266
+msgid "🍝 Best traditional Roman trattorie nearby"
+msgstr "🍝 Le migliori trattorie romane tradizionali nelle vicinanze"
+
+#: app/templates/food_recommendations.html:267
+msgid "🍕 Best pizza spots near Garbatella"
+msgstr "🍕 Le migliori pizzerie vicino alla Garbatella"
+
+#: app/templates/food_recommendations.html:268
+msgid "☕ Best cafés & breakfast spots nearby"
+msgstr "☕ I migliori caffè e posti per la colazione in zona"
+
+#: app/templates/food_recommendations.html:269
+msgid "🍸 Aperitivo & nightlife near Garbatella"
+msgstr "🍸 Aperitivo e vita notturna nei pressi della Garbatella"
+
+#: app/templates/food_recommendations.html:270
+msgid "🍴 Top restaurants around Garbatella"
+msgstr "🍴 I migliori ristoranti nei dintorni della Garbatella"
+
+#: app/templates/home.html:6
+msgid "Welcome to"
+msgstr "Benvenuti a"
+
+#: app/templates/home.html:7
+msgid "Your home away from home"
+msgstr "La tua casa lontano da casa"
+
+#: app/templates/home.html:9
+msgid "Book now"
+msgstr "Prenota ora"
+
+#: app/templates/reservation.html:10
+msgid "Rates vary depending on season, weekends, and holidays."
+msgstr "Le tariffe variano a seconda della stagione, dei fine settimana e delle festività."
+
+#: app/templates/reservation.html:26
+msgid "Dates"
+msgstr "Date"
+
+#: app/templates/reservation.html:31
+msgid "Select check-in and check-out"
+msgstr "Seleziona check-in e check-out"
+
+#: app/templates/reservation.html:44
+msgid "Have a Promo Code?"
+msgstr "Hai un codice promozionale?"
+
+#: app/templates/reservation.html:47
+msgid "Apply"
+msgstr "Applica"
+
+#: app/templates/reservation.html:55
+msgid "Nights:"
+msgstr "Notti:"
+
+#: app/templates/reservation.html:56
+msgid "Total price:"
+msgstr "Prezzo totale:"
+
+#: app/templates/reservation.html:64
+msgid "No apartment selected"
+msgstr "Nessun appartamento selezionato"
+
+#: app/templates/reservation.html:65
+msgid "Please navigate back to the listings page and choose an apartment to book."
+msgstr "Per favore, torna alla pagina degli annunci e seleziona un appartamento da prenotare."
+
+#: app/templates/reservation.html:95
+msgid "Please select a valid check-in date range first."
+msgstr "Per favore, seleziona prima un intervallo di date valido."
+
+#: app/templates/reservation.html:96
+msgid "Success! Code applied."
+msgstr "Successo! Codice applicato."
+
+#: app/templates/reservation.html:97
+msgid "Connection validation runtime warning."
+msgstr "Avviso di runtime durante la validazione della connessione."

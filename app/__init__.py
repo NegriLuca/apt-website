@@ -1,10 +1,11 @@
-from flask import Flask
+from flask import Flask, request, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from flask_bcrypt import Bcrypt
+from flask_babel import Babel
 
 from config import Config
 
@@ -14,13 +15,29 @@ migrate = Migrate()
 csrf = CSRFProtect()
 mail = Mail()
 bcrypt = Bcrypt()
+babel = Babel()
 
 login_manager.login_view = 'routes.login'
 login_manager.login_message_category = 'info'
 
+def get_locale():
+    # 1. Check if the user manually switched language and stored it in the session
+    if 'language' in session:
+        return session['language']
+    
+    # 2. Otherwise, fall back to the user's browser settings
+    return request.accept_languages.best_match(['en', 'it', 'de', 'fr', 'es'])
+
+def create_app():
+    app = Flask(__name__)
+    
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+    app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -28,6 +45,9 @@ def create_app():
     csrf.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)
+
+    # Initialize Babel with the selector function
+    babel.init_app(app, locale_selector=get_locale)
 
     from app import routes
     app.register_blueprint(routes.bp)

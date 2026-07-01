@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Contact{% endblock %}
+{% block title %}{{ _('Contact') }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6">
 
-    <h2>Contact</h2>
-    <p>If you have any questions, feel free to reach out.</p>
+    <h2>{{ _('Contact') }}</h2>
+    <p>{{ _('If you have any questions, feel free to reach out.') }}</p>
 
     <form method="POST" class="mt-4">
       {{ form.hidden_tag() }}
@@ -36,13 +36,13 @@
       </div>
 
       <button type="submit" class="btn btn-success w-100">
-        Send message
+        {{ _('Send message') }}
       </button>
     </form>
 
     <p class="text-muted mt-4">
-      Email: info@myapartment.com<br>
-      Phone: +39 XXX XXX XXXX
+      {{ _('Email:') }} info@myapartment.com<br>
+      {{ _('Phone:') }} +39 XXX XXX XXXX
     </p>
 
   </div>

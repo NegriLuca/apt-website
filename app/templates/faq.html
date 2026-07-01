@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}FAQ{% endblock %}
+{% block title %}{{ _('FAQ') }}{% endblock %}
 
 {% block content %}
   
-<h2 class="mt-4">❓ Frequently Asked Questions</h4>
+<h2 class="mt-4">❓ {{ _('Frequently Asked Questions') }}</h2>
 
 <p class="lead">
-Everything you need to know for a smooth and comfortable stay.
+{{ _('Everything you need to know for a smooth and comfortable stay.') }}
 </p>
 
 <style>
@@ -43,100 +43,93 @@ Everything you need to know for a smooth and comfortable stay.
 <div class="faq mt-3">
 
   <div class="faq-item">
-    <div class="faq-question">🕓 Check-in & check-out <span class="faq-icon">+</span></div>
+    <div class="faq-question">🕓 {{ _('Check-in & check-out') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Check-in is from 13:00 and check-out is by 10:00.  
-      We will send you all the access details shortly before your arrival.
+      {{ _('Check-in is from 13:00 and check-out is by 10:00. We will send you all the access details shortly before your arrival.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">🔑 How does check-in work? <span class="faq-icon">+</span></div>
+    <div class="faq-question">🔑 {{ _('How does check-in work?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Check-in is self-service. You will receive simple step-by-step instructions before arrival.
+      {{ _('Check-in is self-service. You will receive simple step-by-step instructions before arrival.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">📍 Where is the apartment located? <span class="faq-icon">+</span></div>
+    <div class="faq-question">📍 {{ _('Where is the apartment located?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      The apartment is located in the Garbatella area, one of Rome’s most vibrant and authentic neighborhoods, well connected to the city center.
+      {{ _('The apartment is located in the Garbatella area, one of Rome’s most vibrant and authentic neighborhoods, well connected to the city center.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">🚇 Is public transport nearby? <span class="faq-icon">+</span></div>
+    <div class="faq-question">🚇 {{ _('Is public transport nearby?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Yes, metro line B and several bus lines are within walking distance.
+      {{ _('Yes, metro line B and several bus lines are within walking distance.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">🚆 How can I get there from Termini station? <span class="faq-icon">+</span></div>
+    <div class="faq-question">🚆 {{ _('How can I get there from Termini station?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Take Metro Line B (direction Laurentina) and get off at Garbatella or Basilica San Paolo, then walk about 10 minutes.
+      {{ _('Take Metro Line B (direction Laurentina) and get off at Garbatella or Basilica San Paolo, then walk about 10 minutes.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">✈️ How can I get there from the airport? <span class="faq-icon">+</span></div>
+    <div class="faq-question">✈️ {{ _('How can I get there from the airport?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      From Fiumicino Airport, take the train to Ostiense station.  
-      From Ciampino Airport, take a shuttle to Termini and then Metro Line B.  
-      Taxi and private transfers are also available.
+      {{ _('From Fiumicino Airport, take the train to Ostiense station. From Ciampino Airport, take a shuttle to Termini and then Metro Line B. Taxi and private transfers are also available.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">🚗 Is parking available? <span class="faq-icon">+</span></div>
+    <div class="faq-question">🚗 {{ _('Is parking available?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      We do not have a private parking space, but free street parking is available nearby.  
-      It may require a short search, and we’ll be happy to give tips.
+      {{ _('We do not have a private parking space, but free street parking is available nearby. It may require a short search, and we’ll be happy to give tips.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">🧳 Can I leave my luggage? <span class="faq-icon">+</span></div>
+    <div class="faq-question">🧳 {{ _('Can I leave my luggage?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Depending on availability, we may offer early check-in or luggage drop-off.  
-      Please contact us in advance.
+      {{ _('Depending on availability, we may offer early check-in or luggage drop-off. Please contact us in advance.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">📶 Is Wi-Fi available? <span class="faq-icon">+</span></div>
+    <div class="faq-question">📶 {{ _('Is Wi-Fi available?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Yes, fast and free Wi-Fi is available throughout the apartment.
+      {{ _('Yes, fast and free Wi-Fi is available throughout the apartment.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">❄️ Is there air conditioning and heating? <span class="faq-icon">+</span></div>
+    <div class="faq-question">❄️ {{ _('Is there air conditioning and heating?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Yes, the apartment is fully equipped with both air conditioning and heating.
+      {{ _('Yes, the apartment is fully equipped with both air conditioning and heating.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">🐾 Are pets allowed? <span class="faq-icon">+</span></div>
+    <div class="faq-question">🐾 {{ _('Are pets allowed?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      We love animals, but unfortunately we cannot host pets.  
-      Thank you for your understanding.
+      {{ _('We love animals, but unfortunately we cannot host pets. Thank you for your understanding.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">👶 Is a baby crib available? <span class="faq-icon">+</span></div>
+    <div class="faq-question">👶 {{ _('Is a baby crib available?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Yes, a baby crib is available free of charge upon request.  
-      Please let us know in advance.
+      {{ _('Yes, a baby crib is available free of charge upon request. Please let us know in advance.') }}
     </div>
   </div>
 
   <div class="faq-item">
-    <div class="faq-question">💬 Can we contact you during our stay? <span class="faq-icon">+</span></div>
+    <div class="faq-question">💬 {{ _('Can we contact you during our stay?') }} <span class="faq-icon">+</span></div>
     <div class="faq-answer">
-      Of course! We’re always available and happy to help.
+      {{ _('Of course! We’re always available and happy to help.') }}
     </div>
   </div>
 

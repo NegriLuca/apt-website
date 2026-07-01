@@ -3,10 +3,10 @@
 
 <div class="mb-4 p-5 text-white rounded"
      style="background: linear-gradient(120deg, #007bff, #00bcd4);">
-  <h1>Welcome to {{ apartment.name }}</h1>
-  <p class="lead">Your home away from home</p>
+  <h1>{{ _('Welcome to') }} {{ apartment.name }}</h1>
+  <p class="lead">{{ _('Your home away from home') }}</p>
   <a href="{{ url_for('routes.reserve') }}" class="btn btn-light">
-    Book now
+    {{ _('Book now') }}
   </a>
 </div>
 

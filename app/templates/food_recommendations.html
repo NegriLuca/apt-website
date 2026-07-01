@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 
-{% block title %}Food & Drinks{% endblock %}
+{% block title %}{{ _('Food & Drinks') }}{% endblock %}
 
 {% block content %}
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 
-<h2>🍝🍸 Food & Drinks</h2>
+<h2>🍝🍸 {{ _('Food & Drinks') }}</h2>
 <p class="lead">
-Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.
+{{ _('Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.') }}
 </p>
 
-<div class="tag" id="contextTag">⭐ Curated local picks near Garbatella</div>
+<div class="tag" id="contextTag">⭐ {{ _('Curated local picks near Garbatella') }}</div>
 
 <!-- FILTERS -->
 <div id="filters">
-  <button class="filter active" data-type="all">🌍 All</button>
-  <button class="filter" data-type="curated">⭐ Curated</button>
-  <button class="filter" data-type="pasta">🍝 Trattorie</button>
-  <button class="filter" data-type="pizza">🍕 Pizza</button>
-  <button class="filter" data-type="coffee">☕ Cafés</button>
-  <button class="filter" data-type="drinks">🍸 Drinks</button>
-  <button class="filter" data-type="restaurant">🍴 Restaurants</button>
+  <button class="filter active" data-type="all">🌍 {{ _('All') }}</button>
+  <button class="filter" data-type="curated">⭐ {{ _('Curated') }}</button>
+  <button class="filter" data-type="pasta">🍝 {{ _('Trattorie') }}</button>
+  <button class="filter" data-type="pizza">🍕 {{ _('Pizza') }}</button>
+  <button class="filter" data-type="coffee">☕ {{ _('Cafés') }}</button>
+  <button class="filter" data-type="drinks">🍸 {{ _('Drinks') }}</button>
+  <button class="filter" data-type="restaurant">🍴 {{ _('Restaurants') }}</button>
 </div>
 
 <div class="page">
@@ -84,7 +84,13 @@ const icons = {
   // 🏠 BnB marker
   L.marker(bnb, { icon: icons.home })
     .addTo(map)
-    .bindPopup("<b>Your BnB</b><br>Via Circonvallazione Ostiense 235");
+    .bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
+
+  // Localized template text elements evaluated directly by Flask-Babel context variables
+  const categoryRestaurants = `{{ _('🍝 Restaurants') }}`;
+  const categoryPizzerias = `{{ _('🍕 Pizzerias') }}`;
+  const categoryCafes = `{{ _('☕ Cafés') }}`;
+  const categoryDrinks = `{{ _('🍸 Drinks') }}`;
 
   // =========================
   // DATA
@@ -92,96 +98,98 @@ const icons = {
   const places = [
     {
       name: "Porto Fluviale",
-      category: "🍝 Restaurants",
+      category: categoryRestaurants,
       type: "restaurant",
-      desc: "Modern trattoria (8 min walk)",
+      desc: `{{ _('Modern trattoria (8 min walk)') }}`,
       coords: [41.8725121,12.4752003,17],
       url: "https://maps.app.goo.gl/R3XybNG6XBTwsnmr8"
     },
     {
       name: "Mariu Trattoria Gentile ⭐",
-      category: "🍝 Restaurants",
+      category: categoryRestaurants,
       type: "pasta",
-      desc: "Cozy Roman cuisine (4 min walk)",
+      desc: `{{ _('Cozy Roman cuisine (4 min walk)') }}`,
       coords: [41.8679796, 12.4938781,17],
       url: "https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5"
     },
     {
       name: "Trattoria da Me (Garbatella)",
-      category: "🍝 Restaurants",
+      category: categoryRestaurants,
       type: "pasta",
-      desc: "Authentic Roman dishes (5 min walk)",
+      desc: `{{ _('Authentic Roman dishes (5 min walk)') }}`,
       coords: [41.8663237,12.4880734,17],
       url: "https://maps.app.goo.gl/SuQnhNMFUvLZLXp77"
     },
     {
       name: "Tanto pe' Magna",
-      category: "🍝 Restaurants",
+      category: categoryRestaurants,
       type: "pasta",
-      desc: "Informal Roman restaurant (10 min walk)",
+      desc: `{{ _('Informal Roman restaurant (10 min walk)') }}`,
       coords: [41.8613652,12.4911645,17],
       url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA"
     },
     {
       name: "Ar Grottino der Traslocatore ⭐",
-      category: "🍝 Restaurants",
+      category: categoryRestaurants,
       type: "pasta",
-      desc: "Very authentic Roman trattoria (15 min walk)",
+      desc: `{{ _('Very authentic Roman trattoria (15 min walk)') }}`,
       coords: [41.8604954,12.4846997,17],
       url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9"
     },
     {
       name: "Eataly Roma",
-      category: "🍝 Restaurants",
+      category: categoryRestaurants,
       type: "restaurant",
-      desc: "Large Italian food hall (10 min walk)",
+      desc: `{{ _('Large Italian food hall (10 min walk)') }}`,
       coords: [41.8711959,12.4817421,16],
       url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9"
     },
 
     {
       name: "Panonto",
-      category: "🍕 Pizzerias",
+      category: categoryPizzerias,
       type: "pizza",
-      desc: "Casual pizza (13 min walk)",
+      desc: `{{ _('Casual pizza (13 min walk)') }}`,
       coords: [41.8624022,12.4849386,17],
       url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8"
     },
     {
       name: "Donna Cira",
-      category: "🍕 Pizzerias",
+      category: categoryPizzerias,
       type: "pizza",
-      desc: "Popular local pizzeria (15 min walk)",
+      desc: `{{ _('Popular local pizzeria (15 min walk)') }}`,
       coords: [41.8720865,12.4809422,16],
       url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6"
     },
 
     {
       name: "Nero Vaniglia ⭐",
-      category: "☕ Cafés",
+      category: categoryCafes,
       type: "coffee",
-      desc: "Modern pastry shop (1 min walk)",
+      desc: `{{ _('Modern pastry shop (1 min walk)') }}`,
       coords: [41.8674526,12.4899657,17],
       url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6"
     },
 
     {
       name: "Biffi ⭐",
-      category: "🍸 Drinks",
+      category: categoryDrinks,
       type: "drinks",
-      desc: "Perfect for a quick drink (2 min walk)",
+      desc: `{{ _('Perfect for a quick drink (2 min walk)') }}`,
       coords: [41.8667445,12.4898635,17],
       url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7"
     },
     {
       name: "Bauhaus Rome",
-      category: "🍸 Drinks",
+      category: categoryDrinks,
       type: "drinks",
-      desc: "Stylish cocktail bar (2 min walk)",
+      desc: `{{ _('Stylish cocktail bar (2 min walk)') }}`,
       coords: [41.8663237,12.4880734,17],
       url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6"
     }
   ];
+
+  const openInMapsText = `{{ _('📍 Open in Google Maps') }}`;
 
   // =========================
   // MARKERS
@@ -198,7 +206,7 @@ const icons = {
     marker.bindPopup(`
       <b>${p.name}</b><br>
       <small>${p.desc}</small><br><br>
-      <a href="${p.url}" target="_blank">📍 Open in Google Maps</a>
+      <a href="${p.url}" target="_blank">${openInMapsText}</a>
     `);
 
     markers.push({ marker, data: p });
@@ -254,12 +262,12 @@ const icons = {
   const tag = document.getElementById("contextTag");
 
   const tagText = {
-    all: "⭐ Curated local picks near Garbatella",
-    pasta: "🍝 Best traditional Roman trattorie nearby",
-    pizza: "🍕 Best pizza spots near Garbatella",
-    coffee: "☕ Best cafés & breakfast spots nearby",
-    drinks: "🍸 Aperitivo & nightlife near Garbatella",
-    restaurant: "🍴 Top restaurants around Garbatella"
+    all: `{{ _('⭐ Curated local picks near Garbatella') }}`,
+    pasta: `{{ _('🍝 Best traditional Roman trattorie nearby') }}`,
+    pizza: `{{ _('🍕 Best pizza spots near Garbatella') }}`,
+    coffee: `{{ _('☕ Best cafés & breakfast spots nearby') }}`,
+    drinks: `{{ _('🍸 Aperitivo & nightlife near Garbatella') }}`,
+    restaurant: `{{ _('🍴 Top restaurants around Garbatella') }}`
   };
 
   const buttons = document.querySelectorAll(".filter");

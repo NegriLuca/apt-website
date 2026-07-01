@@ -1,0 +1,790 @@
+# Spanish translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-07-01 10:40+0200\n"
+"PO-Revision-Date: 2026-07-01 10:40+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: es\n"
+"Language-Team: es <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: app/templates/apartment.html:49
+msgid "Perfect for couples or solo travelers"
+msgstr ""
+
+#: app/templates/apartment.html:50
+msgid "Quiet neighborhood"
+msgstr ""
+
+#: app/templates/apartment.html:51
+msgid "Close to public transport"
+msgstr ""
+
+#: app/templates/apartment.html:52
+msgid "Self check‑in available"
+msgstr ""
+
+#: app/templates/apartment.html:56
+msgid "Rates vary depending on season, weekends, and holidays"
+msgstr ""
+
+#: app/templates/apartment.html:61
+msgid "Reserve now"
+msgstr ""
+
+#: app/templates/apartment.html:68
+msgid "Amenities"
+msgstr ""
+
+#: app/templates/apartment.html:71
+msgid "Free Wi‑Fi"
+msgstr ""
+
+#: app/templates/apartment.html:72
+msgid "Air conditioning"
+msgstr ""
+
+#: app/templates/apartment.html:73
+msgid "Heating"
+msgstr ""
+
+#: app/templates/apartment.html:74
+msgid "TV"
+msgstr ""
+
+#: app/templates/apartment.html:75
+msgid "Free parking"
+msgstr ""
+
+#: app/templates/apartment.html:76
+msgid "Kitchen"
+msgstr ""
+
+#: app/templates/apartment.html:80
+msgid "Location"
+msgstr ""
+
+#: app/templates/attractions.html:3 app/templates/attractions.html:106
+#: app/templates/base.html:33
+msgid "Rome's Attractions"
+msgstr ""
+
+#: app/templates/attractions.html:108
+msgid ""
+"Explore Rome through curated landmarks, walks and scenic spots — all "
+"easily reachable from your apartment."
+msgstr ""
+
+#: app/templates/attractions.html:111
+msgid "Curated experiences around Rome"
+msgstr ""
+
+#: app/templates/attractions.html:115
+#: app/templates/food_recommendations.html:19
+msgid "All"
+msgstr ""
+
+#: app/templates/attractions.html:116
+msgid "Monuments"
+msgstr ""
+
+#: app/templates/attractions.html:117
+msgid "Walks"
+msgstr ""
+
+#: app/templates/attractions.html:118
+msgid "Outdoor"
+msgstr ""
+
+#: app/templates/attractions.html:157
+#: app/templates/food_recommendations.html:87
+msgid "Your BnB"
+msgstr ""
+
+#: app/templates/attractions.html:164
+msgid "Colosseum & Roman Forum"
+msgstr ""
+
+#: app/templates/attractions.html:166
+msgid "Rome’s most iconic ancient landmark"
+msgstr ""
+
+#: app/templates/attractions.html:171
+msgid "Pantheon"
+msgstr ""
+
+#: app/templates/attractions.html:173
+msgid "Perfectly preserved ancient temple"
+msgstr ""
+
+#: app/templates/attractions.html:178
+msgid "Centrale Montemartini"
+msgstr ""
+
+#: app/templates/attractions.html:180
+msgid "Ancient sculptures inside industrial museum"
+msgstr ""
+
+#: app/templates/attractions.html:185
+msgid "Garbatella Walk"
+msgstr ""
+
+#: app/templates/attractions.html:187
+msgid "Authentic Roman neighborhood streets"
+msgstr ""
+
+#: app/templates/attractions.html:192
+msgid "Trastevere"
+msgstr ""
+
+#: app/templates/attractions.html:194
+msgid "Lively historic neighborhood"
+msgstr ""
+
+#: app/templates/attractions.html:199
+msgid "Historic Center Walk"
+msgstr ""
+
+#: app/templates/attractions.html:201
+msgid "Pantheon → Piazza Navona → Campo de’ Fiori"
+msgstr ""
+
+#: app/templates/attractions.html:206
+msgid "Parco della Caffarella"
+msgstr ""
+
+#: app/templates/attractions.html:208
+msgid "Green park with ruins and nature"
+msgstr ""
+
+#: app/templates/attractions.html:213
+msgid "Gianicolo Hill"
+msgstr ""
+
+#: app/templates/attractions.html:215
+msgid "Best panoramic view of Rome"
+msgstr ""
+
+#: app/templates/attractions.html:220
+msgid "Lungotevere Sunset Walk"
+msgstr ""
+
+#: app/templates/attractions.html:222
+msgid "Riverside walk at sunset"
+msgstr ""
+
+#: app/templates/attractions.html:229
+#: app/templates/food_recommendations.html:192
+msgid "📍 Open in Google Maps"
+msgstr ""
+
+#: app/templates/base.html:5 app/templates/base.html:18
+msgid "My Apartment"
+msgstr ""
+
+#: app/templates/base.html:21
+msgid "Home"
+msgstr ""
+
+#: app/templates/base.html:24 app/templates/checkout.html:18
+#: app/templates/reservation.html:3
+msgid "Apartment"
+msgstr ""
+
+#: app/templates/base.html:27 app/templates/reservation.html:3
+#: app/templates/reservation.html:9
+msgid "Reserve"
+msgstr ""
+
+#: app/templates/base.html:30 app/templates/food_recommendations.html:3
+#: app/templates/food_recommendations.html:10
+msgid "Food & Drinks"
+msgstr ""
+
+#: app/templates/base.html:36 app/templates/faq.html:3
+msgid "FAQ"
+msgstr ""
+
+#: app/templates/base.html:39 app/templates/contact.html:2
+#: app/templates/contact.html:8
+msgid "Contact"
+msgstr ""
+
+#: app/templates/base.html:47
+msgid "Admin"
+msgstr ""
+
+#: app/templates/base.html:51
+msgid "Logout"
+msgstr ""
+
+#: app/templates/base.html:55
+msgid "Login"
+msgstr ""
+
+#: app/templates/base.html:62
+msgid "Language"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:3
+msgid "Booking Confirmed!"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:11
+#: app/templates/email_confirmation.html:18
+msgid "Booking Confirmed! 🎉"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:12
+msgid "Thank you for choosing us!"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:16
+msgid "Reservation Details"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:17
+msgid "Guest:"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:19
+msgid "Dates:"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:22
+#: app/templates/email_confirmation.html:30
+msgid "Guests:"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:23 app/templates/contact.html:44
+msgid "Email:"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:26
+msgid "A secure confirmation email has been dispatched to"
+msgstr ""
+
+#: app/templates/booking_confirmed.html:31
+msgid "We are finalizing your reservation processing ledger..."
+msgstr ""
+
+#: app/templates/booking_confirmed.html:33
+msgid ""
+"Your payment was fully secured. A confirmation email with receipt records"
+" will land in your inbox within a few moments."
+msgstr ""
+
+#: app/templates/booking_confirmed.html:40
+msgid "Back to Home"
+msgstr ""
+
+#: app/templates/cancellation_result.html:3
+msgid "Reservation Cancellation"
+msgstr ""
+
+#: app/templates/cancellation_result.html:17
+msgid "Cancellation Confirmed"
+msgstr ""
+
+#: app/templates/cancellation_result.html:27
+msgid "Unable to Cancel"
+msgstr ""
+
+#: app/templates/cancellation_result.html:36
+msgid "Return to Homepage"
+msgstr ""
+
+#: app/templates/checkout.html:2
+msgid "Complete your booking"
+msgstr ""
+
+#: app/templates/checkout.html:7
+msgid "Review & Pay"
+msgstr ""
+
+#: app/templates/checkout.html:12
+msgid "Booking Summary"
+msgstr ""
+
+#: app/templates/checkout.html:22
+msgid "Guest"
+msgstr ""
+
+#: app/templates/checkout.html:26
+msgid "Email"
+msgstr ""
+
+#: app/templates/checkout.html:30
+msgid "Check-in"
+msgstr ""
+
+#: app/templates/checkout.html:34
+msgid "Check-out"
+msgstr ""
+
+#: app/templates/checkout.html:38 app/templates/email_admin_alert.html:40
+msgid "Nights"
+msgstr ""
+
+#: app/templates/checkout.html:42
+msgid "Guests"
+msgstr ""
+
+#: app/templates/checkout.html:46
+msgid "Total"
+msgstr ""
+
+#: app/templates/checkout.html:59
+msgid "Complete Booking (Test Bypass)"
+msgstr ""
+
+#: app/templates/checkout.html:65
+msgid "Pay securely with Stripe"
+msgstr ""
+
+#: app/templates/checkout.html:70
+msgid "You will be redirected to Stripe's secure checkout page."
+msgstr ""
+
+#: app/templates/checkout.html:71
+msgid "We accept Visa, Mastercard, and other major cards."
+msgstr ""
+
+#: app/templates/checkout.html:75
+msgid "Go back and change dates"
+msgstr ""
+
+#: app/templates/contact.html:9
+msgid "If you have any questions, feel free to reach out."
+msgstr ""
+
+#: app/templates/contact.html:39
+msgid "Send message"
+msgstr ""
+
+#: app/templates/contact.html:45
+msgid "Phone:"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:13
+msgid "New Booking Received"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:24
+msgid "Guest Details"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:31
+msgid "Check-In:"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:35
+msgid "Check-Out:"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:39
+msgid "Total Stay:"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:43
+msgid "Revenue Total:"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:52
+msgid "Cancel Booking & Refund"
+msgstr ""
+
+#: app/templates/email_admin_alert.html:55
+msgid ""
+"Warning: Clicking this immediately triggers an official transaction "
+"reversal on Stripe."
+msgstr ""
+
+#: app/templates/email_admin_alert.html:59
+msgid "Automated notification via your Railway App engine."
+msgstr ""
+
+#: app/templates/email_confirmation.html:5
+msgid "Booking Confirmation"
+msgstr ""
+
+#: app/templates/email_confirmation.html:21
+msgid "Hi"
+msgstr ""
+
+#: app/templates/email_confirmation.html:22
+msgid "Thank you for your booking! We are excited to host you at"
+msgstr ""
+
+#: app/templates/email_confirmation.html:22
+msgid "Our Cozy Apartment"
+msgstr ""
+
+#: app/templates/email_confirmation.html:25
+msgid "Stay Details:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:27
+msgid "Check-in:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:28
+msgid "Check-out:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:29
+msgid "Duration:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:29
+msgid "night(s)"
+msgstr ""
+
+#: app/templates/email_confirmation.html:31
+msgid "Total Paid:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:36
+msgid "Payment Details"
+msgstr ""
+
+#: app/templates/email_confirmation.html:38
+msgid "Status:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:41
+msgid ""
+"If you need to cancel or modify your stay, you can do so by clicking the "
+"link below:"
+msgstr ""
+
+#: app/templates/email_confirmation.html:43
+msgid "Cancel Reservation"
+msgstr ""
+
+#: app/templates/email_confirmation.html:48
+msgid "This is an automated message from your property booking engine."
+msgstr ""
+
+#: app/templates/faq.html:7
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: app/templates/faq.html:10
+msgid "Everything you need to know for a smooth and comfortable stay."
+msgstr ""
+
+#: app/templates/faq.html:46
+msgid "Check-in & check-out"
+msgstr ""
+
+#: app/templates/faq.html:48
+msgid ""
+"Check-in is from 13:00 and check-out is by 10:00. We will send you all "
+"the access details shortly before your arrival."
+msgstr ""
+
+#: app/templates/faq.html:53
+msgid "How does check-in work?"
+msgstr ""
+
+#: app/templates/faq.html:55
+msgid ""
+"Check-in is self-service. You will receive simple step-by-step "
+"instructions before arrival."
+msgstr ""
+
+#: app/templates/faq.html:60
+msgid "Where is the apartment located?"
+msgstr ""
+
+#: app/templates/faq.html:62
+msgid ""
+"The apartment is located in the Garbatella area, one of Rome’s most "
+"vibrant and authentic neighborhoods, well connected to the city center."
+msgstr ""
+
+#: app/templates/faq.html:67
+msgid "Is public transport nearby?"
+msgstr ""
+
+#: app/templates/faq.html:69
+msgid "Yes, metro line B and several bus lines are within walking distance."
+msgstr ""
+
+#: app/templates/faq.html:74
+msgid "How can I get there from Termini station?"
+msgstr ""
+
+#: app/templates/faq.html:76
+msgid ""
+"Take Metro Line B (direction Laurentina) and get off at Garbatella or "
+"Basilica San Paolo, then walk about 10 minutes."
+msgstr ""
+
+#: app/templates/faq.html:81
+msgid "How can I get there from the airport?"
+msgstr ""
+
+#: app/templates/faq.html:83
+msgid ""
+"From Fiumicino Airport, take the train to Ostiense station. From Ciampino"
+" Airport, take a shuttle to Termini and then Metro Line B. Taxi and "
+"private transfers are also available."
+msgstr ""
+
+#: app/templates/faq.html:88
+msgid "Is parking available?"
+msgstr ""
+
+#: app/templates/faq.html:90
+msgid ""
+"We do not have a private parking space, but free street parking is "
+"available nearby. It may require a short search, and we’ll be happy to "
+"give tips."
+msgstr ""
+
+#: app/templates/faq.html:95
+msgid "Can I leave my luggage?"
+msgstr ""
+
+#: app/templates/faq.html:97
+msgid ""
+"Depending on availability, we may offer early check-in or luggage drop-"
+"off. Please contact us in advance."
+msgstr ""
+
+#: app/templates/faq.html:102
+msgid "Is Wi-Fi available?"
+msgstr ""
+
+#: app/templates/faq.html:104
+msgid "Yes, fast and free Wi-Fi is available throughout the apartment."
+msgstr ""
+
+#: app/templates/faq.html:109
+msgid "Is there air conditioning and heating?"
+msgstr ""
+
+#: app/templates/faq.html:111
+msgid ""
+"Yes, the apartment is fully equipped with both air conditioning and "
+"heating."
+msgstr ""
+
+#: app/templates/faq.html:116
+msgid "Are pets allowed?"
+msgstr ""
+
+#: app/templates/faq.html:118
+msgid ""
+"We love animals, but unfortunately we cannot host pets. Thank you for "
+"your understanding."
+msgstr ""
+
+#: app/templates/faq.html:123
+msgid "Is a baby crib available?"
+msgstr ""
+
+#: app/templates/faq.html:125
+msgid ""
+"Yes, a baby crib is available free of charge upon request. Please let us "
+"know in advance."
+msgstr ""
+
+#: app/templates/faq.html:130
+msgid "Can we contact you during our stay?"
+msgstr ""
+
+#: app/templates/faq.html:132
+msgid "Of course! We’re always available and happy to help."
+msgstr ""
+
+#: app/templates/food_recommendations.html:12
+msgid ""
+"Discover our favorite places to eat, drink, and experience the real Rome "
+"– just a few minutes from your apartment."
+msgstr ""
+
+#: app/templates/food_recommendations.html:15
+msgid "Curated local picks near Garbatella"
+msgstr ""
+
+#: app/templates/food_recommendations.html:20
+msgid "Curated"
+msgstr ""
+
+#: app/templates/food_recommendations.html:21
+msgid "Trattorie"
+msgstr ""
+
+#: app/templates/food_recommendations.html:22
+msgid "Pizza"
+msgstr ""
+
+#: app/templates/food_recommendations.html:23
+msgid "Cafés"
+msgstr ""
+
+#: app/templates/food_recommendations.html:24
+msgid "Drinks"
+msgstr ""
+
+#: app/templates/food_recommendations.html:25
+msgid "Restaurants"
+msgstr ""
+
+#: app/templates/food_recommendations.html:90
+msgid "🍝 Restaurants"
+msgstr ""
+
+#: app/templates/food_recommendations.html:91
+msgid "🍕 Pizzerias"
+msgstr ""
+
+#: app/templates/food_recommendations.html:92
+msgid "☕ Cafés"
+msgstr ""
+
+#: app/templates/food_recommendations.html:93
+msgid "🍸 Drinks"
+msgstr ""
+
+#: app/templates/food_recommendations.html:103
+msgid "Modern trattoria (8 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:111
+msgid "Cozy Roman cuisine (4 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:119
+msgid "Authentic Roman dishes (5 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:127
+msgid "Informal Roman restaurant (10 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:135
+msgid "Very authentic Roman trattoria (15 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:143
+msgid "Large Italian food hall (10 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:152
+msgid "Casual pizza (13 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:160
+msgid "Popular local pizzeria (15 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:169
+msgid "Modern pastry shop (1 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:178
+msgid "Perfect for a quick drink (2 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:186
+msgid "Stylish cocktail bar (2 min walk)"
+msgstr ""
+
+#: app/templates/food_recommendations.html:265
+msgid "⭐ Curated local picks near Garbatella"
+msgstr ""
+
+#: app/templates/food_recommendations.html:266
+msgid "🍝 Best traditional Roman trattorie nearby"
+msgstr ""
+
+#: app/templates/food_recommendations.html:267
+msgid "🍕 Best pizza spots near Garbatella"
+msgstr ""
+
+#: app/templates/food_recommendations.html:268
+msgid "☕ Best cafés & breakfast spots nearby"
+msgstr ""
+
+#: app/templates/food_recommendations.html:269
+msgid "🍸 Aperitivo & nightlife near Garbatella"
+msgstr ""
+
+#: app/templates/food_recommendations.html:270
+msgid "🍴 Top restaurants around Garbatella"
+msgstr ""
+
+#: app/templates/home.html:6
+msgid "Welcome to"
+msgstr ""
+
+#: app/templates/home.html:7
+msgid "Your home away from home"
+msgstr ""
+
+#: app/templates/home.html:9
+msgid "Book now"
+msgstr ""
+
+#: app/templates/reservation.html:10
+msgid "Rates vary depending on season, weekends, and holidays."
+msgstr ""
+
+#: app/templates/reservation.html:26
+msgid "Dates"
+msgstr ""
+
+#: app/templates/reservation.html:31
+msgid "Select check-in and check-out"
+msgstr ""
+
+#: app/templates/reservation.html:44
+msgid "Have a Promo Code?"
+msgstr ""
+
+#: app/templates/reservation.html:47
+msgid "Apply"
+msgstr ""
+
+#: app/templates/reservation.html:55
+msgid "Nights:"
+msgstr ""
+
+#: app/templates/reservation.html:56
+msgid "Total price:"
+msgstr ""
+
+#: app/templates/reservation.html:64
+msgid "No apartment selected"
+msgstr ""
+
+#: app/templates/reservation.html:65
+msgid "Please navigate back to the listings page and choose an apartment to book."
+msgstr ""
+
+#: app/templates/reservation.html:95
+msgid "Please select a valid check-in date range first."
+msgstr ""
+
+#: app/templates/reservation.html:96
+msgid "Success! Code applied."
+msgstr ""
+
+#: app/templates/reservation.html:97
+msgid "Connection validation runtime warning."
+msgstr ""
+

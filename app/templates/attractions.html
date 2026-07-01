@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Rome's Attractions{% endblock %}
+{% block title %}{{ _("Rome's Attractions") }}{% endblock %}
 
 {% block content %}
 
@@ -103,19 +103,19 @@ h2 { margin-bottom: 5px; }
 
 </style>
 
-<h2>🏛 Rome's Attractions</h2>
+<h2>🏛 {{ _("Rome's Attractions") }}</h2>
 <p class="lead">
-Explore Rome through curated landmarks, walks and scenic spots — all easily reachable from your apartment.
+{{ _('Explore Rome through curated landmarks, walks and scenic spots — all easily reachable from your apartment.') }}
 </p>
 
-<div class="tag">⭐ Curated experiences around Rome</div>
+<div class="tag">⭐ {{ _('Curated experiences around Rome') }}</div>
 
 <!-- FILTERS -->
 <div id="filters">
-  <button class="filter active" data-type="all">🌍 All</button>
-  <button class="filter" data-type="monument">🏛 Monuments</button>
-  <button class="filter" data-type="walk">🚶 Walks</button>
-  <button class="filter" data-type="nature">🌿 Outdoor</button>
+  <button class="filter active" data-type="all">🌍 {{ _('All') }}</button>
+  <button class="filter" data-type="monument">🏛 {{ _('Monuments') }}</button>
+  <button class="filter" data-type="walk">🚶 {{ _('Walks') }}</button>
+  <button class="filter" data-type="nature">🌿 {{ _('Outdoor') }}</button>
 </div>
 
 <div class="page">
@@ -151,81 +151,82 @@ const icons = {
   home: L.divIcon({ className: "emoji-home", html: "🏠", iconSize: [34,34] })
 };
 
-// BNB
+// BNB - Map strings loaded safely via Flask-Babel contexts
 L.marker(bnb, { icon: icons.home })
   .addTo(map)
-  .bindPopup("<b>Your BnB</b><br>Via Circonvallazione Ostiense 235");
+  .bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
 
 // =========================
 // DATA
 // =========================
 const places = [
   {
-    name: "Colosseum & Roman Forum",
+    name: `{{ _('Colosseum & Roman Forum') }}`,
     type: "monument",
-    desc: "Rome’s most iconic ancient landmark",
+    desc: `{{ _('Rome’s most iconic ancient landmark') }}`,
     coords: [41.8902, 12.4922],
     url: "https://maps.google.com/?q=Colosseum+Rome"
   },
   {
-    name: "Pantheon",
+    name: `{{ _('Pantheon') }}`,
     type: "monument",
-    desc: "Perfectly preserved ancient temple",
+    desc: `{{ _('Perfectly preserved ancient temple') }}`,
     coords: [41.8986, 12.4769],
     url: "https://maps.google.com/?q=Pantheon+Rome"
   },
   {
-    name: "Centrale Montemartini",
+    name: `{{ _('Centrale Montemartini') }}`,
     type: "monument",
-    desc: "Ancient sculptures inside industrial museum",
+    desc: `{{ _('Ancient sculptures inside industrial museum') }}`,
     coords: [41.8709, 12.4742],
     url: "https://maps.google.com/?q=Centrale+Montemartini"
   },
-
   {
-    name: "Garbatella Walk",
+    name: `{{ _('Garbatella Walk') }}`,
     type: "walk",
-    desc: "Authentic Roman neighborhood streets",
+    desc: `{{ _('Authentic Roman neighborhood streets') }}`,
     coords: [41.8665, 12.4925],
     url: "https://maps.google.com/?q=Garbatella+Roma"
   },
   {
-    name: "Trastevere",
+    name: `{{ _('Trastevere') }}`,
     type: "walk",
-    desc: "Lively historic neighborhood",
+    desc: `{{ _('Lively historic neighborhood') }}`,
     coords: [41.8897, 12.4663],
     url: "https://maps.google.com/?q=Trastevere+Rome"
   },
   {
-    name: "Historic Center Walk",
+    name: `{{ _('Historic Center Walk') }}`,
     type: "walk",
-    desc: "Pantheon → Piazza Navona → Campo de’ Fiori",
+    desc: `{{ _('Pantheon → Piazza Navona → Campo de’ Fiori') }}`,
     coords: [41.8992, 12.4731],
     url: "https://maps.google.com/?q=Piazza+Navona+Rome"
   },
-
   {
-    name: "Parco della Caffarella",
+    name: `{{ _('Parco della Caffarella') }}`,
     type: "nature",
-    desc: "Green park with ruins and nature",
+    desc: `{{ _('Green park with ruins and nature') }}`,
     coords: [41.8602, 12.5273],
     url: "https://maps.google.com/?q=Parco+della+Caffarella"
   },
   {
-    name: "Gianicolo Hill",
+    name: `{{ _('Gianicolo Hill') }}`,
     type: "nature",
-    desc: "Best panoramic view of Rome",
+    desc: `{{ _('Best panoramic view of Rome') }}`,
     coords: [41.8892, 12.4608],
     url: "https://maps.google.com/?q=Gianicolo+Rome"
   },
   {
-    name: "Lungotevere Sunset Walk",
+    name: `{{ _('Lungotevere Sunset Walk') }}`,
     type: "nature",
-    desc: "Riverside walk at sunset",
+    desc: `{{ _('Riverside walk at sunset') }}`,
     coords: [41.8870, 12.4770],
     url: "https://maps.google.com/?q=Lungotevere+Ostiense"
   }
 ];
+
+// Localized map action string literal
+const openInMapsText = `{{ _('📍 Open in Google Maps') }}`;
 
 // =========================
 // RENDER
@@ -242,7 +243,7 @@ places.forEach(p => {
   marker.bindPopup(`
     <b>${p.name}</b><br>
     <small>${p.desc}</small><br><br>
-    <a href="${p.url}" target="_blank">📍 Open in Google Maps</a>
+    <a href="${p.url}" target="_blank">${openInMapsText}</a>
   `);
 
   markers.push({ marker, data: p });

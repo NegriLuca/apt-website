@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Booking Confirmed!{% endblock %}
+{% block title %}{{ _('Booking Confirmed!') }}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center mt-5">
@@ -8,31 +8,36 @@
     <div class="card shadow-sm border-0 p-5">
       <div class="card-body">
         
-        <h1 class="mb-4">Booking Confirmed! 🎉</h1>
-        <p class="lead text-muted mb-4">Thank you for choosing us!</p>
+        <h1 class="mb-4">{{ _('Booking Confirmed! 🎉') }}</h1>
+        <p class="lead text-muted mb-4">{{ _('Thank you for choosing us!') }}</p>
 
         {% if reservation %}
           <div class="bg-light rounded p-4 mb-4 text-start">
-            <h5 class="border-bottom pb-2 mb-3 text-secondary">Reservation Details</h5>
-            <p class="mb-2"><strong>Guest:</strong> {{ reservation.guest_name }}</p>
-            <p class="mb-2"><strong>Dates:</strong> {{ reservation.check_in.strftime('%d %b %Y') }} → {{ reservation.check_out.strftime('%d %b %Y') }}</p>
-            <p class="mb-2"><strong>Guests:</strong> {{ reservation.num_guests }}</p>
-            <p class="mb-0"><strong>Email:</strong> {{ reservation.guest_email }}</p>
+            <h5 class="border-bottom pb-2 mb-3 text-secondary">{{ _('Reservation Details') }}</h5>
+            <p class="mb-2"><strong>{{ _('Guest:') }}</strong> {{ reservation.guest_name }}</p>
+            <p class="mb-2">
+              <strong>{{ _('Dates:') }}</strong> 
+              {{ format_date(reservation.check_in, format='medium') }} → {{ format_date(reservation.check_out, format='medium') }}
+            </p>
+            <p class="mb-2"><strong>{{ _('Guests:') }}</strong> {{ reservation.num_guests }}</p>
+            <p class="mb-0"><strong>{{ _('Email:') }}</strong> {{ reservation.guest_email }}</p>
           </div>
           <p class="text-success small mb-4">
-            🔒 A secure confirmation email has been dispatched to <strong>{{ reservation.guest_email }}</strong>.
+            🔒 {{ _('A secure confirmation email has been dispatched to') }} <strong>{{ reservation.guest_email }}</strong>.
           </p>
         {% else %}
           <div class="alert alert-info py-4 mb-4">
             <div class="spinner-border spinner-border-sm text-info me-2" role="status"></div>
-            <strong>We are finalizing your reservation processing ledger...</strong>
-            <p class="small mb-0 mt-2 text-muted">Your payment was fully secured. A confirmation email with receipt records will land in your inbox within a few moments.</p>
+            <strong>{{ _('We are finalizing your reservation processing ledger...') }}</strong>
+            <p class="small mb-0 mt-2 text-muted">
+              {{ _('Your payment was fully secured. A confirmation email with receipt records will land in your inbox within a few moments.') }}
+            </p>
           </div>
         {% endif %}
 
         <hr class="my-4 opacity-25">
         <a href="{{ url_for('routes.home') }}" class="btn btn-primary btn-lg px-5">
-          Back to Home
+          {{ _('Back to Home') }}
         </a>
 
       </div>
