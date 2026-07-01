@@ -21,16 +21,22 @@ login_manager.login_view = 'routes.login'
 login_manager.login_message_category = 'info'
 
 def get_locale():
-    # 1. Check if the user manually switched language and stored it in the session
+    # Elenco delle lingue supportate dall'applicazione
+    supported_languages = ['en', 'it', 'de', 'fr', 'es']
+    
+    # 1. Controlla se l'utente ha richiesto esplicitamente un cambio lingua tramite URL (?lang=fr)
+    lang_override = request.args.get('lang')
+    if lang_override in supported_languages:
+        session['language'] = lang_override
+        return lang_override
+
+    # 2. Controlla se la lingua è già stata memorizzata nella sessione dell'utente
     if 'language' in session:
         return session['language']
     
-    # 2. Check if a directory override configuration exists
-    # Using current_app ensures we don't hardcode language availability arrays
-    supported_languages = current_app.config.get('LANGUAGES', ['en', 'it', 'de', 'fr', 'es'])
-    
-    # 3. Otherwise, fall back to the user's browser settings
-    return request.accept_languages.best_match(supported_languages)
+    # 3. Altrimenti, si affida alle impostazioni di default del browser dell'ospite
+    return request.accept_languages.best_match(supported_languages) or 'en'
+
 
 def create_app():
     app = Flask(__name__)
@@ -63,6 +69,11 @@ def create_app():
         apartment = Apartment.query.first()
         return dict(apartment=apartment)
 
+    @app.context_processor
+    def inject_locale():
+        # Rendiamo disponibile la stringa della lingua corrente a Jinja2
+        return dict(get_locale=get_locale)
+
     # ── Start APScheduler for periodic iCal sync ──────────────────────────────
     _start_scheduler(app)
 
@@ -75,7 +86,6 @@ def _start_scheduler(app: Flask):
     Only starts when NOT inside a Flask CLI command or when Werkzeug reloader
     is active (to avoid double-start in debug mode).
     """
-    # Werkzeug starts two processes in debug mode; only schedule in the child.
     if os.environ.get('WERKZEUG_RUN_MAIN') == 'false':
         return
 
