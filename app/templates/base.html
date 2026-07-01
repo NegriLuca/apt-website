@@ -15,11 +15,11 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3 header-luxury">
         <div class="container">
-            <a class="navbar-brand logo-text" href="{{ url_for('routes.index') }}">
+            <a class="navbar-brand logo-text" href="{{ url_for('routes.home') }}">
                 LOTTO <span class="fw-light">235</span> <small class="text-muted d-block" style="font-size: 10px; letter-spacing: 2px;">GARBATELLA</small>
             </a>
             
-            <button class="navbar-brand-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -42,7 +42,6 @@
       {% if messages %}
         <div class="container mt-4">
           {% for category, message in messages %}
-            {# Converte 'success' nel tono scuro minimale 'dark', altrimenti usa un grigio elegante #}
             <div class="alert alert-{{ 'dark' if category == 'success' else 'secondary' }} text-uppercase small border-0 rounded-0 shadow-sm py-3 px-4 mb-2 d-flex align-items-center" role="alert" style="letter-spacing: 1px; font-weight: 500;">
               {% if category == 'success' %}
                 <i class="bi bi-check-circle-fill me-2 text-muted"></i>
