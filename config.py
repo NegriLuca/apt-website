@@ -11,9 +11,11 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-only-change-in-production'
 
     # ── Database ──────────────────────────────────────────────────────────────
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///site.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith("postgres://"):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
+        
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
     # ── Email ─────────────────────────────────────────────────────────────────
     MAIL_SERVER  = 'smtp-relay.brevo.com'
     MAIL_PORT    = 587
