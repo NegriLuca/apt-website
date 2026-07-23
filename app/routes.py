@@ -172,8 +172,7 @@ def calculate_dynamic_total(check_in, check_out, base_rate):
 @bp.route('/')
 def home():
     apartment = get_apartment()
-    return render_template('home.html', apartment=apartment)
-
+    return render_template('apartment.html', apartment=apartment)
 
 @bp.route('/apartment')
 def apartment():
