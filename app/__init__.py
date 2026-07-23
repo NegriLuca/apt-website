@@ -7,6 +7,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 from flask_babel import Babel, format_date, format_datetime
+from flask_moment import Moment
 from config import Config
 
 db = SQLAlchemy()
@@ -16,6 +17,7 @@ csrf = CSRFProtect()
 mail = Mail()
 bcrypt = Bcrypt()
 babel = Babel()
+
 
 login_manager.login_view = 'routes.login'
 login_manager.login_message_category = 'info'
@@ -53,6 +55,7 @@ def create_app():
     csrf.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)
+    moment = Moment(app)
 
     # Initialize Babel with the context selector function configuration
     babel.init_app(app, locale_selector=get_locale)

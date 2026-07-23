@@ -73,6 +73,7 @@
     <link rel="alternate" hreflang="de" href="{{ url_for('routes.home', _external=True) }}?lang=de">
     <link rel="alternate" hreflang="es" href="{{ url_for('routes.home', _external=True) }}?lang=es">
     
+    {{ moment.include_moment() }}
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
     {
