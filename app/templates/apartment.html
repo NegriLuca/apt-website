@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="main-content">
-    <h1 class="mb-4">Lotto 235 Garbatella</h1>
-    <p class="text-muted mb-4">Elegante e raffinato appartamento nel cuore dello storico quartiere Garbatella a Roma</p>
+    <h1 class="mb-4">{{ apartment.name }}</h1>
+    <p class="text-muted mb-4">_('Welcome to our beautiful, fully equipped rental property.')</p>
 
 <div class="row mb-5">
 
@@ -50,12 +50,6 @@
   </div>
 
   <div class="col-md-5">
-    <h2>{{ apartment.name }}</h2>
-
-    <p class="lead mt-3">
-        {{ _('Welcome to our beautiful, fully equipped rental property.') }}
-    </p>
-
     <ul>
       <li>{{ _('Perfect for couples or solo travelers') }}</li>
       <li>{{ _('Quiet neighborhood') }}</li>

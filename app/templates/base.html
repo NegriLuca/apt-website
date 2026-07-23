@@ -20,6 +20,25 @@
         /* Assicuriamo che gli elementi si adattino al contenitore durante il resize */
         img, iframe, video { max-width: 100%; height: auto; }
     </style>
+
+    <!-- Meta Tag SEO Traducibili -->
+    <meta name="description" content="{{ _('Soggiorna a Lotto 235 Garbatella: elegante appartamento per vacanze a Roma. Comfort moderno, self check-in e posizione strategica vicina alla metro.') }}">
+    <meta name="keywords" content="{{ _('Lotto 235, Garbatella, Casa Vacanze Roma, Appartamento Garbatella, Affitto Breve Roma') }}">
+    <meta name="author" content="Lotto 235 Garbatella">
+
+    <!-- Open Graph Traducibili (Facebook, WhatsApp, iMessage, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Lotto 235 Garbatella | {{ _('Luxury Rental Property Roma') }}">
+    <meta property="og:description" content="{{ _('Elegante e raffinato appartamento nel cuore della Garbatella a Roma. Prenota il tuo soggiorno ideale.') }}">
+    <meta property="og:image" content="{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:locale" content="{{ get_locale() }}">
+
+    <!-- Twitter Card Traducibili -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lotto 235 Garbatella | {{ _('Luxury Rental Property Roma') }}">
+    <meta name="twitter:description" content="{{ _('Elegante e raffinato appartamento nel cuore della Garbatella a Roma. Prenota il tuo soggiorno ideale.') }}">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg', _external=True) }}">
 </head>
 <body>
 

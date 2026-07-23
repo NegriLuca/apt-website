@@ -3,6 +3,9 @@
 {% block title %}{{ _("Rome's Attractions") }}{% endblock %}
 
 {% block content %}
+<div class="main-content">
+    <h1 class="mb-4">🏛 {{ _("Rome's Attractions") }}</h1>
+    <p class="text-muted mb-4">{{ _('Explore Rome through curated landmarks, walks and scenic spots — all easily reachable from your apartment.') }}</p>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -30,8 +33,6 @@
 .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; background: #F4F4F3; color: #555; display: inline-block; margin-bottom: 12px; }
 </style>
 
-<h2>🏛 {{ _("Rome's Attractions") }}</h2>
-<p class="lead">{{ _('Explore Rome through curated landmarks, walks and scenic spots — all easily reachable from your apartment.') }}</p>
 <div class="tag">⭐ {{ _('Curated experiences around Rome') }}</div>
 
 <div id="filters">

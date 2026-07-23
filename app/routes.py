@@ -1201,3 +1201,14 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('routes.home'))
+
+
+@bp.route('/sitemap.xml', methods=['GET'])
+def sitemap():
+    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemapindex.org/schemas/sitemap/0.9">
+        <url><loc>https://www.lotto235garbatella.it/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+        <url><loc>https://www.lotto235garbatella.it/reserve</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+        <url><loc>https://www.lotto235garbatella.it/contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+    </urlset>"""
+    return Response(xml_content, mimetype='text/xml')
