@@ -3,147 +3,175 @@
 {% block title %}{{ _('FAQ') }}{% endblock %}
 
 {% block content %}
-  
-<h2 class="mt-4">❓ {{ _('Frequently Asked Questions') }}</h2>
 
-<p class="lead">
-{{ _('Everything you need to know for a smooth and comfortable stay.') }}
-</p>
+<div class="main-content">
+    <h1 class="page-title mb-4">{{ _('Frequently Asked Questions') }}</h1>
+
+    <p class="lead text-muted mb-5">
+    {{ _('Everything you need to know for a smooth and comfortable stay.') }}
+    </p>
+
+    <div class="faq" role="list" aria-label="{{ _('Frequently Asked Questions') }}">
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🕓 {{ _('Check-in & check-out') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Check-in is from 13:00 and check-out is by 10:00. We will send you all the access details shortly before your arrival.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🔑 {{ _('How does check-in work?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Check-in is self-service. You will receive simple step-by-step instructions before arrival.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>📍 {{ _('Where is the apartment located?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('The apartment is located in the Garbatella area, one of Rome's most vibrant and authentic neighborhoods, well connected to the city center.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🚇 {{ _('Is public transport nearby?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Yes, metro line B and several bus lines are within walking distance.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🚆 {{ _('How can I get there from Termini station?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Take Metro Line B (direction Laurentina) and get off at Garbatella or Basilica San Paolo, then walk about 10 minutes.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>✈️ {{ _('How can I get there from the airport?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('From Fiumicino Airport, take the train to Ostiense station. From Ciampino Airport, take a shuttle to Termini and then Metro Line B. Taxi and private transfers are also available.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🚗 {{ _('Is parking available?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('We do not have a private parking space, but free street parking is available nearby. It may require a short search, and we'll be happy to give tips.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🧳 {{ _('Can I leave my luggage?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Depending on availability, we may offer early check-in or luggage drop-off. Please contact us in advance.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>📶 {{ _('Is Wi-Fi available?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Yes, fast and free Wi-Fi is available throughout the apartment.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>❄️ {{ _('Is there air conditioning and heating?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Yes, the apartment is fully equipped with both air conditioning and heating.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>🐾 {{ _('Are pets allowed?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('We love animals, but unfortunately we cannot host pets. Thank you for your understanding.') }}
+        </div>
+      </details>
+
+      <details class="faq-item border-bottom py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>👶 {{ _('Is a baby crib available?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Yes, a baby crib is available free of charge upon request. Please let us know in advance.') }}
+        </div>
+      </details>
+
+      <details class="faq-item py-4" role="listitem">
+        <summary class="faq-question fw-semibold d-flex justify-content-between align-items-center cursor-pointer" role="button" aria-expanded="false">
+          <span>💬 {{ _('Can we contact you during our stay?') }}</span>
+          <i class="bi bi-chevron-down text-muted transition"></i>
+        </summary>
+        <div class="faq-answer text-muted mt-3" role="region">
+          {{ _('Of course! We are always available and happy to help.') }}
+        </div>
+      </details>
+
+    </div>
+</div>
 
 <style>
-.faq-item {
-  border-bottom: 1px solid #eee;
-  padding: 12px 0;
+.faq-item summary {
+    list-style: none;
 }
-
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+.faq-item[open] .faq-question .bi-chevron-down {
+    transform: rotate(180deg);
+}
+.faq-item .bi-chevron-down {
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
+    margin-left: var(--space-md);
+}
 .faq-question {
-  cursor: pointer;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    cursor: pointer;
+    user-select: none;
 }
-
 .faq-answer {
-  display: none;
-  margin-top: 8px;
-  color: #555;
-  line-height: 1.5;
+    animation: fadeIn var(--transition-fast) ease;
 }
-
-.faq-item.active .faq-answer {
-  display: block;
-}
-
-.faq-icon {
-  font-size: 14px;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 </style>
 
-<div class="faq mt-3">
-
-  <div class="faq-item">
-    <div class="faq-question">🕓 {{ _('Check-in & check-out') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Check-in is from 13:00 and check-out is by 10:00. We will send you all the access details shortly before your arrival.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">🔑 {{ _('How does check-in work?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Check-in is self-service. You will receive simple step-by-step instructions before arrival.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">📍 {{ _('Where is the apartment located?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('The apartment is located in the Garbatella area, one of Rome’s most vibrant and authentic neighborhoods, well connected to the city center.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">🚇 {{ _('Is public transport nearby?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Yes, metro line B and several bus lines are within walking distance.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">🚆 {{ _('How can I get there from Termini station?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Take Metro Line B (direction Laurentina) and get off at Garbatella or Basilica San Paolo, then walk about 10 minutes.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">✈️ {{ _('How can I get there from the airport?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('From Fiumicino Airport, take the train to Ostiense station. From Ciampino Airport, take a shuttle to Termini and then Metro Line B. Taxi and private transfers are also available.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">🚗 {{ _('Is parking available?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('We do not have a private parking space, but free street parking is available nearby. It may require a short search, and we’ll be happy to give tips.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">🧳 {{ _('Can I leave my luggage?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Depending on availability, we may offer early check-in or luggage drop-off. Please contact us in advance.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">📶 {{ _('Is Wi-Fi available?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Yes, fast and free Wi-Fi is available throughout the apartment.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">❄️ {{ _('Is there air conditioning and heating?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Yes, the apartment is fully equipped with both air conditioning and heating.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">🐾 {{ _('Are pets allowed?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('We love animals, but unfortunately we cannot host pets. Thank you for your understanding.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">👶 {{ _('Is a baby crib available?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Yes, a baby crib is available free of charge upon request. Please let us know in advance.') }}
-    </div>
-  </div>
-
-  <div class="faq-item">
-    <div class="faq-question">💬 {{ _('Can we contact you during our stay?') }} <span class="faq-icon">+</span></div>
-    <div class="faq-answer">
-      {{ _('Of course! We’re always available and happy to help.') }}
-    </div>
-  </div>
-
-</div>
-
-<script>
-document.querySelectorAll(".faq-question").forEach(item => {
-  item.addEventListener("click", () => {
-    const parent = item.parentElement;
-    parent.classList.toggle("active");
-
-    const icon = item.querySelector(".faq-icon");
-    icon.textContent = parent.classList.contains("active") ? "–" : "+";
-  });
-});
-</script>
 {% endblock %}

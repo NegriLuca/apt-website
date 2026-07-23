@@ -1,54 +1,159 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} | Lotto 235 Garbatella</title>
     
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ url_for(request.endpoint, _external=True, **request.view_args) }}">
+    
+    <!-- DNS Prefetch & Preconnect for external resources -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://www.google.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- Preload critical fonts -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <!-- Stylesheets -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <style>
-        /* Rimosso height: 100% su html/body per non forzare il layout durante la rotazione */
-        body { display: flex; flex-direction: column; min-height: 100vh; }
-        main { flex: 1; }
-        
-        /* Assicuriamo che gli elementi si adattino al contenitore durante il resize */
-        img, iframe, video { max-width: 100%; height: auto; }
-    </style>
-
-    <!-- Meta Tag SEO Traducibili -->
+    
+    <!-- Sitemap & Robots -->
+    <link rel="sitemap" href="{{ url_for('routes.sitemap', _external=True) }}">
+    
+    <!-- Meta Tags SEO Base -->
     <meta name="description" content="{{ _('Soggiorna a Lotto 235 Garbatella: elegante appartamento per vacanze a Roma. Comfort moderno, self check-in e posizione strategica vicina alla metro.') }}">
     <meta name="keywords" content="{{ _('Lotto 235, Garbatella, Casa Vacanze Roma, Appartamento Garbatella, Affitto Breve Roma') }}">
     <meta name="author" content="Lotto 235 Garbatella">
-
-    <!-- Open Graph Traducibili (Facebook, WhatsApp, iMessage, LinkedIn) -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="theme-color" content="#1A1A1A">
+    
+    <!-- Open Graph / Facebook, WhatsApp, iMessage, LinkedIn -->
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Lotto 235 Garbatella">
     <meta property="og:title" content="Lotto 235 Garbatella | {{ _('Luxury Rental Property Roma') }}">
     <meta property="og:description" content="{{ _('Elegante e raffinato appartamento nel cuore della Garbatella a Roma. Prenota il tuo soggiorno ideale.') }}">
     <meta property="og:image" content="{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg', _external=True) }}">
-    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ _('Lotto 235 Garbatella - Soggiorno') }}">
+    <meta property="og:url" content="{{ url_for('routes.home', _external=True) }}">
     <meta property="og:locale" content="{{ get_locale() }}">
-
-    <!-- Twitter Card Traducibili -->
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:locale:alternate" content="it_IT">
+    <meta property="og:locale:alternate" content="fr_FR">
+    <meta property="og:locale:alternate" content="de_DE">
+    <meta property="og:locale:alternate" content="es_ES">
+    
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Lotto235Roma">
+    <meta name="twitter:creator" content="@Lotto235Roma">
     <meta name="twitter:title" content="Lotto 235 Garbatella | {{ _('Luxury Rental Property Roma') }}">
     <meta name="twitter:description" content="{{ _('Elegante e raffinato appartamento nel cuore della Garbatella a Roma. Prenota il tuo soggiorno ideale.') }}">
     <meta name="twitter:image" content="{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg', _external=True) }}">
+    <meta name="twitter:image:alt" content="{{ _('Lotto 235 Garbatella - Soggiorno') }}">
+    
+    <!-- hreflang alternate links -->
+    <link rel="alternate" hreflang="x-default" href="{{ url_for('routes.home', _external=True) }}">
+    <link rel="alternate" hreflang="it" href="{{ url_for('routes.home', _external=True) }}?lang=it">
+    <link rel="alternate" hreflang="en" href="{{ url_for('routes.home', _external=True) }}?lang=en">
+    <link rel="alternate" hreflang="fr" href="{{ url_for('routes.home', _external=True) }}?lang=fr">
+    <link rel="alternate" hreflang="de" href="{{ url_for('routes.home', _external=True) }}?lang=de">
+    <link rel="alternate" hreflang="es" href="{{ url_for('routes.home', _external=True) }}?lang=es">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LodgingBusiness",
+      "name": "Lotto 235 Garbatella",
+      "description": "{{ _('Elegante appartamento per vacanze nel cuore della Garbatella a Roma. Comfort moderno, self check-in, Wi-Fi veloce, aria condizionata e posizione strategica vicino alla metro.') | striptags }}",
+      "url": "{{ url_for('routes.home', _external=True) }}",
+      "logo": "{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg', _external=True) }}",
+      "image": [
+        "{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg', _external=True) }}",
+        "{{ url_for('static', filename='images/apartment/Soggiorno_5.jpg', _external=True) }}",
+        "{{ url_for('static', filename='images/apartment/Camera_2.jpg', _external=True) }}",
+        "{{ url_for('static', filename='images/apartment/Cucina_3.jpg', _external=True) }}",
+        "{{ url_for('static', filename='images/apartment/Bagno_1.jpg', _external=True) }}"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Circonvallazione Ostiense 235",
+        "addressLocality": "Roma",
+        "addressRegion": "Lazio",
+        "postalCode": "00154",
+        "addressCountry": "IT"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 41.867317,
+        "longitude": 12.490943
+      },
+      "telephone": "+39-328-452-1227",
+      "email": "lotto235roma@gmail.com",
+      "priceRange": "€€",
+      "currenciesAccepted": "EUR",
+      "paymentAccepted": "Cash, Credit Card, Stripe, PayPal, Bank Transfer",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "checkInTime": "13:00",
+      "checkOutTime": "10:00",
+      "amenityFeature": [
+        {"@type": "LocationFeatureSpecification", "name": "Free Wi-Fi", "value": true},
+        {"@type": "LocationFeatureSpecification", "name": "Air Conditioning", "value": true},
+        {"@type": "LocationFeatureSpecification", "name": "Heating", "value": true},
+        {"@type": "LocationFeatureSpecification", "name": "TV", "value": true},
+        {"@type": "LocationFeatureSpecification", "name": "Free Parking", "value": true},
+        {"@type": "LocationFeatureSpecification", "name": "Kitchen", "value": true},
+        {"@type": "LocationFeatureSpecification", "name": "Self Check-in", "value": true}
+      ],
+      "hasMap": "https://www.google.com/maps/place/Circonvallazione+Ostiense+235,+00154+Roma+RM",
+      "sameAs": [
+        "https://www.instagram.com/lotto235garbatella/",
+        "https://www.facebook.com/lotto235garbatella"
+      ]
+    }
+    </script>
+    
+    {% block extra_head %}{% endblock %}
+
+    <style>
+        /* Critical inline styles for layout stability */
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        main { flex: 1; }
+        img, iframe, video { max-width: 100%; height: auto; }
+    </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3 header-luxury">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top py-3 header-luxury" role="navigation" aria-label="{{ _('Main navigation') }}">
         <div class="container">
-            <a class="navbar-brand logo-text" href="{{ url_for('routes.home') }}">
+            <a class="navbar-brand logo-text" href="{{ url_for('routes.home') }}" aria-label="{{ _('Lotto 235 Garbatella - Home') }}">
                 LOTTO <span class="fw-light">235</span> <small class="text-muted d-block" style="font-size: 10px; letter-spacing: 2px;">GARBATELLA</small>
             </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="{{ _('Toggle navigation') }}">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -61,7 +166,7 @@
                     <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.contact') }}">{{ _('Contact') }}</a></li>
                     
                     <li class="nav-item dropdown ms-lg-2">
-                        <a class="nav-link-luxury dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link-luxury dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ _('Select language') }}">
                             <i class="bi bi-globe me-1 text-muted"></i>
                             <span class="text-uppercase fw-bold">{{ get_locale() }}</span>
                         </a>
@@ -87,9 +192,10 @@
         </div>
     </nav>
 
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="container mt-4">
+        <div class="container mt-4" role="alert" aria-live="polite">
           {% for category, message in messages %}
             <div class="alert alert-{{ 'dark' if category == 'success' else 'secondary' }} text-uppercase small border-0 rounded-0 shadow-sm py-3 px-4 mb-2 d-flex align-items-center">
               {% if category == 'success' %}<i class="bi bi-check-circle-fill me-2 text-muted"></i>{% else %}<i class="bi bi-exclamation-circle-fill me-2"></i>{% endif %}
@@ -100,19 +206,61 @@
       {% endif %}
     {% endwith %}
 
-    <main class="py-5 bg-luxury-floor">
+    <!-- Main Content -->
+    <main class="py-5 bg-luxury-floor" role="main">
         <div class="container">
             {% block content %}{% endblock %}
         </div>
     </main>
 
-    <footer class="py-5 bg-white border-top text-center text-muted small">
-        <p>&copy; 2026 Lotto 235 Garbatella Roma. All rights reserved.</p>
+    <!-- Footer -->
+    <footer class="py-5 bg-white border-top text-center text-muted small" role="contentinfo">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-md-start mb-3 mb-md-0">
+                    <p class="mb-0">&copy; {{ now().year }} Lotto 235 Garbatella Roma. {{ _('All rights reserved.') }}</p>
+                </div>
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <a href="{{ url_for('routes.contact') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Contact') }}</a>
+                    <a href="{{ url_for('routes.faq') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('FAQ') }}</a>
+                    <a href="#" class="text-muted text-decoration-underline text-underline-offset-2">{{ _('Privacy Policy') }}</a>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <p class="mb-0">
+                        <a href="https://www.instagram.com/lotto235garbatella/" target="_blank" rel="noopener noreferrer" class="text-muted me-2" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="https://www.facebook.com/lotto235garbatella" target="_blank" rel="noopener noreferrer" class="text-muted" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    </p>
+                </div>
+            </div>
+        </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Google Tag Manager -->
     <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');  // REPLACE GTM-XXXXXXX with your GTM ID
+    </script>
+    
+    <!-- Google Analytics 4 (gtag.js) - Alternative to GTM -->
+    <!-- Uncomment below and replace G-XXXXXXXXXX with your GA4 Measurement ID if not using GTM -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    -->
+
+    <script>
+        // Handle orientation change for maps
         window.addEventListener("orientationchange", function() {
             setTimeout(function() {
                 if (typeof map !== 'undefined') {
@@ -120,6 +268,19 @@
                 }
             }, 300);
         });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
     </script>
+
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

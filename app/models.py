@@ -92,7 +92,7 @@ class Coupon(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(20), unique=True, nullable=False, index=True)
-    discount_type = db.Column(db.String(20), nullable=False, default='percentage') # 'percentage' or 'flat'
+    discount_type = db.Column(db.String(20), nullable=False, default='percentage')
     discount_value = db.Column(db.Float, nullable=False)
     active = db.Column(db.Boolean, default=True)
 
@@ -104,3 +104,22 @@ class Coupon(db.Model):
         elif self.discount_type == 'flat':
             return max(0.0, original_price - self.discount_value)
         return original_price
+
+
+class Testimonial(db.Model):
+    __tablename__ = 'testimonials'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    guest_name = db.Column(db.String(100), nullable=False)
+    guest_location = db.Column(db.String(100), nullable=True)
+    rating = db.Column(db.Integer, nullable=False, default=5)
+    content = db.Column(db.Text, nullable=False)
+    stay_date = db.Column(db.Date, nullable=True)
+    is_published = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    source = db.Column(db.String(50), default='direct')
+    external_url = db.Column(db.String(255), nullable=True)
+
+    def __repr__(self):
+        return f'<Testimonial {self.guest_name} - {self.rating}★>'

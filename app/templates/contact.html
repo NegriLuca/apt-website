@@ -2,48 +2,53 @@
 {% block title %}{{ _('Contact') }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
+<div class="main-content">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="page-title mb-2">{{ _('Contact') }}</h1>
+            <p class="lead text-muted mb-5">{{ _('If you have any questions, feel free to reach out.') }}</p>
 
-    <h2>{{ _('Contact') }}</h2>
-    <p>{{ _('If you have any questions, feel free to reach out.') }}</p>
+            <form method="POST" class="card border-0 shadow-sm p-4 p-md-5" novalidate>
+                {{ form.hidden_tag() }}
 
-    <form method="POST" class="mt-4">
-      {{ form.hidden_tag() }}
+                <div class="mb-4">
+                    {{ form.name.label(class="form-label fw-semibold text-uppercase small") }}
+                    {{ form.name(class="form-control form-control-lg") }}
+                    {% for error in form.name.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
 
-      <div class="mb-3">
-        {{ form.name.label(class="form-label") }}
-        {{ form.name(class="form-control") }}
-        {% for error in form.name.errors %}
-          <div class="text-danger small">{{ error }}</div>
-        {% endfor %}
-      </div>
+                <div class="mb-4">
+                    {{ form.email.label(class="form-label fw-semibold text-uppercase small") }}
+                    {{ form.email(class="form-control form-control-lg") }}
+                    {% for error in form.email.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
 
-      <div class="mb-3">
-        {{ form.email.label(class="form-label") }}
-        {{ form.email(class="form-control") }}
-        {% for error in form.email.errors %}
-          <div class="text-danger small">{{ error }}</div>
-        {% endfor %}
-      </div>
+                <div class="mb-4">
+                    {{ form.message.label(class="form-label fw-semibold text-uppercase small") }}
+                    {{ form.message(class="form-control", rows=5) }}
+                    {% for error in form.message.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
 
-      <div class="mb-3">
-        {{ form.message.label(class="form-label") }}
-        {{ form.message(class="form-control", rows=4) }}
-        {% for error in form.message.errors %}
-          <div class="text-danger small">{{ error }}</div>
-        {% endfor %}
-      </div>
+                <button type="submit" class="btn-luxury-primary w-100 py-3 mt-2">
+                    {{ _('Send message') }}
+                </button>
+            </form>
 
-      <button type="submit" class="btn-luxury-primary w-100 text-center mt-3">
-        {{ _('Send message') }}
-      </button>
-    </form>
-
-    <p class="text-muted mt-4">
-      {{ _('Email:') }} lotto235roma@gmail.com<br>
-      {{ _('Phone:') }} +39 3284521227 or +39 3387277551<br>
-
-  </div>
+            <div class="card border-0 bg-luxury-floor mt-5 p-4 p-md-5 text-center">
+                <p class="text-muted mb-2">
+                    {{ _('Email:') }} <a href="mailto:lotto235roma@gmail.com" class="text-dark text-decoration-underline text-underline-offset-2">lotto235roma@gmail.com</a>
+                </p>
+                <p class="text-muted mb-0">
+                    {{ _('Phone:') }} <a href="tel:+393284521227" class="text-dark text-decoration-underline text-underline-offset-2">+39 328 452 1227</a> / <a href="tel:+393387277551" class="text-dark text-decoration-underline text-underline-offset-2">+39 338 727 7551</a>
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
