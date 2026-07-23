@@ -56,6 +56,20 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+    // Translation strings
+    const t = {
+        yourBnB: {{ _('Your BnB') | tojson }},
+        openInMaps: {{ _('📍 Open in Maps') | tojson }},
+        curatedLocalPicks: {{ _('Curated local picks near Garbatella') | tojson }},
+        restaurants: {{ _('🍝 Restaurants') | tojson }},
+        trattorie: {{ _('🍝 Trattorie') | tojson }},
+        pizza: {{ _('🍕 Pizza') | tojson }},
+        cafes: {{ _('☕ Cafés') | tojson }},
+        drinks: {{ _('🍸 Drinks') | tojson }},
+        all: {{ _('All') | tojson }},
+        curated: {{ _('Curated') | tojson }},
+    };
+
     const bnb = [41.86731700, 12.49094300];
     const map = L.map('map', { scrollWheelZoom: false }).setView(bnb, 15);
 
@@ -72,25 +86,25 @@
         home: L.divIcon({ className: "emoji-home", html: "<div class='pin-home'>🏠</div>" })
     };
 
-    L.marker(bnb, { icon: icons.home }).addTo(map).bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
+    L.marker(bnb, { icon: icons.home }).addTo(map).bindPopup(`<b>${t.yourBnB}</b><br>Via Circonvallazione Ostiense 235`);
 
     const places = [
-        { name: "Porto Fluviale", category: `{{ _('🍝 Restaurants') }}`, type: "restaurant", desc: `{{ _('Modern trattoria (8 min walk)') }}`, coords: [41.8725121,12.4752003], url: "https://maps.app.goo.gl/R3XybNG6XBTwsnmr8" },
-        { name: "Mariu Trattoria Gentile ⭐", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Cozy Roman cuisine (4 min walk)') }}`, coords: [41.8679796, 12.4938781], url: "https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5" },
-        { name: "Trattoria da Me (Garbatella)", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Authentic Roman dishes (5 min walk)') }}`, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/SuQnhNMFUvLZLXp77" },
-        { name: "Tanto pe' Magna", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Informal Roman restaurant (10 min walk)') }}`, coords: [41.8613652,12.4911645], url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA" },
-        { name: "Ar Grottino der Traslocatore ⭐", category: `{{ _('🍝 Restaurants') }}`, type: "pasta", desc: `{{ _('Very authentic Roman trattoria (15 min walk)') }}`, coords: [41.8604954,12.4846997], url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9" },
-        { name: "Eataly Roma", category: `{{ _('🍝 Restaurants') }}`, type: "restaurant", desc: `{{ _('Large Italian food hall (10 min walk)') }}`, coords: [41.8711959,12.4817421], url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9" },
-        { name: "Panonto", category: `{{ _('🍕 Pizzerias') }}`, type: "pizza", desc: `{{ _('Casual pizza (13 min walk)') }}`, coords: [41.8624022,12.4849386], url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8" },
-        { name: "Donna Cira", category: `{{ _('🍕 Pizzerias') }}`, type: "pizza", desc: `{{ _('Popular local pizzeria (15 min walk)') }}`, coords: [41.8720865,12.4809422], url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6" },
-        { name: "Nero Vaniglia ⭐", category: `{{ _('☕ Cafés') }}`, type: "coffee", desc: `{{ _('Modern pastry shop (1 min walk)') }}`, coords: [41.8674526,12.4899657], url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6" },
-        { name: "Biffi ⭐", category: `{{ _('🍸 Drinks') }}`, type: "drinks", desc: `{{ _('Perfect for a quick drink (2 min walk)') }}`, coords: [41.8667445,12.4898635], url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7" },
-        { name: "Bauhaus Rome", category: `{{ _('🍸 Drinks') }}`, type: "drinks", desc: `{{ _('Stylish cocktail bar (2 min walk)') }}`, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6" }
+        { name: "Porto Fluviale", category: t.restaurants, type: "restaurant", desc: {{ _('Modern trattoria (8 min walk)') | tojson }}, coords: [41.8725121,12.4752003], url: "https://maps.app.goo.gl/R3XybNG6XBTwsnmr8" },
+        { name: "Mariu Trattoria Gentile ⭐", category: t.restaurants, type: "pasta", desc: {{ _('Cozy Roman cuisine (4 min walk)') | tojson }}, coords: [41.8679796, 12.4938781], url: "https://maps.app.goo.gl/aY3j2bvSebzQ6Fgz5" },
+        { name: "Trattoria da Me (Garbatella)", category: t.restaurants, type: "pasta", desc: {{ _('Authentic Roman dishes (5 min walk)') | tojson }}, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/SuQnhNMFUvLZLXp77" },
+        { name: "Tanto pe' Magna", category: t.restaurants, type: "pasta", desc: {{ _('Informal Roman restaurant (10 min walk)') | tojson }}, coords: [41.8613652,12.4911645], url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA" },
+        { name: "Ar Grottino der Traslocatore ⭐", category: t.restaurants, type: "pasta", desc: {{ _('Very authentic Roman trattoria (15 min walk)') | tojson }}, coords: [41.8604954,12.4846997], url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9" },
+        { name: "Eataly Roma", category: t.restaurants, type: "restaurant", desc: {{ _('Large Italian food hall (10 min walk)') | tojson }}, coords: [41.8711959,12.4817421], url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9" },
+        { name: "Panonto", category: t.pizza, type: "pizza", desc: {{ _('Casual pizza (13 min walk)') | tojson }}, coords: [41.8624022,12.4849386], url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8" },
+        { name: "Donna Cira", category: t.pizza, type: "pizza", desc: {{ _('Popular local pizzeria (15 min walk)') | tojson }}, coords: [41.8720865,12.4809422], url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6" },
+        { name: "Nero Vaniglia ⭐", category: t.cafes, type: "coffee", desc: {{ _('Modern pastry shop (1 min walk)') | tojson }}, coords: [41.8674526,12.4899657], url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6" },
+        { name: "Biffi ⭐", category: t.drinks, type: "drinks", desc: {{ _('Perfect for a quick drink (2 min walk)') | tojson }}, coords: [41.8667445,12.4898635], url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7" },
+        { name: "Bauhaus Rome", category: t.drinks, type: "drinks", desc: {{ _('Stylish cocktail bar (2 min walk)') | tojson }}, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6" }
     ];
 
     const markers = places.map(p => {
         const m = L.marker(p.coords, { icon: icons[p.type] || icons.restaurant }).addTo(map);
-        m.bindPopup(`<b>${p.name}</b><br>${p.desc}<br><br><a href="${p.url}" target="_blank" rel="noopener noreferrer">📍 {{ _('Open in Maps') }}</a>`);
+        m.bindPopup(`<b>${p.name}</b><br>${p.desc}<br><br><a href="${p.url}" target="_blank" rel="noopener noreferrer">${t.openInMaps}</a>`);
         return { marker: m, data: p };
     });
 

@@ -1,25 +1,25 @@
 <div class="row mb-4 mt-3">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center bg-primary text-white p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center bg-dark text-white p-3 mb-3">
             <h2 class="mb-0 text-white fw-bold text-uppercase tracking-wider small">Lotto235 Control Panel</h2>
-            <span class="badge bg-white text-primary text-uppercase small px-3 py-2">Admin Mode</span>
+            <span class="badge bg-white text-dark text-uppercase small px-3 py-2">Admin Mode</span>
         </div>
         
         <ul class="nav nav-tabs border-bottom" style="border-color: var(--color-border) !important;">
             <li class="nav-item">
-                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_dashboard' %}active text-primary border-primary{% else %}text-muted{% endif %}" 
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_dashboard' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_dashboard') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-bar-chart me-1"></i> {{ _('Dashboard') }}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_calendar' %}active text-primary border-primary{% else %}text-muted{% endif %}" 
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_calendar' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_calendar') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-calendar me-1"></i> {{ _('Calendar') }}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_pricing' %}active text-primary border-primary{% else %}text-muted{% endif %}" 
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_pricing' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_pricing') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-cash-coin me-1"></i> {{ _('Pricing') }}
                 </a>

@@ -51,6 +51,30 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+    // Translation strings
+    const t = {
+        yourBnB: {{ _('Your BnB') | tojson }},
+        openInMaps: {{ _('📍 Open in Google Maps') | tojson }},
+        colosseum: {{ _('Colosseum & Roman Forum') | tojson }},
+        colosseumDesc: {{ _('Romes most iconic ancient landmark') | tojson }},
+        pantheon: {{ _('Pantheon') | tojson }},
+        pantheonDesc: {{ _('Perfectly preserved ancient temple') | tojson }},
+        centrale: {{ _('Centrale Montemartini') | tojson }},
+        centraleDesc: {{ _('Ancient sculptures inside industrial museum') | tojson }},
+        garbatellaWalk: {{ _('Garbatella Walk') | tojson }},
+        garbatellaWalkDesc: {{ _('Authentic Roman neighborhood streets') | tojson }},
+        trastevere: {{ _('Trastevere') | tojson }},
+        trastevereDesc: {{ _('Lively historic neighborhood') | tojson }},
+        historicCenter: {{ _('Historic Center Walk') | tojson }},
+        historicCenterDesc: {{ _('Pantheon to Piazza Navona to Campo de Fiori') | tojson }},
+        caffarella: {{ _('Parco della Caffarella') | tojson }},
+        caffarellaDesc: {{ _('Green park with ruins and nature') | tojson }},
+        gianicolo: {{ _('Gianicolo Hill') | tojson }},
+        gianicoloDesc: {{ _('Best panoramic view of Rome') | tojson }},
+        lungotevere: {{ _('Lungotevere Sunset Walk') | tojson }},
+        lungotevereDesc: {{ _('Riverside walk at sunset') | tojson }},
+    };
+
     const bnb = [41.86731700, 12.49094300];
     const map = L.map('map', { scrollWheelZoom: false }).setView(bnb, 13);
 
@@ -69,21 +93,21 @@
         home: L.divIcon({ className: "emoji-home", html: "🏠", iconSize: [34,34] })
     };
 
-    L.marker(bnb, { icon: icons.home }).addTo(map).bindPopup(`<b>{{ _('Your BnB') }}</b><br>Via Circonvallazione Ostiense 235`);
+    L.marker(bnb, { icon: icons.home }).addTo(map).bindPopup(`<b>${t.yourBnB}</b><br>Via Circonvallazione Ostiense 235`);
 
     const places = [
-        { name: `{{ _('Colosseum & Roman Forum') }}`, type: "monument", desc: `{{ _('Rome's most iconic ancient landmark') }}`, coords: [41.8902, 12.4922], url: "https://maps.google.com/?q=Colosseum+Rome" },
-        { name: `{{ _('Pantheon') }}`, type: "monument", desc: `{{ _('Perfectly preserved ancient temple') }}`, coords: [41.8986, 12.4769], url: "https://maps.google.com/?q=Pantheon+Rome" },
-        { name: `{{ _('Centrale Montemartini') }}`, type: "monument", desc: `{{ _('Ancient sculptures inside industrial museum') }}`, coords: [41.8709, 12.4742], url: "https://maps.google.com/?q=Centrale+Montemartini" },
-        { name: `{{ _('Garbatella Walk') }}`, type: "walk", desc: `{{ _('Authentic Roman neighborhood streets') }}`, coords: [41.8665, 12.4925], url: "https://maps.google.com/?q=Garbatella+Roma" },
-        { name: `{{ _('Trastevere') }}`, type: "walk", desc: `{{ _('Lively historic neighborhood') }}`, coords: [41.8897, 12.4663], url: "https://maps.google.com/?q=Trastevere+Rome" },
-        { name: `{{ _('Historic Center Walk') }}`, type: "walk", desc: `{{ _('Pantheon → Piazza Navona → Campo de' Fiori') }}`, coords: [41.8992, 12.4731], url: "https://maps.google.com/?q=Piazza+Navona+Rome" },
-        { name: `{{ _('Parco della Caffarella') }}`, type: "nature", desc: `{{ _('Green park with ruins and nature') }}`, coords: [41.8602, 12.5273], url: "https://maps.google.com/?q=Parco+della+Caffarella" },
-        { name: `{{ _('Gianicolo Hill') }}`, type: "nature", desc: `{{ _('Best panoramic view of Rome') }}`, coords: [41.8892, 12.4608], url: "https://maps.google.com/?q=Gianicolo+Rome" },
-        { name: `{{ _('Lungotevere Sunset Walk') }}`, type: "nature", desc: `{{ _('Riverside walk at sunset') }}`, coords: [41.8870, 12.4770], url: "https://maps.google.com/?q=Lungotevere+Ostiense" }
+        { name: t.colosseum, type: "monument", desc: t.colosseumDesc, coords: [41.8902, 12.4922], url: "https://maps.google.com/?q=Colosseum+Rome" },
+        { name: t.pantheon, type: "monument", desc: t.pantheonDesc, coords: [41.8986, 12.4769], url: "https://maps.google.com/?q=Pantheon+Rome" },
+        { name: t.centrale, type: "monument", desc: t.centraleDesc, coords: [41.8709, 12.4742], url: "https://maps.google.com/?q=Centrale+Montemartini" },
+        { name: t.garbatellaWalk, type: "walk", desc: t.garbatellaWalkDesc, coords: [41.8665, 12.4925], url: "https://maps.google.com/?q=Garbatella+Roma" },
+        { name: t.trastevere, type: "walk", desc: t.trastevereDesc, coords: [41.8897, 12.4663], url: "https://maps.google.com/?q=Trastevere+Rome" },
+        { name: t.historicCenter, type: "walk", desc: t.historicCenterDesc, coords: [41.8992, 12.4731], url: "https://maps.google.com/?q=Piazza+Navona+Rome" },
+        { name: t.caffarella, type: "nature", desc: t.caffarellaDesc, coords: [41.8602, 12.5273], url: "https://maps.google.com/?q=Parco+della+Caffarella" },
+        { name: t.gianicolo, type: "nature", desc: t.gianicoloDesc, coords: [41.8892, 12.4608], url: "https://maps.google.com/?q=Gianicolo+Rome" },
+        { name: t.lungotevere, type: "nature", desc: t.lungotevereDesc, coords: [41.8870, 12.4770], url: "https://maps.google.com/?q=Lungotevere+Ostiense" }
     ];
 
-    const openInMapsText = `{{ _('📍 Open in Google Maps') }}`;
+    const openInMapsText = t.openInMaps;
     const list = document.getElementById("list");
     const markers = places.map(p => {
         const marker = L.marker(p.coords, { icon: icons[p.type] }).addTo(map);

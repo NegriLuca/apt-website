@@ -140,6 +140,65 @@ def send_payment_verified_email(reservation):
     except Exception as e:
         current_app.logger.error(f"!!! BREVO API FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
         return False
+
+
+def send_pending_payment_email(reservation):
+    """Invia l'email di conferma prenotazione ricevuta (in attesa di pagamento) via Brevo Web API"""
+    try:
+        brevo_api_key = current_app.config.get('MAIL_PASSWORD')
+        sender_email = "lotto235roma@gmail.com"
+        cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
+        apt = get_apartment()
+        payment_summary = get_payment_summary(reservation)
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": brevo_api_key
+        }
+
+        # 1. Dispatch to Guest
+        guest_payload = {
+            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
+            "to": [{"email": reservation.guest_email}],
+            "subject": f"Booking received — {apt.name if apt else 'Lotto 235 Garbatella'}",
+            "htmlContent": render_template(
+                'email_pending_payment.html',
+                reservation=reservation,
+                cancel_url=cancel_url,
+                nights=reservation.nights,
+                total=reservation.total_price,
+                apartment=apt,
+                payment_summary=payment_summary
+            )
+        }
+        
+        response1 = requests.post(url, headers=headers, data=json.dumps(guest_payload))
+        current_app.logger.info(f"📬 Brevo Pending Payment Email (Guest) sent. Status: {response1.status_code}")
+
+        # 2. Dispatch to Admin
+        admin_recipient = current_app.config.get('ADMIN_EMAIL') or "lotto235roma@gmail.com"
+        admin_cancel_url = url_for('routes.admin_cancel_via_token', token=reservation.cancel_token, _external=True)
+
+        admin_payload = {
+            "sender": {"name": "Booking Engine", "email": sender_email},
+            "to": [{"email": admin_recipient}],
+            "subject": f"🔔 New Booking (Pending Payment): {reservation.guest_name}",
+            "htmlContent": render_template(
+                'email_admin_alert.html',
+                reservation=reservation,
+                payment_summary=payment_summary,
+                admin_cancel_url=admin_cancel_url
+            )
+        }        
+        response2 = requests.post(url, headers=headers, data=json.dumps(admin_payload))
+        current_app.logger.info(f"📬 Brevo Pending Payment Email (Admin) sent. Status: {response2.status_code}")
+
+        return response1.status_code in [200, 201, 202] and response2.status_code in [200, 201, 202]
+    except Exception as e:
+        current_app.logger.error(f"!!! BREVO PENDING PAYMENT EMAIL FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
+        return False
     
 def calculate_dynamic_total(check_in, check_out, base_rate):
     """
@@ -332,44 +391,47 @@ def process_payment():
         return create_checkout_session()
         
     elif method == 'wire_transfer':
-        pending = session.get('pending_reservation')
-        if not pending:
-            flash(_('Session expired. Please try again.'), 'danger')
-            return redirect(url_for('routes.reserve'))
+            pending = session.get('pending_reservation')
+            if not pending:
+                flash(_('Session expired. Please try again.'), 'danger')
+                return redirect(url_for('routes.reserve'))
             
-        apartment = get_apartment()
-        check_in_dt = date.fromisoformat(pending['check_in'])
-        check_out_dt = date.fromisoformat(pending['check_out'])
+            apartment = get_apartment()
+            check_in_dt = date.fromisoformat(pending['check_in'])
+            check_out_dt = date.fromisoformat(pending['check_out'])
+            
+            # Fallback sicuro sul prezzo dinamico calcolato se total_price manca
+            base_rate = apartment.price_per_night if apartment else 0
+            fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, base_rate)
+            total_price = pending.get('total_price', fallback_total)
+            
+            new_reservation = Reservation(
+                guest_name=pending['guest_name'],
+                guest_email=pending['guest_email'],
+                check_in=check_in_dt,
+                check_out=check_out_dt,
+                num_guests=int(pending['num_guests']),
+                status='pending',
+                source='direct',
+                total_price=total_price,
+                coupon_code=pending.get('coupon_code'),
+                payment_status='unpaid',
+                payment_method='wire_transfer',
+                cancel_token=secrets.token_urlsafe(32)
+            )
+            
+            db.session.add(new_reservation)
+            db.session.commit()
+            
+            # Send pending payment confirmation email
+            send_pending_payment_email(new_reservation)
+            
+            session['completed_wire_res_id'] = new_reservation.id
+            session['completed_wire_total'] = new_reservation.total_price
+            
+            session.pop('pending_reservation', None)
+            return redirect(url_for('routes.wire_transfer_instructions'))
         
-        # Fallback sicuro sul prezzo dinamico calcolato se total_price manca
-        base_rate = apartment.price_per_night if apartment else 0
-        fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, base_rate)
-        total_price = pending.get('total_price', fallback_total)
-        
-        new_reservation = Reservation(
-            guest_name=pending['guest_name'],
-            guest_email=pending['guest_email'],
-            check_in=check_in_dt,
-            check_out=check_out_dt,
-            num_guests=int(pending['num_guests']),
-            status='pending',
-            source='direct',
-            total_price=total_price,
-            coupon_code=pending.get('coupon_code'),
-            payment_status='unpaid',
-            payment_method='wire_transfer',
-            cancel_token=secrets.token_urlsafe(32)
-        )
-        
-        db.session.add(new_reservation)
-        db.session.commit()
-        
-        session['completed_wire_res_id'] = new_reservation.id
-        session['completed_wire_total'] = new_reservation.total_price
-        
-        session.pop('pending_reservation', None)
-        return redirect(url_for('routes.wire_transfer_instructions'))
-    
     elif method == 'paypal':
         pending = session.get('pending_reservation')
         if not pending:
@@ -403,7 +465,8 @@ def process_payment():
         db.session.add(new_reservation)
         db.session.commit()
         
-        session.pop('pending_reservation', None)
+        # Send pending payment confirmation email
+        send_pending_payment_email(new_reservation)
         
         paypal_username = "il_tuo_username" 
         formatted_price = "%.2f" % total_price
@@ -411,6 +474,8 @@ def process_payment():
         
         session['completed_paypal_res_id'] = new_reservation.id
         session['paypal_redirect_url'] = paypal_url
+        
+        session.pop('pending_reservation', None)
         
         return redirect(url_for('routes.paypal_redirect_page'))    
         

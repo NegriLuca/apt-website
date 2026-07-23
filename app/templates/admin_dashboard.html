@@ -39,9 +39,9 @@
         <h4 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Reservation Ledger') }}</h4>
         <div class="btn-group btn-group-sm shadow-sm">
             <a href="?status=all" class="btn btn-outline-primary {% if status_filter == 'all' or not status_filter %}active{% endif %}">{{ _('All') }}</a>
-            <a href="?status=confirmed" class="btn btn-outline-primary {% if status_filter == 'confirmed' %}active{% endif %}">{{ _('Confirmed') }}</a>
-            <a href="?status=pending" class="btn btn-outline-primary {% if status_filter == 'pending' %}active{% endif %}">{{ _('Pending') }}</a>
-            <a href="?status=cancelled" class="btn btn-outline-primary {% if status_filter == 'cancelled' %}active{% endif %}">{{ _('Cancelled') }}</a>
+            <a href="?status=confirmed" class="btn btn-outline-success {% if status_filter == 'confirmed' %}active{% endif %}">{{ _('Confirmed') }}</a>
+            <a href="?status=pending" class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">{{ _('Pending') }}</a>
+            <a href="?status=cancelled" class="btn btn-outline-danger {% if status_filter == 'cancelled' %}active{% endif %}">{{ _('Cancelled') }}</a>
         </div>
     </div>
 
@@ -108,33 +108,33 @@
                                 </span>
                             {% else %}
                                 <span class="text-muted small">{{ _('Processed by Channel') }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if r.status == 'pending' and r.source in ['direct', 'stripe'] %}
+                                <form action="{{ url_for('routes.admin_confirm_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn-luxury-primary btn-sm text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); letter-spacing: 0.3px;">
+                                        ✅ {{ _('Approve & Paid') }}
+                                    </button>
+                                </form>
                             {% endif %}
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                {% if r.status == 'pending' and r.source in ['direct', 'stripe'] %}
-                                    <form action="{{ url_for('routes.admin_confirm_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-primary text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); letter-spacing: 0.3px;">
-                                            ✅ {{ _('Approve & Paid') }}
-                                        </button>
-                                    </form>
-                                {% endif %}
 
-                                {% if r.source in ['direct', 'stripe'] and r.status != 'cancelled' and r.payment_status not in ['cancelled', 'refunded'] %}
-                                    <form action="{{ url_for('routes.admin_cancel_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('⚠️ {{ _('WARNING: Are you sure you want to cancel this booking and issue a full Stripe refund?') }}');">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-danger text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); letter-spacing: 0.3px;">
-                                            🛑 {{ _('Cancel & Refund') }}
-                                        </button>
-                                    </form>
-                                {% elif r.status == 'cancelled' %}
-                                    <span class="text-muted small fst-italic">{{ _('Cancelled') }}</span>
-                                {% else %}
-                                    <span class="text-muted small fst-italic">{{ _('Manage on OTA') }}</span>
-                                {% endif %}
-                            </div>
-                        </td>
+                            {% if r.source in ['direct', 'stripe'] and r.status != 'cancelled' and r.payment_status not in ['cancelled', 'refunded'] %}
+                                <form action="{{ url_for('routes.admin_cancel_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('⚠️ {{ _('WARNING: Are you sure you want to cancel this booking and issue a full Stripe refund?') }}');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-sm btn-danger text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); letter-spacing: 0.3px;">
+                                        🛑 {{ _('Cancel & Refund') }}
+                                    </button>
+                                </form>
+                            {% elif r.status == 'cancelled' %}
+                                <span class="text-muted small fst-italic">{{ _('Cancelled') }}</span>
+                            {% else %}
+                                <span class="text-muted small fst-italic">{{ _('Manage on OTA') }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
                     </tr>
                     {% else %}
                     <tr>
@@ -150,10 +150,10 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="h5 mb-0">{{ _('External iCal Synchronization Feeds') }}</h3>
         <div>
-            <a href="{{ url_for('routes.add_feed') }}" class="btn btn-sm btn-primary fw-bold px-3">{{ _('Add iCal Feed') }}</a>
+            <a href="{{ url_for('routes.add_feed') }}" class="btn-luxury-primary btn-sm fw-bold px-3">{{ _('Add iCal Feed') }}</a>
             <form action="{{ url_for('routes.sync_feeds_now') }}" method="POST" class="d-inline ms-2">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn-sm btn-success fw-bold px-3">{{ _('Sync Feeds Now') }}</button>
+                <button type="submit" class="btn-luxury-outline btn-sm fw-bold px-3">{{ _('Sync Feeds Now') }}</button>
             </form>
         </div>
     </div>
