@@ -61,6 +61,11 @@ h1, h2, h3, .section-title {
 
 /* Layout & Containers */
 .main-content { background: #FFFFFF; padding: 2.5rem; border-radius: 0px; border: 1px solid #EAEAEA; box-shadow: 0 10px 40px rgba(0,0,0,0.02); }
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1.5rem 1rem; /* Smaller padding on mobile phones */
+    }
+}
 .page-wrapper { padding-top: 2.5rem; }
 
 /* MAPPA E RESPONSIVITÀ (Resa elastica per rotazione) */
@@ -118,4 +123,49 @@ img, iframe, video, .leaflet-container { max-width: 100% !important; }
     .apartment-carousel-img {
         height: 300px;        /* Altezza ridotta per smartphone */
     }
+}
+
+/* Primary CTA Button (For Main Actions like "Reserve Now") */
+.btn-luxury-primary {
+    background-color: #1A1A1A !important;
+    color: #FFFFFF !important;
+    border: 1px solid #1A1A1A !important;
+    border-radius: 0px !important; /* Sharp corners for modern minimal look */
+    padding: 14px 32px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    transition: all 0.3s ease !important;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-luxury-primary:hover {
+    background-color: #C5A880 !important; /* Elegant gold accent on hover */
+    border-color: #C5A880 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(197, 168, 128, 0.3);
+}
+
+/* Secondary CTA Button (Optional outline version for secondary actions) */
+.btn-luxury-outline {
+    background-color: transparent !important;
+    color: #1A1A1A !important;
+    border: 1px solid #1A1A1A !important;
+    border-radius: 0px !important;
+    padding: 14px 32px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    transition: all 0.3s ease !important;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn-luxury-outline:hover {
+    background-color: #1A1A1A !important;
+    color: #FFFFFF !important;
 }
