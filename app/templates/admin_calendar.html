@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Calendar{% endblock %}
+{% block title %}{{ _('Admin Calendar') }}{% endblock %}
 
 {% block content %}
 <div class="container">
     {% include 'admin_header.html' %}
-    <!-- Nuova Legenda Dinamica -->
+    
     <div class="mb-4 d-flex flex-wrap gap-2 align-items-center">
-        <small class="text-muted fw-bold me-2">Legend:</small>
-        <span class="badge bg-success">Direct (Confirmed)</span>
-        <span class="badge" style="background-color: #ffc107; color: #000;">Pending Verification</span>
-        <span class="badge" style="background-color: #ff5a5f;">Airbnb</span>
-        <span class="badge" style="background-color: #003580;">Booking.com</span>
-        <span class="badge bg-dark">Cancelled</span>
+        <small class="text-muted fw-bold me-2">{{ _('Legend:') }}</small>
+        <span class="badge bg-success">{{ _('Direct (Confirmed)') }}</span>
+        <span class="badge bg-warning text-dark">{{ _('Pending Verification') }}</span>
+        <span class="badge" style="background-color: #ff5a5f; color: #fff;">Airbnb</span>
+        <span class="badge" style="background-color: #003580; color: #fff;">Booking.com</span>
+        <span class="badge bg-primary">{{ _('Cancelled') }}</span>
     </div>
 
     <div class="card shadow-sm mb-5 border-0">
@@ -23,21 +23,20 @@
 </div>
 
 <style>
-    .fc { font-family: inherit; background: #ffffff; }
-    .fc-header-toolbar { padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px !important; }
-    .fc .fc-button-primary { background-color: #343a40 !important; border-color: #343a40 !important; }
+    .fc { font-family: var(--font-sans); background: var(--color-bg-white); }
+    .fc-header-toolbar { padding: var(--space-sm); background: var(--color-bg-alt); border-radius: var(--radius-md); margin-bottom: var(--space-lg) !important; }
+    .fc .fc-button-primary { background-color: var(--color-primary) !important; border-color: var(--color-primary) !important; }
     
-    /* Eventi: altezza fissa e testo troncato per non rompere il layout */
     .fc-event { 
         cursor: pointer; 
-        padding: 2px 4px; 
-        font-size: 0.75rem; 
+        padding: var(--space-xs) var(--space-sm); 
+        font-size: var(--font-size-xs); 
         border: none !important; 
         overflow: hidden; 
         text-overflow: ellipsis; 
         white-space: nowrap; 
     }
-    .pending-event { background-color: #ffc107 !important; color: #000 !important; border-left: 3px solid #d39e00 !important; }
+    .pending-event { background-color: var(--color-warning) !important; color: var(--color-primary) !important; border-left: 3px solid var(--color-warning) !important; }
 </style>
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.min.css" rel="stylesheet">
@@ -51,13 +50,10 @@ document.addEventListener('DOMContentLoaded', function() {
         eventSources: [{
             url: "{{ url_for('routes.api_calendar_reservations') }}",
             success: function(content) {
-                // Modifica dinamica degli eventi prima di renderli
                 return content.map(function(event) {
-                    // Imposta classe speciale se pending
                     if (event.extendedProps.status === 'pending') {
                         event.classNames = ['pending-event'];
                     }
-                    // Aggiungi il metodo di pagamento al titolo se disponibile
                     let method = event.extendedProps.payment_method ? event.extendedProps.payment_method.toUpperCase() : 'N/A';
                     event.title = event.title + ' (' + method + ')';
                     return event;
@@ -72,13 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
         eventClick: function(info) {
             let details = info.event.extendedProps;
             alert(
-                "📋 Booking Details\n" +
+                "📋 {{ _('Booking Details') }}\n" +
                 "-----------------------------------\n" +
-                "Guest: " + info.event.title + "\n" +
-                "Source: " + details.source.toUpperCase() + "\n" +
-                "Payment: " + (details.payment_method || 'N/A').toUpperCase() + "\n" +
-                "Status: " + details.status.toUpperCase() + " | " + details.payment_status.toUpperCase() + "\n" +
-                "Revenue: " + details.total
+                "{{ _('Guest:') }} " + info.event.title + "\n" +
+                "{{ _('Source:') }} " + details.source.toUpperCase() + "\n" +
+                "{{ _('Payment:') }} " + (details.payment_method || 'N/A').toUpperCase() + "\n" +
+                "{{ _('Status:') }} " + details.status.toUpperCase() + " | " + details.payment_status.toUpperCase() + "\n" +
+                "{{ _('Revenue:') }} " + details.total
             );
         }
     });
