@@ -3,7 +3,7 @@ from flask import (
     flash, request, current_app, session, abort, jsonify
 )
 from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm
-from app.models import Reservation, User, Apartment, ICalFeed, Coupon
+from app.models import Reservation, User, Apartment, ICalFeed, Coupon, Testimonial
 from app.services.ical_sync import sync_all_feeds
 from app import db, mail, csrf
 from flask_login import login_user, logout_user, login_required, current_user
@@ -27,6 +27,17 @@ bp = Blueprint('routes', __name__)
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def get_apartment():
     return Apartment.query.first()
+
+def get_testimonials():
+    testimonials = (
+        Testimonial.query
+        .filter_by(is_published=True)
+        .order_by(Testimonial.is_featured.desc(), Testimonial.created_at.desc())
+        .limit(6)
+        .all()
+    )
+    return testimonials
+
 
 def is_available(check_in, check_out):
     # Match the calendar loop exactly by checking against anything that IS NOT cancelled
@@ -172,7 +183,8 @@ def calculate_dynamic_total(check_in, check_out, base_rate):
 @bp.route('/')
 def home():
     apartment = get_apartment()
-    return render_template('apartment.html', apartment=apartment)
+    testimonials=get_testimonials()
+    return render_template('apartment.html', apartment=apartment, testimonials=testimonials)
 
 
 @bp.route('/faq')

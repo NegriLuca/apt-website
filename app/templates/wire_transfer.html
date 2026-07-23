@@ -2,33 +2,35 @@
 {% block title %}{{ _('Reservation Pending') }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-8 col-lg-6 text-center">
-    <div class="card p-5 shadow-sm border-0 bg-light rounded-4">
-      <div class="mb-4">
-        <i class="bi bi-clock-history text-warning" style="font-size: 4rem;"></i>
-      </div>
-      <h2 class="fw-bold mb-3">{{ _('Reservation Received!') }}</h2>
-      <p class="text-muted mb-4">
-        {{ _('Your booking is safely registered. To secure your dates, please submit the bank transfer within 24 hours.') }}
-      </p>
-      
-      <div class="alert alert-secondary text-start font-monospace p-3 bg-white border shadow-inner rounded-3">
-        <div class="mb-2"><strong>{{ _('Beneficiary:') }}</strong> Tuo Nome / Nome Struttura</div>
-        <div class="mb-2"><strong>IBAN:</strong> IT60X0000000000000000000000</div>
-        <div class="mb-2"><strong>BIC/SWIFT:</strong> XXXXXXXX</div>
-        <div class="mb-2"><strong>{{ _('Amount:') }}</strong> €{{ "%.2f"|format(total) }}</div>
-        <div class="mb-0 text-primary fw-bold"><strong>{{ _('Payment Reference:') }}</strong> Booking #{{ reservation_id }}</div>
-      </div>
+<div class="main-content">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm p-4 p-md-5 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-clock-history text-warning" style="font-size: 4rem;"></i>
+                </div>
+                <h1 class="page-title mb-3">{{ _('Reservation Received!') }}</h1>
+                <p class="lead text-muted mb-4">
+                    {{ _('Your booking is safely registered. To secure your dates, please submit the bank transfer within 24 hours.') }}
+                </p>
 
-      <div class="text-muted small p-2 mb-4 bg-warning-subtle text-warning-deep rounded">
-        <i class="bi bi-exclamation-triangle me-1"></i> {{ _('Please make sure to include the Payment Reference exactly as shown above.') }}
-      </div>
+                <div class="card border-0 bg-luxury-floor p-4 text-start mb-4 font-monospace small">
+                    <div class="mb-2"><strong class="text-uppercase small text-muted">{{ _('Beneficiary:') }}</strong> Tuo Nome / Nome Struttura</div>
+                    <div class="mb-2"><strong class="text-uppercase small text-muted">IBAN:</strong> IT60X0000000000000000000000</div>
+                    <div class="mb-2"><strong class="text-uppercase small text-muted">BIC/SWIFT:</strong> XXXXXXXX</div>
+                    <div class="mb-2"><strong class="text-uppercase small text-muted">{{ _('Amount:') }}</strong> €{{ "%.2f"|format(total) }}</div>
+                    <div class="mb-0 text-primary fw-bold"><strong class="text-uppercase small text-muted">{{ _('Payment Reference:') }}</strong> Booking #{{ reservation_id }}</div>
+                </div>
 
-      <a href="{{ url_for('routes.home') }}" class="btn btn-dark btn-lg w-100 fw-bold shadow-sm rounded-0 text-uppercase small" style="letter-spacing: 1px;">
-        {{ _('Back to Home') }}
-      </a>
+                <div class="alert alert-warning border-0 py-3 mb-4 small" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ _('Please make sure to include the Payment Reference exactly as shown above.') }}
+                </div>
+
+                <a href="{{ url_for('routes.home') }}" class="btn-luxury-primary w-100 py-3 fw-bold">
+                    {{ _('Back to Home') }}
+                </a>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

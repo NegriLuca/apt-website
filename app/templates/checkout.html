@@ -2,166 +2,174 @@
 {% block title %}{{ _('Complete your booking') }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-6">
-    <h2 class="mb-4 text-center text-lg-start fw-bold text-uppercase tracking-wide small" style="letter-spacing: 2px;">{{ _('Review & Pay') }}</h2>
+<div class="main-content">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h1 class="page-title mb-2 text-center text-lg-start">{{ _('Review & Pay') }}</h1>
 
-    <!-- SUMMARY CARD LUXURY -->
-    <div class="card shadow-sm mb-4 border-0 rounded-0">
-      <div class="card-header bg-dark text-white py-3 rounded-0">
-        <h5 class="mb-0 text-uppercase small tracking-wider fw-bold"><i class="bi bi-file-text me-2"></i>{{ _('Booking Summary') }}</h5>
-      </div>
-      <div class="card-body">
-        <table class="table table-borderless mb-0">
-          <tbody>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Apartment') }}</td>
-              <td class="py-2"><strong>{{ apartment.name }}</strong></td>
-            </tr>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Guest') }}</td>
-              <td class="py-2">{{ pending.guest_name }}</td>
-            </tr>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Email') }}</td>
-              <td class="py-2 text-break">{{ pending.guest_email }}</td>
-            </tr>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Check-in') }}</td>
-              <td class="py-2">{{ check_in | format_date(format='medium') }}</td>
-            </tr>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Check-out') }}</td>
-              <td class="py-2">{{ check_out | format_date(format='medium') }}</td>
-            </tr>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Nights') }}</td>
-              <!-- RIMOSSO IL BADGE NERO -->
-              <td class="py-2">{{ nights }}</td>
-            </tr>
-            <tr>
-              <td class="text-muted py-2 small">{{ _('Guests') }}</td>
-              <td class="py-2">{{ pending.num_guests }}</td>
-            </tr>
-            <tr class="table-light border-top">
-              <td class="py-3"><strong>{{ _('Total') }}</strong></td>
-              <td class="py-3"><strong class="text-dark fs-4">€{{ "%.2f"|format(total) }}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            <!-- SUMMARY CARD -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold tracking-wider"><i class="bi bi-file-text me-2"></i>{{ _('Booking Summary') }}</h5>
+                </div>
+                <div class="card-body p-4">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Apartment') }}</td>
+                                <td class="py-2"><strong>{{ apartment.name }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Guest') }}</td>
+                                <td class="py-2">{{ pending.guest_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Email') }}</td>
+                                <td class="py-2 text-break">{{ pending.guest_email }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Check-in') }}</td>
+                                <td class="py-2">{{ check_in | format_date(format='medium') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Check-out') }}</td>
+                                <td class="py-2">{{ check_out | format_date(format='medium') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Nights') }}</td>
+                                <td class="py-2">{{ nights }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-2 small">{{ _('Guests') }}</td>
+                                <td class="py-2">{{ pending.num_guests }}</td>
+                            </tr>
+                            <tr class="bg-luxury-floor border-top">
+                                <td class="py-3"><strong>{{ _('Total') }}</strong></td>
+                                <td class="py-3"><strong class="text-primary fs-4">€{{ "%.2f"|format(total) }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAYMENT FORM -->
+            <form action="{{ url_for('routes.process_payment') }}" method="POST" id="payment-form" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <h5 class="mb-4 text-uppercase small fw-bold text-muted tracking-wider">{{ _('Select Payment Method') }}</h5>
+
+                <!-- Option: Stripe -->
+                <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Credit Card') }}">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_stripe" value="stripe" checked>
+                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_stripe">{{ _('Credit Card') }}</label>
+                        </div>
+                        <i class="bi bi-shield-lock text-muted fs-5"></i>
+                    </div>
+                </div>
+
+                <!-- Option: PayPal -->
+                <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="PayPal">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_paypal" value="paypal">
+                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_paypal">PayPal</label>
+                        </div>
+                        <i class="bi bi-paypal text-muted fs-5"></i>
+                    </div>
+                </div>
+
+                <!-- Option: Wire Transfer -->
+                <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Bank Wire Transfer') }}">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_wire" value="wire_transfer">
+                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_wire">{{ _('Bank Wire Transfer') }}</label>
+                        </div>
+                        <i class="bi bi-bank text-muted fs-5"></i>
+                    </div>
+                </div>
+
+                <!-- Option: Developer Bypass -->
+                <div class="payment-option card p-3 mb-4 border shadow-sm transition border-warning bg-light" role="button" tabindex="0" aria-label="{{ _('Developer Test Bypass') }}">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_bypass" value="bypass">
+                            <label class="form-check-label fw-bold text-warning small text-uppercase cursor-pointer" for="pay_bypass">⚙️ {{ _('Developer Test Bypass') }}</label>
+                        </div>
+                        <i class="bi bi-bug text-muted fs-5"></i>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn-luxury-primary w-100 py-3 mb-3">
+                </button>
+            </form>
+
+            <p id="payment-footnote" class="text-muted text-center small px-2 mt-2" style="font-size: var(--font-size-xs); line-height: var(--line-height-relaxed);"></p>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('routes.reserve') }}" class="btn-link small text-uppercase" style="letter-spacing: var(--letter-spacing-wide);">
+                    <i class="bi bi-arrow-left me-1"></i> {{ _('Go back and change dates') }}
+                </a>
+            </div>
+        </div>
     </div>
-
-    <!-- PAYMENT FORM -->
-    <form action="{{ url_for('routes.process_payment') }}" method="POST" id="payment-form">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
-      <h5 class="mb-3 text-uppercase small tracking-wider fw-bold text-muted" style="letter-spacing: 1px;">{{ _('Select Payment Method') }}</h5>
-      
-      <!-- Option: Stripe (Icona Scudo/Lucchetto) -->
-      <div class="card p-3 mb-2 shadow-sm border payment-option-card transition-all rounded-0" style="cursor: pointer;">
-        <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-          <div class="d-flex align-items-center">
-            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_stripe" value="stripe" checked>
-            <label class="form-check-label fw-bold small text-uppercase" for="pay_stripe" style="cursor: pointer;">{{ _('Credit Card') }}</label>
-          </div>
-          <i class="bi bi-shield-lock text-muted fs-5"></i>
-        </div>
-      </div>
-
-      <!-- Option: PayPal -->
-      <div class="card p-3 mb-2 shadow-sm border payment-option-card transition-all rounded-0" style="cursor: pointer;">
-        <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-          <div class="d-flex align-items-center">
-            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_paypal" value="paypal">
-            <label class="form-check-label fw-bold small text-uppercase" for="pay_paypal" style="cursor: pointer;">PayPal</label>
-          </div>
-          <i class="bi bi-paypal text-muted fs-5"></i>
-        </div>
-      </div>
-
-      <!-- Option: Wire Transfer -->
-      <div class="card p-3 mb-2 shadow-sm border payment-option-card transition-all rounded-0" style="cursor: pointer;">
-        <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-          <div class="d-flex align-items-center">
-            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_wire" value="wire_transfer">
-            <label class="form-check-label fw-bold small text-uppercase" for="pay_wire" style="cursor: pointer;">{{ _('Bank Wire Transfer') }}</label>
-          </div>
-          <i class="bi bi-bank text-muted fs-5"></i>
-        </div>
-      </div>
-
-      <!-- Option: Developer Bypass -->
-      <div class="card p-3 mb-4 shadow-sm border payment-option-card border-warning-subtle bg-light-subtle transition-all rounded-0" style="cursor: pointer;">
-        <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-          <div class="d-flex align-items-center">
-            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_bypass" value="bypass">
-            <label class="form-check-label fw-bold text-warning-deep small text-uppercase" for="pay_bypass" style="cursor: pointer;">⚙️ {{ _('Developer Test Bypass') }}</label>
-          </div>
-          <i class="bi bi-bug text-muted fs-5"></i>
-        </div>
-      </div>
-
-      <button type="submit" id="submit-btn" class="btn btn-dark w-100 py-3 rounded-0 text-uppercase fw-bold shadow-sm mb-3" style="letter-spacing: 1px;">
-          <!-- Il testo viene inserito dallo script -->
-      </button>
-    </form>
-
-    <p id="payment-footnote" class="text-muted text-center small px-2 mt-2" style="font-size: 12px; line-height: 1.6;"></p>
-
-    <div class="text-center mt-4">
-      <a href="{{ url_for('routes.reserve') }}" class="text-decoration-none text-muted small text-uppercase" style="letter-spacing: 1px; font-size: 11px;">
-        <i class="bi bi-arrow-left me-1"></i> {{ _('Go back and change dates') }}
-      </a>
-    </div>
-  </div>
 </div>
 
 <style>
-  .payment-option-card:hover { transform: translateY(-1px); box-shadow: 0 .25rem .75rem rgba(0,0,0,0.04)!important; }
-  .transition-all { transition: all 0.2s ease-in-out; }
-  .payment-card-active { border-color: #212529 !important; background-color: #f8f9fa !important; }
+    .payment-option { cursor: pointer; border-radius: var(--radius-none); }
+    .payment-option:hover { transform: translateY(-1px); box-shadow: var(--shadow-md) !important; }
+    .payment-option.transition { transition: all var(--transition-normal); }
+    .payment-option-active { border-color: var(--color-primary) !important; background-color: var(--color-bg-alt) !important; }
+    .cursor-pointer { cursor: pointer; }
 </style>
 
 <script>
-  document.querySelectorAll('.payment-option-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const radio = card.querySelector('input[type="radio"]');
-      radio.checked = true;
-      radio.dispatchEvent(new Event('change'));
+    document.querySelectorAll('.payment-option').forEach(card => {
+        card.addEventListener('click', () => {
+            const radio = card.querySelector('input[type="radio"]');
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+        });
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                card.click();
+            }
+        });
     });
-  });
 
-  const stripeRadio = document.getElementById('pay_stripe');
-  const paypalRadio = document.getElementById('pay_paypal');
-  const wireRadio = document.getElementById('pay_wire');
-  const bypassRadio = document.getElementById('pay_bypass');
-  const submitBtn = document.getElementById('submit-btn');
-  const footnote = document.getElementById('payment-footnote');
+    const stripeRadio = document.getElementById('pay_stripe');
+    const paypalRadio = document.getElementById('pay_paypal');
+    const wireRadio = document.getElementById('pay_wire');
+    const bypassRadio = document.getElementById('pay_bypass');
+    const submitBtn = document.getElementById('submit-btn');
+    const footnote = document.getElementById('payment-footnote');
 
-  function updateUI() {
-    document.querySelectorAll('.payment-option-card').forEach(c => c.classList.remove('payment-card-active'));
-    
-    if (stripeRadio.checked) {
-      stripeRadio.closest('.payment-option-card').classList.add('payment-card-active');
-      submitBtn.innerHTML = '<i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}';
-      footnote.innerHTML = '{{ _("You will be redirected to Stripe\'s secure checkout page.") }}';
-    } else if (paypalRadio.checked) {
-      paypalRadio.closest('.payment-option-card').classList.add('payment-card-active');
-      submitBtn.innerHTML = '<i class="bi bi-paypal me-2"></i> {{ _("Proceed to PayPal") }}';
-      footnote.innerHTML = "{{ _('You will be redirected to PayPal to complete your payment instantly.') }}";
-    } else if (wireRadio.checked) {
-      wireRadio.closest('.payment-option-card').classList.add('payment-card-active');
-      submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}';
-      footnote.innerHTML = "{{ _('Your reservation will be held pending verification of the bank wire transfer.') }}";
-    } else if (bypassRadio.checked) {
-      bypassRadio.closest('.payment-option-card').classList.add('payment-card-active');
-      submitBtn.innerHTML = '<i class="bi bi-bug me-2"></i> {{ _("Complete Booking (Test Bypass)") }}';
-      footnote.innerHTML = "{{ _('Internal development mode: simulates successful payment.') }}";
+    function updateUI() {
+        document.querySelectorAll('.payment-option').forEach(c => c.classList.remove('payment-option-active'));
+        
+        if (stripeRadio.checked) {
+            stripeRadio.closest('.payment-option').classList.add('payment-option-active');
+            submitBtn.innerHTML = '<i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}';
+            footnote.innerHTML = '{{ _("You will be redirected to Stripe\'s secure checkout page.") }}';
+        } else if (paypalRadio.checked) {
+            paypalRadio.closest('.payment-option').classList.add('payment-option-active');
+            submitBtn.innerHTML = '<i class="bi bi-paypal me-2"></i> {{ _("Proceed to PayPal") }}';
+            footnote.innerHTML = "{{ _('You will be redirected to PayPal to complete your payment instantly.') }}";
+        } else if (wireRadio.checked) {
+            wireRadio.closest('.payment-option').classList.add('payment-option-active');
+            submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}';
+            footnote.innerHTML = "{{ _('Your reservation will be held pending verification of the bank wire transfer.') }}";
+        } else if (bypassRadio.checked) {
+            bypassRadio.closest('.payment-option').classList.add('payment-option-active');
+            submitBtn.innerHTML = '<i class="bi bi-bug me-2"></i> {{ _("Complete Booking (Test Bypass)") }}';
+            footnote.innerHTML = "{{ _('Internal development mode: simulates successful payment.') }}";
+        }
     }
-  }
 
-  document.querySelectorAll('input[name="payment_method"]').forEach(radio => radio.addEventListener('change', updateUI));
-  updateUI();
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => radio.addEventListener('change', updateUI));
+    updateUI();
 </script>
 {% endblock %}

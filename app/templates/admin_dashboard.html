@@ -1,67 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}{{ _('Admin Dashboard') }}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- Clean Dynamic Admin Navigation Header -->
     {% include 'admin_header.html' %}
-    <!-- Big KPI Stats Section -->
+    
     {% if stats %}
-    <div class="row g-3 mb-4 text-center">
+    <div class="row g-3 mb-5 text-center">
         <div class="col-6 col-md-3">
-            <div class="card bg-light border-0 shadow-sm p-3">
-                <small class="text-muted text-uppercase fw-bold">Total Bookings</small>
-                <h3 class="mb-0 text-dark font-monospace">{{ stats.total }}</h3>
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Total Bookings') }}</small>
+                <h3 class="mb-0 text-primary font-monospace">{{ stats.total }}</h3>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card bg-light border-0 shadow-sm p-3">
-                <small class="text-success text-uppercase fw-bold">Confirmed</small>
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-success text-uppercase fw-bold">{{ _('Confirmed') }}</small>
                 <h3 class="mb-0 text-success font-monospace">{{ stats.confirmed }}</h3>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card bg-light border-0 shadow-sm p-3">
-                <small class="text-warning text-uppercase fw-bold">Pending</small>
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-warning text-uppercase fw-bold">{{ _('Pending') }}</small>
                 <h3 class="mb-0 text-warning font-monospace">{{ stats.pending }}</h3>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card bg-light border-0 shadow-sm p-3">
-                <small class="text-danger text-uppercase fw-bold">Cancelled</small>
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-danger text-uppercase fw-bold">{{ _('Cancelled') }}</small>
                 <h3 class="mb-0 text-danger font-monospace">{{ stats.cancelled }}</h3>
             </div>
         </div>
     </div>
     {% endif %}
 
-    <!-- Filter Bar Component -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Reservation Ledger</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Reservation Ledger') }}</h4>
         <div class="btn-group btn-group-sm shadow-sm">
-            <a href="?status=all" class="btn btn-outline-dark {% if status_filter == 'all' or not status_filter %}active{% endif %}">All</a>
-            <a href="?status=confirmed" class="btn btn-outline-dark {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
-            <a href="?status=pending" class="btn btn-outline-dark {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
-            <a href="?status=cancelled" class="btn btn-outline-dark {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
+            <a href="?status=all" class="btn btn-outline-primary {% if status_filter == 'all' or not status_filter %}active{% endif %}">{{ _('All') }}</a>
+            <a href="?status=confirmed" class="btn btn-outline-primary {% if status_filter == 'confirmed' %}active{% endif %}">{{ _('Confirmed') }}</a>
+            <a href="?status=pending" class="btn btn-outline-primary {% if status_filter == 'pending' %}active{% endif %}">{{ _('Pending') }}</a>
+            <a href="?status=cancelled" class="btn btn-outline-primary {% if status_filter == 'cancelled' %}active{% endif %}">{{ _('Cancelled') }}</a>
         </div>
     </div>
 
-    <!-- Reservations Data Matrix -->
-    <div class="card shadow-sm border-0 mb-5">
+    <div class="card border-0 shadow-sm mb-5">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
-                        <th>Guest Name / Contact</th>
-                        <th>Source Channel</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Nights</th>
-                        <th>Total Revenue</th>
-                        <th>Payment Details</th>
-                        <th>Actions</th>
+                        <th>{{ _('ID') }}</th>
+                        <th>{{ _('Guest Name / Contact') }}</th>
+                        <th>{{ _('Source Channel') }}</th>
+                        <th>{{ _('Check-in') }}</th>
+                        <th>{{ _('Check-out') }}</th>
+                        <th>{{ _('Nights') }}</th>
+                        <th>{{ _('Total Revenue') }}</th>
+                        <th>{{ _('Payment Details') }}</th>
+                        <th>{{ _('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -71,24 +68,24 @@
                         <td>
                             <strong>{{ r.guest_name }}</strong>
                             <br>
-                            <small class="text-muted">{{ r.guest_email or 'No email provided via sync' }}</small>
+                            <small class="text-muted">{{ r.guest_email or _('No email provided via sync') }}</small>
                         </td>
                         <td>
                             {% if r.source == 'direct' or r.source == 'stripe' %}
-                                <span class="badge text-white bg-success" style="background-color: #28a745 !important;">
-                                    Direct ({{ r.payment_method | upper if r.payment_method else 'Stripe' }})
+                                <span class="badge bg-success text-white px-2 py-1">
+                                    {{ _('Direct') }} ({{ r.payment_method | upper if r.payment_method else 'Stripe' }})
                                 </span>
                             {% elif r.source == 'airbnb' %}
-                                <span class="badge bg-danger" style="background-color: #ff5a5f !important;">Airbnb</span>
+                                <span class="badge" style="background-color: var(--color-airbnb, #ff5a5f);">Airbnb</span>
                             {% elif r.source == 'booking_com' %}
-                                <span class="badge bg-primary" style="background-color: #003580 !important;">Booking.com</span>
+                                <span class="badge" style="background-color: var(--color-booking, #003580);">Booking.com</span>
                             {% else %}
                                 <span class="badge bg-secondary text-uppercase">{{ r.source }}</span>
                             {% endif %}
                         </td>
                         <td>{{ r.check_in }}</td>
                         <td>{{ r.check_out }}</td>
-                        <td>{{ r.nights }} nights</td>
+                        <td>{{ r.nights }} {{ _('nights') }}</td>
                         <td>
                             {% if r.total_price > 0 %}
                                 <strong>€{{ "%.2f"|format(r.total_price) }}</strong>
@@ -98,52 +95,50 @@
                         </td>
                         <td>
                             {% if r.payment_status == 'paid' %}
-                                <span class="badge bg-light text-success border border-success px-2 py-1 text-uppercase" style="font-size: 11px;">
-                                    Paid via {{ r.payment_method | upper if r.payment_method else 'STRIPE' }}
+                                <span class="badge bg-light text-success border border-success px-2 py-1 text-uppercase small">
+                                    {{ _('Paid via') }} {{ r.payment_method | upper if r.payment_method else 'STRIPE' }}
                                 </span>
                             {% elif r.payment_status == 'unpaid' %}
-                                <span class="badge bg-light text-danger border border-danger px-2 py-1 text-uppercase" style="font-size: 11px;">
-                                    Unpaid ({{ r.payment_method | upper if r.payment_method else 'PENDING' }})
+                                <span class="badge bg-light text-danger border border-danger px-2 py-1 text-uppercase small">
+                                    {{ _('Unpaid') }} ({{ r.payment_method | upper if r.payment_method else 'PENDING' }})
                                 </span>
                             {% elif r.payment_status == 'cancelled' or r.payment_status == 'refunded' %}
-                                <span class="badge bg-light text-danger border border-danger px-2 py-1 text-uppercase" style="font-size: 11px;">
+                                <span class="badge bg-light text-danger border border-danger px-2 py-1 text-uppercase small">
                                     {{ r.payment_status | title }}
                                 </span>
                             {% else %}
-                                <span class="text-muted"><small>Processed by Channel</small></span>
+                                <span class="text-muted small">{{ _('Processed by Channel') }}</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <!-- Pulsante Approva: solo per prenotazioni in pending -->
                                 {% if r.status == 'pending' and r.source in ['direct', 'stripe'] %}
                                     <form action="{{ url_for('routes.admin_confirm_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-dark text-uppercase fw-bold rounded-1" style="font-size: 0.72rem; padding: 3px 8px; letter-spacing: 0.3px;">
-                                            ✅ Approve & Paid
+                                        <button type="submit" class="btn btn-sm btn-primary text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); letter-spacing: 0.3px;">
+                                            ✅ {{ _('Approve & Paid') }}
                                         </button>
                                     </form>
                                 {% endif %}
 
-                                <!-- Pulsante Cancellazione Nativa (Post protetto) -->
                                 {% if r.source in ['direct', 'stripe'] and r.status != 'cancelled' and r.payment_status not in ['cancelled', 'refunded'] %}
-                                    <form action="{{ url_for('routes.admin_cancel_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('⚠️ WARNING: Are you sure you want to cancel this booking and issue a full Stripe refund?');">
+                                    <form action="{{ url_for('routes.admin_cancel_reservation', res_id=r.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('⚠️ {{ _('WARNING: Are you sure you want to cancel this booking and issue a full Stripe refund?') }}');">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-danger text-uppercase fw-bold rounded-1" style="font-size: 0.72rem; padding: 3px 8px; letter-spacing: 0.3px;">
-                                            🛑 Cancel & Refund
+                                        <button type="submit" class="btn btn-sm btn-danger text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm); letter-spacing: 0.3px;">
+                                            🛑 {{ _('Cancel & Refund') }}
                                         </button>
                                     </form>
                                 {% elif r.status == 'cancelled' %}
-                                    <span class="text-muted-small" style="font-size: 0.8rem; font-style: italic; color: #94a3b8;">Cancelled</span>
+                                    <span class="text-muted small fst-italic">{{ _('Cancelled') }}</span>
                                 {% else %}
-                                    <span class="text-muted-small" style="font-size: 0.8rem; font-style: italic; color: #94a3b8;">Manage on OTA</span>
+                                    <span class="text-muted small fst-italic">{{ _('Manage on OTA') }}</span>
                                 {% endif %}
                             </div>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">No reservations logged matching this state.</td>
+                        <td colspan="9" class="text-center text-muted py-4">{{ _('No reservations logged matching this state.') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -151,28 +146,27 @@
         </div>
     </div>
 
-    <!-- RESTORED ICAL ENGINE CHANNELS MODULE -->
-    <hr class="my-5">
+    <hr class="my-5 opacity-25">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>🔄 External iCal Synchronization Feeds</h3>
+        <h3 class="h5 mb-0">{{ _('External iCal Synchronization Feeds') }}</h3>
         <div>
-            <a href="{{ url_for('routes.add_feed') }}" class="btn btn-sm btn-primary fw-bold px-3">Add iCal Feed</a>
-            <form action="{{ url_for('routes.sync_feeds_now') }}" method="POST" class="d-inline">
+            <a href="{{ url_for('routes.add_feed') }}" class="btn btn-sm btn-primary fw-bold px-3">{{ _('Add iCal Feed') }}</a>
+            <form action="{{ url_for('routes.sync_feeds_now') }}" method="POST" class="d-inline ms-2">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn-sm btn-success fw-bold px-3">Sync Feeds Now</button>
+                <button type="submit" class="btn btn-sm btn-success fw-bold px-3">{{ _('Sync Feeds Now') }}</button>
             </form>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-5">
+    <div class="card border-0 shadow-sm mb-5">
         <div class="table-responsive">
             <table class="table table-striped align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>Platform</th>
-                        <th>URL</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ _('Platform') }}</th>
+                        <th>{{ _('URL') }}</th>
+                        <th>{{ _('Status') }}</th>
+                        <th>{{ _('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -182,24 +176,24 @@
                         <td class="text-muted"><small><code>{{ feed.url }}</code></small></td>
                         <td>
                             {% if feed.active %}
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success">{{ _('Active') }}</span>
                             {% else %}
-                                <span class="badge bg-secondary">Inactive</span>
+                                <span class="badge bg-secondary">{{ _('Inactive') }}</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('routes.edit_feed', feed_id=feed.id) }}" class="btn btn-outline-secondary">Edit</a>
-                                <form action="{{ url_for('routes.delete_feed', feed_id=feed.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this feed?');" class="d-inline">
+                                <a href="{{ url_for('routes.edit_feed', feed_id=feed.id) }}" class="btn btn-outline-primary">{{ _('Edit') }}</a>
+                                <form action="{{ url_for('routes.delete_feed', feed_id=feed.id) }}" method="POST" onsubmit="return confirm('{{ _('Are you sure you want to delete this feed?') }}');" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                                    <button type="submit" class="btn btn-outline-danger">{{ _('Delete') }}</button>
                                 </form>
                             </div>
                         </td>            
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-3">No external calendar feeds added yet.</td>
+                        <td colspan="4" class="text-center text-muted py-3">{{ _('No external calendar feeds added yet.') }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -185,8 +185,6 @@
             <h2 id="testimonials-heading" class="section-title">{{ _('Guest Reviews') }}</h2>
             <p class="lead text-muted">{{ _('What our guests say about their stay') }}</p>
         </div>
-
-        {% set testimonials = Testimonial.query.filter_by(is_published=True).order_by(Testimonial.is_featured.desc(), Testimonial.created_at.desc()).limit(6).all() %}
         
         {% if testimonials %}
         <div class="testimonials-grid">
