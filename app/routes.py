@@ -428,54 +428,7 @@ def process_payment():
             
             session.pop('pending_reservation', None)
             return redirect(url_for('routes.wire_transfer_instructions'))
-        
-    elif method == 'paypal':
-        pending = session.get('pending_reservation')
-        if not pending:
-            flash(_('Session expired. Please try again.'), 'danger')
-            return redirect(url_for('routes.reserve'))
-            
-        apartment = get_apartment()
-        check_in_dt = date.fromisoformat(pending['check_in'])
-        check_out_dt = date.fromisoformat(pending['check_out'])
-        
-        # Fallback sicuro sul prezzo dinamico calcolato se total_price manca
-        base_rate = apartment.price_per_night if apartment else 0
-        fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, base_rate)
-        total_price = pending.get('total_price', fallback_total)
-        
-        new_reservation = Reservation(
-            guest_name=pending['guest_name'],
-            guest_email=pending['guest_email'],
-            check_in=check_in_dt,
-            check_out=check_out_dt,
-            num_guests=int(pending['num_guests']),
-            status='pending',
-            source='direct',
-            total_price=total_price,
-            coupon_code=pending.get('coupon_code'),
-            payment_status='unpaid',
-            payment_method='paypal',
-            cancel_token=secrets.token_urlsafe(32)
-        )
-        
-        db.session.add(new_reservation)
-        db.session.commit()
-        
-        # Send pending payment confirmation email
-        send_pending_payment_email(new_reservation)
-        
-        paypal_username = "il_tuo_username" 
-        formatted_price = "%.2f" % total_price
-        paypal_url = f"https://paypal.me/{paypal_username}/{formatted_price}EUR"
-        
-        session['completed_paypal_res_id'] = new_reservation.id
-        session['paypal_redirect_url'] = paypal_url
-        
-        session.pop('pending_reservation', None)
-        
-        return redirect(url_for('routes.paypal_redirect_page'))    
-        
+
     return redirect(url_for('routes.checkout'))
 
 @bp.route('/checkout/wire-transfer')
@@ -490,19 +443,6 @@ def wire_transfer_instructions():
     session.pop('completed_wire_total', None)
     
     return render_template('wire_transfer.html', reservation_id=reservation_id, total=total)
-
-@bp.route('/checkout/paypal-redirect')
-def paypal_redirect_page():
-    reservation_id = session.get('completed_paypal_res_id')
-    paypal_url = session.get('paypal_redirect_url')
-    
-    if not reservation_id or not paypal_url:
-        return redirect(url_for('routes.home'))
-        
-    session.pop('completed_paypal_res_id', None)
-    session.pop('paypal_redirect_url', None)
-    
-    return render_template('paypal_redirect.html', reservation_id=reservation_id, paypal_url=paypal_url)
 
 @bp.route('/checkout/create-session', methods=['POST'])
 def create_checkout_session():
