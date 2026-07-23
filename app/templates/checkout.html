@@ -58,30 +58,30 @@
 
                 <h5 class="mb-4 text-uppercase small fw-bold text-muted tracking-wider">{{ _('Select Payment Method') }}</h5>
 
-                <!-- Option: Wire Transfer -->
-                <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Bank Wire Transfer') }}">
-                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-                        <div class="d-flex align-items-center">
-                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_wire" value="wire_transfer" checked>
-                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_wire">{{ _('Bank Wire Transfer') }}</label>
-                        </div>
-                        <i class="bi bi-bank text-muted fs-5"></i>
-                    </div>
-                </div>
-
                 <!-- Option: Stripe -->
                 <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Credit Card') }}">
                     <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
                         <div class="d-flex align-items-center">
-                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_stripe" value="stripe">
+                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_stripe" value="stripe" checked>
                             <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_stripe">{{ _('Credit Card') }}</label>
                         </div>
                         <i class="bi bi-shield-lock text-muted fs-5"></i>
                     </div>
                 </div>
 
+                <!-- Option: Wire Transfer -->
+                <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Bank Wire Transfer') }}">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_wire" value="wire_transfer">
+                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_wire">{{ _('Bank Wire Transfer') }}</label>
+                        </div>
+                        <i class="bi bi-bank text-muted fs-5"></i>
+                    </div>
+                </div>
+
                 <button type="submit" id="submit-btn" class="btn-luxury-primary w-100 py-3 mb-3">
-                    <i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}
+                    <i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}
                 </button>
             </form>
 
