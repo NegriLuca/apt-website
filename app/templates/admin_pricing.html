@@ -9,7 +9,7 @@
         <!-- Nightly Base Rates Operational Form -->
         <div class="col-md-5">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary text-white fw-bold">{{ _('Base Apartment Value') }}</div>
+                <div class="card-header bg-dark text-white fw-bold">{{ _('Base Apartment Value') }}</div>
                 <div class="card-body py-4">
                     <form action="{{ url_for('routes.admin_pricing') }}" method="POST" novalidate>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -28,7 +28,7 @@
         <!-- Coupons Display Container -->
         <div class="col-md-7">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center fw-bold">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center fw-bold">
                     <span>{{ _('Operational System Vouchers') }}</span>
                     <button class="btn btn-sm btn-light text-dark py-1 px-2 fw-bold" data-bs-toggle="modal" data-bs-target="#createCouponModal">+ {{ _('Create Code') }}</button>
                 </div>
@@ -73,7 +73,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <form action="{{ url_for('routes.admin_create_coupon') }}" method="POST" class="modal-content" novalidate>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title fw-bold">{{ _('Generate New Coupon') }}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

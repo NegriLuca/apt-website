@@ -384,10 +384,7 @@ def checkout():
 def process_payment():
     method = request.form.get('payment_method')
     
-    if method == 'bypass':
-        return test_bypass_booking()
-        
-    elif method == 'stripe':
+    if method == 'stripe':
         return create_checkout_session()
         
     elif method == 'wire_transfer':
@@ -571,55 +568,6 @@ def create_checkout_session():
         return redirect(url_for('routes.checkout'))
     
 
-@bp.route('/checkout/test-bypass', methods=['POST'])
-def test_bypass_booking():
-    pending = session.get('pending_reservation')
-    if not pending:
-        flash(_('Session expired. Please start again.'), 'warning')
-        return redirect(url_for('routes.reserve'))
-
-    apartment = get_apartment()
-    check_in  = date.fromisoformat(pending['check_in'])
-    check_out = date.fromisoformat(pending['check_out'])
-
-    if not is_available(check_in, check_out):
-        session.pop('pending_reservation', None)
-        flash(_('Sorry, those dates were just booked.'), 'danger')
-        return redirect(url_for('routes.reserve'))
-
-    # INTEGRATA: Fallback dinamico anche per il bypass di sviluppo locale
-    base_rate = apartment.price_per_night if apartment else 0
-    fallback_total = calculate_dynamic_total(check_in, check_out, base_rate)
-    total_price = pending.get('total_price', fallback_total)
-
-    reservation = Reservation(
-        guest_name   = pending['guest_name'],
-        guest_email  = pending['guest_email'],
-        check_in     = check_in,
-        check_out    = check_out,
-        num_guests   = int(pending['num_guests']),
-        status       = 'confirmed',
-        source       = 'direct',
-        total_price  = total_price,
-        coupon_code  = pending.get('coupon_code'),  
-        payment_status = 'paid',
-        payment_method = 'bypass',
-        cancel_token = secrets.token_urlsafe(32),
-        stripe_payment_intent_id = f"test_bypass_{secrets.token_hex(8)}"
-    )
-    
-    db.session.add(reservation)
-    db.session.commit()
-    
-    try:
-        _send_confirmation_emails(reservation)
-        flash(_('Confirmation emails sent successfully!'), 'info')
-    except Exception as exc:
-        current_app.logger.error('Failed to send confirmation email in test bypass: %s', exc)
-        flash(_('Reservation saved, but email sending failed.'), 'warning')
-
-    session.pop('pending_reservation', None)
-    return redirect(url_for('routes.booking_confirmed', reservation_id=reservation.id))
 
 @bp.route('/payment/success')
 def payment_success():

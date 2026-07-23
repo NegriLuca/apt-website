@@ -9,7 +9,7 @@
 
             <!-- SUMMARY CARD -->
             <div class="card border-0 shadow-sm mb-5">
-                <div class="card-header bg-primary text-white py-3">
+                <div class="card-header bg-dark text-white py-3">
                     <h5 class="mb-0 text-uppercase small fw-bold tracking-wider"><i class="bi bi-file-text me-2"></i>{{ _('Booking Summary') }}</h5>
                 </div>
                 <div class="card-body p-4">
@@ -45,7 +45,7 @@
                             </tr>
                             <tr class="bg-luxury-floor border-top">
                                 <td class="py-3"><strong>{{ _('Total') }}</strong></td>
-                                <td class="py-3"><strong class="text-primary fs-4">€{{ "%.2f"|format(total) }}</strong></td>
+                                <td class="py-3"><strong class="text-dark fs-4">€{{ "%.2f"|format(total) }}</strong></td>
                             </tr>
                         </tbody>
                     </table>
@@ -91,17 +91,6 @@
                     </div>
                 </div>
 
-                <!-- Option: Developer Bypass -->
-                <div class="payment-option card p-3 mb-4 border shadow-sm transition border-warning bg-light" role="button" tabindex="0" aria-label="{{ _('Developer Test Bypass') }}">
-                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-                        <div class="d-flex align-items-center">
-                            <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_bypass" value="bypass">
-                            <label class="form-check-label fw-bold text-warning small text-uppercase cursor-pointer" for="pay_bypass">⚙️ {{ _('Developer Test Bypass') }}</label>
-                        </div>
-                        <i class="bi bi-bug text-muted fs-5"></i>
-                    </div>
-                </div>
-
                 <button type="submit" id="submit-btn" class="btn-luxury-primary w-100 py-3 mb-3">
                 </button>
             </form>
@@ -143,7 +132,6 @@
     const stripeRadio = document.getElementById('pay_stripe');
     const paypalRadio = document.getElementById('pay_paypal');
     const wireRadio = document.getElementById('pay_wire');
-    const bypassRadio = document.getElementById('pay_bypass');
     const submitBtn = document.getElementById('submit-btn');
     const footnote = document.getElementById('payment-footnote');
 
@@ -162,10 +150,6 @@
             wireRadio.closest('.payment-option').classList.add('payment-option-active');
             submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}';
             footnote.innerHTML = "{{ _('Your reservation will be held pending verification of the bank wire transfer.') }}";
-        } else if (bypassRadio.checked) {
-            bypassRadio.closest('.payment-option').classList.add('payment-option-active');
-            submitBtn.innerHTML = '<i class="bi bi-bug me-2"></i> {{ _("Complete Booking (Test Bypass)") }}';
-            footnote.innerHTML = "{{ _('Internal development mode: simulates successful payment.') }}";
         }
     }
 
