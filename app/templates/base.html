@@ -54,10 +54,15 @@
                             <li><a class="dropdown-item py-2" href="?lang=es"><span class="me-2">🇪🇸</span> ES</a></li>
                         </ul>
                     </li>
-
                     {% if current_user.is_authenticated and current_user.is_admin %}
-                        <li class="nav-item"><a class="btn btn-dark btn-sm ms-lg-3 px-3 rounded-0" href="{{ url_for('routes.admin_dashboard') }}">Admin</a></li>
-                    {% endif %}
+                        <li class="nav-item">
+                            <a class="btn btn-dark btn-sm ms-lg-3 px-3 rounded-0" href="{{ url_for('routes.admin_dashboard') }}">Admin</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link-luxury ms-lg-2" href="{{ url_for('routes.login') }}">Area Riservata</a>
+                        </li>
+                    {% endif %}                
                 </ul>
             </div>
         </div>
