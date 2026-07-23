@@ -106,3 +106,16 @@ h1, h2, h3, .section-title {
 
 /* Protezione globale */
 img, iframe, video, .leaflet-container { max-width: 100% !important; }
+
+/* 🖼️ CAROUSEL APPARTAMENTO (DIMENSIONI UNIFORMI) */
+.apartment-carousel-img {
+    height: 450px;           /* Altezza fissa per desktop */
+    object-fit: cover;       /* Mantiene le proporzioni senza deformare l'immagine */
+    object-position: center;  /* Centra il punto focale della foto */
+}
+/* Adattamento per dispositivi mobili */
+@media (max-width: 768px) {
+    .apartment-carousel-img {
+        height: 300px;        /* Altezza ridotta per smartphone */
+    }
+}
