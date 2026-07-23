@@ -174,11 +174,6 @@ def home():
     apartment = get_apartment()
     return render_template('apartment.html', apartment=apartment)
 
-@bp.route('/apartment')
-def apartment():
-    apartment = get_apartment()
-    return render_template('apartment.html', apartment=apartment)
-
 
 @bp.route('/faq')
 def faq():
