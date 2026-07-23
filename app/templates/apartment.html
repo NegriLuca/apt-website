@@ -69,46 +69,64 @@
             <div id="apartmentCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
                 <div class="carousel-inner rounded shadow-sm">
                     <div class="carousel-item active">
-                        <img src="{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg') }}"
-                             class="d-block w-100 apartment-carousel-img"
-                             alt="{{ _('Soggiorno - living room') }}"
-                             loading="eager"
-                             width="1200" height="675">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='images/apartment/Soggiorno_4.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='images/apartment/Soggiorno_4.jpg') }}"
+                                 class="d-block w-100 apartment-carousel-img"
+                                 alt="{{ _('Soggiorno - living room') }}"
+                                 loading="eager"
+                                 width="1200" height="675">
+                        </picture>
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ url_for('static', filename='images/apartment/Soggiorno_5.jpg') }}"
-                             class="d-block w-100 apartment-carousel-img"
-                             alt="{{ _('Soggiorno - seconda vista') }}"
-                             loading="lazy"
-                             width="1200" height="675">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='images/apartment/Soggiorno_5.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='images/apartment/Soggiorno_5.jpg') }}"
+                                 class="d-block w-100 apartment-carousel-img"
+                                 alt="{{ _('Soggiorno - seconda vista') }}"
+                                 loading="lazy"
+                                 width="1200" height="675">
+                        </picture>
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ url_for('static', filename='images/apartment/Camera_2.jpg') }}"
-                             class="d-block w-100 apartment-carousel-img"
-                             alt="{{ _('Camera da letto') }}"
-                             loading="lazy"
-                             width="1200" height="675">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='images/apartment/Camera_2.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='images/apartment/Camera_2.jpg') }}"
+                                 class="d-block w-100 apartment-carousel-img"
+                                 alt="{{ _('Camera da letto') }}"
+                                 loading="lazy"
+                                 width="1200" height="675">
+                        </picture>
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ url_for('static', filename='images/apartment/Cucina_3.jpg') }}"
-                             class="d-block w-100 apartment-carousel-img"
-                             alt="{{ _('Cucina moderna') }}"
-                             loading="lazy"
-                             width="1200" height="675">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='images/apartment/Cucina_3.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='images/apartment/Cucina_3.jpg') }}"
+                                 class="d-block w-100 apartment-carousel-img"
+                                 alt="{{ _('Cucina moderna') }}"
+                                 loading="lazy"
+                                 width="1200" height="675">
+                        </picture>
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ url_for('static', filename='images/apartment/Bagno_1.jpg') }}"
-                             class="d-block w-100 apartment-carousel-img"
-                             alt="{{ _('Bagno elegante') }}"
-                             loading="lazy"
-                             width="1200" height="675">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='images/apartment/Bagno_1.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='images/apartment/Bagno_1.jpg') }}"
+                                 class="d-block w-100 apartment-carousel-img"
+                                 alt="{{ _('Bagno elegante') }}"
+                                 loading="lazy"
+                                 width="1200" height="675">
+                        </picture>
                     </div>
                     <div class="carousel-item">
-                        <img src="{{ url_for('static', filename='images/apartment/Cucina_2.jpg') }}"
-                             class="d-block w-100 apartment-carousel-img"
-                             alt="{{ _('Cucina - vista alternativa') }}"
-                             loading="lazy"
-                             width="1200" height="675">
+                        <picture>
+                            <source srcset="{{ url_for('static', filename='images/apartment/Cucina_2.webp') }}" type="image/webp">
+                            <img src="{{ url_for('static', filename='images/apartment/Cucina_2.jpg') }}"
+                                 class="d-block w-100 apartment-carousel-img"
+                                 alt="{{ _('Cucina - vista alternativa') }}"
+                                 loading="lazy"
+                                 width="1200" height="675">
+                        </picture>
                     </div>
                 </div>
 
