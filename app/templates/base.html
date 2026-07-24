@@ -154,15 +154,20 @@
                 LOTTO <span class="fw-light">235</span> <small class="text-muted d-block" style="font-size: 10px; letter-spacing: 2px;">GARBATELLA</small>
             </a>
             
-            <!-- Language Selector (always visible) -->
-            <div class="d-flex align-items-center ms-lg-3 ms-2" role="group" aria-label="{{ _('Language selector') }}">
-                <span class="visually-hidden">{{ _('Language:') }}</span>
-                <div class="btn-group btn-group-sm" role="group">
-                    <a class="btn btn-outline-secondary {% if get_locale() == 'it' %}active{% endif %}" href="?lang=it" aria-label="Italiano" aria-pressed="{{ 'true' if get_locale() == 'it' else 'false' }}">🇮🇹</a>
-                    <a class="btn btn-outline-secondary {% if get_locale() == 'en' %}active{% endif %}" href="?lang=en" aria-label="English" aria-pressed="{{ 'true' if get_locale() == 'en' else 'false' }}">🇬🇧</a>
-                    <a class="btn btn-outline-secondary {% if get_locale() == 'fr' %}active{% endif %}" href="?lang=fr" aria-label="Français" aria-pressed="{{ 'true' if get_locale() == 'fr' else 'false' }}">🇫🇷</a>
-                    <a class="btn btn-outline-secondary {% if get_locale() == 'de' %}active{% endif %}" href="?lang=de" aria-label="Deutsch" aria-pressed="{{ 'true' if get_locale() == 'de' else 'false' }}">🇩🇪</a>
-                    <a class="btn btn-outline-secondary {% if get_locale() == 'es' %}active{% endif %}" href="?lang=es" aria-label="Español" aria-pressed="{{ 'true' if get_locale() == 'es' else 'false' }}">🇪🇸</a>
+            <!-- Language Selector (dropdown) -->
+            <div class="ms-lg-3 ms-2">
+                <div class="dropdown">
+                    <a class="nav-link-luxury dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ _('Select language') }}">
+                        <i class="bi bi-globe me-1 text-muted"></i>
+                        <span class="text-uppercase fw-bold">{{ get_locale() }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end rounded-0 border-muted shadow-sm" aria-labelledby="langDropdown">
+                        <li><a class="dropdown-item py-2 {% if get_locale() == 'it' %}active{% endif %}" href="?lang=it"><span class="me-2">🇮🇹</span> {{ _('Italian') }}</a></li>
+                        <li><a class="dropdown-item py-2 {% if get_locale() == 'en' %}active{% endif %}" href="?lang=en"><span class="me-2">🇬🇧</span> {{ _('English') }}</a></li>
+                        <li><a class="dropdown-item py-2 {% if get_locale() == 'fr' %}active{% endif %}" href="?lang=fr"><span class="me-2">🇫🇷</span> {{ _('French') }}</a></li>
+                        <li><a class="dropdown-item py-2 {% if get_locale() == 'de' %}active{% endif %}" href="?lang=de"><span class="me-2">🇩🇪</span> {{ _('German') }}</a></li>
+                        <li><a class="dropdown-item py-2 {% if get_locale() == 'es' %}active{% endif %}" href="?lang=es"><span class="me-2">🇪🇸</span> {{ _('Spanish') }}</a></li>
+                    </ul>
                 </div>
             </div>
 
