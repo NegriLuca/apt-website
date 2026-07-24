@@ -5,7 +5,7 @@ from flask import (
 from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm, TestimonialForm
 from app.models import Reservation, User, Apartment, ICalFeed, Coupon, Testimonial
 from app.services.ical_sync import sync_all_feeds
-from app import db, mail, csrf
+from app import db, mail, csrf, limiter
 from flask_login import login_user, logout_user, login_required, current_user
 from flask_mail import Message
 from flask_babel import gettext as _
