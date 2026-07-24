@@ -10,7 +10,7 @@
             <!-- SUMMARY CARD -->
             <div class="card border-0 shadow-sm mb-5">
                 <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0 text-uppercase small fw-bold tracking-wider"><i class="bi bi-file-text me-2"></i>{{ _('Booking Summary') }}</h5>
+                    <h5 class="mb-0 text-uppercase small fw-bold tracking-wider text-white"><i class="bi bi-file-text me-2"></i>{{ _('Booking Summary') }}</h5>
                 </div>
                 <div class="card-body p-4">
                     <table class="table table-borderless mb-0">
@@ -60,10 +60,10 @@
 
                 <!-- Option: Stripe -->
                 <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Credit Card') }}">
-                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-                        <div class="d-flex align-items-center">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100 pe-none">
+                        <div class="d-flex align-items-center pe-auto">
                             <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_stripe" value="stripe" checked>
-                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_stripe">{{ _('Credit Card') }}</label>
+                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer mb-0" for="pay_stripe">{{ _('Credit Card') }}</label>
                         </div>
                         <i class="bi bi-shield-lock text-muted fs-5"></i>
                     </div>
@@ -71,10 +71,10 @@
 
                 <!-- Option: Wire Transfer -->
                 <div class="payment-option card p-3 mb-3 border shadow-sm transition" role="button" tabindex="0" aria-label="{{ _('Bank Wire Transfer') }}">
-                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100">
-                        <div class="d-flex align-items-center">
+                    <div class="form-check d-flex align-items-center justify-content-between mb-0 w-100 pe-none">
+                        <div class="d-flex align-items-center pe-auto">
                             <input class="form-check-input me-3" type="radio" name="payment_method" id="pay_wire" value="wire_transfer">
-                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer" for="pay_wire">{{ _('Bank Wire Transfer') }}</label>
+                            <label class="form-check-label fw-bold small text-uppercase cursor-pointer mb-0" for="pay_wire">{{ _('Bank Wire Transfer') }}</label>
                         </div>
                         <i class="bi bi-bank text-muted fs-5"></i>
                     </div>
@@ -97,7 +97,7 @@
 </div>
 
 <style>
-    .payment-option { cursor: pointer; border-radius: var(--radius-none); }
+    .payment-option { cursor: pointer; border-radius: var(--radius-none); user-select: none; }
     .payment-option:hover { transform: translateY(-1px); box-shadow: var(--shadow-md) !important; }
     .payment-option.transition { transition: all var(--transition-normal); }
     .payment-option-active { border-color: var(--color-primary) !important; background-color: var(--color-bg-alt) !important; }
@@ -105,40 +105,49 @@
 </style>
 
 <script>
-    document.querySelectorAll('.payment-option').forEach(card => {
-        card.addEventListener('click', () => {
-            const radio = card.querySelector('input[type="radio"]');
-            radio.checked = true;
-            radio.dispatchEvent(new Event('change'));
-        });
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                card.click();
+    document.addEventListener('DOMContentLoaded', () => {
+        const stripeRadio = document.getElementById('pay_stripe');
+        const wireRadio = document.getElementById('pay_wire');
+        const submitBtn = document.getElementById('submit-btn');
+        const footnote = document.getElementById('payment-footnote');
+
+        function updateUI() {
+            document.querySelectorAll('.payment-option').forEach(c => c.classList.remove('payment-option-active'));
+
+            if (stripeRadio.checked) {
+                stripeRadio.closest('.payment-option').classList.add('payment-option-active');
+                submitBtn.innerHTML = '<i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}';
+                footnote.textContent = {{ _("You will be redirected to Stripe's secure checkout page.") | tojson }};
+            } else if (wireRadio.checked) {
+                wireRadio.closest('.payment-option').classList.add('payment-option-active');
+                submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}';
+                footnote.textContent = {{ _("Your reservation will be held pending verification of the bank wire transfer.") | tojson }};
             }
-        });
-    });
-
-    const stripeRadio = document.getElementById('pay_stripe');
-    const wireRadio = document.getElementById('pay_wire');
-    const submitBtn = document.getElementById('submit-btn');
-    const footnote = document.getElementById('payment-footnote');
-
-    function updateUI() {
-        document.querySelectorAll('.payment-option').forEach(c => c.classList.remove('payment-option-active'));
-        
-        if (stripeRadio.checked) {
-            stripeRadio.closest('.payment-option').classList.add('payment-option-active');
-            submitBtn.innerHTML = '<i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}';
-            footnote.innerHTML = '{{ _("You will be redirected to Stripe\'s secure checkout page.") }}';
-        } else if (wireRadio.checked) {
-            wireRadio.closest('.payment-option').classList.add('payment-option-active');
-            submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}';
-            footnote.innerHTML = "{{ _('Your reservation will be held pending verification of the bank wire transfer.') }}";
         }
-    }
 
-    document.querySelectorAll('input[name="payment_method"]').forEach(radio => radio.addEventListener('change', updateUI));
-    updateUI();
+        // Make whole card box clickable
+        document.querySelectorAll('.payment-option').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio && !radio.checked) {
+                    radio.checked = true;
+                    updateUI();
+                }
+            });
+
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.click();
+                }
+            });
+        });
+
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', updateUI);
+        });
+
+        updateUI();
+    });
 </script>
 {% endblock %}

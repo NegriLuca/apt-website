@@ -27,13 +27,33 @@
 </div>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-    .page { display: flex; gap: var(--space-lg); min-height: 500px; }
+    /* Stretch layout so #map expands matching #sidebar height */
+    .page { 
+        display: flex; 
+        gap: var(--space-lg); 
+        min-height: 500px; 
+        align-items: stretch; 
+    }
 
-    #sidebar { width: 380px; background: var(--color-bg-white); border-radius: var(--radius-none); border: 1px solid var(--color-border); padding: var(--space-lg); overflow-y: auto; }
-    #map { flex: 1; border-radius: var(--radius-none); border: 1px solid var(--color-border); min-height: 400px; }
+    #sidebar { 
+        width: 380px; 
+        background: var(--color-bg-white); 
+        border-radius: var(--radius-none); 
+        border: 1px solid var(--color-border); 
+        padding: var(--space-lg); 
+        max-height: 700px;
+        overflow-y: auto; 
+    }
+
+    #map { 
+        flex: 1; 
+        border-radius: var(--radius-none); 
+        border: 1px solid var(--color-border); 
+        min-height: 400px; 
+        height: auto;
+    }
 
     @media (max-width: 991px) {
         .page { flex-direction: column; }
@@ -46,9 +66,31 @@
     
     #filters { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: var(--space-md) 0; }
     
-    .filter { border: 1px solid var(--color-border); padding: var(--space-xs) var(--space-md); background: var(--color-bg-white); color: var(--color-text-muted); cursor: pointer; font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.5px; transition: all var(--transition-fast); border-radius: var(--radius-none); }
-    .filter.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg-white); }
-    .filter:hover:not(.active) { border-color: var(--color-primary); color: var(--color-primary); }
+    /* Filter buttons styling */
+    .filter { 
+        border: 1px solid var(--color-border); 
+        padding: var(--space-xs) var(--space-md); 
+        background: var(--color-bg-white); 
+        color: var(--color-text-muted); 
+        cursor: pointer; 
+        font-size: var(--font-size-xs); 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px; 
+        transition: all var(--transition-fast); 
+        border-radius: var(--radius-none); 
+    }
+
+    /* Active filter stays solid black */
+    .filter.active, .filter.active:focus, .filter.active:hover { 
+        background: #000000 !important; 
+        border-color: #000000 !important; 
+        color: #ffffff !important; 
+    }
+
+    .filter:hover:not(.active) { 
+        border-color: #000000; 
+        color: #000000; 
+    }
 
     .emoji-icon { font-size: 20px; text-align: center; line-height: 32px; background: var(--color-bg-white); border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .emoji-home { font-size: 24px; text-align: center; line-height: 36px; background: var(--color-bg-white); border-radius: 50%; box-shadow: 0 4px 12px rgba(197, 168, 128, 0.25); border: 1px solid var(--color-accent); }
@@ -152,6 +194,9 @@
                 match ? map.addLayer(obj.marker) : map.removeLayer(obj.marker);
             });
             renderSidebar(type);
+
+            // Recalculate map dimensions to remove grey space instantly
+            setTimeout(() => { map.invalidateSize(); }, 50);
         };
     });
 

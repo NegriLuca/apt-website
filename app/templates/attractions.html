@@ -27,24 +27,68 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-    .page { display: flex; gap: var(--space-lg); min-height: 500px; }
+    /* Stretch layout so #map expands matching #sidebar height */
+    .page { 
+        display: flex; 
+        gap: var(--space-lg); 
+        min-height: 500px; 
+        align-items: stretch; 
+    }
 
-    #sidebar { width: 380px; background: var(--color-bg-white); border-radius: var(--radius-none); border: 1px solid var(--color-border); padding: var(--space-lg); overflow-y: auto; }
-    #map { flex: 1; border-radius: var(--radius-none); border: 1px solid var(--color-border); min-height: 400px; }
+    #sidebar { 
+        width: 380px; 
+        background: var(--color-bg-white); 
+        border-radius: var(--radius-none); 
+        border: 1px solid var(--color-border); 
+        padding: var(--space-lg); 
+        max-height: 700px;
+        overflow-y: auto; 
+    }
+
+    #map { 
+        flex: 1; 
+        border-radius: var(--radius-none); 
+        border: 1px solid var(--color-border); 
+        min-height: 400px; 
+        height: auto;
+    }
 
     @media (max-width: 991px) {
         .page { flex-direction: column; }
         #sidebar { width: 100%; height: auto; max-height: 400px; }
-        #map { height: 300px; }
+        #map { height: 350px; }
     }
 
     .item { padding: var(--space-md); border-bottom: 1px solid var(--color-bg-alt); cursor: pointer; transition: all var(--transition-fast); }
     .item:hover { background: var(--color-bg); transform: translateX(4px); border-bottom-color: var(--color-accent); }
 
     #filters { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: var(--space-md) 0; }
-    .filter { border: 1px solid var(--color-border); padding: var(--space-xs) var(--space-md); background: var(--color-bg-white); color: var(--color-text-muted); cursor: pointer; font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.5px; transition: all var(--transition-fast); border-radius: var(--radius-none); }
-    .filter.active { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-bg-white); }
-    .filter:hover:not(.active) { border-color: var(--color-primary); color: var(--color-primary); }
+    
+    /* Filter buttons styling */
+    .filter { 
+        border: 1px solid var(--color-border); 
+        padding: var(--space-xs) var(--space-md); 
+        background: var(--color-bg-white); 
+        color: var(--color-text-muted); 
+        cursor: pointer; 
+        font-size: var(--font-size-xs); 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px; 
+        transition: all var(--transition-fast); 
+        border-radius: var(--radius-none); 
+    }
+
+    /* Active filter stays solid black */
+    .filter.active, .filter.active:focus, .filter.active:hover { 
+        background: #000000 !important; 
+        border-color: #000000 !important; 
+        color: #ffffff !important; 
+    }
+
+    .filter:hover:not(.active) { 
+        border-color: #000000; 
+        color: #000000; 
+    }
 
     .tag { font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: var(--letter-spacing-wide); padding: var(--space-xs) var(--space-md); background: var(--color-bg-alt); color: var(--color-text-muted); display: inline-block; margin-bottom: var(--space-md); border-radius: var(--radius-none); }
 </style>
@@ -140,6 +184,9 @@
                 match ? map.addLayer(obj.marker) : map.removeLayer(obj.marker);
             });
             renderSidebar(type);
+            
+            // Recalculate map dimensions to remove grey space instantly
+            setTimeout(() => { map.invalidateSize(); }, 50);
         };
     });
 </script>
