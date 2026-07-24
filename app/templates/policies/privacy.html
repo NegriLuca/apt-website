@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Privacy Policy') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="page-title mb-4">{{ _('Privacy Policy') }}</h1>
+    <p class="lead text-muted mb-5">{{ _('Last updated: July 2026') }}</p>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('1. Data Controller') }}</h3>
+        <p><strong>Lotto 235 Garbatella</strong><br>
+        Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy<br>
+        Email: <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a><br>
+        Phone: +39 328 452 1227</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('2. Data We Collect') }}</h3>
+        <p>{{ _('We collect only data necessary for your booking and legal obligations:') }}</p>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Identity: Name, email, phone number') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Booking details: Dates, guests, special requests') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Payment: Processed by Stripe; we do not store full card details') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Technical: IP address, browser type, referral source (for analytics)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Reviews: Name, location, rating, content (if you submit a testimonial)') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('3. Legal Basis for Processing') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Contract performance:') }}</strong> {{ _('Processing booking, payments, communications') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Legal obligation:') }}</strong> {{ _('Italian tax law requires guest registration (Questura)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Legitimate interest:') }}</strong> {{ _('Improving our service, fraud prevention, analytics') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Consent:') }}</strong> {{ _('Marketing emails (optional, opt-in)') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('4. Data Sharing') }}</h3>
+        <p>{{ _('We do not sell your data. We share only with:') }}</p>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Stripe:</strong> {{ _('Payment processing (PCI-DSS compliant)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Brevo (Sendinblue):</strong> {{ _('Transactional emails via HTTPS API') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Italian authorities:</strong> {{ _('Questura guest registration (legal requirement)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Accountant:</strong> {{ _('Tax compliance (data processing agreement in place)') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('5. Data Retention') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Booking records: 10 years (Italian tax law)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Guest registration data: 3 years (Questura requirement)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Email correspondence: 5 years') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Reviews: Until you request deletion') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Analytics data: 26 months (Google Analytics)') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('6. Your Rights (GDPR)') }}</h3>
+        <p>{{ _('You have the right to:') }}</p>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Access your data') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Rectify inaccurate data') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Erasure ("right to be forgotten") - where not legally required to retain') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Restrict processing') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Data portability') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Object to processing') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Withdraw consent (for marketing)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Lodge complaint with Italian Data Protection Authority (Garante)') }}</li>
+        </ul>
+        <p>{{ _('To exercise rights, email: <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a>') }}</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('7. Cookies & Analytics') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Essential:') }}</strong> {{ _('Session, CSRF, language preference') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Analytics (Google Analytics 4):') }}</strong> {{ _('Anonymized IP, 26-month retention. Opt-out: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" class="text-decoration-underline">Google Opt-out</a>') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('No advertising/tracking cookies') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('8. Security') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('HTTPS everywhere (TLS 1.2+)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Stripe handles all card data (PCI-DSS Level 1)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Database encrypted at rest') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('API keys stored in environment variables (Railway secrets)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Regular dependency updates & security monitoring') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('9. International Transfers') }}</h3>
+        <p>{{ _('Your data may be processed outside EU/EEA by our processors:') }}</p>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Stripe (USA) - EU Standard Contractual Clauses') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Google Analytics (USA) - EU SCCs + UK adequacy') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Brevo/France - EU') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('10. Children\'s Privacy') }}</h3>
+        <p>{{ _('Our services are not directed to children under 16. We do not knowingly collect children\'s data. Bookings must be made by adults (18+).') }}</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('11. Changes to This Policy') }}</h3>
+        <p>{{ _('We may update this policy. Changes posted here with updated date. Material changes notified via email.') }}</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('12. Contact') }}</h3>
+        <address class="text-muted">
+            <strong>Data Protection Contact - Lotto 235 Garbatella</strong><br>
+            Email: <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a><br>
+            Phone: +39 328 452 1227<br>
+            {{ _('Italian Data Protection Authority (Garante): <a href="https://www.garanteprivacy.it" target="_blank" class="text-decoration-underline">www.garanteprivacy.it</a>') }}
+        </address>
+    </div>
+</div>
+{% endblock %}

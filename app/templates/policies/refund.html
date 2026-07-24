@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Refund Policy') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="page-title mb-4">{{ _('Refund Policy') }}</h1>
+    <p class="lead text-muted mb-5">{{ _('Last updated: July 2026') }}</p>
+
+    <div class="alert alert-info mb-5">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>{{ _('Summary:') }}</strong> {{ _('Full refunds for cancellations >14 days before check-in. Partial refunds 7-14 days. No refunds <7 days. Refunds to original payment method within 5-10 business days.') }}
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('Eligible Refunds') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Cancellations within policy terms') }} (<a href="{{ url_for('routes.cancellation_policy') }}" class="text-decoration-underline">{{ _('Cancellation Policy') }}</a>)</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Double charges or payment processing errors') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Property unavailable due to our fault (maintenance, double-booking, force majeure)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Government travel restrictions preventing arrival') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('Non-Refundable Situations') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Cancellations within 7 days of check-in (per Cancellation Policy)') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('No-shows or early departures') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Non-refundable promotional rates (clearly marked at booking)') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Violation of House Rules resulting in eviction') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Change of plans, weather, transport issues (unless force majeure)') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Disputes with travel companions') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('Refund Methods & Timing') }}</h3>
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>{{ _('Original Payment') }}</th>
+                    <th>{{ _('Refund Method') }}</th>
+                    <th>{{ _('Timeline') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Stripe (Card, PayPal, Klarna)</td>
+                    <td>Original payment method</td>
+                    <td>5-10 business days</td>
+                </tr>
+                <tr>
+                    <td>Bank Wire Transfer</td>
+                    <td>Bank transfer (provide IBAN)</td>
+                    <td>3-5 business days</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-muted small">{{ _('All refunds issued in EUR. Currency conversion fees (if any) are not refunded.') }}</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('How to Request a Refund') }}</h3>
+        <ol class="ms-3">
+            <li class="mb-2">{{ _('Contact us at <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a> with your reservation ID') }}</li>
+            <li class="mb-2">{{ _('State reason for refund request') }}</li>
+            <li class="mb-2">{{ _('For wire transfers, provide IBAN and account holder name') }}</li>
+            <li class="mb-2">{{ _('We review within 2 business days and confirm eligibility') }}</li>
+            <li class="mb-2">{{ _('Approved refunds processed immediately') }}</li>
+        </ol>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('Disputed Charges / Chargebacks') }}</h3>
+        <p>{{ _('We strongly prefer to resolve issues directly. Chargebacks delay resolution and may incur fees that we reserve the right to pass on. Please contact us first.') }}</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('Partial Refunds for Service Issues') }}</h3>
+        <p>{{ _('If a significant amenity is unavailable during your stay (e.g., AC failure in summer, no hot water), contact us immediately. We will assess and offer appropriate compensation (partial refund, credit, or repair).') }}</p>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3">{{ _('Force Majeure') }}</h3>
+        <p>{{ _('For events beyond our control (pandemics, natural disasters, government orders), we offer:') }}</p>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Full refund of all amounts paid') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('OR free rebooking for future dates (valid 12 months)') }}</li>
+        </ul>
+    </div>
+
+    <hr class="divider">
+    <p class="text-center text-muted small">{{ _('Questions? Contact us at <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a>') }}</p>
+</div>
+{% endblock %}

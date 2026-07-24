@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ _('House Rules') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="page-title mb-4">{{ _('House Rules') }}</h1>
+    <p class="lead text-muted mb-5">{{ _('Please respect these rules for a pleasant stay for everyone') }}</p>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-house-door me-2"></i>{{ _('General Conduct') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Treat the apartment as your own home') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Quiet hours: 22:00 - 08:00 (building regulation)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('No parties, events, or gatherings without prior written consent') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Maximum occupancy: As per booking (no extra overnight guests)') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-smoking me-2"></i>{{ _('Smoking') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i><strong>{{ _('Strictly NO smoking inside the apartment') }}</strong></li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Smoking permitted on balcony/terrace only') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Please use ashtray provided') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Violation: €200 cleaning fee + possible early termination') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-person me-2"></i>{{ _('Guests & Visitors') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Only registered guests may stay overnight') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Day visitors allowed until 22:00 (notify us in advance)') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('No unregistered overnight guests') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Keys/access codes not to be shared with non-guests') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-key me-2"></i>{{ _('Check-in / Check-out') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Check-in:</strong> {{ _('13:00 - 20:00 (self check-in via lockbox after hours)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Check-out:</strong> {{ _('by 10:00 sharp') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Late check-out: €30/hr (subject to availability, request by 09:00)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Return keys to lockbox / leave on counter') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-trash me-2"></i>{{ _('Waste & Recycling (Rome Regulations)') }}</h3>
+        <p class="text-muted small mb-3">{{ _('Rome has strict waste separation. Please use the bins provided:') }}</p>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><span class="badge bg-secondary me-2">{{ _('Blue:') }}</span>{{ _('Paper & Cardboard') }}</li>
+            <li class="mb-2"><span class="badge bg-warning text-dark me-2">{{ _('Yellow:') }}</span>{{ _('Plastic & Metal') }}</li>
+            <li class="mb-2"><span class="badge bg-success me-2">{{ _('Brown:') }}</span>{{ _('Organic/Food Waste') }}</li>
+            <li class="mb-2"><span class="badge bg-dark me-2">{{ _('Grey/Black:') }}</span>{{ _('General/Non-recyclable') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Glass: Separate bin near entrance') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Do NOT put waste in wrong bins - fines apply to building') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-water me-2"></i>{{ _('Water & Energy Conservation') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Turn off AC/heating when windows open') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Turn off lights & appliances when leaving') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Reasonable water usage') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Close windows when AC/heating on') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-gear me-2"></i>{{ _('Appliances & Amenities') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Dishwasher: Run only when full') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Washing machine: Use provided detergent only') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Oven/Stove: Clean spills immediately') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Coffee machine: Descale if prompted') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Do not use metal utensils in non-stick pans') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Safety & Security') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Lock door when leaving (self-locking)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Do not prop entrance door open') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Report any safety issues immediately') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Emergency numbers: 112 (EU), 118 (Ambulance), 115 (Fire)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Fire extinguisher: Under kitchen sink') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-ban me-2"></i>{{ _('Prohibited') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Illegal activities') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Commercial use (filming, photoshoots without permission)') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Subletting or transferring reservation') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Moving furniture without permission') }}</li>
+            <li class="mb-2"><i class="bi bi-x-circle-fill text-danger me-2"></i>{{ _('Pets (unless pre-approved in writing)') }}</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="section-title mb-3"><i class="bi bi-currency-euro me-2"></i>{{ _('Damages & Fees') }}</h3>
+        <ul class="list-unstyled ms-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Report any damage immediately - no penalty for accidental breakage') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Lost keys: €50 (lockbox) / €150 (building key)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Excessive cleaning required: €50-150') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Smoking inside: €200 + early termination') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Damage deposit may be charged via Stripe for significant issues') }}</li>
+        </ul>
+    </div>
+
+    <div class="alert alert-info mb-5">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>{{ _('Questions?') }}</strong> {{ _('Message us anytime via WhatsApp/email. We\'re here to help!') }}
+    </div>
+</div>
+{% endblock %}

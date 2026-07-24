@@ -87,11 +87,13 @@
 
             <p id="payment-footnote" class="text-muted text-center small px-2 mt-2" style="font-size: var(--font-size-xs); line-height: var(--line-height-relaxed);"></p>
 
-            <div class="text-center mt-4">
-                <a href="{{ url_for('routes.reserve') }}" class="btn-link small text-uppercase" style="letter-spacing: var(--letter-spacing-wide);">
-                    <i class="bi bi-arrow-left me-1"></i> {{ _('Go back and change dates') }}
-                </a>
+            <div class="text-center mt-3 small">
+                <a href="{{ url_for('routes.cancellation_policy') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Cancellation Policy') }}</a>
+                <a href="{{ url_for('routes.terms') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Terms & Conditions') }}</a>
+                <a href="{{ url_for('routes.privacy') }}" class="text-muted text-decoration-underline text-underline-offset-2">{{ _('Privacy Policy') }}</a>
             </div>
+
+            <div class="text-center mt-4">
         </div>
     </div>
 </div>

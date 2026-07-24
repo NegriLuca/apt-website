@@ -327,6 +327,31 @@ def faq():
     return render_template('faq.html')
 
 
+@bp.route('/terms')
+def terms():
+    return render_template('policies/terms.html')
+
+
+@bp.route('/cancellation-policy')
+def cancellation_policy():
+    return render_template('policies/cancellation.html')
+
+
+@bp.route('/refund-policy')
+def refund_policy():
+    return render_template('policies/refund.html')
+
+
+@bp.route('/house-rules')
+def house_rules():
+    return render_template('policies/house_rules.html')
+
+
+@bp.route('/privacy')
+def privacy():
+    return render_template('policies/privacy.html')
+
+
 @bp.route('/food_recommendations')
 def food_recommendations():
     return render_template('food_recommendations.html')
@@ -548,7 +573,7 @@ def create_checkout_session():
     try:
         stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
         base_url = current_app.config.get('BASE_URL', request.host_url.rstrip('/'))
-        payment_method_types = ['card', 'paypal', 'klarna']
+        payment_method_types = ['card', 'paypal', 'klarna', 'satispay', 'revolut_pay', 'amazon_pay']
 
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=payment_method_types,

@@ -221,11 +221,15 @@
                 <div class="col-md-4 text-md-start mb-3 mb-md-0">
                     <p class="mb-0">&copy; {{ moment().format('YYYY') }} Lotto 235 Garbatella Roma. {{ _('All rights reserved.') }}</p>
                 </div>
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <a href="{{ url_for('routes.contact') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Contact') }}</a>
-                    <a href="{{ url_for('routes.faq') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('FAQ') }}</a>
-                    <a href="#" class="text-muted text-decoration-underline text-underline-offset-2">{{ _('Privacy Policy') }}</a>
-                </div>
+<div class="col-md-4 mb-3 mb-md-0">
+    <a href="{{ url_for('routes.contact') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Contact') }}</a>
+    <a href="{{ url_for('routes.faq') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('FAQ') }}</a>
+    <a href="{{ url_for('routes.privacy') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Privacy Policy') }}</a>
+    <a href="{{ url_for('routes.terms') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Terms') }}</a>
+    <a href="{{ url_for('routes.cancellation_policy') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Cancellation') }}</a>
+    <a href="{{ url_for('routes.refund_policy') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Refund Policy') }}</a>
+    <a href="{{ url_for('routes.house_rules') }}" class="text-muted text-decoration-underline text-underline-offset-2">{{ _('House Rules') }}</a>
+</div>
                 <div class="col-md-4 text-md-end">
                     <p class="mb-0">
                         <a href="https://www.instagram.com/lotto235garbatella/" target="_blank" rel="noopener noreferrer" class="text-muted me-2" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
