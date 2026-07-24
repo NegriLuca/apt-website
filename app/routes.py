@@ -218,7 +218,7 @@ def send_pending_payment_email(reservation):
         return False
 
 
-def send_cancellation_emails(reservation, refund_failed_warning=False):
+def send_cancellation_emails(reservation, refund_failed_warning=False, refund_percentage=1.0, refund_amount=None):
     """Sends cancellation emails to both guest and admin via Brevo API."""
     try:
         brevo_api_key = current_app.config.get('MAIL_PASSWORD')
@@ -231,6 +231,17 @@ def send_cancellation_emails(reservation, refund_failed_warning=False):
             "content-type": "application/json",
             "api-key": brevo_api_key
         }
+
+        # Determine refund status text
+        if refund_percentage == 1.0:
+            refund_text = "100% (full refund)"
+        elif refund_percentage == 0.5:
+            refund_text = "50% (partial refund)"
+        else:
+            refund_text = "0% (no refund per policy)"
+
+        if refund_amount is not None:
+            refund_text += f" — €{refund_amount:.2f}"
 
         refund_note = ""
         if refund_failed_warning:
@@ -245,7 +256,9 @@ def send_cancellation_emails(reservation, refund_failed_warning=False):
                 'email_cancellation.html',
                 reservation=reservation,
                 refund_note=refund_note,
-                refund_failed=refund_failed_warning
+                refund_failed=refund_failed_warning,
+                refund_percentage=refund_percentage,
+                refund_amount=refund_amount
             )
         }
         
@@ -253,7 +266,7 @@ def send_cancellation_emails(reservation, refund_failed_warning=False):
         current_app.logger.info(f"📬 Brevo Cancellation Email (Guest) sent. Status: {response1.status_code}")
 
         # 2. Send to Admin
-        refund_status = '⚠️ FAILED / MANUAL CHECK REQUIRED' if refund_failed_warning else '✅ Fully Refunded Automatically'
+        refund_status = '⚠️ FAILED / MANUAL CHECK REQUIRED' if refund_failed_warning else f'✅ {refund_text}'
         admin_payload = {
             "sender": {"name": "Booking Engine", "email": sender_email},
             "to": [{"email": admin_recipient}],
@@ -262,7 +275,9 @@ def send_cancellation_emails(reservation, refund_failed_warning=False):
                 'email_admin_cancellation.html',
                 reservation=reservation,
                 refund_failed=refund_failed_warning,
-                refund_status=refund_status
+                refund_status=refund_status,
+                refund_percentage=refund_percentage,
+                refund_amount=refund_amount
             )
         }
         
@@ -273,6 +288,21 @@ def send_cancellation_emails(reservation, refund_failed_warning=False):
     except Exception as e:
         current_app.logger.error(f"!!! BREVO CANCELLATION EMAIL FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
         return False
+
+
+def calculate_refund_percentage(check_in_date):
+    """
+    Calculate refund percentage based on days until check-in.
+    Returns percentage as float (e.g., 1.0 = 100%, 0.5 = 50%)
+    """
+    days_until = (check_in_date - date.today()).days
+    
+    if days_until > 14:
+        return 1.0  # 100% refund
+    elif days_until >= 7:
+        return 0.5  # 50% refund
+    else:
+        return 0.0  # No refund
 
 
 def calculate_dynamic_total(check_in, check_out, base_rate):
@@ -312,6 +342,7 @@ def calculate_dynamic_total(check_in, check_out, base_rate):
         current_date += timedelta(days=1)
         
     return round(total_cost, 2)
+
 
 # ── Public pages ──────────────────────────────────────────────────────────────
 @bp.route('/')
@@ -748,15 +779,23 @@ def cancel_reservation(token):
             message="Cancellation is no longer possible after check-in."
         )
 
+    # Calculate refund percentage based on cancellation policy
+    refund_percentage = calculate_refund_percentage(reservation.check_in)
+    refund_amount = round(reservation.total_price * refund_percentage, 2)
+    
     refund_failed_warning = False
-    if reservation.stripe_payment_intent_id:
+    refund_issued = False
+    
+    if reservation.stripe_payment_intent_id and refund_amount > 0:
         try:
             stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
             stripe.Refund.create(
                 payment_intent=reservation.stripe_payment_intent_id,
+                amount=int(refund_amount * 100),  # Amount in cents
                 reason='requested_by_customer'
             )
-            current_app.logger.info(f"Stripe Refund issued for Guest Cancel: Res #{reservation.id}")
+            current_app.logger.info(f"Stripe Refund issued for Guest Cancel: Res #{reservation.id}, Amount: €{refund_amount} ({int(refund_percentage * 100)}%)")
+            refund_issued = True
             
         except stripe.error.StripeError as e:
             current_app.logger.error(f"Stripe refund transaction failed: {str(e)}")
@@ -766,13 +805,20 @@ def cancel_reservation(token):
     db.session.commit()
 
     # Send cancellation emails to guest and admin using Brevo API
-    send_cancellation_emails(reservation, refund_failed_warning)
+    send_cancellation_emails(reservation, refund_failed_warning, refund_percentage, refund_amount)
 
-    final_ui_message = "Your reservation has been cancelled successfully."
-    if not refund_failed_warning and reservation.stripe_payment_intent_id:
-        final_ui_message += " A full refund has been issued back to your payment card."
-    elif refund_failed_warning:
-        final_ui_message += " Your dates are released, but there was an issue processing your automatic refund. We will review it manually."
+    # Build UI message based on refund percentage
+    if refund_percentage == 1.0:
+        refund_text = "A full refund (100%) has been issued back to your payment card."
+    elif refund_percentage == 0.5:
+        refund_text = "A partial refund (50%) has been issued back to your payment card."
+    else:
+        refund_text = "No refund is available per our cancellation policy (cancelled within 7 days of check-in)."
+
+    if refund_failed_warning:
+        refund_text += " However, there was an issue processing your automatic refund. We will review it manually."
+
+    final_ui_message = "Your reservation has been cancelled successfully. " + refund_text
 
     return render_template(
         "cancellation_result.html",
@@ -1118,30 +1164,43 @@ def admin_cancel_reservation(res_id):
     if reservation.status == 'cancelled':
         flash('Reservation is already cancelled.', 'warning')
     else:
+        # Calculate refund percentage based on cancellation policy
+        refund_percentage = calculate_refund_percentage(reservation.check_in)
+        refund_amount = round(reservation.total_price * refund_percentage, 2)
+        
         refund_failed_warning = False
-        if reservation.stripe_payment_intent_id and not reservation.stripe_payment_intent_id.startswith("test_bypass_"):
+        if reservation.stripe_payment_intent_id and not reservation.stripe_payment_intent_id.startswith("test_bypass_") and refund_amount > 0:
             try:
                 stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
                 stripe.Refund.create(
                     payment_intent=reservation.stripe_payment_intent_id,
+                    amount=int(refund_amount * 100),  # Amount in cents
                     reason='requested_by_customer'
                 )
-                current_app.logger.info(f"Stripe Refund issued by Admin for Res #{reservation.id}")
+                current_app.logger.info(f"Stripe Refund issued by Admin for Res #{reservation.id}, Amount: €{refund_amount} ({int(refund_percentage * 100)}%)")
             except stripe.error.StripeError as e:
                 current_app.logger.error(f"Admin Stripe refund failed: {str(e)}")
                 refund_failed_warning = True
 
         reservation.status = 'cancelled'
-        reservation.payment_status = 'refunded' if not refund_failed_warning and reservation.stripe_payment_intent_id else 'cancelled'
+        reservation.payment_status = 'refunded' if not refund_failed_warning and reservation.stripe_payment_intent_id and refund_amount > 0 else 'cancelled'
         db.session.commit()
         
         # Send cancellation emails to guest and admin
-        send_cancellation_emails(reservation, refund_failed_warning)
+        send_cancellation_emails(reservation, refund_failed_warning, refund_percentage, refund_amount)
         
+        # Build flash message based on refund percentage
+        if refund_percentage == 1.0:
+            refund_text = "fully refunded (100%)"
+        elif refund_percentage == 0.5:
+            refund_text = "partially refunded (50%)"
+        else:
+            refund_text = "no refund (cancelled within 7 days of check-in)"
+            
         if refund_failed_warning:
             flash(f'Reservation #{res_id} cancelled locally, but Stripe refund failed.', 'warning')
         else:
-            flash(f'Reservation #{res_id} cancelled and fully refunded successfully.', 'success')
+            flash(f'Reservation #{res_id} cancelled and {refund_text}.', 'success')
             
     return redirect(url_for('routes.admin_dashboard'))
 
@@ -1160,31 +1219,42 @@ def admin_cancel_via_token(token):
         refund_failed_warning = False
         # Syncing correct structural database reference matching models file schema block
         pi_id = reservation.stripe_payment_intent_id
+        
+        # Calculate refund percentage based on cancellation policy
+        refund_percentage = calculate_refund_percentage(reservation.check_in)
+        refund_amount = round(reservation.total_price * refund_percentage, 2)
 
-        if pi_id and not pi_id.startswith("test_bypass_"):
-            print(f"💰 STRIPE: Initiating full email-triggered token refund for intent {pi_id}...", flush=True)
+        if pi_id and not pi_id.startswith("test_bypass_") and refund_amount > 0:
+            print(f"💰 STRIPE: Initiating email-triggered token refund for intent {pi_id}...", flush=True)
             try:
                 stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
                 stripe.Refund.create(
                     payment_intent=pi_id,
+                    amount=int(refund_amount * 100),  # Amount in cents
                     reason="requested_by_customer"
                 )
-                print(f"✅ STRIPE: Token refund complete!", flush=True)
+                print(f"✅ STRIPE: Token refund complete! Amount: €{refund_amount} ({int(refund_percentage * 100)}%)", flush=True)
             except stripe.error.StripeError as e:
                 print(f"❌ STRIPE REFUND ERROR: {str(e)}", flush=True)
                 refund_failed_warning = True
 
         reservation.status = 'cancelled'
-        reservation.payment_status = 'refunded' if not refund_failed_warning and pi_id else 'cancelled'
+        reservation.payment_status = 'refunded' if not refund_failed_warning and pi_id and refund_amount > 0 else 'cancelled'
         db.session.commit()
         
         # Send cancellation emails to guest and admin
-        send_cancellation_emails(reservation, refund_failed_warning)
+        send_cancellation_emails(reservation, refund_failed_warning, refund_percentage, refund_amount)
         
         if refund_failed_warning:
             flash(f"Booking for {reservation.guest_name} cancelled locally, but Stripe refund failed.", "danger")
         else:
-            flash(f"Success! Booking for {reservation.guest_name} has been cancelled and fully refunded.", "success")
+            if refund_percentage == 1.0:
+                refund_text = "fully refunded (100%)"
+            elif refund_percentage == 0.5:
+                refund_text = "partially refunded (50%)"
+            else:
+                refund_text = "no refund (cancelled within 7 days of check-in)"
+            flash(f"Success! Booking for {reservation.guest_name} has been cancelled and {refund_text}.", "success")
         
     except Exception as exc:
         db.session.rollback()
@@ -1308,6 +1378,7 @@ def admin_delete_testimonial(testimonial_id):
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 @bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per 15 minutes")
 def login():
     form = LoginForm()
     if form.validate_on_submit():

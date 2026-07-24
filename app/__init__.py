@@ -8,6 +8,8 @@ from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 from flask_babel import Babel, format_date, format_datetime
 from flask_moment import Moment
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from config import Config
 
 db = SQLAlchemy()
@@ -17,6 +19,11 @@ csrf = CSRFProtect()
 mail = Mail()
 bcrypt = Bcrypt()
 babel = Babel()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
 
 
 login_manager.login_view = 'routes.login'
@@ -56,6 +63,7 @@ def create_app():
     mail.init_app(app)
     bcrypt.init_app(app)
     moment = Moment(app)
+    limiter.init_app(app)
 
     # Initialize Babel with the context selector function configuration
     babel.init_app(app, locale_selector=get_locale)

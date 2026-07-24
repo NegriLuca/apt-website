@@ -40,3 +40,7 @@ class Config:
 
     # ── App public URL (used for Stripe redirect URLs) ────────────────────────
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5001')
+
+    # ── Analytics ─────────────────────────────────────────────────────────────
+    GTM_ID = os.environ.get('GTM_ID')  # e.g., GTM-XXXXXXX
+    GA4_ID = os.environ.get('GA4_ID')  # e.g., G-XXXXXXXXXX

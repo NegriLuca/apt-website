@@ -28,14 +28,6 @@ class Apartment(db.Model):
 
 
 class Reservation(db.Model):
-    @staticmethod
-    def overlaps(check_in, check_out):
-        return Reservation.query.filter(
-            Reservation.status == "confirmed",
-            Reservation.check_in < check_out,
-            Reservation.check_out > check_in,
-        )
-    
     __tablename__ = "reservation"
 
     id              = db.Column(db.Integer, primary_key=True)
@@ -45,18 +37,12 @@ class Reservation(db.Model):
     check_out       = db.Column(db.Date, nullable=False)
     num_guests      = db.Column(db.Integer, nullable=False, default=1)
     status          = db.Column(db.String(20), nullable=False, default='pending')
-    source          = db.Column(db.String(50), nullable=False, default="direct")
+    source          = db.Column(db.String(20), default="direct")
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
     cancel_token    = db.Column(db.String(128), unique=True, index=True)
-    source          = db.Column(db.String(20), default="direct")
     external_uid    = db.Column(db.String(128), unique=True, index=True)
     coupon_code     = db.Column(db.String(20), nullable=True)
 
-    @property
-    def nights(self):
-        if self.check_out and self.check_in:
-            return (self.check_out - self.check_in).days
-        return 0
     # New Fields for Payment Tracking
     total_price = db.Column(db.Float, nullable=False, default=0.0) 
     payment_status = db.Column(db.String(20), default='unpaid')
@@ -77,7 +63,9 @@ class Reservation(db.Model):
 
     @property
     def nights(self):
-        return (self.check_out - self.check_in).days
+        if self.check_out and self.check_in:
+            return (self.check_out - self.check_in).days
+        return 0
 
 class ICalFeed(db.Model):
     id            = db.Column(db.Integer, primary_key=True)
