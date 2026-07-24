@@ -154,7 +154,19 @@
                 LOTTO <span class="fw-light">235</span> <small class="text-muted d-block" style="font-size: 10px; letter-spacing: 2px;">GARBATELLA</small>
             </a>
             
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="{{ _('Toggle navigation') }}">
+            <!-- Language Selector (always visible) -->
+            <div class="d-flex align-items-center ms-lg-3 ms-2" role="group" aria-label="{{ _('Language selector') }}">
+                <span class="visually-hidden">{{ _('Language:') }}</span>
+                <div class="btn-group btn-group-sm" role="group">
+                    <a class="btn btn-outline-secondary {% if get_locale() == 'it' %}active{% endif %}" href="?lang=it" aria-label="Italiano" aria-pressed="{{ 'true' if get_locale() == 'it' else 'false' }}">🇮🇹</a>
+                    <a class="btn btn-outline-secondary {% if get_locale() == 'en' %}active{% endif %}" href="?lang=en" aria-label="English" aria-pressed="{{ 'true' if get_locale() == 'en' else 'false' }}">🇬🇧</a>
+                    <a class="btn btn-outline-secondary {% if get_locale() == 'fr' %}active{% endif %}" href="?lang=fr" aria-label="Français" aria-pressed="{{ 'true' if get_locale() == 'fr' else 'false' }}">🇫🇷</a>
+                    <a class="btn btn-outline-secondary {% if get_locale() == 'de' %}active{% endif %}" href="?lang=de" aria-label="Deutsch" aria-pressed="{{ 'true' if get_locale() == 'de' else 'false' }}">🇩🇪</a>
+                    <a class="btn btn-outline-secondary {% if get_locale() == 'es' %}active{% endif %}" href="?lang=es" aria-label="Español" aria-pressed="{{ 'true' if get_locale() == 'es' else 'false' }}">🇪🇸</a>
+                </div>
+            </div>
+
+            <button class="navbar-toggler border-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="{{ _('Toggle navigation') }}">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -166,19 +178,6 @@
                     <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.faq') }}">{{ _('FAQ') }}</a></li>
                     <li class="nav-item"><a class="nav-link-luxury" href="{{ url_for('routes.contact') }}">{{ _('Contact') }}</a></li>
                     
-                    <li class="nav-item dropdown ms-lg-2">
-                        <a class="nav-link-luxury dropdown-toggle d-flex align-items-center" href="#" id="langDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ _('Select language') }}">
-                            <i class="bi bi-globe me-1 text-muted"></i>
-                            <span class="text-uppercase fw-bold">{{ get_locale() }}</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end rounded-0 border-muted shadow-sm" aria-labelledby="langDropdown">
-                            <li><a class="dropdown-item py-2" href="?lang=it"><span class="me-2">🇮🇹</span> IT</a></li>
-                            <li><a class="dropdown-item py-2" href="?lang=en"><span class="me-2">🇬🇧</span> EN</a></li>
-                            <li><a class="dropdown-item py-2" href="?lang=fr"><span class="me-2">🇫🇷</span> FR</a></li>
-                            <li><a class="dropdown-item py-2" href="?lang=de"><span class="me-2">🇩🇪</span> DE</a></li>
-                            <li><a class="dropdown-item py-2" href="?lang=es"><span class="me-2">🇪🇸</span> ES</a></li>
-                        </ul>
-                    </li>
                     {% if current_user.is_authenticated and current_user.is_admin %}
                         <li class="nav-item">
                             <a class="btn btn-dark btn-sm ms-lg-3 px-3 rounded-0" href="{{ url_for('routes.admin_dashboard') }}">Admin</a>
