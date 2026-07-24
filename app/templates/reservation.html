@@ -68,6 +68,12 @@
 
         {{ form.submit(class="btn-luxury-primary w-100 py-3 fw-bold mt-4") }}
     </form>
+
+    <div class="text-center mt-3 small">
+        <a href="{{ url_for('routes.cancellation_policy') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Cancellation Policy') }}</a>
+        <a href="{{ url_for('routes.terms') }}" class="text-muted text-decoration-underline text-underline-offset-2 me-3">{{ _('Terms & Conditions') }}</a>
+        <a href="{{ url_for('routes.privacy') }}" class="text-muted text-decoration-underline text-underline-offset-2">{{ _('Privacy Policy') }}</a>
+    </div>
 </div>
 {% else %}
 <div class="main-content">
