@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Manage Testimonials') }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% include 'admin_header.html' %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Guest Reviews Management') }}</h2>
+        <a href="{{ url_for('routes.admin_dashboard') }}" class="btn-luxury-outline btn-sm fw-bold px-3">{{ _('← Back to Dashboard') }}</a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-5 text-center">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Total Reviews') }}</small>
+                <h3 class="mb-0 text-dark font-monospace">{{ stats.testimonials_total }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-success text-uppercase fw-bold">{{ _('Published') }}</small>
+                <h3 class="mb-0 text-success font-monospace">{{ stats.testimonials_published }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-warning text-uppercase fw-bold">{{ _('Pending') }}</small>
+                <h3 class="mb-0 text-warning font-monospace">{{ stats.testimonials_pending }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-accent text-uppercase fw-bold">{{ _('Featured') }}</small>
+                <h3 class="mb-0 text-accent font-monospace">{{ stats.testimonials_featured }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>{{ _('ID') }}</th>
+                        <th>{{ _('Guest') }}</th>
+                        <th>{{ _('Rating') }}</th>
+                        <th>{{ _('Stay Date') }}</th>
+                        <th>{{ _('Source') }}</th>
+                        <th>{{ _('Status') }}</th>
+                        <th>{{ _('Featured') }}</th>
+                        <th>{{ _('Created') }}</th>
+                        <th>{{ _('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in testimonials %}
+                    <tr>
+                        <td><span class="text-muted">#{{ t.id }}</span></td>
+                        <td>
+                            <strong>{{ t.guest_name }}</strong>
+                            {% if t.guest_location %}
+                            <br><small class="text-muted">{{ t.guest_location }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                {% for i in range(5) %}
+                                <i class="bi bi-star-fill{% if i >= t.rating %}-stroke text-muted{% else %} text-accent{% endif %}" aria-hidden="true"></i>
+                                {% endfor %}
+                                <small class="text-muted ms-1">({{ t.rating }}/5)</small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if t.stay_date %}
+                            {{ t.stay_date.strftime('%b %Y') }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.source == 'direct' %}
+                            <span class="badge bg-success">{{ _('Direct') }}</span>
+                            {% elif t.source == 'airbnb' %}
+                            <span class="badge" style="background-color: #ff5a5f;">Airbnb</span>
+                            {% elif t.source == 'booking' %}
+                            <span class="badge" style="background-color: #003580;">Booking.com</span>
+                            {% elif t.source == 'google' %}
+                            <span class="badge" style="background-color: #4285f4;">Google</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ t.source }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.is_published %}
+                            <span class="badge bg-success">{{ _('Published') }}</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">{{ _('Pending') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.is_featured %}
+                            <span class="badge bg-accent text-dark px-2 py-1">
+                                ⭐ {{ _('Featured') }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ t.created_at.strftime('%d %b %Y') }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <!-- Publish/Unpublish -->
+                                <form action="{{ url_for('routes.admin_toggle_testimonial_publish', testimonial_id=t.id) }}" method="POST" class="d-inline m-0">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    {% if t.is_published %}
+                                    <button type="submit" class="btn btn-sm btn-outline-warning text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm);" title="{{ _('Unpublish') }}">
+                                        🙈 {{ _('Unpublish') }}
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm);" title="{{ _('Publish') }}">
+                                        ✅ {{ _('Publish') }}
+                                    </button>
+                                    {% endif %}
+                                </form>
+
+                                <!-- Feature/Unfeature -->
+                                <form action="{{ url_for('routes.admin_toggle_testimonial_feature', testimonial_id=t.id) }}" method="POST" class="d-inline m-0">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    {% if t.is_featured %}
+                                    <button type="submit" class="btn btn-sm btn-outline-accent text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm);" title="{{ _('Remove from featured') }}">
+                                        ⭐ {{ _('Unfeature') }}
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-primary text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm);" title="{{ _('Mark as featured') }}">
+                                        ⭐ {{ _('Feature') }}
+                                    </button>
+                                    {% endif %}
+                                </form>
+
+                                <!-- Delete -->
+                                <form action="{{ url_for('routes.admin_delete_testimonial', testimonial_id=t.id) }}" method="POST" class="d-inline m-0" onsubmit="return confirm('⚠️ {{ _('Are you sure you want to delete this testimonial? This cannot be undone.') }}');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger text-uppercase fw-bold" style="font-size: var(--font-size-xs); padding: var(--space-xs) var(--space-sm);" title="{{ _('Delete') }}">
+                                        🗑️ {{ _('Delete') }}
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">{{ _('No testimonials submitted yet.') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Content Preview Modal (Optional) -->
+    <div class="modal fade" id="contentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 rounded-none">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">{{ _('Review Content') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Optional: View full content in modal
+    document.querySelectorAll('[data-content]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('modalContent').innerHTML = this.dataset.content;
+            new bootstrap.Modal(document.getElementById('contentModal')).show();
+        });
+    });
+</script>
+{% endblock %}

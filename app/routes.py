@@ -827,6 +827,10 @@ def admin_dashboard():
         'confirmed': Reservation.query.filter_by(status='confirmed').count(),
         'pending':   Reservation.query.filter_by(status='pending').count(),
         'cancelled': Reservation.query.filter_by(status='cancelled').count(),
+        'testimonials_total':     Testimonial.query.count(),
+        'testimonials_published': Testimonial.query.filter_by(is_published=True).count(),
+        'testimonials_pending':   Testimonial.query.filter_by(is_published=False).count(),
+        'testimonials_featured':  Testimonial.query.filter_by(is_featured=True).count(),
     }
     
     feeds = ICalFeed.query.order_by(ICalFeed.source).all()
@@ -1166,6 +1170,58 @@ def sync_feeds_now():
     else:
         flash(f'Sync complete! Added {added}, removed {removed}.', 'success')
     return redirect(url_for('routes.admin_dashboard'))
+
+
+# ── Testimonial Admin ────────────────────────────────────────────────────────────
+@bp.route('/admin/testimonials')
+@login_required
+def admin_testimonials():
+    if not current_user.is_admin:
+        abort(403)
+    testimonials = Testimonial.query.order_by(Testimonial.created_at.desc()).all()
+    stats = {
+        'testimonials_total':     Testimonial.query.count(),
+        'testimonials_published': Testimonial.query.filter_by(is_published=True).count(),
+        'testimonials_pending':   Testimonial.query.filter_by(is_published=False).count(),
+        'testimonials_featured':  Testimonial.query.filter_by(is_featured=True).count(),
+    }
+    return render_template('admin_testimonials.html', testimonials=testimonials, stats=stats)
+
+
+@bp.route('/admin/testimonials/<int:testimonial_id>/publish', methods=['POST'])
+@login_required
+def admin_toggle_testimonial_publish(testimonial_id):
+    if not current_user.is_admin:
+        abort(403)
+    testimonial = Testimonial.query.get_or_404(testimonial_id)
+    testimonial.is_published = not testimonial.is_published
+    db.session.commit()
+    flash(f'Testimonial {"published" if testimonial.is_published else "unpublished"} successfully.', 'success')
+    return redirect(url_for('routes.admin_testimonials'))
+
+
+@bp.route('/admin/testimonials/<int:testimonial_id>/feature', methods=['POST'])
+@login_required
+def admin_toggle_testimonial_feature(testimonial_id):
+    if not current_user.is_admin:
+        abort(403)
+    testimonial = Testimonial.query.get_or_404(testimonial_id)
+    testimonial.is_featured = not testimonial.is_featured
+    db.session.commit()
+    flash(f'Testimonial {"featured" if testimonial.is_featured else "unfeatured"} successfully.', 'success')
+    return redirect(url_for('routes.admin_testimonials'))
+
+
+@bp.route('/admin/testimonials/<int:testimonial_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_testimonial(testimonial_id):
+    if not current_user.is_admin:
+        abort(403)
+    testimonial = Testimonial.query.get_or_404(testimonial_id)
+    db.session.delete(testimonial)
+    db.session.commit()
+    flash('Testimonial deleted successfully.', 'success')
+    return redirect(url_for('routes.admin_testimonials'))
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────

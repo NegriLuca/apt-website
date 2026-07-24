@@ -19,6 +19,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_testimonials' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_testimonials') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-star me-1"></i> {{ _('Testimonials') }}
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_pricing' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_pricing') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-cash-coin me-1"></i> {{ _('Pricing') }}

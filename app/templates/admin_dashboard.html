@@ -33,6 +33,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Testimonial Stats -->
+    <div class="row g-3 mb-5 text-center">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Total Reviews') }}</small>
+                <h3 class="mb-0 text-dark font-monospace">{{ stats.testimonials_total }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-success text-uppercase fw-bold">{{ _('Published') }}</small>
+                <h3 class="mb-0 text-success font-monospace">{{ stats.testimonials_published }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-warning text-uppercase fw-bold">{{ _('Pending Review') }}</small>
+                <h3 class="mb-0 text-warning font-monospace">{{ stats.testimonials_pending }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 bg-luxury-floor p-3">
+                <small class="text-accent text-uppercase fw-bold">{{ _('Featured') }}</small>
+                <h3 class="mb-0 text-accent font-monospace">{{ stats.testimonials_featured }}</h3>
+            </div>
+        </div>
+    </div>
     {% endif %}
 
     <div class="d-flex justify-content-between align-items-center mb-4">
