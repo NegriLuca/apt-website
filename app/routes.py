@@ -548,9 +548,7 @@ def create_checkout_session():
     try:
         stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
         base_url = current_app.config.get('BASE_URL', request.host_url.rstrip('/'))
-
-        # Support multiple payment methods for European guests
-        payment_method_types = ['card', 'sepa_debit', 'sofort', 'ideal', 'giropay', 'bancontact', 'p24', 'eps', 'multibanco']
+        payment_method_types = ['card', 'paypal', 'klarna']
 
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=payment_method_types,
