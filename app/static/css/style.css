@@ -505,6 +505,51 @@ p {
 }
 
 /* ==========================================================================
+   AMENITIES GRID
+   ========================================================================== */
+.amenities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-md);
+}
+
+.amenity-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-lg) var(--space-md);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.amenity-item:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-dark);
+  transform: translateY(-2px);
+}
+
+.amenity-item i {
+  font-size: var(--font-size-2xl);
+  color: var(--color-accent);
+  margin-bottom: var(--space-sm);
+}
+
+.amenity-item span {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: 500;
+  line-height: var(--line-height-tight);
+}
+
+@media (max-width: 576px) {
+  .amenities {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
    MAP & FILTERS (Food & Attractions)
    ========================================================================== */
 .item {
@@ -702,6 +747,99 @@ p {
 
 .testimonial-source a:hover {
   color: var(--color-accent-hover);
+}
+
+/* ==========================================================================
+   AMENITIES GRID
+   ========================================================================== */
+.amenities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-md);
+}
+
+.amenity-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-lg);
+  background: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+  height: 100%;
+}
+
+.amenity-item:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-dark);
+  transform: translateY(-2px);
+}
+
+.amenity-item i {
+  font-size: var(--font-size-xl);
+  color: var(--color-accent);
+  margin-bottom: var(--space-sm);
+}
+
+.amenity-item span {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: var(--line-height-normal);
+}
+
+/* ==========================================================================
+   TESTIMONIAL FORM
+   ========================================================================== */
+.testimonial-form-section {
+  background: var(--color-bg-alt);
+  margin: calc(var(--space-3xl) * -1) calc(var(--space-2xl) * -1) 0;
+  padding: var(--space-3xl) var(--space-2xl);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .testimonial-form-section {
+    margin: calc(var(--space-2xl) * -1) calc(var(--space-md) * -1) 0;
+    padding: var(--space-2xl) var(--space-md);
+  }
+}
+
+.testimonial-form .form-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+.testimonial-form .form-control,
+.testimonial-form .form-select {
+  border-radius: var(--radius-none) !important;
+  border: 1px solid var(--color-border) !important;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  background-color: var(--color-bg-white);
+  transition: all var(--transition-fast);
+}
+
+.testimonial-form .form-control:focus,
+.testimonial-form .form-select:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1) !important;
+  background-color: var(--color-bg-white);
+}
+
+.testimonial-form .form-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+}
+
+.rating-select .form-select {
+  max-width: 200px;
 }
 
 /* ==========================================================================

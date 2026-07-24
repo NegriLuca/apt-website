@@ -47,3 +47,12 @@ class ICalFeedForm(FlaskForm):
     url    = StringField(_('iCal URL'), validators=[DataRequired(), URL()])
     active = BooleanField(_('Active'), default=True)
     submit = SubmitField(_('Save'))
+
+
+class TestimonialForm(FlaskForm):
+    guest_name     = StringField(_('Your Name'), validators=[DataRequired(), Length(max=100)])
+    guest_location = StringField(_('Location (City, Country)'), validators=[Optional(), Length(max=100)])
+    rating         = SelectField(_('Rating'), choices=[(5, '5 - Excellent'), (4, '4 - Good'), (3, '3 - Average'), (2, '2 - Poor'), (1, '1 - Terrible')], coerce=int, validators=[DataRequired()])
+    content        = TextAreaField(_('Your Review'), validators=[DataRequired(), Length(min=10, max=2000)])
+    stay_date      = DateField(_('Stay Date (optional)'), validators=[Optional()], format='%Y-%m-%d')
+    submit         = SubmitField(_('Submit Review'))

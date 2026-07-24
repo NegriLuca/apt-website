@@ -2,7 +2,7 @@ from flask import (
     Blueprint, Response, render_template, redirect, url_for,
     flash, request, current_app, session, abort, jsonify
 )
-from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm
+from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm, TestimonialForm
 from app.models import Reservation, User, Apartment, ICalFeed, Coupon, Testimonial
 from app.services.ical_sync import sync_all_feeds
 from app import db, mail, csrf
@@ -242,8 +242,9 @@ def calculate_dynamic_total(check_in, check_out, base_rate):
 @bp.route('/')
 def home():
     apartment = get_apartment()
-    testimonials=get_testimonials()
-    return render_template('apartment.html', apartment=apartment, testimonials=testimonials)
+    testimonials = get_testimonials()
+    form = TestimonialForm()
+    return render_template('apartment.html', apartment=apartment, testimonials=testimonials, form=form)
 
 
 @bp.route('/faq')
@@ -745,6 +746,26 @@ def contact():
         flash('Your message has been sent successfully!', 'success')
         return redirect(url_for('routes.contact'))
     return render_template('contact.html', form=form)
+
+
+@bp.route('/testimonial/submit', methods=['GET', 'POST'])
+def submit_testimonial():
+    form = TestimonialForm()
+    if form.validate_on_submit():
+        testimonial = Testimonial(
+            guest_name=form.guest_name.data,
+            guest_location=form.guest_location.data,
+            rating=form.rating.data,
+            content=form.content.data,
+            stay_date=form.stay_date.data,
+            source='direct',
+            is_published=False  # Requires admin approval
+        )
+        db.session.add(testimonial)
+        db.session.commit()
+        flash(_('Thank you for your review! It will be published after moderation.'), 'success')
+        return redirect(url_for('routes.home'))
+    return render_template('apartment.html', apartment=get_apartment(), testimonials=get_testimonials(), form=form)
 
 
 # ── iCal export ───────────────────────────────────────────────────────────────
