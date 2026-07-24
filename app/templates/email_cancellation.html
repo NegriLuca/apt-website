@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5;">
+    
+    <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px 20px; text-align: center;">
+            <div style="background-color: #c5a880; color: #1a1a2e; display: inline-block; padding: 8px 20px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px;">
+                LOTTO 235 GARBATELLA
+            </div>
+            <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; font-family: Georgia, serif;">
+                {{ _('Reservation Cancelled') }}
+            </h1>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 35px 30px;">
+            
+            <p style="color: #334155; font-size: 16px; line-height: 1.7; margin: 0 0 12px 0;">
+                Ciao <strong style="color: #1a1a2e;">{{ reservation.guest_name }}</strong>,
+            </p>
+            
+            <p style="color: #475569; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+                {{ _('Your reservation has been cancelled as requested.') }}{{ refund_note | safe }}
+            </p>
+            
+            <!-- Reservation Details Box -->
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                <h3 style="color: #1e293b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 16px 0;">{{ _('Reservation Details') }}</h3>
+                
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 500;">{{ _('Property:') }}</td>
+                        <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">{{ apartment.name if apartment else 'Lotto 235 Garbatella' }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 500;">📅 {{ _('Check-In:') }}</td>
+                        <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">{{ reservation.check_in | format_date(format='medium') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 500;">📅 {{ _('Check-Out:') }}</td>
+                        <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">{{ reservation.check_out | format_date(format='medium') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #64748b; font-weight: 500;">🌙 {{ _('Total Stay:') }}</td>
+                        <td style="padding: 8px 0; color: #1e293b; font-weight: 600; text-align: right;">{{ reservation.nights }} {{ _('Nights') }}</td>
+                    </tr>
+                    <tr style="border-top: 1px dashed #cbd5e1;">
+                        <td style="padding: 12px 0 0 0; color: #1e293b; font-weight: 700; font-size: 15px;">{{ _('Amount Refunded:') }}</td>
+                        <td style="padding: 12px 0 0 0; color: #1a1a2e; font-weight: 700; font-size: 18px; text-align: right;">
+                            €{{ "{:,.2f}".format(reservation.total_price) if reservation.total_price else "0.00" }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            {% if refund_failed %}
+            <!-- Refund Warning -->
+            <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin: 24px 0;">
+                <p style="color: #92400e; font-size: 14px; margin: 0; line-height: 1.6;">
+                    <strong>⚠️ {{ _('Important Note About Your Refund:') }}</strong><br>
+                    {{ _('There was a delay processing your automatic refund. Our team has been notified and will process it manually within 24 hours.') }}
+                </p>
+            </div>
+            {% else %}
+            <!-- Refund Success -->
+            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0;">
+                <p style="color: #15803d; font-size: 14px; margin: 0; line-height: 1.6;">
+                    <strong>✅ {{ _('Refund Processed:') }}</strong> {{ _('Your refund has been issued back to your original payment method. Please allow 5-10 business days for it to appear on your statement.') }}
+                </p>
+            </div>
+            {% endif %}
+            
+            <!-- Contact Info -->
+            <p style="color: #64748b; font-size: 14px; line-height: 1.7; margin: 24px 0 0 0;">
+                {{ _('If you have any questions, please don\'t hesitate to contact us:') }}
+            </p>
+            <p style="color: #2563eb; font-size: 14px; font-weight: 500; margin: 8px 0 0 0;">
+                📧 lotto235roma@gmail.com
+            </p>
+            
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 30px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 12px; margin: 0 0 8px 0; font-family: Georgia, serif; font-weight: 700; letter-spacing: 2px;">
+                LOTTO 235 GARBATELLA
+            </p>
+            <p style="color: #cbd5e1; font-size: 11px; margin: 0;">
+                Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy
+            </p>
+        </div>
+        
+    </div>
+    
+</body>
+</html>

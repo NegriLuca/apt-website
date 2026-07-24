@@ -124,7 +124,8 @@ def send_payment_verified_email(reservation):
             "api-key": brevo_api_key
         }
 
-        payload = {
+        # 1. Send to Guest
+        guest_payload = {
             "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
             "to": [{"email": reservation.guest_email}],
             "subject": f"✅ Pagamento Verificato e Confermato — Prenotazione #{reservation.id}",
@@ -134,9 +135,25 @@ def send_payment_verified_email(reservation):
             )
         }
         
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
-        current_app.logger.info(f"📬 Brevo Verified Payment Email sent. Status: {response.status_code}")
-        return response.status_code in [200, 201, 202]
+        response1 = requests.post(url, headers=headers, data=json.dumps(guest_payload))
+        current_app.logger.info(f"📬 Brevo Verified Payment Email (Guest) sent. Status: {response1.status_code}")
+
+        # 2. Send to Admin
+        admin_recipient = current_app.config.get('ADMIN_EMAIL') or "lotto235roma@gmail.com"
+        admin_payload = {
+            "sender": {"name": "Booking Engine", "email": sender_email},
+            "to": [{"email": admin_recipient}],
+            "subject": f"✅ Payment Confirmed: {reservation.guest_name} — Reservation #{reservation.id}",
+            "htmlContent": render_template(
+                'email_admin_payment_confirmed.html',
+                reservation=reservation
+            )
+        }
+        
+        response2 = requests.post(url, headers=headers, data=json.dumps(admin_payload))
+        current_app.logger.info(f"📬 Brevo Verified Payment Email (Admin) sent. Status: {response2.status_code}")
+
+        return response1.status_code in [200, 201, 202] and response2.status_code in [200, 201, 202]
     except Exception as e:
         current_app.logger.error(f"!!! BREVO API FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
         return False
@@ -199,7 +216,65 @@ def send_pending_payment_email(reservation):
     except Exception as e:
         current_app.logger.error(f"!!! BREVO PENDING PAYMENT EMAIL FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
         return False
-    
+
+
+def send_cancellation_emails(reservation, refund_failed_warning=False):
+    """Sends cancellation emails to both guest and admin via Brevo API."""
+    try:
+        brevo_api_key = current_app.config.get('MAIL_PASSWORD')
+        sender_email = "lotto235roma@gmail.com"
+        admin_recipient = current_app.config.get('ADMIN_EMAIL') or "lotto235roma@gmail.com"
+
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": brevo_api_key
+        }
+
+        refund_note = ""
+        if refund_failed_warning:
+            refund_note = "\n\n⚠️ Note: There was a delay processing your automatic refund. Our team has been flagged to verify it manually."
+
+        # 1. Send to Guest
+        guest_payload = {
+            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
+            "to": [{"email": reservation.guest_email}],
+            "subject": f"Your reservation has been cancelled — Lotto 235 Garbatella",
+            "htmlContent": render_template(
+                'email_cancellation.html',
+                reservation=reservation,
+                refund_note=refund_note,
+                refund_failed=refund_failed_warning
+            )
+        }
+        
+        response1 = requests.post(url, headers=headers, data=json.dumps(guest_payload))
+        current_app.logger.info(f"📬 Brevo Cancellation Email (Guest) sent. Status: {response1.status_code}")
+
+        # 2. Send to Admin
+        refund_status = '⚠️ FAILED / MANUAL CHECK REQUIRED' if refund_failed_warning else '✅ Fully Refunded Automatically'
+        admin_payload = {
+            "sender": {"name": "Booking Engine", "email": sender_email},
+            "to": [{"email": admin_recipient}],
+            "subject": f"Reservation Cancelled: {reservation.guest_name} [REFUND {refund_status}]",
+            "htmlContent": render_template(
+                'email_admin_cancellation.html',
+                reservation=reservation,
+                refund_failed=refund_failed_warning,
+                refund_status=refund_status
+            )
+        }
+        
+        response2 = requests.post(url, headers=headers, data=json.dumps(admin_payload))
+        current_app.logger.info(f"📬 Brevo Cancellation Email (Admin) sent. Status: {response2.status_code}")
+
+        return response1.status_code in [200, 201, 202] and response2.status_code in [200, 201, 202]
+    except Exception as e:
+        current_app.logger.error(f"!!! BREVO CANCELLATION EMAIL FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
+        return False
+
+
 def calculate_dynamic_total(check_in, check_out, base_rate):
     """
     Loops day-by-day from check_in up to (but excluding) check_out.
@@ -474,8 +549,11 @@ def create_checkout_session():
         stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
         base_url = current_app.config.get('BASE_URL', request.host_url.rstrip('/'))
 
+        # Support multiple payment methods for European guests
+        payment_method_types = ['card', 'sepa_debit', 'sofort', 'ideal', 'giropay', 'bancontact', 'p24', 'eps', 'multibanco']
+
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=payment_method_types,
             line_items=[{
                 'price_data': {
                     'currency': 'eur',
@@ -664,34 +742,8 @@ def cancel_reservation(token):
     reservation.status = "cancelled"
     db.session.commit()
 
-    refund_notice = ""
-    if refund_failed_warning:
-        refund_notice = "\n\n⚠️ Note: There was a delay processing your automatic refund. Our team has been flagged to verify it manually."
-
-    sender_email = current_app.config.get('MAIL_USERNAME', 'lotto235roma@gmail.com')
-
-    mail.send(Message(
-        subject="Your reservation has been cancelled",
-        sender=sender_email,
-        recipients=[reservation.guest_email],
-        body=(
-            f"Hello {reservation.guest_name},\n\n"
-            f"Your reservation from {reservation.check_in} to {reservation.check_out} "
-            f"has been successfully cancelled.{refund_notice}\n\n— My Apartment"
-        )
-    ))
-    
-    mail.send(Message(
-        subject="Reservation cancelled" + (" [REFUND MANUAL CHECK REQUIRED]" if refund_failed_warning else ""),
-        sender=sender_email,
-        recipients=[current_app.config['ADMIN_EMAIL']],
-        body=(
-            f"Reservation cancelled:\n\n"
-            f"Guest: {reservation.guest_name}\n"
-            f"Dates: {reservation.check_in} → {reservation.check_out}\n"
-            f"Stripe Refund Status: {'⚠️ FAILED / MANUAL CHECK REQUIRED' if refund_failed_warning else '✅ Fully Refunded Automatically'}\n"
-        )
-    ))
+    # Send cancellation emails to guest and admin using Brevo API
+    send_cancellation_emails(reservation, refund_failed_warning)
 
     final_ui_message = "Your reservation has been cancelled successfully."
     if not refund_failed_warning and reservation.stripe_payment_intent_id:
@@ -1060,6 +1112,9 @@ def admin_cancel_reservation(res_id):
         reservation.payment_status = 'refunded' if not refund_failed_warning and reservation.stripe_payment_intent_id else 'cancelled'
         db.session.commit()
         
+        # Send cancellation emails to guest and admin
+        send_cancellation_emails(reservation, refund_failed_warning)
+        
         if refund_failed_warning:
             flash(f'Reservation #{res_id} cancelled locally, but Stripe refund failed.', 'warning')
         else:
@@ -1099,6 +1154,9 @@ def admin_cancel_via_token(token):
         reservation.status = 'cancelled'
         reservation.payment_status = 'refunded' if not refund_failed_warning and pi_id else 'cancelled'
         db.session.commit()
+        
+        # Send cancellation emails to guest and admin
+        send_cancellation_emails(reservation, refund_failed_warning)
         
         if refund_failed_warning:
             flash(f"Booking for {reservation.guest_name} cancelled locally, but Stripe refund failed.", "danger")
