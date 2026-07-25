@@ -79,18 +79,18 @@ with app.app_context():
     else:
         print("⚠️ Warning: ADMIN_PASSWORD not found in .env file. Admin setup skipped.")
 
-    # ── AUTO-CREATE DEFAULT APARTMENT IF EMPTY ──
+# ── AUTO-CREATE DEFAULT APARTMENT IF EMPTY ──
     default_apartment = Apartment.query.first()
     if not default_apartment:
         print("🏠 No properties found. Seeding default apartment profile...")
         default_apartment = Apartment(
             name="Lotto 235 Garbatella",
-            price_per_night=120.00,
+            price_per_night=130.00,
             image_file="apartment/living_room.jpg" 
         )
         db.session.add(default_apartment)
         db.session.commit()
-        print("✅ Default apartment successfully seeded!")        
+        print("✅ Default apartment successfully seeded!")
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))

@@ -305,42 +305,45 @@ def calculate_refund_percentage(check_in_date):
         return 0.0  # No refund
 
 
-def calculate_dynamic_total(check_in, check_out, base_rate):
+def calculate_dynamic_total(check_in, check_out, num_guests=2, base_rate=130.0):
     """
     Loops day-by-day from check_in up to (but excluding) check_out.
-    Applies surcharges based on the day of the week or Italian bank holidays.
+    Applies surcharges for Italian bank holidays / weekends, and extra guest fees.
+    Applies 10% discount for stays longer than 7 nights.
     """
-    # Initialize the Italian holiday registry (targeting IT / Lazio region)
+    # Initialize the Italian holiday registry
     it_holidays = holidays.Italy(years=[check_in.year, check_out.year])
     
     total_cost = 0.0
     current_date = check_in
     
+    # Calculate extra guest surcharge per night (+15€ for each guest over 2)
+    extra_guests = max(0, num_guests - 2)
+    guest_surcharge = extra_guests * 15.0
+    
+    nights = (check_out - check_in).days
+    
     while current_date < check_out:
         day_rate = base_rate
-        is_premium_day = False
-        reason = "Base Rate"
         
-        # 1. Check for Italian National Bank Holidays
+        # 1. Check for Italian National Bank Holidays (10% surcharge)
         if current_date in it_holidays:
-            day_rate = base_rate * 1.30  # 30% increase for holidays
-            is_premium_day = True
-            reason = f"Holiday ({it_holidays.get(current_date)})"
+            day_rate = base_rate * 1.10
             
-        # 2. Check for Summer Season peak (June, July, August)
-        elif current_date.month in [6, 7, 8]:
-            day_rate = base_rate * 1.15  # 15% seasonal increase
-            reason = "Summer Peak Season"
+        # 2. Check for Weekends (Friday and Saturday nights, 10% surcharge)
+        elif current_date.weekday() in [4, 5]:
+            day_rate = base_rate * 1.10
             
-        # 3. Check for Weekends (Friday night and Saturday night check-ins)
-        # weekday(): 4 is Friday, 5 is Saturday
-        if not is_premium_day and current_date.weekday() in [4, 5]:
-            day_rate = base_rate * 1.10  # 10% increase for weekends
-            reason = "Weekend Pricing"
-            
+        # Add the fixed per-night extra guest fee
+        day_rate += guest_surcharge
+        
         total_cost += day_rate
         current_date += timedelta(days=1)
-        
+    
+# 10% discount for stays of 7 nights or more
+    if nights >= 7:
+        total_cost *= 0.90
+    
     return round(total_cost, 2)
 
 
@@ -448,7 +451,8 @@ def reserve():
 
         # ── BACKEND COUPON VALIDATION ──
         coupon_code = request.form.get('applied_coupon_code', '').strip().upper()
-        base_total = calculate_dynamic_total(check_in, check_out, apartment.price_per_night)
+        num_guests = form.num_guests.data
+        base_total = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night)
         final_total = base_total
         validated_code = None
 
@@ -492,7 +496,8 @@ def checkout():
     
     # Calcola il prezzo base dinamico usando la tua funzione giorno per giorno
     base_rate = apartment.price_per_night if apartment else 0
-    calculated_base = calculate_dynamic_total(check_in, check_out, base_rate)
+    num_guests = pending.get('num_guests', 2)
+    calculated_base = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=base_rate)
     
     # Se esiste già un prezzo scontato/modificato da coupon in sessione usa quello, altrimenti usa il calcolato dinamico
     base_total = pending.get('base_total', calculated_base)
@@ -531,7 +536,8 @@ def process_payment():
             
             # Fallback sicuro sul prezzo dinamico calcolato se total_price manca
             base_rate = apartment.price_per_night if apartment else 0
-            fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, base_rate)
+            num_guests = int(pending['num_guests'])
+            fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, num_guests=num_guests, base_rate=base_rate)
             total_price = pending.get('total_price', fallback_total)
             
             new_reservation = Reservation(
@@ -592,7 +598,8 @@ def create_checkout_session():
     total_price = pending.get('total_price')
     if total_price is None:
         base_rate = apartment.price_per_night if apartment else 0
-        total_price = calculate_dynamic_total(check_in, check_out, base_rate)
+        num_guests = int(pending['num_guests'])
+        total_price = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=base_rate)
 
     total_cents = int(total_price * 100)
 
@@ -693,7 +700,8 @@ def _create_reservation_from_stripe(cs) -> Reservation:
         total_price = float(meta.get('total_price'))
     except (TypeError, ValueError):
         apartment = get_apartment()
-        total_price = calculate_dynamic_total(check_in, check_out, apartment.price_per_night) if apartment else 0
+        num_guests = int(meta.get('num_guests', 2))
+        total_price = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night) if apartment else 0
 
     reservation = Reservation(
         guest_name               = guest_name,
@@ -982,7 +990,7 @@ def admin_pricing():
     # Attempt to fetch the apartment row; create a default if database is empty
     apartment = Apartment.query.first()
     if not apartment:
-        apartment = Apartment(price_per_night=120.00)
+        apartment = Apartment(price_per_night=130.00)
         db.session.add(apartment)
         db.session.commit()
     
@@ -1109,6 +1117,7 @@ def api_calendar_reservations():
 def api_calculate_price():
     check_in_str = request.args.get('check_in')
     check_out_str = request.args.get('check_out')
+    num_guests = request.args.get('num_guests', 2, type=int)
     
     if not check_in_str or not check_out_str:
         return jsonify({"error": "Missing dates"}), 400
@@ -1118,8 +1127,8 @@ def api_calculate_price():
         check_out = date.fromisoformat(check_out_str)
         apartment = get_apartment()
         
-        base_rate = apartment.price_per_night if apartment else 120.00
-        dynamic_total = calculate_dynamic_total(check_in, check_out, base_rate)
+        base_rate = apartment.price_per_night if apartment else 130.00
+        dynamic_total = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=base_rate)
         nights = (check_out - check_in).days
         
         return jsonify({

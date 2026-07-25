@@ -10,7 +10,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
             <h1 class="page-title mb-2 text-center text-lg-start">{{ _('Reserve') }} {{ apartment.name }}</h1>
-            <p class="lead text-muted mb-5 text-center text-lg-start"><i class="bi bi-info-circle me-1"></i> {{ _('Rates vary depending on season, weekends, and holidays.') }}</p>
+            <p class="lead text-muted mb-5 text-center text-lg-start"><i class="bi bi-info-circle me-1"></i> {{ _('Base rate €130/night. +10%% weekends & holidays. +€15/night per extra guest over 2.') }}</p>
 
             <form method="POST" class="card border-0 shadow-sm p-4 p-md-5" novalidate>
                 {{ form.hidden_tag() }}
@@ -112,6 +112,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const couponMessage = document.getElementById("coupon_message");
     const appliedCouponHiddenInput = document.getElementById("applied_coupon_code");
     const priceCalculationRow = document.getElementById("price_calculation_row");
+    const numGuestsSelect = document.getElementById("num_guests");
 
     const selectDatesWarning = `{{ _('Please select a valid check-in date range first.') }}`;
     const couponAppliedSuccess = `{{ _('Success! Code applied.') }}`;
@@ -173,6 +174,40 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // Recalculate price when number of guests changes
+    if (numGuestsSelect) {
+        numGuestsSelect.addEventListener('change', function() {
+            if (hiddenCheckIn.value && hiddenCheckOut.value) {
+                const checkInStr = hiddenCheckIn.value;
+                const checkOutStr = hiddenCheckOut.value;
+                const numGuests = parseInt(this.value) || 2;
+
+                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&num_guests=${numGuests}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error("Pricing Engine Fault:", data.error);
+                            return;
+                        }
+
+                        currentBaseTotal = data.total;
+
+                        if (nightsEl) nightsEl.textContent = data.nights;
+                        if (priceCalculationRow) {
+                            priceCalculationRow.innerHTML = `€<span id="total">${data.total.toFixed(2)}</span>`;
+                        }
+                        // Clear any applied coupon since base total changed
+                        if (couponBox) couponBox.value = "";
+                        if (couponMessage) couponMessage.innerText = "";
+                        if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
+                    })
+                    .catch(err => {
+                        console.error("Failed to connect to backend pricing calculus stream:", err);
+                    });
+            }
+        });
+    }
+
     const currentLang = `{{ session.get('language', 'en') }}`;
 
     const picker = flatpickr("#date_range", {
@@ -208,11 +243,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 const checkInStr = instance.formatDate(checkIn, "Y-m-d");
                 const checkOutStr = instance.formatDate(checkOut, "Y-m-d");
+                const numGuests = numGuestsSelect ? parseInt(numGuestsSelect.value) || 2 : 2;
 
                 if (hiddenCheckIn) hiddenCheckIn.value = checkInStr;
                 if (hiddenCheckOut) hiddenCheckOut.value = checkOutStr;
 
-                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}`)
+                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&num_guests=${numGuests}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.error) {

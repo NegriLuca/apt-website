@@ -16,7 +16,7 @@
                         <label class="form-label fw-semibold text-uppercase small text-muted">{{ _('Nightly Base Cost:') }}</label>
                         <div class="input-group mb-3">
                             <span class="input-group-text bg-luxury-floor fw-bold">€</span>
-                            <input type="number" step="0.01" class="form-control form-control-lg fw-bold" name="price_per_night" value="{{ '%.2f'|format(apartment.price_per_night) if apartment else '120.00' }}">
+                            <input type="number" step="0.01" class="form-control form-control-lg fw-bold" name="price_per_night" value="{{ '%.2f'|format(apartment.price_per_night) if apartment else '130.00' }}">
                         </div>
                         <p class="small text-muted mb-4">{{ _('Editing this value directly adjusts what direct checkouts pay instantly across public booking fields.') }}</p>
                         <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">{{ _('Update Global Rate') }}</button>
