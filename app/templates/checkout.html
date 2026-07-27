@@ -81,7 +81,7 @@
                 </div>
 
                 <button type="submit" id="submit-btn" class="btn-luxury-primary w-100 py-3 mb-3">
-                    <i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}
+                    <i class="bi bi-shield-lock me-2"></i> {{ _('Pay securely with Stripe') }}
                 </button>
             </form>
 
@@ -119,11 +119,11 @@
 
             if (stripeRadio.checked) {
                 stripeRadio.closest('.payment-option').classList.add('payment-option-active');
-                submitBtn.innerHTML = '<i class="bi bi-shield-lock me-2"></i> {{ _("Pay securely with Stripe") }}';
+                submitBtn.innerHTML = '<i class="bi bi-shield-lock me-2"></i> {{ _('Pay securely with Stripe') }}';
                 footnote.textContent = {{ _("You will be redirected to Stripe's secure checkout page.") | tojson }};
             } else if (wireRadio.checked) {
                 wireRadio.closest('.payment-option').classList.add('payment-option-active');
-                submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _("Confirm & Get Wire Instructions") }}';
+                submitBtn.innerHTML = '<i class="bi bi-bank me-2"></i> {{ _('Confirm & Get Wire Instructions') }}';
                 footnote.textContent = {{ _("Your reservation will be held pending verification of the bank wire transfer.") | tojson }};
             }
         }

@@ -28,7 +28,7 @@
                                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('All') }}</option>
                                 <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>{{ _('Accepted') }}</option>
                                 <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ _('Pending') }}</option>
-                                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>{{ _('Rifiutate') }}</option>
+                                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>{{ _('Rejected') }}</option>
                                 <option value="None" {% if status_filter == 'None' %}selected{% endif %}>{{ _('Not sent') }}</option>
                             </select>
                         </div>
@@ -87,10 +87,10 @@
                                             'warning' if status in ['pending', 'sent'] else
                                             'danger' if status == 'rejected' else
                                             'secondary' }}">
-                                            {% if status == 'accepted' %}{{ _('Accettata') }}
+                                            {% if status == 'accepted' %}{{ _('Accepted') }}
                                             {% elif status in ['pending', 'sent'] %}{{ _('Pending') }}
-                                            {% elif status == 'rejected' %}{{ _('Rifiutata') }}
-                                            {% else %}{{ _('Da inviare') }}{% endif %}
+                                            {% elif status == 'rejected' %}{{ _('Rejected') }}
+                                            {% else %}{{ _('To be sent') }}{% endif %}
                                         </span>
                                     </td>
                                     <td>

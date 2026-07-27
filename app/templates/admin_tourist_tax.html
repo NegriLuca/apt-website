@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Tassa di Soggiorno') }}{% endblock %}
+{% block title %}{{ _('Tourist Tax') }}{% endblock %}
 
 {% block content %}
 <div class="main-content">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="page-title mb-0"><i class="bi bi-currency-euro me-2"></i>{{ _('Gestione Tassa di Soggiorno') }}</h1>
+                <h1 class="page-title mb-0"><i class="bi bi-currency-euro me-2"></i>{{ _('Tourist Tax Management') }}</h1>
                 <div>
                     <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
@@ -22,12 +22,12 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>{{ _('Configurazione Struttura') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>{{ _('Property Configuration') }}</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('compliance.tourist_tax_config') }}" class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('Categoria') }}</label>
+                            <label class="form-label">{{ _('Category') }}</label>
                             <select class="form-select" name="tourist_tax_category">
                                 <option value="CAV" {% if apt.tourist_tax_category == 'CAV' %}selected{% endif %}>CAV - Case Vacanze (€3.50)</option>
                                 <option value="BB" {% if apt.tourist_tax_category == 'BB' %}selected{% endif %}>BB - Bed & Breakfast (€5.00)</option>
@@ -39,7 +39,7 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('Tariffa Personalizzata (€/notte/ospite)') }}</label>
+                            <label class="form-label">{{ _('Custom Rate (€/night/guest)') }}</label>
                             <input type="number" step="0.01" class="form-control" name="tourist_tax_rate" 
                                 value="{{ apt.tourist_tax_rate or 3.50 }}">
                         </div>
@@ -52,11 +52,11 @@
                             <input type="text" class="form-control" name="cir_code" value="{{ apt.cir_code or '' }}">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('Max Ospiti') }}</label>
+                            <label class="form-label">{{ _('Max Guests') }}</label>
                             <input type="number" class="form-control" name="max_guests" value="{{ apt.max_guests or 4 }}">
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-primary">{{ _('Salva Configurazione') }}</button>
+                            <button type="submit" class="btn btn-primary">{{ _('Save Configuration') }}</button>
                         </div>
                     </form>
                 </div>
@@ -71,7 +71,7 @@
                 <div class="card-body">
                     <form method="GET" class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('Anno') }}</label>
+                            <label class="form-label">{{ _('Year') }}</label>
                             <select class="form-select" name="year">
                                 {% for y in range(2023, 2028) %}
                                 <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
@@ -87,11 +87,11 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary w-100">{{ _('Visualizza Report') }}</button>
+                            <button type="submit" class="btn btn-primary w-100">{{ _('View Report') }}</button>
                         </div>
                         <div class="col-md-3">
                             <a href="{{ url_for('compliance.tourist_tax_export', year=year, month=month) }}" class="btn btn-success w-100">
-                                <i class="bi bi-download me-1"></i>{{ _('Scarica CSV Roma') }}
+                                <i class="bi bi-download me-1"></i>{{ _('Download CSV Rome') }}
                             </a>
                         </div>
                     </form>
@@ -115,7 +115,7 @@
             <div class="card border-0 shadow-sm h-100 text-center">
                 <div class="card-body">
                     <div class="display-4 text-success">€{{ "%.2f"|format(report.total_tax) }}</div>
-                    <div class="text-muted small">{{ _('Totale Tassa Soggiorno') }}</div>
+                    <div class="text-muted small">{{ _('Total Tourist Tax') }}</div>
                 </div>
             </div>
         </div>
@@ -123,7 +123,7 @@
             <div class="card border-0 shadow-sm h-100 text-center">
                 <div class="card-body">
                     <div class="display-4 text-info">{{ report.total_nights }}</div>
-                    <div class="text-muted small">{{ _('Notti Totali') }}</div>
+                    <div class="text-muted small">{{ _('Total Nights') }}</div>
                 </div>
             </div>
         </div>
@@ -131,7 +131,7 @@
             <div class="card border-0 shadow-sm h-100 text-center">
                 <div class="card-body">
                     <div class="display-4 text-warning">{{ report.total_guests }}</div>
-                    <div class="text-muted small">{{ _('Ospiti Totali') }}</div>
+                    <div class="text-muted small">{{ _('Total Guests') }}</div>
                 </div>
             </div>
         </div>
@@ -142,7 +142,7 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">{{ _('Dettaglio per Prenotazione') }}</h5>
+                    <h5 class="mb-0">{{ _('Detail per Reservation') }}</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -153,10 +153,10 @@
                                     <th>{{ _('Guest') }}</th>
                                     <th>{{ _('Check-in') }}</th>
                                     <th>{{ _('Check-out') }}</th>
-                                    <th>{{ _('Notti') }}</th>
-                                    <th>{{ _('Ospiti') }}</th>
-                                    <th>{{ _('Tariffa') }}</th>
-                                    <th>{{ _('Tassa') }}</th>
+                                    <th>{{ _('Nights') }}</th>
+                                    <th>{{ _('Guests') }}</th>
+                                    <th>{{ _('Rate') }}</th>
+                                    <th>{{ _('Tax') }}</th>
                                     <th>{{ _('Status') }}</th>
                                 </tr>
                             </thead>
@@ -193,7 +193,7 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">{{ _('Anteprima CSV (Formato Roma Capitale)') }}</h5>
+                    <h5 class="mb-0">{{ _('CSV Preview (Roma Capitale Format)') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="bg-dark text-light p-3 rounded font-monospace small" style="max-height: 400px; overflow: auto;">

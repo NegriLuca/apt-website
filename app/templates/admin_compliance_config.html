@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Configurazione Compliance') }}{% endblock %}
+{% block title %}{{ _('Compliance Configuration') }}{% endblock %}
 
 {% block content %}
 <div class="main-content">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="page-title mb-0"><i class="bi bi-gear me-2"></i>{{ _('Configurazione Credenziali Compliance') }}</h1>
+                <h1 class="page-title mb-0"><i class="bi bi-gear me-2"></i>{{ _('Compliance Credentials Configuration') }}</h1>
                 <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                 </a>
@@ -28,14 +28,14 @@
                                 <input type="text" class="form-control" name="questura_wsdl_url" 
                                     value="{{ ComplianceConfig.get('questura_wsdl_url', 'https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl') }}"
                                     placeholder="https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl">
-                                <div class="form-text">{{ _('URL del servizio SOAP. Usa versione test per sviluppo.') }}</div>
+                                <div class="form-text">{{ _('URL of the SOAP service. Use test version for development.') }}</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">{{ _('Questura Protocol') }}</label>
                                 <input type="text" class="form-control" name="questura_protocol_number" 
                                     value="{{ ComplianceConfig.get('questura_protocol_number', '') }}" required
                                     placeholder="Es: RM123456">
-                                <div class="form-text">{{ _('Numero protocollo assegnato dalla Questura di Roma.') }}</div>
+                                <div class="form-text">{{ _('Protocol number assigned by Rome Questura.') }}</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">{{ _('Username') }}</label>
@@ -48,22 +48,22 @@
                                     value="{{ ComplianceConfig.get('questura_password', '') }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Percorso Certificato (.pfx/.p12)') }}</label>
+                                <label class="form-label">{{ _('Certificate Path (.pfx/.p12)') }}</label>
                                 <input type="text" class="form-control" name="questura_cert_path" 
                                     value="{{ ComplianceConfig.get('questura_cert_path', '/etc/ssl/questura/client.pfx') }}"
                                     placeholder="/path/to/certificate.pfx">
-                                <div class="form-text">{{ _('Percorso assoluto del certificato client per mTLS.') }}</div>
+                                <div class="form-text">{{ _('Absolute path of client certificate for mTLS.') }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Password Certificato') }}</label>
+                                <label class="form-label">{{ _('Certificate Password') }}</label>
                                 <input type="password" class="form-control" name="questura_cert_password" 
                                     value="{{ ComplianceConfig.get('questura_cert_password', '') }}">
-                                <div class="form-text">{{ _('Password del file .pfx/.p12.') }}</div>
+                                <div class="form-text">{{ _('Password of .pfx/.p12 file.') }}</div>
                             </div>
                         </div>
                         <div class="d-flex gap-2 mt-3">
                             <button type="submit" class="btn btn-primary" form="questuraConfigForm">
-                                <i class="bi bi-save me-1"></i>{{ _('Salva Configurazione Questura') }}
+                                <i class="bi bi-save me-1"></i>{{ _('Save Questura Configuration') }}
                             </button>
                         </div>
                     </form>
@@ -76,13 +76,13 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-cash-coin me-2"></i>{{ _('Tassa di Soggiorno - Roma Capitale') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-cash-coin me-2"></i>{{ _('Tourist Tax - Roma Capitale') }}</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" id="taxConfigForm">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label">{{ _('Categoria Struttura') }}</label>
+                                <label class="form-label">{{ _('Property Category') }}</label>
                                 <select class="form-select" name="tourist_tax_category">
                                     <option value="CAV" {% if ComplianceConfig.get('tourist_tax_category') == 'CAV' %}selected{% endif %}>CAV - Case Vacanze (€3.50)</option>
                                     <option value="BB" {% if ComplianceConfig.get('tourist_tax_category') == 'BB' %}selected{% endif %}>BB - Bed & Breakfast (€5.00)</option>
@@ -94,18 +94,18 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ _('Tariffa Personalizzata (€)') }}</label>
+                                <label class="form-label">{{ _('Custom Rate (€)') }}</label>
                                 <input type="number" step="0.01" class="form-control" name="tourist_tax_rate" 
                                     value="{{ ComplianceConfig.get('tourist_tax_rate', '3.50') }}">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">{{ _('Ufficio Tributi Email') }}</label>
+                                <label class="form-label">{{ _('Tax Office Email') }}</label>
                                 <input type="email" class="form-control" name="roma_tax_office_email" 
                                     value="{{ ComplianceConfig.get('roma_tax_office_email', 'tributi@comune.roma.it') }}">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-success mt-3" form="taxConfigForm">
-                            <i class="bi bi-save me-1"></i>{{ _('Salva Configurazione Tassa Soggiorno') }}
+                            <i class="bi bi-save me-1"></i>{{ _('Save Tourist Tax Configuration') }}
                         </button>
                     </form>
                 </div>
@@ -117,29 +117,29 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-database me-2"></i>{{ _('ROSS1000 / Regione Lazio') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-database me-2"></i>{{ _('ROSS1000 / Lazio Region') }}</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" id="rossConfigForm">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Username ROSS1000') }}</label>
+                                <label class="form-label">{{ _('ROSS1000 Username') }}</label>
                                 <input type="text" class="form-control" name="ross1000_username" 
                                     value="{{ ComplianceConfig.get('ross1000_username', '') }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Password ROSS1000') }}</label>
+                                <label class="form-label">{{ _('ROSS1000 Password') }}</label>
                                 <input type="password" class="form-control" name="ross1000_password" 
                                     value="{{ ComplianceConfig.get('ross1000_password', '') }}">
                             </div>
                         </div>
                         <button type="submit" class="btn btn-info mt-3" form="rossConfigForm">
-                            <i class="bi bi-save me-1"></i>{{ _('Salva Configurazione ROSS1000') }}
+                            <i class="bi bi-save me-1"></i>{{ _('Save ROSS1000 Configuration') }}
                         </button>
                     </form>
                     <div class="alert alert-info mt-3">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>{{ _('Nota:') }}</strong> {{ _('ROSS1000 non ha API pubbliche. Questa configurazione serve per future integrazioni o reference. Attualmente la gestione è manuale via portale web.') }}
+                        <strong>{{ _('Note:') }}</strong> {{ _('ROSS1000 has no public API. This configuration is for future integrations or reference. Currently management is manual via web portal.') }}
                     </div>
                 </div>
             </div>
@@ -150,12 +150,12 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-key me-2"></i>{{ _('Chiave Crittografia Dati Sensibili') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-key me-2"></i>{{ _('Encryption Key for Sensitive Data') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        {{ _('La chiave di crittografia COMPLIANCE_ENCRYPTION_KEY deve essere impostata come variabile d\'ambiente. Non salvarla nel database.') }}
+                        {{ _('The encryption key COMPLIANCE_ENCRYPTION_KEY must be set as an environment variable.')ambiente. Non salvarla nel database.' }}
                     </div>
                     <pre class="bg-light p-3 rounded"><code># Aggiungi a Railway / .env / systemd:
 export COMPLIANCE_ENCRYPTION_KEY="your-32-byte-base64-key-here"
@@ -171,13 +171,13 @@ export COMPLIANCE_ENCRYPTION_KEY="your-32-byte-base64-key-here"
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">{{ _('Configurazioni Salvate') }}</h5>
+                    <h5 class="mb-0">{{ _('Saved Configurations') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
-                                <tr><th>{{ _('Chiave') }}</th><th>{{ _('Status') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Ultimo Aggiornamento') }}</th></tr>
+                                <tr><th>{{ _('Key') }}</th><th>{{ _('Status') }}</th><th>{{ _('Description') }}</th><th>{{ _('Last Update') }}</th></tr>
                             </thead>
                             <tbody>
                                 {% for c in configs %}
@@ -185,9 +185,9 @@ export COMPLIANCE_ENCRYPTION_KEY="your-32-byte-base64-key-here"
                                     <td><code>{{ c.key }}</code></td>
                                     <td>
                                         {% if c.value_encrypted %}
-                                            <span class="badge bg-success">{{ _('Configurato') }}</span>
+                                            <span class="badge bg-success">{{ _('Configured') }}</span>
                                         {% else %}
-                                            <span class="badge bg-danger">{{ _('Non impostato') }}</span>
+                                            <span class="badge bg-danger">{{ _('Not set') }}</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-muted">{{ c.description or '—' }}</td>
