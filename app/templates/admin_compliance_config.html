@@ -8,7 +8,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h1 class="page-title mb-0"><i class="bi bi-gear me-2"></i>{{ _('Configurazione Credenziali Compliance') }}</h1>
                 <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>{{ _('Torna alla Dashboard') }}
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                 </a>
             </div>
         </div>
@@ -31,7 +31,7 @@
                                 <div class="form-text">{{ _('URL del servizio SOAP. Usa versione test per sviluppo.') }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Protocollo Questura') }}</label>
+                                <label class="form-label">{{ _('Questura Protocol') }}</label>
                                 <input type="text" class="form-control" name="questura_protocol_number" 
                                     value="{{ ComplianceConfig.get('questura_protocol_number', '') }}" required
                                     placeholder="Es: RM123456">
@@ -177,7 +177,7 @@ export COMPLIANCE_ENCRYPTION_KEY="your-32-byte-base64-key-here"
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
-                                <tr><th>{{ _('Chiave') }}</th><th>{{ _('Stato') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Ultimo Aggiornamento') }}</th></tr>
+                                <tr><th>{{ _('Chiave') }}</th><th>{{ _('Status') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Ultimo Aggiornamento') }}</th></tr>
                             </thead>
                             <tbody>
                                 {% for c in configs %}

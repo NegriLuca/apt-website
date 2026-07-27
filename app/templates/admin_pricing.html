@@ -38,14 +38,14 @@
                         
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('CIN Code (Codice Identificativo Nazionale)') }}</label>
+                                <label class="form-label fw-semibold">{{ _('CIN Code (National Identification Code)') }}</label>
                                 <input type="text" class="form-control" name="cin_code" value="{{ apartment.cin_code or '' }}" placeholder="IT00000000000">
-                                <div class="form-text">{{ _('Codice Identificativo Nazionale - obbligatorio per tutti gli annunci') }}</div>
+                                <div class="form-text">{{ _('National Identification Code - mandatory for all listings') }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('CIR Code (Codice Identificativo Regionale Lazio)') }}</label>
+                                <label class="form-label fw-semibold">{{ _('CIR Code (Lazio Regional Identification Code)') }}</label>
                                 <input type="text" class="form-control" name="cir_code" value="{{ apartment.cir_code or '' }}" placeholder="LAZ0000">
-                                <div class="form-text">{{ _('Codice Identificativo Regionale Lazio') }}</div>
+                                <div class="form-text">{{ _('Lazio Regional Identification Code') }}</div>
                             </div>
                         </div>
 

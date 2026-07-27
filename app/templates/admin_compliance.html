@@ -16,8 +16,8 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="display-4 text-warning">{{ questura_pending }}</div>
-                    <div class="text-muted small">{{ _('Da inviare a Questura') }}</div>
-                    <a href="{{ url_for('compliance.questura_list', status='pending') }}" class="btn btn-sm btn-outline-warning mt-2">{{ _('Visualizza') }}</a>
+                    <div class="text-muted small">{{ _('To be sent to Questura') }}</div>
+                    <a href="{{ url_for('routes.questura_list', status='pending') }}" class="btn btn-sm btn-outline-warning mt-2">{{ _('View') }}</a>
                 </div>
             </div>
         </div>
@@ -25,8 +25,8 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="display-4 text-danger">{{ questura_rejected }}</div>
-                    <div class="text-muted small">{{ _('Rifiutate / Con errori') }}</div>
-                    <a href="{{ url_for('compliance.questura_list', status='rejected') }}" class="btn btn-sm btn-outline-danger mt-2">{{ _('Visualizza') }}</a>
+                    <div class="text-muted small">{{ _('Rejected / With errors') }}</div>
+                    <a href="{{ url_for('routes.questura_list', status='rejected') }}" class="btn btn-sm btn-outline-danger mt-2">{{ _('View') }}</a>
                 </div>
             </div>
         </div>
@@ -34,8 +34,8 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="display-4 text-success">{{ questura_accepted }}</div>
-                    <div class="text-muted small">{{ _('Accettate') }}</div>
-                    <a href="{{ url_for('compliance.questura_list', status='accepted') }}" class="btn btn-sm btn-outline-success mt-2">{{ _('Visualizza') }}</a>
+                    <div class="text-muted small">{{ _('Accepted') }}</div>
+                    <a href="{{ url_for('routes.questura_list', status='accepted') }}" class="btn btn-sm btn-outline-success mt-2">{{ _('View') }}</a>
                 </div>
             </div>
         </div>
@@ -43,8 +43,8 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
                     <div class="display-4 text-info">€{{ "%.2f"|format(current_month_tax) }}</div>
-                    <div class="text-muted small">{{ _('Tassa Soggiorno Mese Corrente') }}</div>
-                    <a href="{{ url_for('compliance.tourist_tax') }}" class="btn btn-sm btn-outline-info mt-2">{{ _('Gestisci') }}</a>
+                    <div class="text-muted small">{{ _('Current Month Tourist Tax') }}</div>
+                    <a href="{{ url_for('routes.tourist_tax') }}" class="btn btn-sm btn-outline-info mt-2">{{ _('Manage') }}</a>
                 </div>
             </div>
         </div>
@@ -55,25 +55,25 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0">
-                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>{{ _('Azioni Rapide') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>{{ _('Quick Actions') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-flex flex-wrap gap-2">
-                        <form method="POST" action="{{ url_for('compliance.questura_run_daily') }}">
+                        <form method="POST" action="{{ url_for('routes.questura_run_daily') }}">
                             <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Esegui Invio Questura Giornaliero') }}
+                                <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Run Daily Questura Submission') }}
                             </button>
                         </form>
-                        <form method="POST" action="{{ url_for('compliance.tourist_tax_generate') }}">
+                        <form method="POST" action="{{ url_for('routes.tourist_tax_generate') }}">
                             <button type="submit" class="btn btn-info">
-                                <i class="bi bi-file-earmark-text me-1"></i>{{ _('Genera Report Tassa Soggiorno') }}
+                                <i class="bi bi-file-earmark-text me-1"></i>{{ _('Generate Tourist Tax Report') }}
                             </button>
                         </form>
-                        <a href="{{ url_for('compliance.config') }}" class="btn btn-secondary">
-                            <i class="bi bi-gear me-1"></i>{{ _('Configurazione Credenziali') }}
+                        <a href="{{ url_for('routes.compliance_config') }}" class="btn btn-secondary">
+                            <i class="bi bi-gear me-1"></i>{{ _('Credentials Configuration') }}
                         </a>
-                        <a href="{{ url_for('compliance.questura_logs') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-journal-text me-1"></i>{{ _('Log Questura') }}
+                        <a href="{{ url_for('routes.questura_logs') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-journal-text me-1"></i>{{ _('Questura Log') }}
                         </a>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
         <div class="col-12">
             <div class="card border-warning shadow-sm">
                 <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Check-in Prossimi Senza Dati Questura') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Upcoming Check-ins Without Questura Data') }}</h5>
                 </div>
                 <div class="card-body">
                     <p class="text-muted small">Le seguenti prenotazioni fanno check-in nei prossimi 7 giorni ma mancano dati per Questura:</p>
@@ -96,11 +96,11 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>{{ _('Ospite') }}</th>
+                                    <th>{{ _('Guest') }}</th>
                                     <th>{{ _('Check-in') }}</th>
-                                    <th>{{ _('Stato') }}</th>
-                                    <th>{{ _('Campi Mancanti') }}</th>
-                                    <th>{{ _('Azione') }}</th>
+                                    <th>{{ _('Status') }}</th>
+                                    <th>{{ _('Missing Fields') }}</th>
+                                    <th>{{ _('Action') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -112,7 +112,7 @@
                                     <td><span class="badge bg-{{ 'warning' if r.questura_status in [None, 'pending'] else 'danger' }}">{{ r.questura_status or 'da inviare' }}</span></td>
                                     <td class="text-muted small">{{ r.questura_ready() and 'Completo' or 'Dati ospite mancanti' }}</td>
                                     <td>
-                                        <a href="{{ url_for('compliance.guest_checkin', reservation_id=r.id) }}" class="btn btn-sm btn-primary">{{ _('Inserisci Dati') }}</a>
+                                        <a href="{{ url_for('routes.admin_guest_data', reservation_id=r.id) }}" class="btn btn-sm btn-primary">{{ _('Enter Data') }}</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -130,13 +130,13 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>{{ _('Stato Configurazione Questura') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>{{ _('Questura Configuration Status') }}</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead>
-                                <tr><th>{{ _('Parametro') }}</th><th>{{ _('Stato') }}</th></tr>
+                                <tr><th>{{ _('Parameter') }}</th><th>{{ _('Status') }}</th></tr>
                             </thead>
                             <tbody>
                                 {% for key, configured in config_status.items() %}
@@ -160,7 +160,7 @@
         <div class="col-md-6">
             <div class="card border-0 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{{ _('Requisiti Normativi') }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{{ _('Regulatory Requirements') }}</h5>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled small mb-0">

@@ -6,10 +6,10 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="page-title mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Gestione Invii Questura') }}</h1>
+                <h1 class="page-title mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Questura Submissions Management') }}</h1>
                 <div>
                     <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary me-2">
-                        <i class="bi bi-arrow-left me-1"></i>{{ _('Torna alla Dashboard') }}
+                        <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                     </a>
                 </div>
             </div>
@@ -23,23 +23,23 @@
                 <div class="card-body">
                     <form method="GET" class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('Stato') }}</label>
+                            <label class="form-label">{{ _('Status') }}</label>
                             <select name="status" class="form-select" onchange="this.form.submit()">
-                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('Tutti') }}</option>
-                                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>{{ _('Accettate') }}</option>
-                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ _('In attesa') }}</option>
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('All') }}</option>
+                                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>{{ _('Accepted') }}</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ _('Pending') }}</option>
                                 <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>{{ _('Rifiutate') }}</option>
-                                <option value="None" {% if status_filter == 'None' %}selected{% endif %}>{{ _('Non inviate') }}</option>
+                                <option value="None" {% if status_filter == 'None' %}selected{% endif %}>{{ _('Not sent') }}</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">{{ _('Azioni Bulk') }}</label>
+                            <label class="form-label">{{ _('Bulk Actions') }}</label>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-warning" id="btnSubmitSelected" disabled>
-                                    <i class="bi bi-send me-1"></i>{{ _('Invia Selezionate') }}
+                                    <i class="bi bi-send me-1"></i>{{ _('Send Selected') }}
                                 </button>
                                 <button type="button" class="btn btn-secondary" id="btnRetryFailed" disabled>
-                                    <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Riprova Fallite') }}
+                                    <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Retry Failed') }}
                                 </button>
                             </div>
                         </div>
@@ -62,12 +62,12 @@
                                         <input type="checkbox" id="selectAll" class="form-check-input">
                                     </th>
                                     <th>{{ _('ID') }}</th>
-                                    <th>{{ _('Ospite') }}</th>
+                                    <th>{{ _('Guest') }}</th>
                                     <th>{{ _('Check-in') }}</th>
                                     <th>{{ _('Check-out') }}</th>
-                                    <th>{{ _('Stato Questura') }}</th>
-                                    <th>{{ _('Ultimo Invio') }}</th>
-                                    <th>{{ _('Azione') }}</th>
+                                    <th>{{ _('Questura Status') }}</th>
+                                    <th>{{ _('Last Submission') }}</th>
+                                    <th>{{ _('Action') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -88,7 +88,7 @@
                                             'danger' if status == 'rejected' else
                                             'secondary' }}">
                                             {% if status == 'accepted' %}{{ _('Accettata') }}
-                                            {% elif status in ['pending', 'sent'] %}{{ _('In attesa') }}
+                                            {% elif status in ['pending', 'sent'] %}{{ _('Pending') }}
                                             {% elif status == 'rejected' %}{{ _('Rifiutata') }}
                                             {% else %}{{ _('Da inviare') }}{% endif %}
                                         </span>
@@ -102,16 +102,16 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('compliance.guest_checkin', reservation_id=r.id) }}" class="btn btn-outline-primary" title="{{ _('Dati Ospite') }}">
+                                            <a href="{{ url_for('compliance.guest_checkin', reservation_id=r.id) }}" class="btn btn-outline-primary" title="{{ _('Guest Data') }}">
                                                 <i class="bi bi-person"></i>
                                             </a>
                                             {% if r.questura_ready() and status != 'accepted' %}
-                                            <button type="button" class="btn btn-warning btnSubmitSingle" data-id="{{ r.id }}" title="{{ _('Invia a Questura') }}">
+                                            <button type="button" class="btn btn-warning btnSubmitSingle" data-id="{{ r.id }}" title="{{ _('Send to Questura') }}">
                                                 <i class="bi bi-send"></i>
                                             </button>
                                             {% endif %}
                                             {% if status == 'rejected' %}
-                                            <button type="button" class="btn btn-outline-secondary btnRetry" data-id="{{ r.id }}" title="{{ _('Riprova') }}">
+                                            <button type="button" class="btn btn-outline-secondary btnRetry" data-id="{{ r.id }}" title="{{ _('Retry') }}">
                                                 <i class="bi bi-arrow-clockwise"></i>
                                             </button>
                                             {% endif %}
@@ -120,7 +120,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted">{{ _('Nessuna prenotazione trovata') }}</td>
+                                    <td colspan="8" class="text-center py-4 text-muted">{{ _('No reservations found') }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

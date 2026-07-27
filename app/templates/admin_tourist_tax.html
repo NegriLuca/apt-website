@@ -9,7 +9,7 @@
                 <h1 class="page-title mb-0"><i class="bi bi-currency-euro me-2"></i>{{ _('Gestione Tassa di Soggiorno') }}</h1>
                 <div>
                     <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary me-2">
-                        <i class="bi bi-arrow-left me-1"></i>{{ _('Torna alla Dashboard') }}
+                        <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                     </a>
                 </div>
             </div>
@@ -79,7 +79,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">{{ _('Mese') }}</label>
+                            <label class="form-label">{{ _('Month') }}</label>
                             <select class="form-select" name="month">
                                 {% for m in range(1, 13) %}
                                 <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m|string|length == 1 and '0' + m|string or m|string }} - {{ ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'][m-1] }}</option>
@@ -107,7 +107,7 @@
             <div class="card border-0 shadow-sm h-100 text-center">
                 <div class="card-body">
                     <div class="display-4 text-primary">{{ report.total_reservations }}</div>
-                    <div class="text-muted small">{{ _('Prenotazioni') }}</div>
+                    <div class="text-muted small">{{ _('Reservations') }}</div>
                 </div>
             </div>
         </div>
@@ -150,14 +150,14 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>{{ _('Ospite') }}</th>
+                                    <th>{{ _('Guest') }}</th>
                                     <th>{{ _('Check-in') }}</th>
                                     <th>{{ _('Check-out') }}</th>
                                     <th>{{ _('Notti') }}</th>
                                     <th>{{ _('Ospiti') }}</th>
                                     <th>{{ _('Tariffa') }}</th>
                                     <th>{{ _('Tassa') }}</th>
-                                    <th>{{ _('Stato') }}</th>
+                                    <th>{{ _('Status') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -177,7 +177,7 @@
                             </tbody>
                             <tfoot>
                                 <tr class="table-active fw-bold">
-                                    <td colspan="7" class="text-end">{{ _('Totale') }}</td>
+                                    <td colspan="7" class="text-end">{{ _('Total') }}</td>
                                     <td colspan="2">€{{ "%.2f"|format(report.total_tax) }}</td>
                                 </tr>
                             </tfoot>
