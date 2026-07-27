@@ -937,8 +937,6 @@ def export_ical():
             ]
             if r.guest_email:
                 description_parts.append(f"Email: {r.guest_email}")
-            if r.guest_phone:
-                description_parts.append(f"Phone: {r.guest_phone}")
             
             # Escape newlines and special chars for iCal
             description = "\\n".join(description_parts)
