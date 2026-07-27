@@ -902,26 +902,44 @@ def submit_testimonial():
 @bp.route("/ical/apartment.ics")
 def export_ical():
     reservations = Reservation.query.filter(
-        Reservation.status == "confirmed",
         Reservation.check_out > Reservation.check_in
     ).all()
 
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//My Apartment//Booking Calendar//EN",
+        "PRODID:-//Lotto235 Garbatella//Booking Calendar//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
     ]
 
+    status_map = {
+        "confirmed": "CONFIRMED",
+        "pending": "TENTATIVE",
+        "cancelled": "CANCELLED",
+    }
+
     for r in reservations:
+        summary = f"{r.guest_name or 'Reserved'} ({r.source or 'Direct'})"
+        description = (
+            f"Guest: {r.guest_name or 'N/A'}\\n"
+            f"Source: {r.source or 'Direct'}\\n"
+            f"Status: {r.status}"
+        )
+        if r.guest_email:
+            description += f"\\nEmail: {r.guest_email}"
+        if r.guest_phone:
+            description += f"\\nPhone: {r.guest_phone}"
+
         lines.extend([
             "BEGIN:VEVENT",
-            f"UID:{r.id}-{r.check_in}@myapartment",
+            f"UID:{r.id}@lotto235garbatella.it",
             f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
             f"DTSTART;VALUE=DATE:{r.check_in.strftime('%Y%m%d')}",
             f"DTEND;VALUE=DATE:{r.check_out.strftime('%Y%m%d')}",
-            "SUMMARY:Reserved",
+            f"SUMMARY:{summary}",
+            f"DESCRIPTION:{description}",
+            f"STATUS:{status_map.get(r.status, 'CONFIRMED')}",
             "END:VEVENT",
         ])
 
@@ -932,7 +950,9 @@ def export_ical():
         mimetype="text/calendar; charset=utf-8",
         headers={
             "Content-Disposition": "inline; filename=apartment.ics",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
         }
     )
 
