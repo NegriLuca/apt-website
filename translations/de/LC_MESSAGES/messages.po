@@ -2523,7 +2523,7 @@ msgid ""
 msgstr ""
 "Wir bevorzugen es stark, Probleme direkt zu lösen. Rückbuchungen verzögern "
 "die Lösung und können Gebühren verursachen, die wir uns vorbehalten, "
-weiterzugeben. Bitte kontaktieren Sie uns zuerst."
+"weiterzugeben. Bitte kontaktieren Sie uns zuerst."
 
 #: app/templates/policies/refund.html:79
 msgid "Partial Refunds for Service Issues"
