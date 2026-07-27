@@ -1069,6 +1069,19 @@ def admin_pricing():
             except ValueError:
                 flash('Invalid price format entered.', 'danger')
             return redirect(url_for('routes.admin_pricing'))
+        
+        # Handle Italian compliance fields
+        if 'cin_code' in request.form:
+            apartment.cin_code = request.form.get('cin_code', '').strip() or None
+            apartment.cir_code = request.form.get('cir_code', '').strip() or None
+            apartment.tourist_tax_category = request.form.get('tourist_tax_category', 'CAV')
+            apartment.tourist_tax_rate = request.form.get('tourist_tax_rate', type=float) or 6.00
+            apartment.max_guests = request.form.get('max_guests', type=int) or 4
+            apartment.questura_protocol = request.form.get('questura_protocol', '').strip() or None
+            apartment.questura_ip_whitelisted = bool(request.form.get('questura_ip_whitelisted'))
+            db.session.commit()
+            flash('Italian compliance settings updated successfully!', 'success')
+            return redirect(url_for('routes.admin_pricing'))
 
     all_coupons = Coupon.query.all()
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)

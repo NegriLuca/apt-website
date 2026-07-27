@@ -25,8 +25,78 @@
             </div>
         </div>
 
-        <!-- Coupons Display Container -->
+        <!-- Italian Compliance Fields -->
         <div class="col-md-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-dark text-white fw-bold">
+                    {{ _('Italian Compliance Settings') }}
+                </div>
+                <div class="card-body py-4">
+                    <form action="{{ url_for('routes.admin_pricing') }}" method="POST" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="cin_code" value="{{ apartment.cin_code or '' }}">
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('CIN Code (Codice Identificativo Nazionale)') }}</label>
+                                <input type="text" class="form-control" name="cin_code" value="{{ apartment.cin_code or '' }}" placeholder="IT00000000000">
+                                <div class="form-text">{{ _('Codice Identificativo Nazionale - obbligatorio per tutti gli annunci') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('CIR Code (Codice Identificativo Regionale Lazio)') }}</label>
+                                <input type="text" class="form-control" name="cir_code" value="{{ apartment.cir_code or '' }}" placeholder="LAZ0000">
+                                <div class="form-text">{{ _('Codice Identificativo Regionale Lazio') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">{{ _('Tourist Tax Category') }}</label>
+                                <select class="form-select" name="tourist_tax_category">
+                                    <option value="CAV" {% if apartment.tourist_tax_category == 'CAV' %}selected{% endif %}>CAV - Case Vacanze</option>
+                                    <option value="BB" {% if apartment.tourist_tax_category == 'BB' %}selected{% endif %}>BB - Bed & Breakfast</option>
+                                    <option value="HOTEL_1" {% if apartment.tourist_tax_category == 'HOTEL_1' %}selected{% endif %}>Hotel 1★</option>
+                                    <option value="HOTEL_2" {% if apartment.tourist_tax_category == 'HOTEL_2' %}selected{% endif %}>Hotel 2★</option>
+                                    <option value="HOTEL_3" {% if apartment.tourist_tax_category == 'HOTEL_3' %}selected{% endif %}>Hotel 3★</option>
+                                    <option value="HOTEL_4" {% if apartment.tourist_tax_category == 'HOTEL_4' %}selected{% endif %}>Hotel 4★</option>
+                                    <option value="HOTEL_5" {% if apartment.tourist_tax_category == 'HOTEL_5' %}selected{% endif %}>Hotel 5★</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">{{ _('Tourist Tax Rate (€/night/person)') }}</label>
+                                <input type="number" step="0.01" class="form-control" name="tourist_tax_rate" value="{{ '%.2f'|format(apartment.tourist_tax_rate) if apartment.tourist_tax_rate else '6.00' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">{{ _('Max Guests') }}</label>
+                                <input type="number" class="form-control" name="max_guests" value="{{ apartment.max_guests or 4 }}" min="1" max="10">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold">{{ _('Questura Protocol Number') }}</label>
+                                <input type="text" class="form-control" name="questura_protocol" value="{{ apartment.questura_protocol or '' }}" placeholder="Protocollo Questura per AlloggiatiWeb">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="questura_ip_whitelisted" id="questura_ip_whitelisted" {% if apartment.questura_ip_whitelisted %}checked{% endif %}>
+                                    <label class="form-check-label" for="questura_ip_whitelisted">{{ _('IP Whitelisted') }}</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold">{{ _('Save Compliance Settings') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Coupons Display Container -->
+<div class="container">
+    <div class="row g-4 mb-5">
+        <div class="col-12">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center fw-bold">
                     <span>{{ _('Operational System Vouchers') }}</span>
