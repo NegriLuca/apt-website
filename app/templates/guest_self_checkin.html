@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Check-in Online') }}{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ _('Check-in Online') }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; min-height: 100vh; }
+        .checkin-card { max-width: 700px; margin: 40px auto; }
+        .form-label { font-weight: 500; }
+        .required::after { content: " *"; color: #dc3545; }
+        .reservation-summary { background: #e8f5e9; border-left: 4px solid #28a745; }
+        .progress-bar-custom { height: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="checkin-card">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="bi bi-key me-2"></i>{{ _('Check-in Online') }}</h4>
+                        <span class="badge bg-light text-dark fs-6">{{ reservation.nights }} {{ _('nights') }}</span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Reservation Summary -->
+                    <div class="reservation-summary p-3 rounded mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <small class="text-muted">{{ _('Check-in') }}</small>
+                                <div class="fw-bold">{{ reservation.check_in.strftime('%d/%m/%Y') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">{{ _('Check-out') }}</small>
+                                <div class="fw-bold">{{ reservation.check_out.strftime('%d/%m/%Y') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">{{ _('Guests') }}</small>
+                                <div class="fw-bold">{{ reservation.num_guests }} {{ _('guests') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">{{ _('Reservation') }}</small>
+                                <div class="fw-bold">#{{ reservation.id }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">{{ _('Progress') }}</span>
+                            <span class="text-muted small">{{ _('Step 1 of 2: Guest Details') }}</span>
+                        </div>
+                        <div class="progress progress-bar-custom">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Notice -->
+                    <div class="alert alert-info d-flex align-items-start mb-4">
+                        <i class="bi bi-shield-lock me-2 fs-4 mt-1"></i>
+                        <div>
+                            <strong>{{ _('Required by law:') }}</strong> {{ _('All guests must be registered with the Police (Questura) within 24 hours of arrival. Online check-in speeds up the process and ensures compliance.') }}
+                        </div>
+                    </div>
+
+                    <form method="POST" id="checkinForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                        <!-- Guest 1 (Main Guest) -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-person-badge me-1"></i>{{ _('Main Guest') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Surname') }}</label>
+                                <input type="text" class="form-control" name="guest_surname" required autocomplete="family-name" value="{{ reservation.guest_surname or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('First Name') }}</label>
+                                <input type="text" class="form-control" name="guest_first_name" required autocomplete="given-name" value="{{ reservation.guest_first_name or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Date of Birth') }}</label>
+                                <input type="date" class="form-control" name="guest_birth_date" required value="{{ reservation.guest_birth_date.strftime('%Y-%m-%d') if reservation.guest_birth_date else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Place of Birth (City)') }}</label>
+                                <input type="text" class="form-control" name="guest_birth_place" required autocomplete="address-level2" value="{{ reservation.guest_birth_place or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Nationality') }}</label>
+                                <input type="text" class="form-control" name="guest_nationality" required autocomplete="country-name" value="{{ reservation.guest_nationality or '' }}" placeholder="Italian, French, German, etc.">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Gender') }}</label>
+                                <select class="form-select" name="guest_gender" required>
+                                    <option value="">{{ _('Select') }}</option>
+                                    <option value="M" {% if reservation.guest_gender == 'M' %}selected{% endif %}>{{ _('Male') }}</option>
+                                    <option value="F" {% if reservation.guest_gender == 'F' %}selected{% endif %}>{{ _('Female') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Document -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-card-text me-1"></i>{{ _('Identity Document') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Document Type') }}</label>
+                                <select class="form-select" name="guest_document_type" required>
+                                    <option value="">{{ _('Select') }}</option>
+                                    <option value="passport" {% if reservation.guest_document_type == 'passport' %}selected{% endif %}>{{ _('Passport') }}</option>
+                                    <option value="id_card" {% if reservation.guest_document_type == 'id_card' %}selected{% endif %}>{{ _('Identity Card') }}</option>
+                                    <option value="driving_license" {% if reservation.guest_document_type == 'driving_license' %}selected{% endif %}>{{ _('Driving License') }}</option>
+                                    <option value="other" {% if reservation.guest_document_type == 'other' %}selected{% endif %}>{{ _('Other') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Document Number') }}</label>
+                                <input type="text" class="form-control" name="guest_document_number" required autocomplete="off" value="{{ reservation.guest_document_number or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Expiry Date') }}</label>
+                                <input type="date" class="form-control" name="guest_document_expiry" required value="{{ reservation.guest_document_expiry.strftime('%Y-%m-%d') if reservation.guest_document_expiry else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">{{ _('Issuing Country (ISO 3 letters)') }}</label>
+                                <input type="text" class="form-control" name="guest_document_country" required maxlength="3" value="{{ reservation.guest_document_country or 'ITA' }}" placeholder="ITA, FRA, DEU, USA, GBR...">
+                                <div class="form-text">{{ _('ISO 3-letter code (e.g. ITA for Italy)') }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Guests -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0 text-primary"><i class="bi bi-people me-1"></i>{{ _('Additional Guests') }}</h5>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="addGuestBtn"><i class="bi bi-plus-circle me-1"></i>{{ _('Add Guest') }}</button>
+                            </div>
+                            <div id="additionalGuests" class="row g-3">
+                                <!-- Additional guests added dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-1"></i>{{ _('Complete Check-in') }}
+                            </button>
+                            <a href="{{ url_for('routes.home') }}" class="btn btn-outline-secondary">
+                                {{ _('Cancel') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Completion Card (shown after submit) -->
+            <div class="card border-0 shadow-sm mt-4 d-none" id="successCard">
+                <div class="card-body text-center py-5">
+                    <div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3>{{ _('Check-in Completed!') }}</h3>
+                    <p class="text-muted mb-4">{{ _('Your details have been submitted. You will receive a confirmation email.') }}</p>
+                    <a href="{{ url_for('routes.home') }}" class="btn btn-primary">{{ _('Back to Home') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let guestCount = 0;
+
+    // Add guest function
+    document.getElementById('addGuestBtn')?.addEventListener('click', function() {
+        if (guestCount >= 5) {
+            alert('{{ _('Maximum 5 additional guests') }}');
+            return;
+        }
+        guestCount++;
+        const container = document.getElementById('additionalGuests');
+        const div = document.createElement('div');
+        div.className = 'col-md-6 guest-entry';
+        div.innerHTML = `
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between">
+                    <span class="fw-bold">${{ _('Guest') }} ${guestCount + 1}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-guest"><i class="bi bi-trash"></i></button>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Surname') }}</label>
+                            <input type="text" class="form-control" name="guest_${guestCount}_surname" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('First Name') }}</label>
+                            <input type="text" class="form-control" name="guest_${guestCount}_first_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Date of Birth') }}</label>
+                            <input type="date" class="form-control" name="guest_${guestCount}_birth_date" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Place of Birth') }}</label>
+                            <input type="text" class="form-control" name="guest_${guestCount}_birth_place" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Nationality') }}</label>
+                            <input type="text" class="form-control" name="guest_${guestCount}_nationality" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Gender') }}</label>
+                            <select class="form-select" name="guest_${guestCount}_gender" required>
+                                <option value="">${{ _('Select') }}</option>
+                                <option value="M">${{ _('Male') }}</option>
+                                <option value="F">${{ _('Female') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Document Type') }}</label>
+                            <select class="form-select" name="guest_${guestCount}_document_type" required>
+                                <option value="">${{ _('Select') }}</option>
+                                <option value="passport">${{ _('Passport') }}</option>
+                                <option value="id_card">${{ _('Identity Card') }}</option>
+                                <option value="driving_license">${{ _('Driving License') }}</option>
+                                <option value="other">${{ _('Other') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Document Number') }}</label>
+                            <input type="text" class="form-control" name="guest_${guestCount}_document_number" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Document Expiry') }}</label>
+                            <input type="date" class="form-control" name="guest_${guestCount}_document_expiry" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">${{ _('Issuing Country (ISO 3)') }}</label>
+                            <input type="text" class="form-control" name="guest_${guestCount}_document_country" required maxlength="3" value="ITA">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            
+            // Add remove handler
+            div.querySelector('.remove-guest').addEventListener('click', function() {
+                div.remove();
+                guestCount--;
+            });
+        });
+
+        // Form submission
+        document.getElementById('checkinForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ _('Submitting...') }}';
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Replace form with success message
+                document.querySelector('.card-body').innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+                        <h3>${{ _('Check-in Completed!') }}</h3>
+                        <p class="text-muted mb-4">${{ _('Your details have been submitted to the authorities. You will receive a confirmation email.') }}</p>
+                        <a href="{{ url_for('routes.home') }}" class="btn btn-primary">${{ _('Back to Home') }}</a>
+                    </div>
+                `;
+            })
+            .catch(err => {
+                console.error(err);
+                alert('{{ _('Error during submission. Please try again.') }}');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>${{ _('Complete Check-in') }}';
+            });
+        });
+    </script>
+{% endblock %}

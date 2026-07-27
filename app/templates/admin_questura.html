@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Questura Submissions') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="page-title mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Gestione Invii Questura') }}</h1>
+                <div>
+                    <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-1"></i>{{ _('Torna alla Dashboard') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ _('Stato') }}</label>
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('Tutti') }}</option>
+                                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>{{ _('Accettate') }}</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ _('In attesa') }}</option>
+                                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>{{ _('Rifiutate') }}</option>
+                                <option value="None" {% if status_filter == 'None' %}selected{% endif %}>{{ _('Non inviate') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ _('Azioni Bulk') }}</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-warning" id="btnSubmitSelected" disabled>
+                                    <i class="bi bi-send me-1"></i>{{ _('Invia Selezionate') }}
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="btnRetryFailed" disabled>
+                                    <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Riprova Fallite') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="questuraTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th>{{ _('ID') }}</th>
+                                    <th>{{ _('Ospite') }}</th>
+                                    <th>{{ _('Check-in') }}</th>
+                                    <th>{{ _('Check-out') }}</th>
+                                    <th>{{ _('Stato Questura') }}</th>
+                                    <th>{{ _('Ultimo Invio') }}</th>
+                                    <th>{{ _('Azione') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in reservations.items %}
+                                <tr data-id="{{ r.id }}" data-status="{{ r.questura_status or '' }}">
+                                    <td>
+                                        <input type="checkbox" class="form-check-input rowSelect" value="{{ r.id }}" {% if not r.questura_ready() %}disabled{% endif %}>
+                                    </td>
+                                    <td><strong>#{{ r.id }}</strong></td>
+                                    <td>{{ r.guest_name }}</td>
+                                    <td>{{ r.check_in.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ r.check_out.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        {% set status = r.questura_status or 'none' %}
+                                        <span class="badge bg-{{ 
+                                            'success' if status == 'accepted' else
+                                            'warning' if status in ['pending', 'sent'] else
+                                            'danger' if status == 'rejected' else
+                                            'secondary' }}">
+                                            {% if status == 'accepted' %}{{ _('Accettata') }}
+                                            {% elif status in ['pending', 'sent'] %}{{ _('In attesa') }}
+                                            {% elif status == 'rejected' %}{{ _('Rifiutata') }}
+                                            {% else %}{{ _('Da inviare') }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if r.questura_submitted_at %}
+                                            {{ r.questura_submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('compliance.guest_checkin', reservation_id=r.id) }}" class="btn btn-outline-primary" title="{{ _('Dati Ospite') }}">
+                                                <i class="bi bi-person"></i>
+                                            </a>
+                                            {% if r.questura_ready() and status != 'accepted' %}
+                                            <button type="button" class="btn btn-warning btnSubmitSingle" data-id="{{ r.id }}" title="{{ _('Invia a Questura') }}">
+                                                <i class="bi bi-send"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if status == 'rejected' %}
+                                            <button type="button" class="btn btn-outline-secondary btnRetry" data-id="{{ r.id }}" title="{{ _('Riprova') }}">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">{{ _('Nessuna prenotazione trovata') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% if reservations.pages > 1 %}
+                <div class="card-footer">
+                    <nav aria-label="{{ _('Pagination') }}">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if reservations.has_prev %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_list', page=reservations.prev_num, status=status_filter) }}">&laquo;</a></li>
+                            {% endif %}
+                            {% for p in reservations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                {% if p %}
+                                    <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('compliance.questura_list', page=p, status=status_filter) }}">{{ p }}</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if reservations.has_next %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_list', page=reservations.next_num, status=status_filter) }}">&raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const rowSelects = document.querySelectorAll('.rowSelect');
+    const btnSubmitSelected = document.getElementById('btnSubmitSelected');
+    const btnRetryFailed = document.getElementById('btnRetryFailed');
+    const questuraTable = document.getElementById('questuraTable');
+
+    // Select all
+    selectAll.addEventListener('change', function() {
+        rowSelects.forEach(cb => {
+            if (!cb.disabled) cb.checked = this.checked;
+        });
+        updateBulkButtons();
+    });
+
+    rowSelects.forEach(cb => {
+        cb.addEventListener('change', updateBulkButtons);
+    });
+
+    function updateBulkButtons() {
+        const selected = document.querySelectorAll('.rowSelect:checked').length;
+        btnSubmitSelected.disabled = selected === 0;
+        btnRetryFailed.disabled = selected === 0;
+    }
+
+    // Single submit
+    document.querySelectorAll('.btnSubmitSingle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            submitToQuestura([this.dataset.id]);
+        });
+    });
+
+    // Bulk submit
+    btnSubmitSelected.addEventListener('click', function() {
+        const ids = Array.from(document.querySelectorAll('.rowSelect:checked')).map(cb => cb.value);
+        submitToQuestura(ids);
+    });
+
+    // Retry failed
+    btnRetryFailed.addEventListener('click', function() {
+        const ids = Array.from(document.querySelectorAll('.rowSelect:checked')).map(cb => cb.value);
+        retryQuestura(ids);
+    });
+
+    // Row retry
+    document.querySelectorAll('.btnRetry').forEach(btn => {
+        btn.addEventListener('click', function() {
+            retryQuestura([this.dataset.id]);
+        });
+    });
+
+    function submitToQuestura(ids) {
+        if (!ids.length) return;
+        if (!confirm(`Inviare ${ids.length} prenotazione(i) a Questura?`)) return;
+
+        fetch('/admin/compliance/questura/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reservation_ids: ids})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.task_id) {
+                alert(`Inviato! Task ID: ${data.task_id}`);
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                alert('Errore: ' + (data.error || 'Unknown'));
+            }
+        });
+    }
+
+    function retryQuestura(ids) {
+        if (!ids.length) return;
+        if (!confirm(`Riprova invio per ${ids.length} prenotazione(i)?`)) return;
+
+        fetch('/admin/compliance/questura/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reservation_ids: ids})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.task_id) {
+                alert(`Riprova avviata! Task ID: ${data.task_id}`);
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                alert('Errore: ' + (data.error || 'Unknown'));
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Configurazione Compliance') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="page-title mb-0"><i class="bi bi-gear me-2"></i>{{ _('Configurazione Credenziali Compliance') }}</h1>
+                <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('Torna alla Dashboard') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Questura / AlloggiatiWeb') }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="questuraConfigForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('WSDL URL') }}</label>
+                                <input type="text" class="form-control" name="questura_wsdl_url" 
+                                    value="{{ ComplianceConfig.get('questura_wsdl_url', 'https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl') }}"
+                                    placeholder="https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl">
+                                <div class="form-text">{{ _('URL del servizio SOAP. Usa versione test per sviluppo.') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Protocollo Questura') }}</label>
+                                <input type="text" class="form-control" name="questura_protocol_number" 
+                                    value="{{ ComplianceConfig.get('questura_protocol_number', '') }}" required
+                                    placeholder="Es: RM123456">
+                                <div class="form-text">{{ _('Numero protocollo assegnato dalla Questura di Roma.') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Username') }}</label>
+                                <input type="text" class="form-control" name="questura_username" 
+                                    value="{{ ComplianceConfig.get('questura_username', '') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Password') }}</label>
+                                <input type="password" class="form-control" name="questura_password" 
+                                    value="{{ ComplianceConfig.get('questura_password', '') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Percorso Certificato (.pfx/.p12)') }}</label>
+                                <input type="text" class="form-control" name="questura_cert_path" 
+                                    value="{{ ComplianceConfig.get('questura_cert_path', '/etc/ssl/questura/client.pfx') }}"
+                                    placeholder="/path/to/certificate.pfx">
+                                <div class="form-text">{{ _('Percorso assoluto del certificato client per mTLS.') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Password Certificato') }}</label>
+                                <input type="password" class="form-control" name="questura_cert_password" 
+                                    value="{{ ComplianceConfig.get('questura_cert_password', '') }}">
+                                <div class="form-text">{{ _('Password del file .pfx/.p12.') }}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary" form="questuraConfigForm">
+                                <i class="bi bi-save me-1"></i>{{ _('Salva Configurazione Questura') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-cash-coin me-2"></i>{{ _('Tassa di Soggiorno - Roma Capitale') }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="taxConfigForm">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ _('Categoria Struttura') }}</label>
+                                <select class="form-select" name="tourist_tax_category">
+                                    <option value="CAV" {% if ComplianceConfig.get('tourist_tax_category') == 'CAV' %}selected{% endif %}>CAV - Case Vacanze (€3.50)</option>
+                                    <option value="BB" {% if ComplianceConfig.get('tourist_tax_category') == 'BB' %}selected{% endif %}>BB - Bed & Breakfast (€5.00)</option>
+                                    <option value="HOTEL_1" {% if ComplianceConfig.get('tourist_tax_category') == 'HOTEL_1' %}selected{% endif %}>Hotel 1★ (€4.00)</option>
+                                    <option value="HOTEL_2" {% if ComplianceConfig.get('tourist_tax_category') == 'HOTEL_2' %}selected{% endif %}>Hotel 2★ (€5.00)</option>
+                                    <option value="HOTEL_3" {% if ComplianceConfig.get('tourist_tax_category') == 'HOTEL_3' %}selected{% endif %}>Hotel 3★ (€6.00)</option>
+                                    <option value="HOTEL_4" {% if ComplianceConfig.get('tourist_tax_category') == 'HOTEL_4' %}selected{% endif %}>Hotel 4★ (€7.00)</option>
+                                    <option value="HOTEL_5" {% if ComplianceConfig.get('tourist_tax_category') == 'HOTEL_5' %}selected{% endif %}>Hotel 5★ (€8.00)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ _('Tariffa Personalizzata (€)') }}</label>
+                                <input type="number" step="0.01" class="form-control" name="tourist_tax_rate" 
+                                    value="{{ ComplianceConfig.get('tourist_tax_rate', '3.50') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ _('Ufficio Tributi Email') }}</label>
+                                <input type="email" class="form-control" name="roma_tax_office_email" 
+                                    value="{{ ComplianceConfig.get('roma_tax_office_email', 'tributi@comune.roma.it') }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-3" form="taxConfigForm">
+                            <i class="bi bi-save me-1"></i>{{ _('Salva Configurazione Tassa Soggiorno') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-database me-2"></i>{{ _('ROSS1000 / Regione Lazio') }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="rossConfigForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Username ROSS1000') }}</label>
+                                <input type="text" class="form-control" name="ross1000_username" 
+                                    value="{{ ComplianceConfig.get('ross1000_username', '') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Password ROSS1000') }}</label>
+                                <input type="password" class="form-control" name="ross1000_password" 
+                                    value="{{ ComplianceConfig.get('ross1000_password', '') }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-info mt-3" form="rossConfigForm">
+                            <i class="bi bi-save me-1"></i>{{ _('Salva Configurazione ROSS1000') }}
+                        </button>
+                    </form>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>{{ _('Nota:') }}</strong> {{ _('ROSS1000 non ha API pubbliche. Questa configurazione serve per future integrazioni o reference. Attualmente la gestione è manuale via portale web.') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-key me-2"></i>{{ _('Chiave Crittografia Dati Sensibili') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        {{ _('La chiave di crittografia COMPLIANCE_ENCRYPTION_KEY deve essere impostata come variabile d\'ambiente. Non salvarla nel database.') }}
+                    </div>
+                    <pre class="bg-light p-3 rounded"><code># Aggiungi a Railway / .env / systemd:
+export COMPLIANCE_ENCRYPTION_KEY="your-32-byte-base64-key-here"
+
+# Genera con: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">{{ _('Configurazioni Salvate') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>{{ _('Chiave') }}</th><th>{{ _('Stato') }}</th><th>{{ _('Descrizione') }}</th><th>{{ _('Ultimo Aggiornamento') }}</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for c in configs %}
+                                <tr>
+                                    <td><code>{{ c.key }}</code></td>
+                                    <td>
+                                        {% if c.value_encrypted %}
+                                            <span class="badge bg-success">{{ _('Configurato') }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ _('Non impostato') }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted">{{ c.description or '—' }}</td>
+                                    <td>{{ c.updated_at.strftime('%d/%m/%Y %H:%M') if c.updated_at else '—' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

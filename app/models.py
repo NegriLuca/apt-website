@@ -25,6 +25,17 @@ class Apartment(db.Model):
     name            = db.Column(db.String(100), nullable=False)
     price_per_night = db.Column(db.Float, nullable=False)
     image_file      = db.Column(db.String(100), nullable=False, default='default.jpg')
+    
+    # Italian compliance fields
+    cin_code        = db.Column(db.String(50), nullable=True, comment='Codice Identificativo Nazionale')
+    cir_code        = db.Column(db.String(50), nullable=True, comment='Codice Identificativo Regionale Lazio')
+    tourist_tax_category = db.Column(db.String(20), nullable=True, default='CAV', comment='CAV, BB, etc.')
+    tourist_tax_rate = db.Column(db.Float, nullable=True, default=6.00, comment='Euro per night per person')
+    max_guests      = db.Column(db.Integer, nullable=True, default=4)
+    
+    # Questura configuration
+    questura_protocol = db.Column(db.String(50), nullable=True, comment='Protocollo Questura per AlloggiatiWeb')
+    questura_ip_whitelisted = db.Column(db.Boolean, default=False)
 
 
 class Reservation(db.Model):
@@ -50,6 +61,38 @@ class Reservation(db.Model):
     # ── Stripe ────────────────────────────────────────────────────────────────
     stripe_payment_intent_id = db.Column(db.String(128), unique=True, index=True)
 
+    # ── Italian Compliance (Questura Alloggiati) ─────────────────────────────
+    guest_surname       = db.Column(db.String(100), nullable=True)
+    guest_first_name    = db.Column(db.String(100), nullable=True)
+    guest_birth_date    = db.Column(db.Date, nullable=True)
+    guest_birth_place   = db.Column(db.String(100), nullable=True)
+    guest_nationality   = db.Column(db.String(50), nullable=True)
+    guest_document_type = db.Column(db.String(20), nullable=True, comment='passport, id_card, driving_license')
+    guest_document_number = db.Column(db.String(50), nullable=True)
+    guest_document_expiry = db.Column(db.Date, nullable=True)
+    guest_document_country = db.Column(db.String(3), nullable=True, comment='ISO 3166-1 alpha-3')
+    guest_gender        = db.Column(db.String(1), nullable=True, comment='M/F')
+    
+    # Guest self-service check-in
+    checkin_token       = db.Column(db.String(128), unique=True, index=True, nullable=True)
+    checkin_completed_at = db.Column(db.DateTime, nullable=True)
+    checkin_token_used  = db.Column(db.Boolean, default=False)
+    
+    # Questura sync tracking
+    questura_submitted_at = db.Column(db.DateTime, nullable=True)
+    questura_response     = db.Column(db.Text, nullable=True)
+    questura_status       = db.Column(db.String(20), nullable=True, comment='pending, sent, accepted, rejected')
+    questura_error        = db.Column(db.Text, nullable=True)
+    
+    # Self-service check-in token (for guest-facing form)
+    checkin_token         = db.Column(db.String(128), unique=True, index=True, nullable=True)
+    checkin_completed_at  = db.Column(db.DateTime, nullable=True)
+    checkin_token_used    = db.Column(db.Boolean, default=False)
+    
+    # Tourist tax
+    tourist_tax_amount  = db.Column(db.Float, nullable=True, default=0.0)
+    tourist_tax_paid    = db.Column(db.Boolean, default=False)
+
     __table_args__ = (
         db.CheckConstraint("check_out > check_in",      name="ck_dates_valid"),
         db.CheckConstraint("num_guests >= 1 AND num_guests <= 4", name="ck_guests_range"),
@@ -66,6 +109,24 @@ class Reservation(db.Model):
         if self.check_out and self.check_in:
             return (self.check_out - self.check_in).days
         return 0
+    
+    @property
+    def guest_full_name(self):
+        """Return formatted full name for Questura"""
+        if self.guest_surname and self.guest_first_name:
+            return f"{self.guest_surname} {self.guest_first_name}"
+        return self.guest_name
+    
+    def questura_ready(self):
+        """Check if all required fields for Questura are present"""
+        required = [
+            self.guest_surname, self.guest_first_name, self.guest_birth_date,
+            self.guest_birth_place, self.guest_nationality,
+            self.guest_document_type, self.guest_document_number,
+            self.guest_document_expiry, self.guest_document_country,
+            self.guest_gender
+        ]
+        return all(required)
 
 class ICalFeed(db.Model):
     id            = db.Column(db.Integer, primary_key=True)
@@ -111,3 +172,103 @@ class Testimonial(db.Model):
 
     def __repr__(self):
         return f'<Testimonial {self.guest_name} - {self.rating}★>'
+
+
+class ComplianceConfig(db.Model):
+    """Encrypted storage for API credentials and compliance settings"""
+    __tablename__ = 'compliance_config'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    value_encrypted = db.Column(db.Text, nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Known keys:
+    # - questura_wsdl_url
+    # - questura_username
+    # - questura_password
+    # - questura_cert_path
+    # - questura_cert_password
+    # - questura_protocol_number
+    # - roma_tax_office_email
+    # - ross1000_username
+    # - ross1000_password
+    
+    def set_value(self, plain_value, encryption_key=None):
+        """Encrypt and store value"""
+        if plain_value is None:
+            self.value_encrypted = None
+            return
+        from cryptography.fernet import Fernet
+        import base64
+        import os
+        
+        if encryption_key is None:
+            encryption_key = os.environ.get('COMPLIANCE_ENCRYPTION_KEY')
+            if not encryption_key:
+                # Generate from app secret as fallback
+                from flask import current_app
+                encryption_key = current_app.config.get('SECRET_KEY', '')[:32].encode()
+                encryption_key = base64.urlsafe_b64encode(encryption_key.ljust(32, b'0')[:32])
+        
+        f = Fernet(encryption_key)
+        self.value_encrypted = f.encrypt(plain_value.encode()).decode()
+    
+    def get_value(self, encryption_key=None):
+        """Decrypt and return value"""
+        if not self.value_encrypted:
+            return None
+        from cryptography.fernet import Fernet
+        import base64
+        import os
+        
+        if encryption_key is None:
+            encryption_key = os.environ.get('COMPLIANCE_ENCRYPTION_KEY')
+            if not encryption_key:
+                from flask import current_app
+                encryption_key = current_app.config.get('SECRET_KEY', '')[:32].encode()
+                encryption_key = base64.urlsafe_b64encode(encryption_key.ljust(32, b'0')[:32])
+        
+        f = Fernet(encryption_key)
+        return f.decrypt(self.value_encrypted.encode()).decode()
+    
+    @classmethod
+    def get(cls, key, default=None):
+        """Get decrypted config value"""
+        cfg = cls.query.filter_by(key=key).first()
+        if cfg:
+            try:
+                return cfg.get_value()
+            except Exception:
+                return default
+        return default
+    
+    @classmethod
+    def set(cls, key, value, description=None):
+        """Set config value (encrypted)"""
+        cfg = cls.query.filter_by(key=key).first()
+        if not cfg:
+            cfg = cls(key=key, description=description)
+            db.session.add(cfg)
+        cfg.set_value(value)
+        if description:
+            cfg.description = description
+        db.session.commit()
+        return cfg
+
+
+class QuesturaLog(db.Model):
+    """Audit log for all Questura submissions"""
+    __tablename__ = 'questura_log'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=False, index=True)
+    action = db.Column(db.String(20), nullable=False)  # submit, retry, manual
+    request_xml = db.Column(db.Text, nullable=True)
+    response_xml = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False)  # success, error, pending
+    error_message = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    reservation = db.relationship('Reservation', backref=db.backref('questura_logs', lazy='dynamic'))

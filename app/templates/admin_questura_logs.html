@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Questura Logs') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="page-title mb-0"><i class="bi bi-journal-text me-2"></i>{{ _('Log Invii Questura') }}</h1>
+                <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('Torna alla Dashboard') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>{{ _('Prenotazione') }}</th>
+                                    <th>{{ _('Azione') }}</th>
+                                    <th>{{ _('Stato') }}</th>
+                                    <th>{{ _('Data') }}</th>
+                                    <th>{{ _('Dettagli') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs.items %}
+                                <tr>
+                                    <td>{{ log.id }}</td>
+                                    <td>
+                                        <a href="{{ url_for('routes.admin_dashboard') }}#reservation-{{ log.reservation_id }}">
+                                            #{{ log.reservation_id }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 
+                                            'success' if log.status == 'success' else
+                                            'danger' if log.status == 'error' else
+                                            'warning' }}">
+                                            {{ log.action }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 
+                                            'success' if log.status == 'success' else
+                                            'danger' if log.status == 'error' else
+                                            'warning' }}">
+                                            {{ log.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary" 
+                                                    data-bs-toggle="modal" data-bs-target="#requestModal{{ log.id }}"
+                                                    title="{{ _('Vedi Richiesta') }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" 
+                                                    data-bs-toggle="modal" data-bs-target="#responseModal{{ log.id }}"
+                                                    title="{{ _('Vedi Risposta') }}">
+                                                <i class="bi bi-file-text"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Request Modal -->
+                                <div class="modal fade" id="requestModal{{ log.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ _('Richiesta XML') }} - Log #{{ log.id }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <pre class="bg-dark text-light p-3 rounded overflow-auto" style="max-height: 500px; font-size: 11px;">{{ log.request_xml or '—' }}</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Response Modal -->
+                                <div class="modal fade" id="responseModal{{ log.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ _('Risposta XML') }} - Log #{{ log.id }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <pre class="bg-dark text-light p-3 rounded overflow-auto" style="max-height: 500px; font-size: 11px;">{{ log.response_xml or '—' }}</pre>
+                                                {% if log.error_message %}
+                                                <div class="alert alert-danger mt-3">
+                                                    <strong>{{ _('Errore:') }}</strong> {{ log.error_message }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">{{ _('Nessun log trovato') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if logs.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="{{ _('Pagination') }}">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if logs.has_prev %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_logs', page=logs.prev_num) }}">&laquo;</a></li>
+                                {% endif %}
+                                {% for p in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                    {% if p %}
+                                        <li class="page-item {% if p == logs.page %}active{% endif %}"><a class="page-link" href="{{ url_for('compliance.questura_logs', page=p) }}">{{ p }}</a></li>
+                                    {% else %}
+                                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if logs.has_next %}
+                                <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_logs', page=logs.next_num) }}">&raquo;</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

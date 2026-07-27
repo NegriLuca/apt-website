@@ -54,6 +54,15 @@
         </div>
         {% endif %}
         
+        <div class="bank-details" style="background-color: #e8f5e9; border-color: #a5d6a7;">
+            <h4>{{ _('Complete Your Check-in Online') }}</h4>
+            <p>{{ _('Save time at arrival by completing your guest registration now. Required by Italian law for all guests.') }}</p>
+            <p style="text-align: center; margin: 20px 0;">
+                <a href="{{ checkin_url }}" style="display: inline-block; padding: 12px 24px; background-color: #28a745; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold;">{{ _('Complete Check-in Now') }}</a>
+            </p>
+            <p style="font-size: 12px; color: #666; text-align: center;">{{ _('Available 30 days before check-in. One-time use link.') }}</p>
+        </div>
+        
         <div class="details">
             <h3>{{ _('Payment Details') }}</h3>
             <p>{{ payment_summary }}</p>

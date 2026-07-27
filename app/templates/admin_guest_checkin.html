@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Guest Check-in - Questura Data') }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-{{ 'success' if reservation.questura_ready() else 'warning' }} text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-person-badge me-2"></i>{{ _('Guest Data for Questura') }}
+                        </h4>
+                        <span class="badge bg-{{ 'success' if reservation.questura_ready() else 'warning' }} fs-6">
+                            {% if reservation.questura_ready() %}{{ _('Complete') }}{% else %}{{ _('Incomplete') }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="alert alert-info d-flex align-items-center">
+                                <i class="bi bi-shield-lock me-2 fs-4"></i>
+                                <div>
+                                    <strong>{{ _('Required by law:') }}</strong> {{ _('All guests must be registered with the Questura (Alloggiati Portal) within 24h of check-in.') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {{ form.hidden_tag() if form else '' }}
+
+                        <!-- Guest Identity -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-person me-1"></i>{{ _('Main Guest Identity') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Surname') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guest_surname" 
+                                    value="{{ reservation.guest_surname }}" required autocomplete="family-name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('First Name') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guest_first_name" 
+                                    value="{{ reservation.guest_first_name }}" required autocomplete="given-name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Date of Birth') }} <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="guest_birth_date" 
+                                    value="{{ reservation.guest_birth_date.strftime('%Y-%m-%d') if reservation.guest_birth_date else '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Place of Birth (City)') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guest_birth_place" 
+                                    value="{{ reservation.guest_birth_place }}" required autocomplete="address-level2">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Nationality') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guest_nationality" 
+                                    value="{{ reservation.guest_nationality }}" required autocomplete="country-name"
+                                    placeholder="Italian, French, German, etc.">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Gender') }} <span class="text-danger">*</span></label>
+                                <select class="form-select" name="guest_gender" required>
+                                    <option value="">{{ _('Select') }}</option>
+                                    <option value="M" {% if reservation.guest_gender == 'M' %}selected{% endif %}>{{ _('Male') }}</option>
+                                    <option value="F" {% if reservation.guest_gender == 'F' %}selected{% endif %}>{{ _('Female') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Document -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-card-text me-1"></i>{{ _('Identity Document') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Document Type') }} <span class="text-danger">*</span></label>
+                                <select class="form-select" name="guest_document_type" required>
+                                    <option value="">{{ _('Select') }}</option>
+                                    <option value="passport" {% if reservation.guest_document_type == 'passport' %}selected{% endif %}>{{ _('Passport') }}</option>
+                                    <option value="id_card" {% if reservation.guest_document_type == 'id_card' %}selected{% endif %}>{{ _('Identity Card') }}</option>
+                                    <option value="driving_license" {% if reservation.guest_document_type == 'driving_license' %}selected{% endif %}>{{ _('Driving License') }}</option>
+                                    <option value="other" {% if reservation.guest_document_type == 'other' %}selected{% endif %}>{{ _('Other') }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Document Number') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guest_document_number" 
+                                    value="{{ reservation.guest_document_number }}" required autocomplete="off">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Expiry Date') }} <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" name="guest_document_expiry" 
+                                    value="{{ reservation.guest_document_expiry.strftime('%Y-%m-%d') if reservation.guest_document_expiry else '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Issuing Country (ISO 3166-1 alpha-3)') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="guest_document_country" 
+                                    value="{{ reservation.guest_document_country or 'ITA' }}" required maxlength="3"
+                                    placeholder="ITA, FRA, DEU, USA, GBR...">
+                                <div class="form-text">ISO 3-letter code (e.g. ITA for Italy)</div>
+                            </div>
+                        </div>
+
+                        <!-- Reservation Info (read-only) -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-calendar-check me-1"></i>{{ _('Reservation Details') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Check-in') }}</label>
+                                <input type="text" class="form-control bg-light" value="{{ reservation.check_in.strftime('%d/%m/%Y') }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Check-out') }}</label>
+                                <input type="text" class="form-control bg-light" value="{{ reservation.check_out.strftime('%d/%m/%Y') }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Guest') }}</label>
+                                <input type="text" class="form-control bg-light" value="{{ reservation.guest_name }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Email') }}</label>
+                                <input type="email" class="form-control bg-light" value="{{ reservation.guest_email }}" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="bi bi-save me-1"></i>{{ _('Save Guest Data') }}
+                            </button>
+                            {% if reservation.questura_ready() and reservation.questura_status != 'accepted' %}
+                            <button type="button" class="btn btn-warning btn-lg" onclick="submitToQuestura()">
+                                <i class="bi bi-send me-1"></i>{{ _('Submit to Questura Now') }}
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        {% if reservation.questura_status == 'accepted' %}
+                        <div class="alert alert-success mt-4">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <strong>{{ _('Data already submitted and accepted by Questura') }}</strong><br>
+                            <small>{{ _('Submitted on:') }} {{ reservation.questura_submitted_at.strftime('%d/%m/%Y %H:%M') if reservation.questura_submitted_at else 'Unknown' }}</small>
+                        </div>
+                        {% elif reservation.questura_status == 'rejected' %}
+                        <div class="alert alert-danger mt-4">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            <strong>{{ _('Submission rejected by Questura') }}</strong>
+                            {% if reservation.questura_error %}
+                            <div class="mt-2"><strong>{{ _('Error:') }}</strong> {{ reservation.questura_error }}</div>
+                            {% endif %}
+                        </div>
+                        {% elif reservation.questura_status in ['pending', 'sent'] %}
+                        <div class="alert alert-warning mt-4">
+                            <i class="bi bi-hourglass-split me-2"></i>
+                            <strong>{{ _('Submission in progress / Awaiting confirmation') }}</strong>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-4">
+                            <a href="{{ url_for('routes.questura_list') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Questura List') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitToQuestura() {
+    if (!confirm('{{ _('Submit this guest data to Questura now?') }}')) return;
+
+    fetch('/admin/compliance/questura/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({reservation_ids: [{{ reservation.id }}]})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.task_id) {
+            alert('{{ _('Submission started! Task ID:') }} ' + data.task_id);
+            setTimeout(() => location.reload(), 3000);
+        } else {
+            alert('Error: ' + (data.error || 'Unknown'));
+        }
+    });
+}
+</script>
+{% endblock %}

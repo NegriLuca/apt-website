@@ -1,9 +1,9 @@
 from flask import (
     Blueprint, Response, render_template, redirect, url_for,
-    flash, request, current_app, session, abort, jsonify
+    flash, request, current_app, session, abort, jsonify, send_file
 )
 from app.forms import ReservationForm, LoginForm, ContactForm, ICalFeedForm, TestimonialForm
-from app.models import Reservation, User, Apartment, ICalFeed, Coupon, Testimonial
+from app.models import Reservation, User, Apartment, ICalFeed, Coupon, Testimonial, ComplianceConfig, QuesturaLog
 from app.services.ical_sync import sync_all_feeds
 from app import db, mail, csrf, limiter
 from flask_login import login_user, logout_user, login_required, current_user
@@ -19,6 +19,16 @@ import requests
 import threading
 import os
 import holidays
+import csv
+import io
+
+# Import compliance services
+from app.services.tourist_tax import get_tax_service
+from app.services.questura import get_questura_service
+from app.tasks.compliance import (
+    submit_questura_daily, retry_failed_questura,
+    generate_monthly_tourist_tax_report, send_guest_checkin_reminder
+)
 
 
 bp = Blueprint('routes', __name__)
@@ -167,7 +177,14 @@ def send_pending_payment_email(reservation):
         cancel_url = url_for('routes.cancel_reservation', token=reservation.cancel_token, _external=True)
         apt = get_apartment()
         payment_summary = get_payment_summary(reservation)
-
+        
+        # Generate check-in token if not exists
+        if not reservation.checkin_token:
+            reservation.checkin_token = secrets.token_urlsafe(32)
+            db.session.commit()
+        
+        checkin_url = url_for('routes.guest_self_checkin', token=reservation.checkin_token, _external=True)
+        
         url = "https://api.brevo.com/v3/smtp/email"
         headers = {
             "accept": "application/json",
@@ -188,7 +205,8 @@ def send_pending_payment_email(reservation):
                 total=reservation.total_price,
                 apartment=apt,
                 payment_summary=payment_summary,
-                payment_method=reservation.payment_method
+                payment_method=reservation.payment_method,
+                checkin_url=checkin_url
             )
         }
         
@@ -1462,3 +1480,352 @@ def sitemap():
         <url><loc>https://www.lotto235garbatella.it/contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
     </urlset>"""
     return Response(xml_content, mimetype='text/xml')
+
+
+# ── Italian Compliance Routes ────────────────────────────────────────────────
+
+@bp.route('/admin/compliance')
+@login_required
+def compliance_dashboard():
+    """Compliance dashboard showing status overview"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    today = date.today()
+    
+    # Questura stats
+    questura_pending = Reservation.query.filter(
+        Reservation.questura_status.in_([None, 'pending']),
+        Reservation.status == 'confirmed',
+        Reservation.check_in <= today
+    ).count()
+    
+    questura_rejected = Reservation.query.filter_by(questura_status='rejected').count()
+    questura_accepted = Reservation.query.filter_by(questura_status='accepted').count()
+    
+    # Upcoming check-ins needing data
+    upcoming = Reservation.query.filter(
+        Reservation.status == 'confirmed',
+        Reservation.check_in >= today,
+        Reservation.check_in <= today + timedelta(days=7)
+    ).all()
+    
+    needing_data = [r for r in upcoming if not r.questura_ready()]
+    
+    # Tourist tax stats
+    apt = Apartment.query.first()
+    tax_service = get_tax_service(apt) if apt else None
+    current_month_tax = 0
+    if tax_service:
+        report = tax_service.generate_detailed_report(today.year, today.month)
+        current_month_tax = report['total_tax']
+    
+    # Configuration status
+    config_keys = [
+        'questura_wsdl_url', 'questura_username', 'questura_password',
+        'questura_cert_path', 'questura_cert_password', 'questura_protocol_number'
+    ]
+    config_status = {k: bool(ComplianceConfig.get(k)) for k in config_keys}
+    
+    return render_template('admin_compliance.html',
+        questura_pending=questura_pending,
+        questura_rejected=questura_rejected,
+        questura_accepted=questura_accepted,
+        needing_data=needing_data,
+        current_month_tax=current_month_tax,
+        config_status=config_status,
+        today=today
+    )
+
+
+@bp.route('/admin/compliance/questura')
+@login_required
+def questura_list():
+    """List all reservations with Questura status"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    status_filter = request.args.get('status', 'all')
+    page = request.args.get('page', 1, type=int)
+    
+    query = Reservation.query.order_by(Reservation.check_in.desc())
+    
+    if status_filter != 'all':
+        query = query.filter(Reservation.questura_status == status_filter)
+    
+    reservations = query.paginate(page=page, per_page=25, error_out=False)
+    
+    return render_template('admin_questura.html',
+        reservations=reservations,
+        status_filter=status_filter
+    )
+
+
+@bp.route('/admin/compliance/questura/submit', methods=['POST'])
+@login_required
+def questura_submit():
+    """Manually trigger Questura submission for selected reservations"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    reservation_ids = request.json.get('reservation_ids', [])
+    if not reservation_ids:
+        return jsonify({'error': 'No reservations selected'}), 400
+    
+    from app.tasks.compliance import retry_failed_questura
+    task = retry_failed_questura.delay(reservation_ids)
+    return jsonify({'task_id': task.id, 'message': 'Submission queued'})
+
+
+@bp.route('/admin/compliance/questura/run-daily', methods=['POST'])
+@login_required
+def questura_run_daily():
+    """Manually trigger daily Questura submission"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    from app.tasks.compliance import submit_questura_daily
+    task = submit_questura_daily.delay()
+    return jsonify({'task_id': task.id, 'message': 'Daily submission queued'})
+
+
+@bp.route('/admin/compliance/questura/logs')
+@login_required
+def questura_logs():
+    """View Questura submission logs"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    page = request.args.get('page', 1, type=int)
+    logs = QuesturaLog.query.order_by(QuesturaLog.created_at.desc()).paginate(
+        page=page, per_page=50, error_out=False)
+    
+    return render_template('admin_questura_logs.html', logs=logs)
+
+
+@bp.route('/admin/compliance/tourist-tax')
+@login_required
+def tourist_tax():
+    """Tourist tax management"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    year = request.args.get('year', date.today().year, type=int)
+    month = request.args.get('month', date.today().month, type=int)
+    
+    apt = Apartment.query.first()
+    service = get_tax_service(apt)
+    report = service.generate_detailed_report(year, month) if service else None
+    
+    return render_template('admin_tourist_tax.html',
+        report=report,
+        year=year,
+        month=month,
+        apt=apt
+    )
+
+
+@bp.route('/admin/compliance/tourist-tax/export')
+@login_required
+def tourist_tax_export():
+    """Download CSV for Roma Capitale"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    year = request.args.get('year', date.today().year, type=int)
+    month = request.args.get('month', date.today().month, type=int)
+    
+    apt = Apartment.query.first()
+    service = get_tax_service(apt)
+    csv_data = service.export_monthly_csv(year, month) if service else ''
+    
+    output = io.BytesIO()
+    output.write(csv_data.encode('utf-8'))
+    output.seek(0)
+    
+    filename = f'tassa_soggiorno_{year}_{month:02d}.csv'
+    return send_file(output, as_attachment=True, download_name=filename, mimetype='text/csv')
+
+
+@bp.route('/admin/compliance/tourist-tax/generate-report', methods=['POST'])
+@login_required
+def tourist_tax_generate():
+    """Manually trigger monthly report generation"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    from app.tasks.compliance import generate_monthly_tourist_tax_report
+    task = generate_monthly_tourist_tax_report.delay()
+    return jsonify({'task_id': task.id, 'message': 'Report generation queued'})
+
+
+@bp.route('/admin/compliance/config')
+@login_required
+def compliance_config():
+    """View/edit compliance configuration"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    if request.method == 'POST':
+        key = request.form.get('key')
+        value = request.form.get('value')
+        description = request.form.get('description')
+        
+        if key and value:
+            ComplianceConfig.set(key, value, description)
+            flash(f'Configuration "{key}" updated', 'success')
+        return redirect(url_for('routes.compliance_config'))
+    
+    # Get all config (masked)
+    configs = ComplianceConfig.query.order_by(ComplianceConfig.key).all()
+    masked = []
+    for c in configs:
+        masked.append({
+            'key': c.key,
+            'value': '***' if c.value_encrypted else '',
+            'description': c.description,
+            'updated_at': c.updated_at
+        })
+    
+    return render_template('admin_compliance_config.html', configs=masked)
+
+
+@bp.route('/admin/compliance/config/set', methods=['POST'])
+@login_required
+def config_set():
+    """API endpoint to set config value"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    data = request.get_json()
+    key = data.get('key')
+    value = data.get('value')
+    description = data.get('description')
+    
+    if not key or value is None:
+        return jsonify({'error': 'Missing key or value'}), 400
+    
+    ComplianceConfig.set(key, value, description)
+    return jsonify({'success': True, 'message': f'Config "{key}" updated'})
+
+
+@bp.route('/checkin/<token>', methods=['GET', 'POST'])
+def guest_self_checkin(token):
+    """Guest self-service check-in form accessible via unique token"""
+    # Find reservation by check-in token
+    res = Reservation.query.filter_by(checkin_token=token).first_or_404()
+    
+    # Check if token is valid
+    if res.checkin_token_used:
+        return render_template('guest_checkin_done.html', 
+            message=_('Check-in già completato per questa prenotazione.'))
+    
+    if res.status != 'confirmed':
+        return render_template('guest_checkin_done.html', 
+            message=_('Questa prenotazione non è confermata.'))
+    
+    # Check if check-in date is within reasonable window (e.g., 30 days before check-in)
+    days_until_checkin = (res.check_in - date.today()).days
+    if days_until_checkin > 30:
+        return render_template('guest_checkin_done.html', 
+            message=_('Il check-in è disponibile solo 30 giorni prima dell\'arrivo.'))
+    
+    if request.method == 'POST':
+        # Update guest data from form
+        res.guest_surname = request.form.get('guest_surname')
+        res.guest_first_name = request.form.get('guest_first_name')
+        res.guest_birth_date = datetime.strptime(request.form.get('guest_birth_date'), '%Y-%m-%d').date() \
+            if request.form.get('guest_birth_date') else None
+        res.guest_birth_place = request.form.get('guest_birth_place')
+        res.guest_nationality = request.form.get('guest_nationality')
+        res.guest_document_type = request.form.get('guest_document_type')
+        res.guest_document_number = request.form.get('guest_document_number')
+        res.guest_document_expiry = datetime.strptime(request.form.get('guest_document_expiry'), '%Y-%m-%d').date() \
+            if request.form.get('guest_document_expiry') else None
+        res.guest_document_country = request.form.get('guest_document_country')
+        res.guest_gender = request.form.get('guest_gender')
+        
+        # Mark check-in as completed
+        res.checkin_token_used = True
+        res.checkin_completed_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Auto-submit to Questura if ready
+        if res.questura_ready():
+            from app.tasks.compliance import retry_failed_questura
+            retry_failed_questura.delay([res.id])
+            flash(_('Check-in completato! Dati inviati alle autorità competenti.'), 'success')
+        else:
+            flash(_('Check-in completato! Grazie per aver fornito i dati.'), 'success')
+        
+        return redirect(url_for('routes.guest_self_checkin', token=token))
+    
+    return render_template('guest_self_checkin.html', reservation=res)
+
+
+@bp.route('/admin/compliance/send-checkin-link', methods=['POST'])
+@login_required
+def send_checkin_link():
+    """Send check-in link to guest via email"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    reservation_id = request.json.get('reservation_id')
+    if not reservation_id:
+        return jsonify({'error': 'Missing reservation_id'}), 400
+    
+    res = Reservation.query.get_or_404(reservation_id)
+    
+    if res.status != 'confirmed':
+        return jsonify({'error': 'Reservation must be confirmed'}), 400
+    
+    # Generate check-in token if not exists
+    if not res.checkin_token:
+        res.checkin_token = secrets.token_urlsafe(32)
+        db.session.commit()
+    
+    # Send email with check-in link
+    checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
+    
+    # Use existing email function or create new one
+    try:
+        from app.services.email_service import send_checkin_email
+        send_checkin_email(res, checkin_url)
+    except ImportError:
+        # Fallback: just return the URL for now
+        pass
+    
+    return jsonify({
+        'success': True, 
+        'checkin_url': checkin_url,
+        'message': 'Check-in link generated'
+    })
+
+
+@bp.route('/admin/compliance/regenerate-checkin-token', methods=['POST'])
+@login_required
+def regenerate_checkin_token():
+    """Regenerate check-in token for a reservation"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    reservation_id = request.json.get('reservation_id')
+    if not reservation_id:
+        return jsonify({'error': 'Missing reservation_id'}), 400
+    
+    res = Reservation.query.get_or_404(reservation_id)
+    
+    # Generate new token
+    res.checkin_token = secrets.token_urlsafe(32)
+    res.checkin_token_used = False
+    res.checkin_completed_at = None
+    db.session.commit()
+    
+    checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
+    
+    return jsonify({
+        'success': True, 
+        'checkin_url': checkin_url,
+        'token': res.checkin_token
+    })
