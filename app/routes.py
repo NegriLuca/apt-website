@@ -187,7 +187,8 @@ def send_pending_payment_email(reservation):
                 nights=reservation.nights,
                 total=reservation.total_price,
                 apartment=apt,
-                payment_summary=payment_summary
+                payment_summary=payment_summary,
+                payment_method=reservation.payment_method
             )
         }
         
@@ -901,60 +902,88 @@ def submit_testimonial():
 
 @bp.route("/ical/apartment.ics")
 def export_ical():
-    reservations = Reservation.query.filter(
-        Reservation.check_out > Reservation.check_in
-    ).all()
+    try:
+        reservations = Reservation.query.filter(
+            Reservation.check_out > Reservation.check_in
+        ).all()
 
-    lines = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//Lotto235 Garbatella//Booking Calendar//EN",
-        "CALSCALE:GREGORIAN",
-        "METHOD:PUBLISH",
-    ]
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Lotto235 Garbatella//Booking Calendar//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+        ]
 
-    status_map = {
-        "confirmed": "CONFIRMED",
-        "pending": "TENTATIVE",
-        "cancelled": "CANCELLED",
-    }
-
-    for r in reservations:
-        summary = f"{r.guest_name or 'Reserved'} ({r.source or 'Direct'})"
-        description = (
-            f"Guest: {r.guest_name or 'N/A'}\\n"
-            f"Source: {r.source or 'Direct'}\\n"
-            f"Status: {r.status}"
-        )
-        if r.guest_email:
-            description += f"\\nEmail: {r.guest_email}"
-        if r.guest_phone:
-            description += f"\\nPhone: {r.guest_phone}"
-
-        lines.extend([
-            "BEGIN:VEVENT",
-            f"UID:{r.id}@lotto235garbatella.it",
-            f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
-            f"DTSTART;VALUE=DATE:{r.check_in.strftime('%Y%m%d')}",
-            f"DTEND;VALUE=DATE:{r.check_out.strftime('%Y%m%d')}",
-            f"SUMMARY:{summary}",
-            f"DESCRIPTION:{description}",
-            f"STATUS:{status_map.get(r.status, 'CONFIRMED')}",
-            "END:VEVENT",
-        ])
-
-    lines.append("END:VCALENDAR")
-
-    return Response(
-        "\r\n".join(lines),
-        mimetype="text/calendar; charset=utf-8",
-        headers={
-            "Content-Disposition": "inline; filename=apartment.ics",
-            "Cache-Control": "no-cache, no-store, must-revalidate",
-            "Pragma": "no-cache",
-            "Expires": "0",
+        status_map = {
+            "confirmed": "CONFIRMED",
+            "pending": "TENTATIVE",
+            "cancelled": "CANCELLED",
         }
-    )
+
+        for r in reservations:
+            # Skip if missing required dates
+            if not r.check_in or not r.check_out:
+                continue
+            
+            guest_name = (r.guest_name or "Reserved").replace(",", "\\,").replace(";", "\\;")
+            source = (r.source or "Direct").replace(",", "\\,")
+            summary = f"{guest_name} ({source})"
+            
+            description_parts = [
+                f"Guest: {r.guest_name or 'N/A'}",
+                f"Source: {r.source or 'Direct'}",
+                f"Status: {r.status or 'pending'}",
+            ]
+            if r.guest_email:
+                description_parts.append(f"Email: {r.guest_email}")
+            if r.guest_phone:
+                description_parts.append(f"Phone: {r.guest_phone}")
+            
+            # Escape newlines and special chars for iCal
+            description = "\\n".join(description_parts)
+
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:{r.id}@lotto235garbatella.it",
+                f"DTSTAMP:{datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}",
+                f"DTSTART;VALUE=DATE:{r.check_in.strftime('%Y%m%d')}",
+                f"DTEND;VALUE=DATE:{r.check_out.strftime('%Y%m%d')}",
+                f"SUMMARY:{summary}",
+                f"DESCRIPTION:{description}",
+                f"STATUS:{status_map.get(r.status, 'CONFIRMED')}",
+                "END:VEVENT",
+            ])
+
+        lines.append("END:VCALENDAR")
+
+        return Response(
+            "\r\n".join(lines),
+            mimetype="text/calendar; charset=utf-8",
+            headers={
+                "Content-Disposition": "inline; filename=apartment.ics",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            }
+        )
+    except Exception as e:
+        current_app.logger.error(f"iCal export error: {e}")
+        # Return minimal valid iCal on error
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Lotto235 Garbatella//Booking Calendar//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "END:VCALENDAR",
+        ]
+        return Response(
+            "\r\n".join(lines),
+            mimetype="text/calendar; charset=utf-8",
+            status=500,
+            headers={"Cache-Control": "no-cache"}
+        )
 
 
 # ── Admin dashboard ───────────────────────────────────────────────────────────
