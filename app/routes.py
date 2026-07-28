@@ -1075,73 +1075,6 @@ def admin_pricing():
             except ValueError:
                 flash('Invalid price format entered.', 'danger')
             return redirect(url_for('routes.admin_pricing'))
-        
-        # Handle Italian compliance fields
-        if 'cin_code' in request.form:
-            apartment.cin_code = request.form.get('cin_code', '').strip() or None
-            apartment.cir_code = request.form.get('cir_code', '').strip() or None
-            apartment.tourist_tax_category = request.form.get('tourist_tax_category', 'CAV')
-            apartment.tourist_tax_rate = request.form.get('tourist_tax_rate', type=float) or 6.00
-            apartment.max_guests = request.form.get('max_guests', type=int) or 4
-            apartment.questura_protocol = request.form.get('questura_protocol', '').strip() or None
-            apartment.questura_ip_whitelisted = bool(request.form.get('questura_ip_whitelisted'))
-            db.session.commit()
-            flash('Italian compliance settings updated successfully!', 'success')
-            return redirect(url_for('routes.admin_pricing'))
-        
-        # Handle Smart Access configuration fields
-        if 'shelly_enabled' in request.form:
-            apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
-            apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
-            apartment.shelly_auth_key = request.form.get('shelly_auth_key', '').strip() or None
-            apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
-            apartment.shelly_pulse_duration = request.form.get('shelly_pulse_duration', type=int) or 3
-            
-            apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
-            apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
-            apartment.nuki_web_token = request.form.get('nuki_web_token', '').strip() or None
-            apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'
-            apartment.nuki_unlock_action = request.form.get('nuki_unlock_action', 'unlock')
-            
-            # WhatsApp configuration
-            apartment.whatsapp_number = request.form.get('whatsapp_number', '').strip() or None
-            apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
-            
-            db.session.commit()
-            flash('Smart access settings updated successfully!', 'success')
-            return redirect(url_for('routes.admin_pricing'))
-        
-        # Handle Trust Badges configuration fields
-        if 'booking_property_id' in request.form:
-            # Review platform IDs (for widget embeds)
-            apartment.booking_property_id = request.form.get('booking_property_id', '').strip() or None
-            apartment.airbnb_listing_id = request.form.get('airbnb_listing_id', '').strip() or None
-            apartment.google_place_id = request.form.get('google_place_id', '').strip() or None
-            apartment.tripadvisor_location_id = request.form.get('tripadvisor_location_id', '').strip() or None
-            apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
-            
-            # Payment badges
-            apartment.stripe_verified = bool(request.form.get('stripe_verified'))
-            apartment.ssl_certified = bool(request.form.get('ssl_certified'))
-            apartment.gdpr_compliant = bool(request.form.get('gdpr_compliant'))
-            apartment.pci_compliant = bool(request.form.get('pci_compliant'))
-            
-            # Custom badges
-            for i in [1, 2, 3]:
-                setattr(apartment, f'custom_badge_{i}_image', request.form.get(f'custom_badge_{i}_image', '').strip() or None)
-                setattr(apartment, f'custom_badge_{i}_link', request.form.get(f'custom_badge_{i}_link', '').strip() or None)
-                setattr(apartment, f'custom_badge_{i}_alt', request.form.get(f'custom_badge_{i}_alt', '').strip() or None)
-            
-            # Display settings
-            apartment.show_reviews_in_footer = bool(request.form.get('show_reviews_in_footer'))
-            apartment.show_reviews_on_homepage = bool(request.form.get('show_reviews_on_homepage'))
-            apartment.show_reviews_on_booking = bool(request.form.get('show_reviews_on_booking'))
-            apartment.show_payment_badges_in_footer = bool(request.form.get('show_payment_badges_in_footer'))
-            apartment.show_payment_badges_on_checkout = bool(request.form.get('show_payment_badges_on_checkout'))
-            
-            db.session.commit()
-            flash('Trust badges settings updated successfully!', 'success')
-            return redirect(url_for('routes.admin_pricing'))
 
     all_coupons = Coupon.query.all()
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
@@ -1204,12 +1137,6 @@ def admin_trust_badges():
         apartment.tripadvisor_location_id = request.form.get('tripadvisor_location_id', '').strip() or None
         apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
 
-        # Payment & security badges
-        apartment.stripe_verified = bool(request.form.get('stripe_verified'))
-        apartment.ssl_certified = bool(request.form.get('ssl_certified'))
-        apartment.gdpr_compliant = bool(request.form.get('gdpr_compliant'))
-        apartment.pci_compliant = bool(request.form.get('pci_compliant'))
-
         # Custom badges
         for i in [1, 2, 3]:
             setattr(apartment, f'custom_badge_{i}_image', request.form.get(f'custom_badge_{i}_image', '').strip() or None)
@@ -1220,8 +1147,6 @@ def admin_trust_badges():
         apartment.show_reviews_in_footer = bool(request.form.get('show_reviews_in_footer'))
         apartment.show_reviews_on_homepage = bool(request.form.get('show_reviews_on_homepage'))
         apartment.show_reviews_on_booking = bool(request.form.get('show_reviews_on_booking'))
-        apartment.show_payment_badges_in_footer = bool(request.form.get('show_payment_badges_in_footer'))
-        apartment.show_payment_badges_on_checkout = bool(request.form.get('show_payment_badges_on_checkout'))
 
         # Official widget embeds
         apartment.booking_widget_js = request.form.get('booking_widget_js', '').strip() or None
@@ -1862,8 +1787,16 @@ def tourist_tax_update_reservation(reservation_id):
 
     res = Reservation.query.get_or_404(reservation_id)
 
+    nights = request.form.get('nights', type=int)
+    guests = request.form.get('num_guests', type=int)
     tax_override = request.form.get('tourist_tax_amount', type=float)
     tax_paid = request.form.get('tourist_tax_paid') == '1'
+
+    if nights is not None and nights > 0:
+        res.check_out = res.check_in + timedelta(days=nights)
+
+    if guests is not None and guests > 0:
+        res.num_guests = guests
 
     if tax_override is not None:
         res.tourist_tax_amount = max(0.0, tax_override)
@@ -1871,7 +1804,7 @@ def tourist_tax_update_reservation(reservation_id):
     res.tourist_tax_paid = tax_paid
     db.session.commit()
 
-    flash(f'Reservation #{reservation_id} tax updated.', 'success')
+    flash(f'Reservation #{reservation_id} updated.', 'success')
     return redirect(url_for('routes.tourist_tax', year=request.form.get('year'), month=request.form.get('month')))
 
 

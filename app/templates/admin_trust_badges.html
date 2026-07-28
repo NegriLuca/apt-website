@@ -142,37 +142,6 @@
 
                         <hr class="my-4">
 
-                        <!-- Payment & Security Badges -->
-                        <h5 class="mb-3 text-success"><i class="bi bi-credit-card-2-front me-2"></i>{{ _('Payment & Security Badges') }}</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="stripe_verified" id="stripe_verified" {% if apartment.stripe_verified %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="stripe_verified"><i class="bi bi-credit-card me-1"></i>{{ _('Stripe Verified') }}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="ssl_certified" id="ssl_certified" {% if apartment.ssl_certified %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="ssl_certified"><i class="bi bi-lock-fill me-1"></i>{{ _('SSL Secured') }}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="gdpr_compliant" id="gdpr_compliant" {% if apartment.gdpr_compliant %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="gdpr_compliant"><i class="bi bi-shield-lock me-1"></i>{{ _('GDPR Compliant') }}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="pci_compliant" id="pci_compliant" {% if apartment.pci_compliant %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="pci_compliant"><i class="bi bi-badge-cc me-1"></i>{{ _('PCI DSS') }}</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
                         <!-- Custom Trust Badges -->
                         <h5 class="mb-3 text-warning"><i class="bi bi-badge-3d me-2"></i>{{ _('Custom Trust Badges (Optional)') }}</h5>
                         <p class="text-muted small mb-4">{{ _('Upload custom badge images to /static/images/badges/ and enter filenames below') }}</p>
@@ -221,18 +190,6 @@
                                 <div class="form-check form-switch">
                                     <input class="form-check-input form-check-input-lg" type="checkbox" name="show_reviews_on_booking" id="show_reviews_on_booking" {% if apartment.show_reviews_on_booking %}checked{% endif %}>
                                     <label class="form-check-label" for="show_reviews_on_booking">{{ _('Show review badges on booking page') }}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="show_payment_badges_in_footer" id="show_payment_badges_in_footer" {% if apartment.show_payment_badges_in_footer %}checked{% endif %}>
-                                    <label class="form-check-label" for="show_payment_badges_in_footer">{{ _('Show payment badges in footer') }}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="show_payment_badges_on_checkout" id="show_payment_badges_on_checkout" {% if apartment.show_payment_badges_on_checkout %}checked{% endif %}>
-                                    <label class="form-check-label" for="show_payment_badges_on_checkout">{{ _('Show payment badges on checkout') }}</label>
                                 </div>
                             </div>
                         </div>

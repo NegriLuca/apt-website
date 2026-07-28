@@ -190,15 +190,25 @@
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                     <input type="hidden" name="year" value="{{ year }}">
                                                     <input type="hidden" name="month" value="{{ month }}">
-                                                    <div class="mb-1">
-                                                        <label class="small fw-bold">{{ _('Amount (€)') }}</label>
-                                                        <input type="number" step="0.01" class="form-control form-control-sm" name="tourist_tax_amount" value="{{ "%.2f"|format(r.tax) }}">
+                                                    <div class="row g-1">
+                                                        <div class="col-4">
+                                                            <label class="small fw-bold">{{ _('Nights') }}</label>
+                                                            <input type="number" class="form-control form-control-sm" name="nights" value="{{ r.nights }}" min="1">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <label class="small fw-bold">{{ _('Guests') }}</label>
+                                                            <input type="number" class="form-control form-control-sm" name="num_guests" value="{{ r.guests }}" min="1">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <label class="small fw-bold">{{ _('Amount (€)') }}</label>
+                                                            <input type="number" step="0.01" class="form-control form-control-sm" name="tourist_tax_amount" value="{{ "%.2f"|format(r.tax) }}">
+                                                        </div>
                                                     </div>
-                                                    <div class="mb-1 form-check">
+                                                    <div class="mt-1 form-check">
                                                         <input type="checkbox" class="form-check-input" name="tourist_tax_paid" value="1" id="paid{{ r.id }}" {% if r.tax_paid %}checked{% endif %}>
                                                         <label class="small form-check-label" for="paid{{ r.id }}">{{ _('Paid') }}</label>
                                                     </div>
-                                                    <button type="submit" class="btn btn-sm btn-primary w-100">{{ _('Save') }}</button>
+                                                    <button type="submit" class="btn btn-sm btn-primary w-100 mt-1">{{ _('Save') }}</button>
                                                 </form>
                                             </div>
                                         </td>

@@ -8,7 +8,7 @@
             <h1 class="page-title mb-2 text-center text-lg-start">{{ _('Review & Pay') }}</h1>
 
             <!-- Trust Badges at top of checkout -->
-            {% if apartment and apartment.show_payment_badges_on_checkout %}
+            {% if apartment %}
             <div class="mb-4">
                 {% include 'components/trust_badges_payment.html' %}
             </div>

@@ -267,18 +267,18 @@
             </div>
             
             <!-- Trust Badges in Footer -->
-            {% if apartment and (apartment.show_payment_badges_in_footer or apartment.show_reviews_in_footer) %}
+            {% if apartment and apartment.show_reviews_in_footer %}
             <div class="row mt-4 pt-4 border-top">
-                {% if apartment.show_reviews_in_footer %}
                 <div class="col-12 mb-3">
                     {% include 'components/trust_badges_reviews.html' %}
                 </div>
-                {% endif %}
-                {% if apartment.show_payment_badges_in_footer %}
+            </div>
+            {% endif %}
+            {% if apartment and (apartment.custom_badge_1_image or apartment.custom_badge_2_image or apartment.custom_badge_3_image) %}
+            <div class="row mt-4 pt-4 border-top">
                 <div class="col-12">
                     {% include 'components/trust_badges_payment.html' %}
                 </div>
-                {% endif %}
             </div>
             {% endif %}
             
