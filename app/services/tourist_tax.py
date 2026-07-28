@@ -221,7 +221,8 @@ class TouristTaxService:
                     'check_out': r.check_out.isoformat(),
                     'nights': r.nights,
                     'guests': r.num_guests,
-                    'tax': r.tourist_tax_amount or 0
+                    'tax': r.tourist_tax_amount or 0,
+                    'tax_paid': r.tourist_tax_paid
                 }
                 for r in reservations
             ]

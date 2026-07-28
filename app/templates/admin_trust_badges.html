@@ -18,7 +18,7 @@
                     <form method="POST" novalidate>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-                        <h5 class="mb-3 text-primary"><i class="bi bi-stars me-2"></i>{{ _('Review Platform IDs & Scores') }}</h5>
+                        <h5 class="mb-3 text-primary"><i class="bi bi-stars me-2"></i>{{ _('Review Platform IDs') }}</h5>
                         <div class="row g-3 mb-4">
                             <!-- Booking.com -->
                             <div class="col-md-6 col-lg-4">
@@ -27,17 +27,9 @@
                                         <i class="bi bi-building me-1"></i> <strong>Booking.com</strong>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-2">
+                                        <div class="mb-0">
                                             <label class="form-label small fw-bold">{{ _('Property ID') }}</label>
                                             <input type="text" class="form-control form-control-sm" name="booking_property_id" value="{{ apartment.booking_property_id or '' }}" placeholder="1234567">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small fw-bold">{{ _('Score (0-10)') }}</label>
-                                            <input type="number" step="0.1" min="0" max="10" class="form-control form-control-sm" name="booking_review_score" value="{{ apartment.booking_review_score or '' }}" placeholder="9.2">
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label small fw-bold">{{ _('Review Count') }}</label>
-                                            <input type="number" class="form-control form-control-sm" name="booking_review_count" value="{{ apartment.booking_review_count or '' }}" placeholder="147">
                                         </div>
                                     </div>
                                 </div>
@@ -49,17 +41,9 @@
                                         <i class="bi bi-heart-fill me-1"></i> <strong>Airbnb</strong>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-2">
+                                        <div class="mb-0">
                                             <label class="form-label small fw-bold">{{ _('Listing ID') }}</label>
                                             <input type="text" class="form-control form-control-sm" name="airbnb_listing_id" value="{{ apartment.airbnb_listing_id or '' }}" placeholder="12345678">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small fw-bold">{{ _('Score (0-5)') }}</label>
-                                            <input type="number" step="0.01" min="0" max="5" class="form-control form-control-sm" name="airbnb_review_score" value="{{ apartment.airbnb_review_score or '' }}" placeholder="4.95">
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label small fw-bold">{{ _('Review Count') }}</label>
-                                            <input type="number" class="form-control form-control-sm" name="airbnb_review_count" value="{{ apartment.airbnb_review_count or '' }}" placeholder="89">
                                         </div>
                                     </div>
                                 </div>
@@ -71,17 +55,9 @@
                                         <i class="bi bi-google me-1"></i> <strong>Google</strong>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-2">
+                                        <div class="mb-0">
                                             <label class="form-label small fw-bold">{{ _('Place ID') }}</label>
                                             <input type="text" class="form-control form-control-sm" name="google_place_id" value="{{ apartment.google_place_id or '' }}" placeholder="ChIJ...">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small fw-bold">{{ _('Score (0-5)') }}</label>
-                                            <input type="number" step="0.01" min="0" max="5" class="form-control form-control-sm" name="google_review_score" value="{{ apartment.google_review_score or '' }}" placeholder="4.8">
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label small fw-bold">{{ _('Review Count') }}</label>
-                                            <input type="number" class="form-control form-control-sm" name="google_review_count" value="{{ apartment.google_review_count or '' }}" placeholder="203">
                                         </div>
                                     </div>
                                 </div>
@@ -93,17 +69,9 @@
                                         <i class="bi bi-suit-heart-fill me-1"></i> <strong>TripAdvisor</strong>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-2">
+                                        <div class="mb-0">
                                             <label class="form-label small fw-bold">{{ _('Location ID') }}</label>
                                             <input type="text" class="form-control form-control-sm" name="tripadvisor_location_id" value="{{ apartment.tripadvisor_location_id or '' }}" placeholder="1234567">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small fw-bold">{{ _('Score (0-5)') }}</label>
-                                            <input type="number" step="0.01" min="0" max="5" class="form-control form-control-sm" name="tripadvisor_review_score" value="{{ apartment.tripadvisor_review_score or '' }}" placeholder="4.5">
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label small fw-bold">{{ _('Review Count') }}</label>
-                                            <input type="number" class="form-control form-control-sm" name="tripadvisor_review_count" value="{{ apartment.tripadvisor_review_count or '' }}" placeholder="67">
                                         </div>
                                     </div>
                                 </div>
@@ -115,17 +83,9 @@
                                         <i class="bi bi-house-door-fill me-1"></i> <strong>VRBO / HomeAway</strong>
                                     </div>
                                     <div class="card-body">
-                                        <div class="mb-2">
+                                        <div class="mb-0">
                                             <label class="form-label small fw-bold">{{ _('Listing ID') }}</label>
                                             <input type="text" class="form-control form-control-sm" name="vrbo_listing_id" value="{{ apartment.vrbo_listing_id or '' }}" placeholder="1234567">
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small fw-bold">{{ _('Score (0-5)') }}</label>
-                                            <input type="number" step="0.01" min="0" max="5" class="form-control form-control-sm" name="vrbo_review_score" value="{{ apartment.vrbo_review_score or '' }}" placeholder="4.7">
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label small fw-bold">{{ _('Review Count') }}</label>
-                                            <input type="number" class="form-control form-control-sm" name="vrbo_review_count" value="{{ apartment.vrbo_review_count or '' }}" placeholder="34">
                                         </div>
                                     </div>
                                 </div>

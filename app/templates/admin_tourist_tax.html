@@ -147,44 +147,72 @@
                     <h5 class="mb-0">{{ _('Detail per Reservation') }}</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{ _('Guest') }}</th>
-                                    <th>{{ _('Check-in') }}</th>
-                                    <th>{{ _('Check-out') }}</th>
-                                    <th>{{ _('Nights') }}</th>
-                                    <th>{{ _('Guests') }}</th>
-                                    <th>{{ _('Rate') }}</th>
-                                    <th>{{ _('Tax') }}</th>
-                                    <th>{{ _('Status') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for r in report.reservations %}
-                                <tr>
-                                    <td><strong>#{{ r.id }}</strong></td>
-                                    <td>{{ r.guest }}</td>
-                                    <td>{{ r.check_in }}</td>
-                                    <td>{{ r.check_out }}</td>
-                                    <td>{{ r.nights }}</td>
-                                    <td>{{ r.guests }}</td>
-                                    <td>€{{ "%.2f"|format(report.rate) }}</td>
-                                    <td><strong>€{{ "%.2f"|format(r.tax) }}</strong></td>
-                                    <td><span class="badge bg-{{ 'success' if r.status == 'confirmed' else 'warning' }}">{{ r.status }}</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-active fw-bold">
-                                    <td colspan="7" class="text-end">{{ _('Total') }}</td>
-                                    <td colspan="2">€{{ "%.2f"|format(report.total_tax) }}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>{{ _('Guest') }}</th>
+                                        <th>{{ _('Check-in') }}</th>
+                                        <th>{{ _('Check-out') }}</th>
+                                        <th>{{ _('Nights') }}</th>
+                                        <th>{{ _('Guests') }}</th>
+                                        <th>{{ _('Rate') }}</th>
+                                        <th>{{ _('Tax (€)') }}</th>
+                                        <th>{{ _('Paid') }}</th>
+                                        <th>{{ _('Actions') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in report.reservations %}
+                                    <tr>
+                                        <td><strong>#{{ r.id }}</strong></td>
+                                        <td>{{ r.guest }}</td>
+                                        <td>{{ r.check_in }}</td>
+                                        <td>{{ r.check_out }}</td>
+                                        <td>{{ r.nights }}</td>
+                                        <td>{{ r.guests }}</td>
+                                        <td>€{{ "%.2f"|format(report.rate) }}</td>
+                                        <td><strong>€{{ "%.2f"|format(r.tax) }}</strong></td>
+                                        <td>
+                                            {% if r.tax_paid %}
+                                            <span class="badge bg-success">{{ _('Yes') }}</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ _('No') }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#taxEdit{{ r.id }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <div class="collapse mt-2" id="taxEdit{{ r.id }}">
+                                                <form method="POST" action="{{ url_for('routes.tourist_tax_update_reservation', reservation_id=r.id) }}" class="border p-2 rounded bg-light">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <input type="hidden" name="year" value="{{ year }}">
+                                                    <input type="hidden" name="month" value="{{ month }}">
+                                                    <div class="mb-1">
+                                                        <label class="small fw-bold">{{ _('Amount (€)') }}</label>
+                                                        <input type="number" step="0.01" class="form-control form-control-sm" name="tourist_tax_amount" value="{{ "%.2f"|format(r.tax) }}">
+                                                    </div>
+                                                    <div class="mb-1 form-check">
+                                                        <input type="checkbox" class="form-check-input" name="tourist_tax_paid" value="1" id="paid{{ r.id }}" {% if r.tax_paid %}checked{% endif %}>
+                                                        <label class="small form-check-label" for="paid{{ r.id }}">{{ _('Paid') }}</label>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-primary w-100">{{ _('Save') }}</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active fw-bold">
+                                        <td colspan="7" class="text-end">{{ _('Total') }}</td>
+                                        <td colspan="3">€{{ "%.2f"|format(report.total_tax) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                 </div>
             </div>
         </div>

@@ -1113,26 +1113,12 @@ def admin_pricing():
         
         # Handle Trust Badges configuration fields
         if 'booking_property_id' in request.form:
-            # Review platforms
+            # Review platform IDs (for widget embeds)
             apartment.booking_property_id = request.form.get('booking_property_id', '').strip() or None
-            apartment.booking_review_score = request.form.get('booking_review_score', type=float)
-            apartment.booking_review_count = request.form.get('booking_review_count', type=int)
-            
             apartment.airbnb_listing_id = request.form.get('airbnb_listing_id', '').strip() or None
-            apartment.airbnb_review_score = request.form.get('airbnb_review_score', type=float)
-            apartment.airbnb_review_count = request.form.get('airbnb_review_count', type=int)
-            
             apartment.google_place_id = request.form.get('google_place_id', '').strip() or None
-            apartment.google_review_score = request.form.get('google_review_score', type=float)
-            apartment.google_review_count = request.form.get('google_review_count', type=int)
-            
             apartment.tripadvisor_location_id = request.form.get('tripadvisor_location_id', '').strip() or None
-            apartment.tripadvisor_review_score = request.form.get('tripadvisor_review_score', type=float)
-            apartment.tripadvisor_review_count = request.form.get('tripadvisor_review_count', type=int)
-            
             apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
-            apartment.vrbo_review_score = request.form.get('vrbo_review_score', type=float)
-            apartment.vrbo_review_count = request.form.get('vrbo_review_count', type=int)
             
             # Payment badges
             apartment.stripe_verified = bool(request.form.get('stripe_verified'))
@@ -1211,26 +1197,12 @@ def admin_trust_badges():
         db.session.commit()
 
     if request.method == 'POST':
-        # Review platform IDs
+        # Review platform IDs (for widget embeds)
         apartment.booking_property_id = request.form.get('booking_property_id', '').strip() or None
-        apartment.booking_review_score = request.form.get('booking_review_score', type=float)
-        apartment.booking_review_count = request.form.get('booking_review_count', type=int)
-
         apartment.airbnb_listing_id = request.form.get('airbnb_listing_id', '').strip() or None
-        apartment.airbnb_review_score = request.form.get('airbnb_review_score', type=float)
-        apartment.airbnb_review_count = request.form.get('airbnb_review_count', type=int)
-
         apartment.google_place_id = request.form.get('google_place_id', '').strip() or None
-        apartment.google_review_score = request.form.get('google_review_score', type=float)
-        apartment.google_review_count = request.form.get('google_review_count', type=int)
-
         apartment.tripadvisor_location_id = request.form.get('tripadvisor_location_id', '').strip() or None
-        apartment.tripadvisor_review_score = request.form.get('tripadvisor_review_score', type=float)
-        apartment.tripadvisor_review_count = request.form.get('tripadvisor_review_count', type=int)
-
         apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
-        apartment.vrbo_review_score = request.form.get('vrbo_review_score', type=float)
-        apartment.vrbo_review_count = request.form.get('vrbo_review_count', type=int)
 
         # Payment & security badges
         apartment.stripe_verified = bool(request.form.get('stripe_verified'))
@@ -1265,6 +1237,7 @@ def admin_trust_badges():
 
 
 # CREATE COUPON ACTION
+@bp.route('/admin/coupons/create', methods=['POST'])
 @login_required
 def admin_create_coupon():
     if not current_user.is_admin: abort(403)
@@ -1880,6 +1853,28 @@ def tourist_tax_generate():
     return jsonify({'task_id': task.id, 'message': 'Report generation queued'})
 
 
+@bp.route('/admin/compliance/tourist-tax/update/<int:reservation_id>', methods=['POST'])
+@login_required
+def tourist_tax_update_reservation(reservation_id):
+    """Manually override tax amount or paid status for a reservation"""
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(reservation_id)
+
+    tax_override = request.form.get('tourist_tax_amount', type=float)
+    tax_paid = request.form.get('tourist_tax_paid') == '1'
+
+    if tax_override is not None:
+        res.tourist_tax_amount = max(0.0, tax_override)
+
+    res.tourist_tax_paid = tax_paid
+    db.session.commit()
+
+    flash(f'Reservation #{reservation_id} tax updated.', 'success')
+    return redirect(url_for('routes.tourist_tax', year=request.form.get('year'), month=request.form.get('month')))
+
+
 @bp.route('/admin/compliance/config')
 @login_required
 def compliance_config():
@@ -1908,7 +1903,7 @@ def compliance_config():
             'updated_at': c.updated_at
         })
     
-    return render_template('admin_compliance_config.html', configs=masked)
+    return render_template('admin_compliance_config.html', configs=masked, ComplianceConfig=ComplianceConfig)
 
 
 @bp.route('/admin/compliance/config/set', methods=['POST'])
