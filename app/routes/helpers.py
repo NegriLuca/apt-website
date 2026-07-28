@@ -32,7 +32,10 @@ def is_available(check_in, check_out):
 
 def get_payment_summary(reservation):
     if reservation.payment_method == 'stripe':
-        return f'Paid via Stripe (Total: €{reservation.total_price:.2f})'
+        paid = reservation.amount_paid or reservation.total_price
+        if reservation.payment_status == 'deposit_paid':
+            return f'Stripe deposit (€{paid:.2f} / €{reservation.total_price:.2f})'
+        return f'Paid via Stripe (€{reservation.total_price:.2f})'
     elif reservation.payment_method == 'iban':
         return f'Pending Bank Transfer (Total: €{reservation.total_price:.2f})'
     elif reservation.payment_method == 'cash':

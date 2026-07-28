@@ -312,6 +312,11 @@ def _create_reservation_from_stripe(cs):
 
     is_deposit = meta.get('is_deposit', 'false').lower() == 'true'
 
+    try:
+        amount_paid = float(meta.get('amount_paid', total_price))
+    except (TypeError, ValueError):
+        amount_paid = total_price
+
     reservation = Reservation(
         guest_name=guest_name,
         guest_email=guest_email,
@@ -322,6 +327,7 @@ def _create_reservation_from_stripe(cs):
         source='direct',
         cancel_token=secrets.token_urlsafe(32),
         total_price=total_price,
+        amount_paid=amount_paid,
         coupon_code=meta.get('coupon_code') if meta.get('coupon_code') else None,
         payment_status='deposit_paid' if is_deposit else ('paid' if data.get('payment_status') == 'paid' else 'unpaid'),
         payment_method='stripe',
@@ -355,8 +361,20 @@ def stripe_webhook():
 
     if event['type'] == 'checkout.session.completed':
         session_obj = event['data']['object']
-        reservation = _create_reservation_from_stripe(session_obj)
-        send_payment_verified_email(reservation)
+        meta = session_obj.get('metadata') or {}
+        if meta.get('type') == 'balance_payment':
+            res_id = int(meta.get('reservation_id', 0))
+            res = db.session.get(Reservation, res_id)
+            if res and res.payment_status == 'deposit_paid':
+                res.payment_status = 'paid'
+                remaining = round((res.total_price - (res.amount_paid or 0.0)), 2)
+                res.amount_paid = (res.amount_paid or 0.0) + remaining
+                res.balance_payment_intent_id = session_obj.get('payment_intent')
+                db.session.commit()
+                send_payment_verified_email(res)
+        else:
+            reservation = _create_reservation_from_stripe(session_obj)
+            send_payment_verified_email(reservation)
 
     return '', 200
 
@@ -388,7 +406,8 @@ def cancel_reservation(token):
         )
 
     refund_percentage = calculate_refund_percentage(reservation.check_in)
-    refund_amount = round(reservation.total_price * refund_percentage, 2)
+    amount_eligible = reservation.amount_paid or reservation.total_price
+    refund_amount = round(amount_eligible * refund_percentage, 2)
 
     refund_failed_warning = False
 

@@ -175,6 +175,8 @@
                         <td>
                             {% if r.payment_status == 'paid' %}
                                 <span class="badge bg-success">{{ _('Paid') }}</span>
+                            {% elif r.payment_status == 'deposit_paid' %}
+                                <span class="badge bg-info text-dark">{{ _('Deposit') }}</span>
                             {% elif r.payment_status == 'unpaid' %}
                                 <span class="badge bg-warning text-dark">{{ _('Unpaid') }}</span>
                             {% elif r.payment_status == 'refunded' %}
@@ -189,6 +191,12 @@
                                     <form action="{{ url_for('routes.admin_confirm_reservation', res_id=r.id) }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-success">{{ _('Confirm') }}</button>
+                                    </form>
+                                {% endif %}
+                                {% if r.payment_status == 'deposit_paid' %}
+                                    <form action="{{ url_for('routes.admin_charge_balance', res_id=r.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-warning">{{ _('Charge Remaining') }}</button>
                                     </form>
                                 {% endif %}
                                 {% if r.source in ['direct', 'stripe'] and r.status != 'cancelled' and r.payment_status not in ['cancelled', 'refunded'] %}

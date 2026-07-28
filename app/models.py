@@ -144,6 +144,10 @@ class Reservation(db.Model):
     # ── Stripe ────────────────────────────────────────────────────────────────
     stripe_payment_intent_id = db.Column(db.String(128), unique=True, index=True)
 
+    # Deposit / partial payment tracking
+    amount_paid = db.Column(db.Float, nullable=True, default=0.0, comment='Amount actually charged so far')
+    balance_payment_intent_id = db.Column(db.String(128), nullable=True, unique=True, index=True)
+
     # ── Italian Compliance (Questura Alloggiati) ─────────────────────────────
     guest_surname = db.Column(db.String(100), nullable=True)
     guest_first_name = db.Column(db.String(100), nullable=True)

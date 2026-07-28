@@ -777,6 +777,96 @@ def admin_ical_create() -> Response | str:
     return redirect(url_for('routes.admin_ical_feeds'))
 
 
+# ── Balance Payment (Deposit → Full) ──────────────────────────────────────────
+
+
+@bp.route('/admin/charge-balance/<int:res_id>', methods=['POST'])
+@login_required
+def admin_charge_balance(res_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    res = Reservation.query.get_or_404(res_id)
+    if res.payment_status != 'deposit_paid':
+        flash('Reservation does not have an outstanding balance.', 'warning')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    remaining = round((res.total_price - (res.amount_paid or 0.0)), 2)
+    if remaining <= 0:
+        flash('No balance remaining.', 'info')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+    if not stripe.api_key:
+        abort(500, 'Stripe secret key is not configured.')
+
+    try:
+        session_data = stripe.checkout.Session.create(
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {'name': 'Balance Payment — Lotto 235 Garbatella'},
+                    'unit_amount': int(remaining * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('routes.balance_payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('routes.admin_dashboard', _external=True),
+            customer_email=res.guest_email,
+            metadata={
+                'reservation_id': str(res.id),
+                'type': 'balance_payment',
+            },
+        )
+    except stripe.error.StripeError as e:
+        current_app.logger.error('Stripe balance charge failed: %s', e)
+        flash('Failed to create payment link. Check Stripe configuration.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    admin_audit_log('charge_balance', 'Reservation', res.id,
+                    f'Created balance payment link for €{remaining:.2f}')
+    flash(f'Payment link created. Share with guest: {session_data.url}', 'success')
+    return redirect(session_data.url)
+
+
+@bp.route('/payment/balance-success')
+def balance_payment_success() -> Response | str:
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return redirect(url_for('routes.home'))
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+    try:
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+    except stripe.error.StripeError:
+        flash('Payment verification failed.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    meta = checkout_session.get('metadata') or {}
+    if meta.get('type') != 'balance_payment':
+        return redirect(url_for('routes.home'))
+
+    res_id = int(meta.get('reservation_id', 0))
+    res = Reservation.query.get(res_id)
+    if not res:
+        return redirect(url_for('routes.home'))
+
+    res.payment_status = 'paid'
+    remaining = round((res.total_price - (res.amount_paid or 0.0)), 2)
+    res.amount_paid = (res.amount_paid or 0.0) + remaining
+    res.balance_payment_intent_id = checkout_session.get('payment_intent')
+    db.session.commit()
+
+    from app.routes.helpers import send_payment_verified_email
+    try:
+        send_payment_verified_email(res)
+    except Exception as exc:
+        current_app.logger.error('Balance payment email failed: %s', exc)
+
+    flash('Balance payment received. Reservation is now fully paid.', 'success')
+    return redirect(url_for('routes.booking_confirmed', reservation_id=res.id))
+
+
 # ── Audit Log ──────────────────────────────────────────────────────────────────
 
 
