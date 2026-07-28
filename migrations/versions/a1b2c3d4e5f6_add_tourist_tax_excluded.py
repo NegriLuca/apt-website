@@ -1,6 +1,6 @@
 """add tourist_tax_excluded column to reservation (idempotent)
 
-Revision ID: 20260728_add_tourist_tax_excluded
+Revision ID: a1b2c3d4e5f6
 Revises: c99797619e6f
 Create Date: 2026-07-28 18:30:00.000000
 
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy import inspect
 
 
-revision = '20260728_add_tourist_tax_excluded'
+revision = 'a1b2c3d4e5f6'
 down_revision = 'c99797619e6f'
 branch_labels = None
 depends_on = None
