@@ -733,7 +733,7 @@ msgstr ""
 #: app/templates/admin_guest_checkin.html:25
 #: app/templates/guest_self_checkin.html:45
 msgid "Required by law:"
-msgstr ""
+msgstr "Gesetzlich vorgeschrieben:"
 
 #: app/templates/admin_guest_checkin.html:25
 msgid ""
@@ -761,7 +761,7 @@ msgstr "Ihr Name"
 #: app/templates/admin_guest_checkin.html:48
 #: app/templates/guest_self_checkin.html:63
 msgid "Date of Birth"
-msgstr ""
+msgstr "Geburtsdatum"
 
 #: app/templates/admin_guest_checkin.html:53
 msgid "Place of Birth (City)"
@@ -804,7 +804,7 @@ msgstr "E-Mail"
 #: app/templates/admin_guest_checkin.html:74
 #: app/templates/guest_self_checkin.html:84
 msgid "Identity Document"
-msgstr ""
+msgstr "Ausweisdokument"
 
 #: app/templates/admin_guest_checkin.html:77
 #: app/templates/guest_self_checkin.html:87
@@ -827,7 +827,7 @@ msgstr "Kreditkarte"
 #: app/templates/admin_guest_checkin.html:82
 #: app/templates/guest_self_checkin.html:92
 msgid "Driving License"
-msgstr ""
+msgstr "Führerschein"
 
 #: app/templates/admin_guest_checkin.html:83
 #, fuzzy
@@ -837,7 +837,7 @@ msgstr "Bedingungen"
 #: app/templates/admin_guest_checkin.html:87
 #: app/templates/guest_self_checkin.html:96
 msgid "Document Number"
-msgstr ""
+msgstr "Dokumentnummer"
 
 #: app/templates/admin_guest_checkin.html:92
 #: app/templates/guest_self_checkin.html:100
@@ -2679,7 +2679,7 @@ msgstr "Dies ist eine automatisierte Nachricht von Ihrer Buchungsmaschine."
 #: app/templates/email_guest_access.html:6
 #: app/templates/email_guest_access.html:17
 msgid "Your Access Link"
-msgstr ""
+msgstr "Ihr Zugangslink"
 
 #: app/templates/email_guest_access.html:28
 #, fuzzy
@@ -2701,22 +2701,25 @@ msgid ""
 " apartment door during your stay. This link is only valid from check-in to "
 "check-out."
 msgstr ""
+"Ihr Aufenthalt steht bevor! Nutzen Sie den Button unten, um während Ihres "
+"Aufenthalts das Gebäudetor zu öffnen und die Wohnungstür zu entriegeln. "
+"Dieser Link ist nur vom Check-in bis zum Check-out gültig."
 
 #: app/templates/email_guest_access.html:47
 msgid "Open Gate & Door"
-msgstr ""
+msgstr "Tor und Tür öffnen"
 
 #: app/templates/email_guest_access.html:58
 msgid "What you can do:"
-msgstr ""
+msgstr "Was Sie tun können:"
 
 #: app/templates/email_guest_access.html:64
 msgid "Open the building gate (Shelly Mini 1 Gen4)"
-msgstr ""
+msgstr "Gebäudetor öffnen (Shelly Mini 1 Gen4)"
 
 #: app/templates/email_guest_access.html:65
 msgid "Unlock the apartment door (Nuki Smart Lock Ultra)"
-msgstr ""
+msgstr "Wohnungstür entriegeln (Nuki Smart Lock Ultra)"
 
 #: app/templates/email_guest_access.html:66
 #, fuzzy
@@ -2733,14 +2736,16 @@ msgid ""
 "This link is personal and should not be shared. Access automatically expires"
 " on your check-out day."
 msgstr ""
+"Dieser Link ist persönlich und sollte nicht geteilt werden. Der Zugang läuft"
+" am Check-out-Tag automatisch ab."
 
 #: app/templates/email_guest_access.html:84
 msgid "If the button doesn't work, copy this link:"
-msgstr ""
+msgstr "Falls der Button nicht funktioniert, kopieren Sie diesen Link:"
 
 #: app/templates/email_guest_access.html:93
 msgid "Need help? Contact us."
-msgstr ""
+msgstr "Hilfe nötig? Kontaktieren Sie uns."
 
 #: app/templates/email_guest_checkin.html:6
 #: app/templates/email_guest_checkin.html:21
@@ -3146,23 +3151,24 @@ msgstr "Gäste"
 
 #: app/templates/guest_access.html:10
 msgid "Valid during your stay"
-msgstr ""
+msgstr "Gültig während Ihres Aufenthalts"
 
 #: app/templates/guest_access.html:40
 msgid "Building Gate"
-msgstr ""
+msgstr "Gebäudetor"
 
 #: app/templates/guest_access.html:41
 msgid "Press to open the building gate."
-msgstr ""
+msgstr "Drücken Sie zum Öffnen des Gebäudetors."
 
 #: app/templates/guest_access.html:44
 msgid "Open Gate"
-msgstr ""
+msgstr "Tor öffnen"
 
 #: app/templates/guest_access.html:50
 msgid "Gate control not configured. Please contact the host."
 msgstr ""
+"Torkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
 
 #: app/templates/guest_access.html:62
 #, fuzzy
@@ -3171,15 +3177,16 @@ msgstr "Wohnung"
 
 #: app/templates/guest_access.html:63
 msgid "Press to unlock the apartment door."
-msgstr ""
+msgstr "Drücken Sie zum Entriegeln der Wohnungstür."
 
 #: app/templates/guest_access.html:66
 msgid "Unlock Door"
-msgstr ""
+msgstr "Tür entriegeln"
 
 #: app/templates/guest_access.html:72
 msgid "Door control not configured. Please contact the host."
 msgstr ""
+"Türkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
 
 #: app/templates/guest_access.html:80
 #, fuzzy
@@ -3188,19 +3195,19 @@ msgstr "Wichtig:"
 
 #: app/templates/guest_access.html:82
 msgid "Access is only valid during your stay dates"
-msgstr ""
+msgstr "Der Zugang ist nur während Ihres Aufenthalts gültig"
 
 #: app/templates/guest_access.html:83
 msgid "Do not share this link with anyone outside your booking"
-msgstr ""
+msgstr "Teilen Sie diesen Link nicht mit Personen außerhalb Ihrer Buchung"
 
 #: app/templates/guest_access.html:84
 msgid "If the gate/door does not respond, contact the host"
-msgstr ""
+msgstr "Falls das Tor/die Tür nicht reagiert, kontaktieren Sie den Gastgeber"
 
 #: app/templates/guest_access.html:85
 msgid "Access expires automatically on check-out day"
-msgstr ""
+msgstr "Der Zugang läuft am Check-out-Tag automatisch ab"
 
 #: app/templates/guest_access.html:110
 #, fuzzy
@@ -3209,19 +3216,19 @@ msgstr "Rückerstattungsabwicklung"
 
 #: app/templates/guest_access.html:113
 msgid "Try Again"
-msgstr ""
+msgstr "Erneut versuchen"
 
 #: app/templates/guest_access.html:127
 msgid "Opening gate..."
-msgstr ""
+msgstr "Tor wird geöffnet..."
 
 #: app/templates/guest_access.html:130
 msgid "Gate opened"
-msgstr ""
+msgstr "Tor geöffnet"
 
 #: app/templates/guest_access.html:131 app/templates/guest_access.html:142
 msgid "Failed"
-msgstr ""
+msgstr "Fehlgeschlagen"
 
 #: app/templates/guest_access.html:132 app/templates/guest_access.html:143
 #, fuzzy
@@ -3230,11 +3237,11 @@ msgstr "Bedingungstyp"
 
 #: app/templates/guest_access.html:138
 msgid "Unlocking door..."
-msgstr ""
+msgstr "Tür wird entriegelt..."
 
 #: app/templates/guest_access.html:141
 msgid "Door unlocked"
-msgstr ""
+msgstr "Tür entriegelt"
 
 #: app/templates/guest_access_denied.html:2
 #, fuzzy
@@ -3273,11 +3280,11 @@ msgstr "Check-in"
 
 #: app/templates/guest_self_checkin.html:11
 msgid "Check-in Already Completed"
-msgstr ""
+msgstr "Check-in bereits abgeschlossen"
 
 #: app/templates/guest_self_checkin.html:12
 msgid "You have already submitted your details."
-msgstr ""
+msgstr "Sie haben Ihre Daten bereits übermittelt."
 
 #: app/templates/guest_self_checkin.html:13
 #, fuzzy
@@ -3300,6 +3307,8 @@ msgid ""
 "All guests must be registered with the Police (Questura) within 24 hours of "
 "arrival."
 msgstr ""
+"Alle Gäste müssen innerhalb von 24 Stunden nach Ankunft bei der Polizei "
+"(Questura) registriert werden."
 
 #: app/templates/guest_self_checkin.html:52
 #, fuzzy
@@ -3308,7 +3317,7 @@ msgstr "Gast"
 
 #: app/templates/guest_self_checkin.html:67
 msgid "Place of Birth"
-msgstr ""
+msgstr "Geburtsort"
 
 #: app/templates/guest_self_checkin.html:72
 msgid "e.g. Italian, French"
