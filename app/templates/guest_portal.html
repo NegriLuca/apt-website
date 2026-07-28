@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Guest Portal') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h4 class="mb-0 d-flex align-items-center">
+                                <i class="bi bi-house-door-fill me-2"></i>{{ _('Guest Portal') }}
+                            </h4>
+                            <small class="opacity-75">{{ apartment.name if apartment else 'Lotto 235 Garbatella' }}</small>
+                        </div>
+                        <span class="badge bg-light text-dark fs-6">{{ reservation.nights }} {{ _('nights') }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Check-in') }}</small>
+                            <div class="fw-bold">{{ reservation.check_in.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Check-out') }}</small>
+                            <div class="fw-bold">{{ reservation.check_out.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Guest') }}</small>
+                            <div class="fw-bold">{{ reservation.guest_name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Reservation') }}</small>
+                            <div class="fw-bold">#{{ reservation.id }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Section -->
+            {% if show_checkin %}
+            <div class="card border-0 shadow-sm mb-4 border-start border-primary border-4">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-person-check-fill text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ _('Online Check-in') }}</h5>
+                            <small class="text-muted">{{ _('Required by Italian law - Questura registration') }}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info d-flex align-items-start">
+                        <i class="bi bi-shield-lock me-2 fs-4 mt-1"></i>
+                        <div>
+                            <strong>{{ _('Legal Requirement:') }}</strong> 
+                            {{ _('All guests must be registered with the Police (Questura) within 24 hours of arrival. Complete this before arrival to speed up the process.') }}
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('routes.guest_self_checkin', token=reservation.checkin_token) }}" 
+                       class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>{{ _('Complete Check-in Now') }}
+                    </a>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            {{ _('Takes about 2 minutes · You\'ll need passport/ID for each guest') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Access Section -->
+            {% if show_access %}
+            <div class="card border-0 shadow-sm mb-4 {% if not gate_configured and not door_configured %}border-start border-warning border-4{% else %}border-start border-success border-4{% endif %}">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-key-fill text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ _('Gate & Door Access') }}</h5>
+                            <small class="text-muted">
+                                {% if show_access and not access_preview %}
+                                {{ _('Valid during your stay') }}
+                                {% else %}
+                                {{ _('Available during your stay (%(checkin)s - %(checkout)s)', checkin=reservation.check_in.strftime('%d/%m/%Y'), checkout=reservation.check_out.strftime('%d/%m/%Y')) }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if gate_configured or door_configured %}
+                    
+                    <!-- Gate Button -->
+                    {% if gate_configured %}
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-lg w-100 access-btn gate-btn" id="gateBtn" onclick="openGate()">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-gate-fill me-2 fs-3"></i>
+                                <div class="text-start">
+                                    <div class="fw-bold fs-5">{{ _('Open Building Gate') }}</div>
+                                    <small class="opacity-75">{{ _('Shelly Mini 1 Gen4 · Pulse relay') }}</small>
+                                </div>
+                                <span class="btn-loading ms-3 d-none" id="gateLoading">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </span>
+                            </div>
+                        </button>
+                        <div class="form-text text-center mt-1">
+                            <i class="bi bi-info-circle me-1"></i>{{ _('Press to open the building gate. Stays open for a few seconds.') }}
+                        </div>
+                        <div id="gateStatus" class="mt-2"></div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        {{ _('Gate control not configured. Contact host for access.') }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Door Button -->
+                    {% if door_configured %}
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-lg w-100 access-btn door-btn" id="doorBtn" onclick="openDoor()">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <i class="bi bi-door-open-fill me-2 fs-3"></i>
+                                <div class="text-start">
+                                    <div class="fw-bold fs-5">{{ _('Unlock Apartment Door') }}</div>
+                                    <small class="opacity-75">{{ _('Nuki Smart Lock Ultra') }}</small>
+                                </div>
+                                <span class="btn-loading ms-3 d-none" id="doorLoading">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </span>
+                            </div>
+                        </button>
+                        <div class="form-text text-center mt-1">
+                            <i class="bi bi-info-circle me-1"></i>{{ _('Press to unlatch the apartment door.') }}
+                        </div>
+                        <div id="doorStatus" class="mt-2"></div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        {{ _('Door control not configured. Contact host for access.') }}
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-tools fs-1 text-muted mb-3"></i>
+                        <h5 class="text-muted">{{ _('Smart Access Not Configured') }}</h5>
+                        <p class="text-muted">{{ _('The host has not yet configured the gate/door automation. Please contact them for access instructions.') }}</p>
+                        <a href="tel:+393000000000" class="btn btn-outline-primary">
+                            <i class="bi bi-telephone me-1"></i>{{ _('Contact Host') }}
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Security Notice -->
+                    <div class="alert alert-info mt-4 mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        <strong>{{ _('Security Notice:') }}</strong>
+                        <div class="mt-2 small">
+                            <p class="mb-1">{{ _('This access is personal and valid only during your stay (%(checkin)s - %(checkout)s).', checkin=reservation.check_in.strftime('%d/%m/%Y'), checkout=reservation.check_out.strftime('%d/%m/%Y')) }}</p>
+                            <p class="mb-0">{{ _('Do not share this link with unauthorized persons. Access is logged.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Completed State -->
+            {% if not show_checkin and not show_access %}
+            <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                    <div class="display-1 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3>{{ _('All Set!') }}</h3>
+                    <p class="text-muted mb-4">
+                        {% if reservation.checkin_token_used %}
+                        {{ _('Check-in completed on %(date)s', date=reservation.checkin_completed_at.strftime('%d/%m/%Y') if reservation.checkin_completed_at else '—') }}
+                        {% endif %}
+                        {% if date.today() > reservation.check_out %}
+                        {{ _('Your stay has ended. Thank you for choosing us!') }}
+                        {% elif date.today() < reservation.check_in %}
+                        {{ _('Gate and door access will be available from check-in day.') }}
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('routes.home') }}" class="btn btn-primary">
+                        <i class="bi bi-house me-1"></i>{{ _('Back to Home') }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Support -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    {{ _('Need help?') }} 
+                    <a href="tel:+393000000000" class="text-decoration-none">
+                        <i class="bi bi-telephone me-1"></i>{{ _('Contact Host') }}
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.access-btn {
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    transition: all 0.2s ease;
+}
+.gate-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+}
+.gate-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+}
+.door-btn {
+    background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+    border: none;
+    color: white;
+}
+.door-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4);
+}
+.access-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.btn-loading {
+    display: inline-flex !important;
+}
+</style>
+
+{% block scripts %}
+<script>
+const accessToken = '{{ access_token }}';
+const apiBase = '{{ url_for("routes.api_gate_open", _external=True).replace("/api/access/gate/open", "") }}';
+
+async function callApi(endpoint, buttonId, loadingId, statusId) {
+    const btn = document.getElementById(buttonId);
+    const loading = document.getElementById(loadingId);
+    const statusDiv = document.getElementById(statusId);
+    
+    btn.disabled = true;
+    loading.classList.remove('d-none');
+    statusDiv.classList.add('d-none');
+    statusDiv.classList.remove('alert-success', 'alert-danger');
+    
+    try {
+        const response = await fetch(`${apiBase}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Access-Token': accessToken
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showStatus(statusId, data.message || 'Success!', 'success');
+            btn.classList.add('btn-success');
+            setTimeout(() => btn.classList.remove('btn-success'), 1000);
+        } else {
+            showStatus(statusId, data.error || 'Error occurred', 'danger');
+        }
+    } catch (error) {
+        console.error('API Error:', error);
+        showStatus(statusId, 'Connection error. Please try again.', 'danger');
+    } finally {
+        btn.disabled = false;
+        loading.classList.add('d-none');
+    }
+}
+
+function openGate() {
+    callApi('/api/access/gate/open', 'gateBtn', 'gateLoading', 'gateStatus');
+}
+
+function openDoor() {
+    callApi('/api/access/door/open', 'doorBtn', 'doorLoading', 'doorStatus');
+}
+
+function showStatus(elementId, message, type) {
+    const el = document.getElementById(elementId);
+    const iconMap = {
+        'success': 'bi-check-circle-fill text-success',
+        'danger': 'bi-x-circle-fill text-danger',
+        'info': 'bi-info-circle-fill text-info'
+    };
+    const icon = iconMap[type] || iconMap.info;
+    el.innerHTML = `<div class="alert alert-${type === 'loading' ? 'info' : type} alert-dismissible fade show py-2" role="alert">
+        <i class="bi ${icon} me-2"></i>${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>`;
+    el.classList.remove('d-none');
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            const alert = bootstrap.Alert.getOrCreateInstance(el.querySelector('.alert'));
+            if (alert) alert.close();
+        }, 5000);
+    }
+}
+
+// Prevent double-click
+document.addEventListener('click', function(e) {
+    if (e.target.closest('button')?.disabled) e.preventDefault();
+});
+</script>
+{% endblock %}

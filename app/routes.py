@@ -25,6 +25,7 @@ import io
 # Import compliance services
 from app.services.tourist_tax import get_tax_service
 from app.services.questura import get_questura_service
+from app.services.smart_lock import trigger_gate_open, trigger_door_unlock
 from app.tasks.compliance import (
     submit_questura_daily, retry_failed_questura,
     generate_monthly_tourist_tax_report, send_guest_checkin_reminder
@@ -1082,6 +1083,24 @@ def admin_pricing():
             db.session.commit()
             flash('Italian compliance settings updated successfully!', 'success')
             return redirect(url_for('routes.admin_pricing'))
+        
+        # Handle Smart Access configuration fields
+        if 'shelly_enabled' in request.form:
+            apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
+            apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
+            apartment.shelly_auth_key = request.form.get('shelly_auth_key', '').strip() or None
+            apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
+            apartment.shelly_pulse_duration = request.form.get('shelly_pulse_duration', type=int) or 3
+            
+            apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
+            apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
+            apartment.nuki_web_token = request.form.get('nuki_web_token', '').strip() or None
+            apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'
+            apartment.nuki_unlock_action = request.form.get('nuki_unlock_action', 'unlock')
+            
+            db.session.commit()
+            flash('Smart access settings updated successfully!', 'success')
+            return redirect(url_for('routes.admin_pricing'))
 
     all_coupons = Coupon.query.all()
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
@@ -1841,4 +1860,367 @@ def regenerate_checkin_token():
         'success': True, 
         'checkin_url': checkin_url,
         'token': res.checkin_token
+    })
+
+
+# ── Guest Access (Gate & Door) ─────────────────────────────────────────────────
+@bp.route('/access/<token>')
+def guest_access(token):
+    """Guest access page - valid only during stay dates"""
+    res = Reservation.query.filter_by(access_token=token).first_or_404()
+    
+    # Check if reservation is confirmed
+    if res.status != 'confirmed':
+        return render_template('guest_access_denied.html',
+            reason=_('Reservation is not confirmed'),
+            reservation=res), 403
+    
+    # Check if current date is within stay period
+    today = date.today()
+    if today < res.check_in:
+        return render_template('guest_access_denied.html',
+            reason=_('Access not yet available. Your stay starts on %(date)s', date=res.check_in.strftime('%d/%m/%Y')),
+            reservation=res), 403
+    
+    if today > res.check_out:
+        return render_template('guest_access_denied.html',
+            reason=_('Access expired. Your stay ended on %(date)s', date=res.check_out.strftime('%d/%m/%Y')),
+            reservation=res), 403
+    
+    # Get apartment for device config
+    apt = Apartment.query.first()
+    
+    return render_template('guest_access.html',
+        reservation=res,
+        apartment=apt,
+        gate_configured=bool(apt and apt.shelly_host),
+        door_configured=bool(apt and apt.nuki_smartlock_id and apt.nuki_web_token)
+    )
+
+
+# ── Guest Portal (Check-in + Access Combined) ────────────────────────────────────
+@bp.route('/portal/<token>')
+def guest_portal(token):
+    """Unified guest portal: check-in + gate/door access"""
+    res = Reservation.query.filter_by(checkin_token=token).first_or_404()
+    
+    if res.status != 'confirmed':
+        return render_template('guest_access_denied.html',
+            reason=_('Reservation is not confirmed'),
+            reservation=res), 403
+    
+    today = date.today()
+    apt = Apartment.query.first()
+    
+    # Show check-in if not completed and within 30 days of check-in
+    show_checkin = not res.checkin_token_used and (res.check_in - today).days <= 30
+    
+    # Show access if check-in completed AND during stay
+    show_access = res.checkin_token_used and today >= res.check_in and today <= res.check_out
+    
+    # Also show access preview if check-in done but not yet stay dates
+    access_preview = res.checkin_token_used and today < res.check_in
+    
+    # Ensure access token exists
+    if not res.access_token:
+        res.access_token = secrets.token_urlsafe(32)
+        db.session.commit()
+    
+    return render_template('guest_portal.html',
+        reservation=res,
+        apartment=apt,
+        show_checkin=show_checkin,
+        show_access=show_access or access_preview,
+        gate_configured=bool(apt and apt.shelly_host),
+        door_configured=bool(apt and apt.nuki_smartlock_id and apt.nuki_web_token),
+        access_token=res.access_token
+    )
+
+
+@bp.route('/api/access/gate/open', methods=['POST'])
+def api_gate_open():
+    """Open gate via Shelly - token validated via header or query param"""
+    token = request.headers.get('X-Access-Token') or request.args.get('token')
+    if not token:
+        return jsonify({'error': 'Missing access token'}), 401
+    
+    res = Reservation.query.filter_by(access_token=token).first()
+    if not res or res.status != 'confirmed':
+        return jsonify({'error': 'Invalid or expired access'}), 403
+    
+    # Validate stay dates
+    today = date.today()
+    if today < res.check_in or today > res.check_out:
+        return jsonify({'error': 'Access not valid for current date'}), 403
+    
+    apt = Apartment.query.first()
+    if not apt or not apt.shelly_url:
+        return jsonify({'error': 'Gate not configured'}), 503
+    
+    try:
+        success, message = trigger_gate_open(apt)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        current_app.logger.error(f"Gate open error: {e}")
+        return jsonify({'error': 'Failed to open gate'}), 500
+
+
+@bp.route('/api/access/door/open', methods=['POST'])
+def api_door_open():
+    """Open apartment door via Nuki - token validated via header or query param"""
+    token = request.headers.get('X-Access-Token') or request.args.get('token')
+    if not token:
+        return jsonify({'error': 'Missing access token'}), 401
+    
+    res = Reservation.query.filter_by(access_token=token).first()
+    if not res or res.status != 'confirmed':
+        return jsonify({'error': 'Invalid or expired access'}), 403
+    
+    # Validate stay dates
+    today = date.today()
+    if today < res.check_in or today > res.check_out:
+        return jsonify({'error': 'Access not valid for current date'}), 403
+    
+    apt = Apartment.query.first()
+    if not apt or not apt.nuki_smartlock_id or not apt.nuki_web_token:
+        return jsonify({'error': 'Door not configured'}), 503
+    
+    try:
+        success, message = trigger_door_unlock(apt)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        current_app.logger.error(f"Door open error: {e}")
+        return jsonify({'error': 'Failed to open door'}), 500
+
+
+@bp.route('/admin/access/generate-link', methods=['POST'])
+@login_required
+def admin_generate_access_link():
+    """Generate access link for a confirmed reservation"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    reservation_id = request.json.get('reservation_id')
+    if not reservation_id:
+        return jsonify({'error': 'Missing reservation_id'}), 400
+    
+    res = Reservation.query.get_or_404(reservation_id)
+    
+    if res.status != 'confirmed':
+        return jsonify({'error': 'Reservation must be confirmed'}), 400
+    
+    # Generate access token if not exists
+    if not res.access_token:
+        res.access_token = secrets.token_urlsafe(32)
+        db.session.commit()
+    
+    access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
+    
+    return jsonify({
+        'success': True,
+        'access_url': access_url,
+        'token': res.access_token,
+        'valid_from': res.check_in.isoformat(),
+        'valid_until': res.check_out.isoformat()
+    })
+
+
+@bp.route('/admin/access/send-link', methods=['POST'])
+@login_required
+def admin_send_access_link():
+    """Send access link to guest via email"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    reservation_id = request.json.get('reservation_id')
+    if not reservation_id:
+        return jsonify({'error': 'Missing reservation_id'}), 400
+    
+    res = Reservation.query.get_or_404(reservation_id)
+    
+    if res.status != 'confirmed':
+        return jsonify({'error': 'Reservation must be confirmed'}), 400
+    
+    if not res.guest_email:
+        return jsonify({'error': 'Guest email not available'}), 400
+    
+    # Generate access token if not exists
+    if not res.access_token:
+        res.access_token = secrets.token_urlsafe(32)
+        db.session.commit()
+    
+    access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
+    
+    # Send email
+    try:
+        from app.services.email_service import send_access_email
+        sent = send_access_email(res, access_url)
+        if not sent:
+            return jsonify({'error': 'Failed to send email'}), 500
+    except ImportError:
+        return jsonify({'error': 'Email service not available'}), 500
+    except Exception as e:
+        current_app.logger.error(f"Send access email error: {e}")
+        return jsonify({'error': 'Failed to send email'}), 500
+    
+    return jsonify({
+        'success': True,
+        'message': f'Access link sent to {res.guest_email}',
+        'access_url': access_url
+    })
+
+
+@bp.route('/admin/access/regenerate-token', methods=['POST'])
+@login_required
+def admin_regenerate_access_token():
+    """Regenerate access token for a reservation"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    reservation_id = request.json.get('reservation_id')
+    if not reservation_id:
+        return jsonify({'error': 'Missing reservation_id'}), 400
+    
+    res = Reservation.query.get_or_404(reservation_id)
+    
+    # Generate new token
+    res.access_token = secrets.token_urlsafe(32)
+    db.session.commit()
+    
+    access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
+    
+    return jsonify({
+        'success': True,
+        'access_url': access_url,
+        'token': res.access_token,
+        'valid_from': res.check_in.isoformat(),
+        'valid_until': res.check_out.isoformat()
+    })
+
+
+@bp.route('/admin/smart-access/test-gate', methods=['POST'])
+@login_required
+def admin_test_gate():
+    """Test gate opening via Shelly"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    apt = Apartment.query.first()
+    if not apt or not apt.shelly_enabled or not apt.shelly_host:
+        return jsonify({'error': 'Gate not configured'}), 400
+    
+    try:
+        success, message = trigger_gate_open(apt)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        current_app.logger.error(f"Test gate error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/admin/smart-access/test-door', methods=['POST'])
+@login_required
+def admin_test_door():
+    """Test door unlocking via Nuki"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    apt = Apartment.query.first()
+    if not apt or not apt.nuki_enabled or not apt.nuki_smartlock_id or not apt.nuki_web_token:
+        return jsonify({'error': 'Door not configured'}), 400
+    
+    try:
+        success, message = trigger_door_unlock(apt)
+        return jsonify({'success': success, 'message': message})
+    except Exception as e:
+        current_app.logger.error(f"Test door error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+# ── Guest Communication Templates (for external platforms) ──────────────────────
+@bp.route('/admin/communication/guest-message/<int:reservation_id>')
+@login_required
+def admin_guest_message(reservation_id):
+    """Get pre-configured message templates for guest communication"""
+    if not current_user.is_admin:
+        abort(403)
+    
+    res = Reservation.query.get_or_404(reservation_id)
+    apt = Apartment.query.first()
+    
+    # Generate tokens if not exist
+    if not res.checkin_token:
+        res.checkin_token = secrets.token_urlsafe(32)
+    if not res.access_token:
+        res.access_token = secrets.token_urlsafe(32)
+    db.session.commit()
+    
+    checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
+    access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
+    portal_url = url_for('routes.guest_portal', token=res.checkin_token, _external=True)
+    
+    # Message templates
+    checkin_message = f"""Ciao {res.guest_name},
+
+Grazie per aver prenotato presso {apt.name if apt else 'Lotto 235 Garbatella'}!
+
+Per completare il check-in online (obbligatorio per legge italiana), clicca qui:
+{checkin_url}
+
+Il link è valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.
+
+Durante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:
+{access_url}
+
+Oppure usa il portale unico per tutto:
+{portal_url}
+
+A presto!
+{apt.name if apt else 'Lotto 235 Garbatella'}"""
+
+    whatsapp_message = f"""Ciao {res.guest_name}! 👋
+
+Grazie per aver prenotato da {apt.name if apt else 'Lotto 235 Garbatella'}!
+
+🔑 *Check-in online (obbligatorio)*:
+{checkin_url}
+
+🚪 *Apri cancello e porta* (valido durante il soggiorno):
+{access_url}
+
+📱 *Portale unico* (check-in + accessi):
+{portal_url}
+
+Disponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.
+
+A presto!"""
+
+    airbnb_message = f"""Hi {res.guest_name},
+
+Thanks for booking at {apt.name if apt else 'Lotto 235 Garbatella'}!
+
+🔑 *Online Check-in (required by Italian law)*:
+{checkin_url}
+
+🚪 *Gate & Door Access* (valid during your stay):
+{access_url}
+
+📱 *All-in-one Portal*:
+{portal_url}
+
+Available from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.
+
+See you soon!"""
+
+    return jsonify({
+        'success': True,
+        'reservation_id': res.id,
+        'guest_name': res.guest_name,
+        'checkin_url': checkin_url,
+        'access_url': access_url,
+        'portal_url': portal_url,
+        'templates': {
+            'standard': checkin_message,
+            'whatsapp': whatsapp_message,
+            'airbnb': airbnb_message,
+        }
     })

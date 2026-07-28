@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Guest Access - Gate & Door') }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0"><i class="bi bi-key-fill me-2"></i>{{ _('Guest Access') }}</h4>
+                            <small class="opacity-75">{{ _('Valid during your stay') }}</small>
+                        </div>
+                        <span class="badge bg-light text-dark fs-6">{{ reservation.nights }} {{ _('nights') }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Check-in') }}</small>
+                            <div class="fw-bold">{{ reservation.check_in.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Check-out') }}</small>
+                            <div class="fw-bold">{{ reservation.check_out.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Guest') }}</small>
+                            <div class="fw-bold">{{ reservation.guest_name }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">{{ _('Reservation') }}</small>
+                            <div class="fw-bold">#{{ reservation.id }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Status -->
+            <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+                <i class="bi bi-check-circle-fill fs-3 me-3"></i>
+                <div>
+                    <strong>{{ _('Access Active') }}</strong>
+                    <div class="small">{{ _('You can open the gate and door during your stay') }}</div>
+                </div>
+            </div>
+
+            <!-- Gate Control -->
+            <div class="card border-0 shadow-sm mb-4 {% if not gate_configured %}opacity-50{% endif %}">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-gate-fill text-primary me-2 fs-4"></i>
+                        <span>{{ _('Building Gate') }}</span>
+                        {% if not gate_configured %}
+                        <span class="badge bg-secondary ms-2">{{ _('Not Configured') }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body text-center py-4">
+                    {% if gate_configured %}
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary btn-lg px-5" id="gateBtn" onclick="openGate()">
+                            <i class="bi bi-unlock-fill me-2"></i><span id="gateBtnText">{{ _('Open Gate') }}</span>
+                        </button>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {{ _('Press to open the building gate. The gate will stay open for a few seconds.') }}
+                    </div>
+                    <div id="gateStatus" class="mt-3"></div>
+                    {% else %}
+                    <div class="text-muted">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        {{ _('Gate control not configured. Please contact the host.') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Door Control -->
+            <div class="card border-0 shadow-sm mb-4 {% if not door_configured %}opacity-50{% endif %}">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-door-open-fill text-success me-2 fs-4"></i>
+                        <span>{{ _('Apartment Door') }}</span>
+                        {% if not door_configured %}
+                        <span class="badge bg-secondary ms-2">{{ _('Not Configured') }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body text-center py-4">
+                    {% if door_configured %}
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-success btn-lg px-5" id="doorBtn" onclick="openDoor()">
+                            <i class="bi bi-door-open me-2"></i><span id="doorBtnText">{{ _('Unlock Door') }}</span>
+                        </button>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {{ _('Press to unlock the apartment door. The door will unlatch momentarily.') }}
+                    </div>
+                    <div id="doorStatus" class="mt-3"></div>
+                    {% else %}
+                    <div class="text-muted">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        {{ _('Door control not configured. Please contact the host.') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3"><i class="bi bi-info-circle me-1"></i>{{ _('Important Information') }}</h6>
+                    <ul class="small text-muted mb-0">
+                        <li>{{ _('This link is only valid during your stay dates') }}</li>
+                        <li>{{ _('Do not share this link with anyone outside your booking') }}</li>
+                        <li>{{ _('If the gate/door does not respond, please contact the host immediately') }}</li>
+                        <li>{{ _('Access will automatically expire on check-out day') }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Support Link -->
+            <div class="text-center mt-4">
+                <a href="tel:+393000000000" class="btn btn-outline-primary">
+                    <i class="bi bi-telephone me-1"></i>{{ _('Contact Host') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const accessToken = '{{ request.args.get("token") or "" }}';
+
+function showStatus(elementId, message, type = 'info') {
+    const el = document.getElementById(elementId);
+    const iconMap = {
+        'success': 'bi-check-circle-fill text-success',
+        'error': 'bi-x-circle-fill text-danger',
+        'info': 'bi-info-circle-fill text-info',
+        'loading': 'bi-arrow-clockwise text-primary'
+    };
+    const icon = iconMap[type] || iconMap.info;
+    el.innerHTML = `<div class="alert alert-${type === 'loading' ? 'info' : type} alert-dismissible fade show py-2" role="alert">
+        <i class="bi ${icon} me-2"></i>${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>`;
+}
+
+function setButtonLoading(btnId, textId, loading) {
+    const btn = document.getElementById(btnId);
+    const text = document.getElementById(textId);
+    if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span><span id="' + textId + '">Loading...</span>';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-unlock-fill me-2"></i><span id="' + textId + '">' + text.dataset.originalText + '</span>';
+    }
+}
+
+async function callApi(endpoint) {
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Access-Token': accessToken
+        }
+    });
+    return response.json();
+}
+
+async function openGate() {
+    if (!{{ 'true' if gate_configured else 'false' }}) return;
+    
+    const btn = document.getElementById('gateBtn');
+    const originalText = btn.querySelector('span').textContent;
+    btn.dataset.originalText = originalText;
+    
+    setButtonLoading('gateBtn', 'gateBtnText', true);
+    showStatus('gateStatus', '{{ _('Opening gate...') }}', 'loading');
+    
+    try {
+        const result = await callApi('/api/access/gate/open');
+        if (result.success) {
+            showStatus('gateStatus', result.message || '{{ _('Gate opened successfully') }}', 'success');
+        } else {
+            showStatus('gateStatus', result.error || '{{ _('Failed to open gate') }}', 'error');
+        }
+    } catch (error) {
+        showStatus('gateStatus', '{{ _('Error connecting to gate') }}', 'error');
+    } finally {
+        setButtonLoading('gateBtn', 'gateBtnText', false);
+    }
+}
+
+async function openDoor() {
+    if (!{{ 'true' if door_configured else 'false' }}) return;
+    
+    const btn = document.getElementById('doorBtn');
+    const originalText = btn.querySelector('span').textContent;
+    btn.dataset.originalText = originalText;
+    
+    setButtonLoading('doorBtn', 'doorBtnText', true);
+    showStatus('doorStatus', '{{ _('Unlocking door...') }}', 'loading');
+    
+    try {
+        const result = await callApi('/api/access/door/open');
+        if (result.success) {
+            showStatus('doorStatus', result.message || '{{ _('Door unlocked successfully') }}', 'success');
+        } else {
+            showStatus('doorStatus', result.error || '{{ _('Failed to unlock door') }}', 'error');
+        }
+    } catch (error) {
+        showStatus('doorStatus', '{{ _('Error connecting to door') }}', 'error');
+    } finally {
+        setButtonLoading('doorBtn', 'doorBtnText', false);
+    }
+}
+
+// Prevent double-click
+document.addEventListener('click', function(e) {
+    if (e.target.closest('button')) {
+        const btn = e.target.closest('button');
+        if (btn.disabled) e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

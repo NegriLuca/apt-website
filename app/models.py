@@ -36,6 +36,21 @@ class Apartment(db.Model):
     # Questura configuration
     questura_protocol = db.Column(db.String(50), nullable=True, comment='Protocollo Questura per AlloggiatiWeb')
     questura_ip_whitelisted = db.Column(db.Boolean, default=False)
+    
+    # Smart Access Configuration (Shelly Gate + Nuki Door)
+    # Shelly Mini 1 Gen 4 (Gate)
+    shelly_enabled = db.Column(db.Boolean, default=False)
+    shelly_host = db.Column(db.String(100), nullable=True, comment='Shelly IP or hostname (e.g., 192.168.1.50 or shelly-gate.local)')
+    shelly_auth_key = db.Column(db.String(100), nullable=True, comment='Shelly Gen4 auth key (if auth enabled)')
+    shelly_relay_channel = db.Column(db.Integer, default=0, comment='Relay channel (0 for Shelly 1 Mini)')
+    shelly_pulse_duration = db.Column(db.Integer, default=3, comment='Gate pulse duration in seconds')
+    
+    # Nuki Smart Lock Ultra (Apartment Door)
+    nuki_enabled = db.Column(db.Boolean, default=False)
+    nuki_smartlock_id = db.Column(db.String(50), nullable=True, comment='Nuki Smart Lock ID (decimal)')
+    nuki_web_token = db.Column(db.String(200), nullable=True, comment='Nuki Web API token (Bearer)')
+    nuki_web_base_url = db.Column(db.String(100), default='https://api.nuki.io', comment='Nuki Web API base URL')
+    nuki_unlock_action = db.Column(db.String(20), default='unlock', comment='unlock or unlatch (open door)')
 
 
 class Reservation(db.Model):
@@ -89,6 +104,10 @@ class Reservation(db.Model):
     checkin_completed_at  = db.Column(db.DateTime, nullable=True)
     checkin_token_used    = db.Column(db.Boolean, default=False)
     
+    # Guest Access Token (for gate/door opening during stay)
+    access_token          = db.Column(db.String(128), unique=True, index=True, nullable=True)
+    access_token_created  = db.Column(db.DateTime, nullable=True)
+    
     # Tourist tax
     tourist_tax_amount  = db.Column(db.Float, nullable=True, default=0.0)
     tourist_tax_paid    = db.Column(db.Boolean, default=False)
@@ -127,6 +146,19 @@ class Reservation(db.Model):
             self.guest_gender
         ]
         return all(required)
+    
+    def is_access_valid(self):
+        """Check if access token is valid for current date (during stay period)"""
+        from datetime import date
+        today = date.today()
+        return self.check_in <= today <= self.check_out
+    
+    def generate_access_token(self):
+        """Generate a new access token for the reservation"""
+        import secrets
+        self.access_token = secrets.token_urlsafe(32)
+        self.access_token_created = datetime.utcnow()
+        return self.access_token
 
 class ICalFeed(db.Model):
     id            = db.Column(db.Integer, primary_key=True)

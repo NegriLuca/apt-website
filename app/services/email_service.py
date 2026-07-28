@@ -52,6 +52,47 @@ def send_checkin_email(reservation, checkin_url):
         return False
 
 
+def send_access_email(reservation, access_url):
+    """Send gate/door access link to guest via email"""
+    try:
+        brevo_api_key = current_app.config.get('MAIL_PASSWORD')
+        sender_email = "lotto235roma@gmail.com"
+        
+        from app.models import Apartment
+        apt = Apartment.query.first()
+        
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": brevo_api_key
+        }
+        
+        subject = f"🔑 Il tuo Accesso Gate & Porta — {apt.name if apt else 'Lotto 235 Garbatella'}"
+        
+        html_content = render_template(
+            'email_guest_access.html',
+            reservation=reservation,
+            access_url=access_url,
+            apartment=apt
+        )
+        
+        payload = {
+            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
+            "to": [{"email": reservation.guest_email}],
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        current_app.logger.info(f"📬 Access email sent to {reservation.guest_email}. Status: {response.status_code}")
+        return response.status_code in [200, 201, 202]
+        
+    except Exception as e:
+        current_app.logger.error(f"!!! ACCESS EMAIL FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}")
+        return False
+
+
 def send_admin_checkin_notification(reservation):
     """Notify admin when guest completes check-in"""
     try:
