@@ -10,6 +10,7 @@ from flask_babel import Babel, format_date, format_datetime
 from flask_moment import Moment
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFError
 from config import Config
 
 db = SQLAlchemy()
@@ -73,9 +74,9 @@ def create_app():
     from app import routes
     app.register_blueprint(routes.bp)
 
-    @csrf.error_handler
-    def csrf_error_handler(reason):
-        return render_template('csrf_error.html', reason=reason), 400
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        return render_template('csrf_error.html', reason=e.description), 400
 
     @app.context_processor
     def inject_apartment():
