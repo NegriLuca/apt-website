@@ -18,43 +18,48 @@ def compliance_dashboard():
     if not current_user.is_admin:
         abort(403)
 
-    apartment = get_apartment()
     today = date.today()
-    month_start = today.replace(day=1)
 
-    confirmed = Reservation.query.filter(
+    questura_pending = Reservation.query.filter(
+        Reservation.questura_status.in_([None, 'pending']),
         Reservation.status == 'confirmed',
-        Reservation.check_in >= month_start,
-        Reservation.check_in < month_start.replace(month=month_start.month + 1) if month_start.month < 12 else month_start.replace(year=month_start.year + 1, month=1)
-    ).count()
-
-    pending_questura = Reservation.query.filter(
-        Reservation.status == 'confirmed',
-        Reservation.questura_status.in_(['pending', None]),
         Reservation.check_in <= today
     ).count()
 
-    tax_report = get_tax_report_summary()
+    questura_rejected = Reservation.query.filter_by(questura_status='rejected').count()
+    questura_accepted = Reservation.query.filter_by(questura_status='accepted').count()
+
+    upcoming = Reservation.query.filter(
+        Reservation.status == 'confirmed',
+        Reservation.check_in >= today,
+        Reservation.check_in <= today + timedelta(days=7)
+    ).all()
+
+    needing_data = [r for r in upcoming if not r.questura_ready()]
+
+    apt = Apartment.query.first()
+    from app.services.tourist_tax import get_tax_service
+    tax_service = get_tax_service(apt) if apt else None
+    current_month_tax = 0
+    if tax_service:
+        report = tax_service.generate_detailed_report(today.year, today.month)
+        current_month_tax = report['total_tax']
+
+    config_keys = [
+        'questura_wsdl_url', 'questura_username', 'questura_password',
+        'questura_cert_path', 'questura_cert_password', 'questura_protocol_number'
+    ]
+    config_status = {k: bool(ComplianceConfig.get(k)) for k in config_keys}
 
     return render_template('admin_compliance.html',
-                           apartment=apartment,
-                           stats={
-                               'confirmed_this_month': confirmed,
-                               'pending_questura': pending_questura,
-                               'tax_month': tax_report['month'],
-                               'tax_total': tax_report['total'],
-                           })
-
-
-def get_tax_report_summary():
-    today = date.today()
-    month = today.month
-    year = today.year
-    from app.services.tourist_tax import get_tax_service
-    apartment = get_apartment()
-    service = get_tax_service(apartment)
-    report = service.generate_detailed_report(year, month)
-    return {'month': f'{month:02d}/{year}', 'total': report['total_tax']}
+        questura_pending=questura_pending,
+        questura_rejected=questura_rejected,
+        questura_accepted=questura_accepted,
+        needing_data=needing_data,
+        current_month_tax=current_month_tax,
+        config_status=config_status,
+        today=today
+    )
 
 
 # ── Questura ─────────────────────────────────────────────────────────────────

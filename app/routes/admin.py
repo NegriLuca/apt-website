@@ -346,7 +346,13 @@ def admin_testimonials():
         abort(403)
 
     testimonials = Testimonial.query.order_by(Testimonial.created_at.desc()).all()
-    return render_template('admin_testimonials.html', testimonials=testimonials)
+    stats = {
+        'testimonials_total': Testimonial.query.count(),
+        'testimonials_published': Testimonial.query.filter_by(is_published=True).count(),
+        'testimonials_pending': Testimonial.query.filter_by(is_published=False).count(),
+        'testimonials_featured': Testimonial.query.filter_by(is_featured=True).count(),
+    }
+    return render_template('admin_testimonials.html', testimonials=testimonials, stats=stats)
 
 
 @bp.route('/admin/testimonials/<int:testimonial_id>/publish', methods=['POST'])
