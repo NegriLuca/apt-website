@@ -55,6 +55,12 @@ with app.app_context():
                 print("🛠️ Database schema updated: coupon_code column injected.")
             except Exception:
                 pass
+            try:
+                conn.execute(text("ALTER TABLE reservations ADD COLUMN tourist_tax_excluded BOOLEAN DEFAULT 0;"))
+                conn.commit()
+                print("🛠️ Database schema updated: tourist_tax_excluded column injected.")
+            except Exception:
+                pass
     except Exception as e:
         print(f"ℹ️ Schema check skipped: {e}")
 

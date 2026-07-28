@@ -1808,6 +1808,22 @@ def tourist_tax_update_reservation(reservation_id):
     return redirect(url_for('routes.tourist_tax', year=request.form.get('year'), month=request.form.get('month')))
 
 
+@bp.route('/admin/compliance/tourist-tax/toggle-exclude/<int:reservation_id>', methods=['POST'])
+@login_required
+def tourist_tax_toggle_exclude(reservation_id):
+    """Toggle exclusion of a reservation from tourist tax reports"""
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(reservation_id)
+    res.tourist_tax_excluded = not res.tourist_tax_excluded
+    db.session.commit()
+
+    status = 'excluded from' if res.tourist_tax_excluded else 'included in'
+    flash(f'Reservation #{reservation_id} {status} tourist tax.', 'success')
+    return redirect(url_for('routes.tourist_tax', year=request.form.get('year'), month=request.form.get('month')))
+
+
 @bp.route('/admin/compliance/config')
 @login_required
 def compliance_config():

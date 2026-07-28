@@ -167,8 +167,9 @@ class Reservation(db.Model):
     access_token_created  = db.Column(db.DateTime, nullable=True)
     
     # Tourist tax
-    tourist_tax_amount  = db.Column(db.Float, nullable=True, default=0.0)
-    tourist_tax_paid    = db.Column(db.Boolean, default=False)
+    tourist_tax_amount    = db.Column(db.Float, nullable=True, default=0.0)
+    tourist_tax_paid      = db.Column(db.Boolean, default=False)
+    tourist_tax_excluded  = db.Column(db.Boolean, default=False, comment='Exclude from tourist tax reports')
 
     __table_args__ = (
         db.CheckConstraint("check_out > check_in",      name="ck_dates_valid"),

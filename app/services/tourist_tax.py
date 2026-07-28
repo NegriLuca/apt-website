@@ -116,9 +116,10 @@ class TouristTaxService:
         else:
             end_date = date(year, month + 1, 1) - timedelta(days=1)
         
-        # Query confirmed reservations with check-in in this month
+        # Query confirmed reservations with check-in in this month (exclude flagged ones)
         reservations = Reservation.query.filter(
             Reservation.status == 'confirmed',
+            Reservation.tourist_tax_excluded != True,
             Reservation.check_in >= start_date,
             Reservation.check_in <= end_date
         ).order_by(Reservation.check_in).all()
@@ -199,8 +200,9 @@ class TouristTaxService:
         
         reservations = Reservation.query.filter(
             Reservation.status == 'confirmed',
+            Reservation.tourist_tax_excluded != True,
             Reservation.check_in >= date(year, month, 1),
-            Reservation.check_in <= date(year, month + 1 if month < 12 else year + 1, 
+            Reservation.check_in <= date(year, month + 1 if month < 12 else year + 1,
                                          1 if month < 12 else 1) - timedelta(days=1)
         ).all()
         
@@ -222,7 +224,8 @@ class TouristTaxService:
                     'nights': r.nights,
                     'guests': r.num_guests,
                     'tax': r.tourist_tax_amount or 0,
-                    'tax_paid': r.tourist_tax_paid
+                    'tax_paid': r.tourist_tax_paid,
+                    'excluded': r.tourist_tax_excluded or False
                 }
                 for r in reservations
             ]
