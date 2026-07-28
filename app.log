@@ -1,0 +1,12 @@
+2026-07-28 17:49:14,335 [INFO] __init__: Apt_Website starting
+2026-07-28 17:49:14,343 [INFO] __init__: Schema patch: column coupon_code already exists, skipping
+2026-07-28 17:49:14,343 [INFO] __init__: Schema patch: column tourist_tax_excluded already exists, skipping
+2026-07-28 17:49:14,448 [INFO] __init__: iCal scheduler started (every 30 min)
+2026-07-28 17:51:55,030 [INFO] __init__: Apt_Website starting
+2026-07-28 17:51:55,040 [INFO] __init__: Schema patch: column coupon_code already exists, skipping
+2026-07-28 17:51:55,041 [INFO] __init__: Schema patch: column tourist_tax_excluded already exists, skipping
+2026-07-28 17:51:55,132 [INFO] __init__: iCal scheduler started (every 30 min)
+2026-07-28 17:52:33,162 [INFO] __init__: Apt_Website starting
+2026-07-28 17:52:33,170 [INFO] __init__: Schema patch: column coupon_code already exists, skipping
+2026-07-28 17:52:33,170 [INFO] __init__: Schema patch: column tourist_tax_excluded already exists, skipping
+2026-07-28 17:52:33,269 [INFO] __init__: iCal scheduler started (every 30 min)

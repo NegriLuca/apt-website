@@ -23,9 +23,9 @@ No test runner, linter, or typechecker is configured. There is no CI.
 ## Architecture
 
 - **Monorepo/single app**: `app/` is a Flask application factory (`app:create_app()`)
-- **Routes**: single blueprint (`routes.bp`) registered in `app/__init__.py`
+- **Routes**: blueprint (`routes.bp`) split across `app/routes/` — `admin.py` (admin panels, trust badges, coupons, pricing, testimonials, smart access), `compliance.py` (Questura, tourist tax, compliance config, check-in links), `public.py` (booking flow, homepage, contact, legal pages, API webhooks). All registered in `app/routes/__init__.py`.
 - **Models**: SQLAlchemy in `app/models.py` — `User`, `Apartment`, `Reservation`, `ICalFeed`, `Coupon`, `Testimonial`, `ComplianceConfig`, `QuesturaLog`
-- **Templates**: Jinja2 in `app/templates/` — booking flow, admin panels, email templates, legal policies
+- **Templates**: Jinja2 in `app/templates/` — booking flow, admin panels, email templates, legal policies, components
 - **Services**: `app/services/` — `ical_sync.py`, `smart_lock.py` (Shelly+Nuki), `questura.py`, `tourist_tax.py`, `email_service.py`
 - **Background tasks**: `app/tasks/compliance.py` — Celery tasks (Celery optional; tasks work synchronously as fallback). APScheduler runs iCal sync in-process.
 
@@ -34,9 +34,10 @@ No test runner, linter, or typechecker is configured. There is no CI.
 - **Email uses Brevo REST API (not Flask-Mail SMTP)**: `MAIL_PASSWORD` holds the Brevo API key. All email is sent via `POST https://api.brevo.com/v3/smtp/email`.
 - **CSRF config**: `WTF_CSRF_SSL_STRICT = False`, `WTF_CSRF_TIME_LIMIT = 86400` (24h)
 - **Database URI**: `DATABASE_URL` — auto-fixes `postgres://` → `postgresql://` in config. Local dev defaults to `sqlite:///app.db` inside `instance/`.
-- **Admin auto-creation**: If `ADMIN_PASSWORD` env var is set, an admin user is created/updated on every startup in `run.py:62-79`.
-- **Schema patches**: `run.py:48-59` attempts `ALTER TABLE reservations ADD COLUMN coupon_code` on startup (safe to ignore if column already exists).
-- **Default apartment**: If the DB has no apartments, one named "Lotto 235 Garbatella" is seeded at startup.
+- **Admin auto-creation**: If `ADMIN_PASSWORD` env var is set, an admin user is created/updated on every startup in `run.py`.
+- **Default apartment**: If the DB has no apartments, one named "Lotto 235 Garbatella" is seeded at startup with `CIN_CODE`/`CIR_CODE` from env.
+- **CIN/CIR codes**: Set via env vars `CIN_CODE` and `CIR_CODE` (fallback to hardcoded defaults). Used in footer, admin pricing, and tourist tax CSV export. Editable via tourist tax page.
+- **Payment & Security Badges**: Stripe, SSL, GDPR, PCI badges have been removed from the public frontend. Only custom badge images remain.
 - **iCal sync**: Background scheduler runs every `ICAL_SYNC_INTERVAL_MINUTES` (default 30). Syncs Airbnb/Booking/VRBO feeds.
 - **Translations**: Compiled `.mo` files are built automatically at startup via `pybabel compile`. Supported: `en, it, de, fr, es`.
 - **Rate limiting**: 200/day, 50/hour per IP via in-memory Flask-Limiter.
@@ -51,7 +52,11 @@ No test runner, linter, or typechecker is configured. There is no CI.
 run.py                — entrypoint (starts app, compiles translations, seeds admin + defaults)
 app/
   __init__.py         — create_app() factory, scheduler start
-  routes.py           — single blueprint, ~2400 lines (booking, admin, API, webhooks)
+  routes/
+    __init__.py       — blueprint registration, helper imports
+    admin.py          — admin panels, pricing, coupons, testimonials, trust badges, smart access
+    compliance.py     — Questura, tourist tax, compliance config, check-in links
+    public.py         — booking flow, homepage, contact, legal pages, API/webhooks
   models.py           — all SQLAlchemy models (~364 lines)
   forms.py            — WTForms (Reservation, Login, Contact, ICalFeed, Testimonial)
   services/           — ical_sync, smart_lock, questura, tourist_tax, email_service

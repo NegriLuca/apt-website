@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Cleaning Schedule') }}{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="h3 mb-0 text-warning">{{ pending_count }}</div>
+                <small class="text-muted">{{ _('Pending') }}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="h3 mb-0 text-success">{{ completed_count }}</div>
+                <small class="text-muted">{{ _('Completed') }}</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="h3 mb-0 text-info">{{ upcoming_checkouts|length }}</div>
+                <small class="text-muted">{{ _('Upcoming Checkouts') }}</small>
+            </div>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <form method="POST" action="{{ url_for('routes.admin_auto_create_cleaning') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-sm btn-outline-info">{{ _('Auto-create from Checkouts') }}</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header"><h5 class="mb-0">{{ _('This Week') }}</h5></div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{{ _('Date') }}</th>
+                                <th>{{ _('Title') }}</th>
+                                <th>{{ _('Assigned') }}</th>
+                                <th>{{ _('Status') }}</th>
+                                <th>{{ _('Actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in tasks %}
+                            <tr class="{% if t.status == 'completed' %}table-success opacity-75{% endif %}">
+                                <td>{{ t.scheduled_date.strftime('%d/%m') }}</td>
+                                <td>{{ t.title }}{% if t.notes %}<br><small class="text-muted">{{ t.notes }}</small>{% endif %}</td>
+                                <td>{{ t.assigned_to or '—' }}</td>
+                                <td>
+                                    {% if t.status == 'completed' %}
+                                    <span class="badge bg-success">{{ _('Done') }}</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">{{ _('Pending') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        {% if t.status != 'completed' %}
+                                        <form method="POST" action="{{ url_for('routes.admin_complete_cleaning_task', task_id=t.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-success">{{ _('Complete') }}</button>
+                                        </form>
+                                        {% endif %}
+                                        <form method="POST" action="{{ url_for('routes.admin_delete_cleaning_task', task_id=t.id) }}" onsubmit="return confirm('Delete this task?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">{{ _('Delete') }}</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">{{ _('No tasks this week.') }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header"><h5 class="mb-0">{{ _('New Task') }}</h5></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('routes.admin_create_cleaning_task') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="mb-2">
+                            <label class="form-label small">{{ _('Title') }}</label>
+                            <input type="text" class="form-control form-control-sm" name="title" value="Turnover cleaning" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">{{ _('Date') }}</label>
+                            <input type="date" class="form-control form-control-sm" name="scheduled_date" value="{{ today }}">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">{{ _('Assigned to') }}</label>
+                            <input type="text" class="form-control form-control-sm" name="assigned_to" placeholder="Name">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">{{ _('From checkout') }}</label>
+                            <select class="form-select form-select-sm" name="reservation_id">
+                                <option value="">{{ _('None') }}</option>
+                                {% for r in upcoming_checkouts %}
+                                <option value="{{ r.id }}">#{{ r.id }} {{ r.guest_name }} — {{ r.check_out.strftime('%d/%m') }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">{{ _('Notes') }}</label>
+                            <textarea class="form-control form-control-sm" name="notes" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">{{ _('Create Task') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

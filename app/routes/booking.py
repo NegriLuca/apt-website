@@ -207,7 +207,12 @@ def create_checkout_session():
     base_rate = apartment.price_per_night if apartment else 0
     num_guests = int(pending['num_guests'])
     fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, num_guests=num_guests, base_rate=base_rate)
+
+    stripe_amount = request.form.get('stripe_amount', 'full')
     total_price = pending.get('total_price', fallback_total)
+    is_deposit = stripe_amount == 'deposit'
+    if is_deposit:
+        total_price = round(total_price * 0.3, 2)
 
     stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
     if not stripe.api_key:
@@ -232,7 +237,9 @@ def create_checkout_session():
             'check_in': pending['check_in'],
             'check_out': pending['check_out'],
             'num_guests': str(num_guests),
-            'total_price': str(total_price),
+            'total_price': str(pending.get('total_price', fallback_total)),
+            'amount_paid': str(total_price),
+            'is_deposit': str(is_deposit),
             'coupon_code': pending.get('coupon_code', ''),
         },
     )
@@ -243,7 +250,9 @@ def create_checkout_session():
         'check_in': pending['check_in'],
         'check_out': pending['check_out'],
         'num_guests': str(num_guests),
-        'total_price': str(total_price),
+        'total_price': str(pending.get('total_price', fallback_total)),
+        'amount_paid': str(total_price),
+        'is_deposit': str(is_deposit),
         'coupon_code': pending.get('coupon_code', ''),
     }
 
@@ -297,6 +306,8 @@ def _create_reservation_from_stripe(cs):
         num_guests = int(meta.get('num_guests', 2))
         total_price = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night) if apartment else 0
 
+    is_deposit = meta.get('is_deposit', 'false').lower() == 'true'
+
     reservation = Reservation(
         guest_name=guest_name,
         guest_email=guest_email,
@@ -308,7 +319,7 @@ def _create_reservation_from_stripe(cs):
         cancel_token=secrets.token_urlsafe(32),
         total_price=total_price,
         coupon_code=meta.get('coupon_code') if meta.get('coupon_code') else None,
-        payment_status='paid' if data.get('payment_status') == 'paid' else 'unpaid',
+        payment_status='deposit_paid' if is_deposit else ('paid' if data.get('payment_status') == 'paid' else 'unpaid'),
         payment_method='stripe',
         stripe_payment_intent_id=pi_id,
     )

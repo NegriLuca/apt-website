@@ -74,6 +74,16 @@
                         </div>
                         <i class="bi bi-shield-lock text-muted fs-5"></i>
                     </div>
+                    <div class="mt-2 ms-4 ps-2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="stripe_amount" id="stripe_full" value="full" checked>
+                            <label class="form-check-label small" for="stripe_full">{{ _('Pay full amount') }} (€{{ "%.2f"|format(total) }})</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="stripe_amount" id="stripe_deposit" value="deposit">
+                            <label class="form-check-label small" for="stripe_deposit">{{ _('Pay 30% deposit') }} (€{{ "%.2f"|format(total * 0.3) }})</label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Option: Wire Transfer -->

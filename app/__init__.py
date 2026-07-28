@@ -1,5 +1,7 @@
 import os
-from flask import Flask, request, session, current_app, render_template
+import logging
+from logging.handlers import RotatingFileHandler
+from flask import Flask, request, session, current_app, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -52,6 +54,20 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    if not Config.SECRET_KEY or Config.SECRET_KEY == 'dev-only-change-in-production':
+        import warnings
+        warnings.warn('SECRET_KEY is set to an insecure default. Set a strong SECRET_KEY in .env for production.')
+
+    if not app.debug:
+        handler = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=5)
+        handler.setLevel(logging.INFO)
+        handler.setFormatter(logging.Formatter(
+            '%(asctime)s [%(levelname)s] %(module)s: %(message)s'
+        ))
+        app.logger.addHandler(handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('Apt_Website starting')
+
     # Core Babel Config Setup Engine Parameters
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
     app.config['LANGUAGES'] = ['en', 'it', 'de', 'fr', 'es']
@@ -94,17 +110,30 @@ def create_app():
     def handle_csrf_error(e):
         return render_template('csrf_error.html', reason=e.description), 400
 
+    @app.route('/health')
+    def health():
+        return jsonify({'status': 'ok', 'version': '1.0'})
+
     @app.context_processor
     def inject_apartment():
         from app.models import Apartment
-        # Recupera l'appartamento una sola volta per qualsiasi richiesta
         apartment = Apartment.query.first()
         return dict(apartment=apartment)
 
     @app.context_processor
+    def inject_notifications():
+        from app.models import Notification
+        unread = Notification.query.filter_by(is_read=False).count()
+        return dict(unread_notifications=unread)
+
+    @app.context_processor
     def inject_locale():
-        # Rendiamo disponibile la stringa della lingua corrente a Jinja2
         return dict(get_locale=get_locale)
+
+    @app.context_processor
+    def inject_now():
+        from datetime import datetime
+        return dict(now=datetime.utcnow)
 
     # ── Start APScheduler for periodic iCal sync ──────────────────────────────
     _start_scheduler(app)

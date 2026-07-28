@@ -298,10 +298,9 @@ class ComplianceConfig(db.Model):
         if encryption_key is None:
             encryption_key = os.environ.get('COMPLIANCE_ENCRYPTION_KEY')
             if not encryption_key:
-                # Generate from app secret as fallback
                 from flask import current_app
-                encryption_key = current_app.config.get('SECRET_KEY', '')[:32].encode()
-                encryption_key = base64.urlsafe_b64encode(encryption_key.ljust(32, b'0')[:32])
+                derived = current_app.config.get('SECRET_KEY', '')[:32].encode()
+                encryption_key = base64.urlsafe_b64encode(derived.ljust(32, b'0')[:32])
         
         f = Fernet(encryption_key)
         self.value_encrypted = f.encrypt(plain_value.encode()).decode()
@@ -318,8 +317,8 @@ class ComplianceConfig(db.Model):
             encryption_key = os.environ.get('COMPLIANCE_ENCRYPTION_KEY')
             if not encryption_key:
                 from flask import current_app
-                encryption_key = current_app.config.get('SECRET_KEY', '')[:32].encode()
-                encryption_key = base64.urlsafe_b64encode(encryption_key.ljust(32, b'0')[:32])
+                derived = current_app.config.get('SECRET_KEY', '')[:32].encode()
+                encryption_key = base64.urlsafe_b64encode(derived.ljust(32, b'0')[:32])
         
         f = Fernet(encryption_key)
         return f.decrypt(self.value_encrypted.encode()).decode()
@@ -347,6 +346,67 @@ class ComplianceConfig(db.Model):
             cfg.description = description
         db.session.commit()
         return cfg
+
+
+class AuditLog(db.Model):
+    """Audit trail for all admin actions"""
+    __tablename__ = 'audit_log'
+
+    id = db.Column(db.Integer, primary_key=True)
+    action = db.Column(db.String(100), nullable=False, index=True)
+    entity_type = db.Column(db.String(50), nullable=True)
+    entity_id = db.Column(db.Integer, nullable=True)
+    admin_user = db.Column(db.String(50), nullable=False)
+    details = db.Column(db.Text, nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Notification(db.Model):
+    """In-app notifications for the admin"""
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=True)
+    category = db.Column(db.String(50), nullable=False, default='info')
+    link = db.Column(db.String(300), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Message(db.Model):
+    """Unified messaging inbox for guest communication"""
+    __tablename__ = 'messages'
+
+    id = db.Column(db.Integer, primary_key=True)
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=True, index=True)
+    guest_name = db.Column(db.String(100), nullable=False)
+    guest_email = db.Column(db.String(120), nullable=True)
+    subject = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    direction = db.Column(db.String(10), nullable=False, default='incoming')
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    reservation = db.relationship('Reservation', backref=db.backref('messages', lazy='dynamic'))
+
+
+class CleaningTask(db.Model):
+    """Cleaning/turnover task scheduler"""
+    __tablename__ = 'cleaning_tasks'
+
+    id = db.Column(db.Integer, primary_key=True)
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=True, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    scheduled_date = db.Column(db.Date, nullable=False, index=True)
+    assigned_to = db.Column(db.String(100), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default='pending')
+    notes = db.Column(db.Text, nullable=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    reservation = db.relationship('Reservation', backref=db.backref('cleaning_tasks', lazy='dynamic'))
 
 
 class QuesturaLog(db.Model):

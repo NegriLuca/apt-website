@@ -3,11 +3,12 @@ from flask_babel import gettext as _
 from flask_login import login_user, logout_user, login_required, current_user
 from app.routes import bp
 from app.routes.helpers import get_apartment, calculate_dynamic_total, get_payment_summary
-from app import db
-from app.models import Apartment, Reservation, User, ICalFeed, Coupon, Testimonial
+from app import db, limiter
+from app.models import Apartment, Reservation, User, ICalFeed, Coupon, Testimonial, AuditLog, Notification, Message, CleaningTask
 from app.forms import LoginForm, ICalFeedForm
 from datetime import datetime, date, timedelta
 from sqlalchemy.exc import IntegrityError
+from functools import wraps
 import stripe
 import secrets
 import json
@@ -16,7 +17,27 @@ import json
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
 
+def admin_audit_log(action, entity_type=None, entity_id=None, details=None):
+    log = AuditLog(
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        admin_user=current_user.username,
+        details=details,
+        ip_address=request.remote_addr,
+    )
+    db.session.add(log)
+    db.session.commit()
+
+
+def push_notification(title, message, category='info', link=None):
+    notif = Notification(title=title, message=message, category=category, link=link)
+    db.session.add(notif)
+    db.session.commit()
+
+
 @bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -46,28 +67,70 @@ def admin_dashboard():
     if not current_user.is_admin:
         abort(403)
 
-    reservations = Reservation.query.order_by(Reservation.check_in.desc()).all()
-    thirty_days_ago = date.today() - timedelta(days=30)
-    recent_reservations = [r for r in reservations if r.created_at and r.created_at.date() >= thirty_days_ago]
+    today = date.today()
+    month_start = today.replace(day=1)
+    year_start = today.replace(month=1, day=1)
 
-    confirmed = sum(1 for r in reservations if r.status == 'confirmed')
-    cancelled = sum(1 for r in reservations if r.status == 'cancelled')
-    pending = sum(1 for r in reservations if r.status == 'pending')
-    paid_stripe = sum(1 for r in reservations if r.payment_method == 'stripe' and r.payment_status == 'paid')
-    paid_iban = sum(1 for r in reservations if r.payment_method == 'iban' and r.payment_status == 'paid')
+    reservations = Reservation.query.order_by(Reservation.check_in.desc()).all()
+
+    confirmed = [r for r in reservations if r.status == 'confirmed']
+    cancelled = [r for r in reservations if r.status == 'cancelled']
+    pending = [r for r in reservations if r.status == 'pending']
+
+    monthly_confirmed = [r for r in confirmed if r.check_in >= month_start]
+    monthly_revenue = sum(r.total_price for r in monthly_confirmed)
+
+    yearly_confirmed = [r for r in confirmed if r.check_in >= year_start]
+    yearly_revenue = sum(r.total_price for r in yearly_confirmed)
+
+    source_counts = {}
+    for r in confirmed:
+        src = r.source or 'direct'
+        source_counts[src] = source_counts.get(src, 0) + 1
+
+    today_checkins = [r for r in confirmed if r.check_in == today]
+    today_checkouts = [r for r in confirmed if r.check_out == today]
+    upcoming = [r for r in confirmed if r.check_in > today][:5]
+    in_house = [r for r in confirmed if r.check_in <= today <= r.check_out]
+
+    pending_questura = Reservation.query.filter(
+        Reservation.questura_status.in_([None, 'pending']),
+        Reservation.status == 'confirmed',
+        Reservation.check_in <= today
+    ).count()
+
+    unread_messages = Message.query.filter_by(is_read=False).count()
+
+    occupancy_days = sum(r.nights for r in monthly_confirmed)
+    month_days = (today.replace(month=today.month % 12 + 1, day=1) - timedelta(days=1)).day if today.month < 12 else 31
+    occupancy_rate = round((occupancy_days / month_days) * 100, 1) if month_days else 0
 
     dashboard_data = {
         'total': len(reservations),
-        'confirmed': confirmed,
-        'cancelled': cancelled,
-        'pending': pending,
-        'paid_stripe': paid_stripe,
-        'paid_iban': paid_iban,
-        'recent': len(recent_reservations),
-        'monthly_revenue': sum(r.total_price for r in reservations if r.status == 'confirmed' and r.check_in.month == date.today().month and r.check_in.year == date.today().year),
+        'confirmed': len(confirmed),
+        'cancelled': len(cancelled),
+        'pending': len(pending),
+        'monthly_revenue': monthly_revenue,
+        'yearly_revenue': yearly_revenue,
+        'monthly_bookings': len(monthly_confirmed),
+        'occupancy_rate': occupancy_rate,
+        'source_counts': source_counts,
+        'today_checkins': len(today_checkins),
+        'today_checkouts': len(today_checkouts),
+        'in_house': len(in_house),
+        'pending_questura': pending_questura,
+        'unread_messages': unread_messages,
     }
 
-    return render_template('admin_dashboard.html', reservations=reservations, data=dashboard_data)
+    now = datetime.utcnow()
+    return render_template('admin_dashboard.html',
+        reservations=reservations,
+        data=dashboard_data,
+        today=today,
+        now=now,
+        upcoming=upcoming,
+        in_house=in_house,
+    )
 
 
 @bp.route('/admin/calendar')
@@ -96,6 +159,7 @@ def admin_pricing():
             try:
                 apartment.price_per_night = float(new_price)
                 db.session.commit()
+                admin_audit_log('update_price', 'Apartment', apartment.id, f'Price set to €{new_price}')
                 flash('Nightly base rate updated successfully!', 'success')
             except ValueError:
                 flash('Invalid price format entered.', 'danger')
@@ -134,6 +198,7 @@ def admin_smart_access():
         apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
 
         db.session.commit()
+        admin_audit_log('update_smart_access', 'Apartment', apartment.id)
         flash('Smart access settings updated successfully!', 'success')
         return redirect(url_for('routes.admin_smart_access'))
 
@@ -177,6 +242,7 @@ def admin_trust_badges():
         apartment.trustpilot_widget_js = request.form.get('trustpilot_widget_js', '').strip() or None
 
         db.session.commit()
+        admin_audit_log('update_trust_badges', 'Apartment', apartment.id)
         flash(_('Trust Badges & Widgets settings saved!'), 'success')
         return redirect(url_for('routes.admin_trust_badges'))
 
@@ -242,6 +308,7 @@ def admin_confirm_reservation(res_id):
     res = Reservation.query.get_or_404(res_id)
     res.status = 'confirmed'
     db.session.commit()
+    admin_audit_log('confirm_reservation', 'Reservation', res_id)
     flash(f'Reservation #{res_id} confirmed.', 'success')
     return redirect(url_for('routes.admin_dashboard'))
 
@@ -255,7 +322,8 @@ def admin_cancel_reservation(res_id):
     res = Reservation.query.get_or_404(res_id)
     res.status = 'cancelled'
     db.session.commit()
-    flash(f'Reservation #{res_id} cancelled.', 'success')
+    admin_audit_log('cancel_reservation', 'Reservation', res_id, f'Cancelled by admin')
+    flash(f'Reservation #{res_id} cancelled.', 'info')
     return redirect(url_for('routes.admin_dashboard'))
 
 
@@ -505,6 +573,92 @@ def admin_test_door():
     return redirect(url_for('routes.admin_smart_access'))
 
 
+# ── Bulk Operations ───────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/bulk-pricing', methods=['POST'])
+@login_required
+def admin_bulk_pricing():
+    if not current_user.is_admin:
+        abort(403)
+    apartment = get_apartment()
+    price = request.form.get('bulk_price', type=float)
+    if price and price > 0:
+        apartment.price_per_night = price
+        db.session.commit()
+        admin_audit_log('bulk_update_price', 'Apartment', apartment.id, f'Bulk price set to €{price}')
+        flash(f'Price updated to €{price:.2f} for all dates.', 'success')
+    else:
+        flash('Invalid price.', 'danger')
+    return redirect(url_for('routes.admin_pricing'))
+
+
+# ── Automated Review Requests ────────────────────────────────────────────────
+
+
+@bp.route('/admin/send-review-request/<int:reservation_id>', methods=['POST'])
+@login_required
+def admin_send_review_request(reservation_id):
+    if not current_user.is_admin:
+        abort(403)
+    res = Reservation.query.get_or_404(reservation_id)
+    if not res.guest_email:
+        flash('No email on file for this reservation.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+    try:
+        sender_email = "lotto235roma@gmail.com"
+        review_url = url_for('routes.submit_testimonial', _external=True)
+        payload = {
+            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
+            "to": [{"email": res.guest_email}],
+            "subject": "How was your stay? Leave a review!",
+            "htmlContent": render_template('email_review_request.html', reservation=res, review_url=review_url)
+        }
+        from app.routes.helpers import _send_brevo_email
+        r = _send_brevo_email(payload)
+        if r.status_code in [200, 201, 202]:
+            admin_audit_log('send_review_request', 'Reservation', res.id, f'Review request sent to {res.guest_email}')
+            push_notification('Review request sent', f'Sent to {res.guest_name} ({res.guest_email})', 'info')
+            flash('Review request sent.', 'success')
+        else:
+            flash('Failed to send review request.', 'danger')
+    except Exception as e:
+        flash(f'Error: {e}', 'danger')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
+@bp.route('/admin/send-review-requests-bulk', methods=['POST'])
+@login_required
+def admin_send_review_requests_bulk():
+    if not current_user.is_admin:
+        abort(403)
+    today = date.today()
+    recent = Reservation.query.filter(
+        Reservation.status == 'confirmed',
+        Reservation.check_out <= today,
+        Reservation.check_out >= today - timedelta(days=30),
+        Reservation.guest_email.isnot(None),
+    ).all()
+    sent = 0
+    for res in recent:
+        try:
+            review_url = url_for('routes.submit_testimonial', _external=True)
+            payload = {
+                "sender": {"name": "Lotto235 Garbatella", "email": "lotto235roma@gmail.com"},
+                "to": [{"email": res.guest_email}],
+                "subject": "How was your stay? Leave a review!",
+                "htmlContent": render_template('email_review_request.html', reservation=res, review_url=review_url)
+            }
+            from app.routes.helpers import _send_brevo_email
+            r = _send_brevo_email(payload)
+            if r.status_code in [200, 201, 202]:
+                sent += 1
+        except Exception:
+            pass
+    flash(f'Review requests sent to {sent} guests.', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
 # ── Guest Communication ──────────────────────────────────────────────────────
 
 
@@ -547,3 +701,233 @@ def admin_guest_message(reservation_id):
             'airbnb': airbnb_message,
         }
     })
+
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/notifications')
+@login_required
+def admin_notifications():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    notifications = Notification.query.order_by(Notification.created_at.desc()).paginate(page=page, per_page=30, error_out=False)
+    return render_template('admin_notifications.html', notifications=notifications)
+
+
+@bp.route('/admin/notifications/mark-read/<int:notif_id>', methods=['POST'])
+@login_required
+def admin_mark_notification_read(notif_id):
+    if not current_user.is_admin:
+        abort(403)
+    notif = Notification.query.get_or_404(notif_id)
+    notif.is_read = True
+    db.session.commit()
+    return redirect(url_for('routes.admin_notifications'))
+
+
+@bp.route('/admin/notifications/mark-all-read', methods=['POST'])
+@login_required
+def admin_mark_all_read():
+    if not current_user.is_admin:
+        abort(403)
+    Notification.query.filter_by(is_read=False).update({'is_read': True})
+    db.session.commit()
+    flash('All notifications marked as read.', 'success')
+    return redirect(url_for('routes.admin_notifications'))
+
+
+# ── Messages Inbox ────────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/messages')
+@login_required
+def admin_messages():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    messages = Message.query.order_by(Message.created_at.desc()).paginate(page=page, per_page=30, error_out=False)
+    return render_template('admin_messages.html', messages=messages)
+
+
+@bp.route('/admin/messages/<int:msg_id>/read', methods=['POST'])
+@login_required
+def admin_mark_message_read(msg_id):
+    if not current_user.is_admin:
+        abort(403)
+    msg = Message.query.get_or_404(msg_id)
+    msg.is_read = True
+    db.session.commit()
+    return redirect(url_for('routes.admin_messages'))
+
+
+@bp.route('/admin/messages/send', methods=['POST'])
+@login_required
+def admin_send_message():
+    if not current_user.is_admin:
+        abort(403)
+    res_id = request.form.get('reservation_id', type=int)
+    body = request.form.get('body', '').strip()
+    if not body:
+        flash('Message body is required.', 'danger')
+        return redirect(url_for('routes.admin_messages'))
+    res = Reservation.query.get(res_id) if res_id else None
+    msg = Message(
+        reservation_id=res_id,
+        guest_name=res.guest_name if res else request.form.get('guest_name', 'Guest'),
+        guest_email=res.guest_email if res else None,
+        subject=request.form.get('subject', ''),
+        body=body,
+        direction='outgoing',
+    )
+    db.session.add(msg)
+    db.session.commit()
+    admin_audit_log('send_message', 'Message', msg.id, f'Sent message to {msg.guest_name}')
+    flash('Message sent.', 'success')
+    return redirect(url_for('routes.admin_messages'))
+
+
+# ── Cleaning Tasks ────────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/cleaning')
+@login_required
+def admin_cleaning():
+    if not current_user.is_admin:
+        abort(403)
+    today = date.today()
+    week_end = today + timedelta(days=7)
+    tasks = CleaningTask.query.filter(
+        CleaningTask.scheduled_date >= today,
+        CleaningTask.scheduled_date <= week_end,
+    ).order_by(CleaningTask.scheduled_date).all()
+    pending_count = CleaningTask.query.filter_by(status='pending').count()
+    completed_count = CleaningTask.query.filter_by(status='completed').count()
+    upcoming_checkouts = Reservation.query.filter(
+        Reservation.status == 'confirmed',
+        Reservation.check_out >= today,
+        Reservation.check_out <= week_end,
+    ).order_by(Reservation.check_out).all()
+    return render_template('admin_cleaning.html',
+        tasks=tasks, pending_count=pending_count,
+        completed_count=completed_count,
+        upcoming_checkouts=upcoming_checkouts, today=today)
+
+
+@bp.route('/admin/cleaning/create', methods=['POST'])
+@login_required
+def admin_create_cleaning_task():
+    if not current_user.is_admin:
+        abort(403)
+    res_id = request.form.get('reservation_id', type=int)
+    scheduled = request.form.get('scheduled_date')
+    title = request.form.get('title', 'Turnover cleaning')
+    task = CleaningTask(
+        reservation_id=res_id or None,
+        title=title,
+        scheduled_date=datetime.strptime(scheduled, '%Y-%m-%d').date() if scheduled else date.today(),
+        assigned_to=request.form.get('assigned_to', '').strip() or None,
+        notes=request.form.get('notes', '').strip() or None,
+    )
+    db.session.add(task)
+    db.session.commit()
+    admin_audit_log('create_cleaning_task', 'CleaningTask', task.id, f'Created: {title}')
+    flash('Cleaning task created.', 'success')
+    return redirect(url_for('routes.admin_cleaning'))
+
+
+@bp.route('/admin/cleaning/<int:task_id>/complete', methods=['POST'])
+@login_required
+def admin_complete_cleaning_task(task_id):
+    if not current_user.is_admin:
+        abort(403)
+    task = CleaningTask.query.get_or_404(task_id)
+    task.status = 'completed'
+    task.completed_at = datetime.utcnow()
+    db.session.commit()
+    flash('Task marked as completed.', 'success')
+    return redirect(url_for('routes.admin_cleaning'))
+
+
+@bp.route('/admin/cleaning/<int:task_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_cleaning_task(task_id):
+    if not current_user.is_admin:
+        abort(403)
+    task = CleaningTask.query.get_or_404(task_id)
+    db.session.delete(task)
+    db.session.commit()
+    flash('Task deleted.', 'success')
+    return redirect(url_for('routes.admin_cleaning'))
+
+
+@bp.route('/admin/cleaning/auto-create', methods=['POST'])
+@login_required
+def admin_auto_create_cleaning():
+    if not current_user.is_admin:
+        abort(403)
+    today = date.today()
+    week_end = today + timedelta(days=7)
+    checkouts = Reservation.query.filter(
+        Reservation.status == 'confirmed',
+        Reservation.check_out >= today,
+        Reservation.check_out <= week_end,
+    ).all()
+    created = 0
+    for res in checkouts:
+        existing = CleaningTask.query.filter_by(reservation_id=res.id, scheduled_date=res.check_out).first()
+        if not existing:
+            task = CleaningTask(
+                reservation_id=res.id,
+                title=f'Turnover cleaning — #{res.id} {res.guest_name}',
+                scheduled_date=res.check_out,
+            )
+            db.session.add(task)
+            created += 1
+    db.session.commit()
+    flash(f'{created} cleaning tasks auto-created from checkouts.', 'success')
+    return redirect(url_for('routes.admin_cleaning'))
+
+
+# ── iCal Feeds ────────────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/ical-feeds')
+@login_required
+def admin_ical_feeds():
+    if not current_user.is_admin:
+        abort(403)
+    feeds = ICalFeed.query.all()
+    from app.services.ical_sync import get_blocked_dates
+    blocked_dates = get_blocked_dates() or []
+    return render_template('admin_ical_feeds.html', feeds=feeds, blocked_dates=blocked_dates)
+
+
+@bp.route('/admin/ical-feeds/create', methods=['POST'])
+@login_required
+def admin_ical_create():
+    if not current_user.is_admin:
+        abort(403)
+    url = request.form.get('url', '').strip()
+    source = request.form.get('source', '').strip()
+    if url and source:
+        feed = ICalFeed(url=url, source=source)
+        db.session.add(feed)
+        db.session.commit()
+        admin_audit_log('create_ical_feed', 'ICalFeed', feed.id, f'Added {source} feed')
+        flash(f'{source} feed added.', 'success')
+    return redirect(url_for('routes.admin_ical_feeds'))
+
+
+# ── Audit Log ──────────────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/audit-log')
+@login_required
+def admin_audit_log_view():
+    if not current_user.is_admin:
+        abort(403)
+    page = request.args.get('page', 1, type=int)
+    logs = AuditLog.query.order_by(AuditLog.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
+    return render_template('admin_audit_log.html', logs=logs)
