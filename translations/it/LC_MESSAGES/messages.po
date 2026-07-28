@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-28 22:19+0200\n"
+"POT-Creation-Date: 2026-07-28 22:25+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: it <LL@li.org>\n"
@@ -3314,6 +3314,10 @@ msgstr "Ospite"
 msgid "Place of Birth"
 msgstr ""
 
+#: app/templates/guest_self_checkin.html:72
+msgid "e.g. Italian, French"
+msgstr "es. Italiana, Francese"
+
 #: app/templates/guest_self_checkin.html:104
 #, fuzzy
 msgid "Issuing Country"
@@ -3545,7 +3549,7 @@ msgid "> 14 days before check-in"
 msgstr "> 14 giorni prima del check-in"
 
 #: app/templates/policies/cancellation.html:26
-#, no-python-format
+#, no-python-format, python-format
 msgid "Full refund (100%%)"
 msgstr "Rimborso completo (100%%)"
 
@@ -3554,7 +3558,7 @@ msgid "7-14 days before check-in"
 msgstr "7-14 giorni prima del check-in"
 
 #: app/templates/policies/cancellation.html:30
-#, no-python-format
+#, no-python-format, python-format
 msgid "Half refund (50%%)"
 msgstr "Rimborso parziale (50%%)"
 
@@ -4513,7 +4517,7 @@ msgid "All prices are in EUR and include applicable taxes (VAT)."
 msgstr "Tutti i prezzi sono in EUR e includono le tasse applicabili (IVA)."
 
 #: app/templates/policies/terms.html:20
-#, no-python-format
+#, no-python-format, python-format
 msgid ""
 "Base rate €130/night. +10%% weekends and Italian public holidays. +€15/night"
 " per extra guest over 2."
