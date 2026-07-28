@@ -9,27 +9,27 @@
 
 ## Security
 - **ComplianceConfig encryption uses SECRET_KEY as fallback** — if `COMPLIANCE_ENCRYPTION_KEY` is not set, Questura passwords are encrypted with the same key used for session signing.
-- **No rate limiting on login** — brute-force protection is missing on the admin login endpoint.
-- **No audit logging** — admin actions (config changes, badge updates, price changes) are not logged.
+- **Rate limiting on login** — ✅ **DONE** (50/hour, 200/day per IP via Flask-Limiter).
+- **Audit logging** — ✅ **DONE** (`AuditLog` model, automatic logging on admin actions, filtered viewer at `/admin/audit-log`).
 - **WTForms CSRF exempt on many forms** — some forms use `{% csrf_token() %}` manually instead of Flask-WTF `form.hidden_tag()`, making it easy to forget.
 
 ## Infrastructure
 - **No migration management** — schema changes are patched via raw SQL in `run.py`. Flask-Migrate exists but isn't consistently used.
-- **No health check endpoint** — `/health` or similar for load balancer/probe.
-- **No structured logging** — uses `print()` for startup and `app.logger` sparsely. No log aggregation setup.
+- **Health check endpoint** — ✅ **DONE** (`/health` returns JSON with status, timestamp, DB connectivity).
+- **Structured logging** — ✅ **DONE** (migrated from `print()` to `app.logger.info/warning/error`; startup, DB connection, and admin operations are logged).
 - **No Docker compose for local dev** — if PostgreSQL is needed, there's no `docker-compose.yml`.
 
 ## Features
 - **Booking calendar only shows static availability** — no real-time blocking from iCal feeds on the frontend.
 - **No guest portal** — guests have no way to view/modify their booking without contacting the host.
 - **No payment automation** — Stripe integration exists but there's no automated payment collection flow (deposit/full payment).
-- **No automated review requests** — could email guests post-checkout asking for a review.
+- **Automated review requests** — ✅ **DONE** (admin can send individual or bulk review request emails to past guests).
 - **No multi-apartment support** — though `Apartment` is a model, the app assumes a single property everywhere.
 
 ## Maintenance
 - **No backup strategy** — database backups are not configured or documented.
 - **Translation coverage unknown** — `.po` files exist but no check for missing translations across templates.
-- **Deprecated routes are still registered** — the old monolithic `routes.py` file was removed from git but some stale route references may remain.
+- **Stale routes cleaned** — ✅ **DONE** (`admin_guest_data` route was dead — now handled by compliance dashboard; Messages and Cleaning feature sets removed per user request).
 
 ## Host/User Experience
 
@@ -44,16 +44,14 @@ The app has the bones of a self check-in (token-based links) but no proper guest
 
 ### Host Dashboard
 The admin panel covers compliance and configurations but lacks operational tools:
-- **No metrics/analytics dashboard** — key numbers are scattered across pages. A home dashboard could show: occupancy rate (current month), revenue (monthly/YT), booking source breakdown (direct vs OTA), upcoming check-ins/outs, pending Questura submissions, unread inquiries.
-- **No notification system** — the host has to manually refresh pages. In-app notifications for new bookings, booking modifications, cancellations, Questura errors, or tourist tax deadlines would help.
-- **No unified inbox** — inquiries come via the contact form but there's no way to manage guest communications in one place.
-- **No cleaning/task scheduler** — no way to track cleaning status between checkouts and check-ins, or assign tasks.
-- **No iCal feed visibility** — imported iCal blocks are in the DB but there's no admin view showing which dates are blocked and from which OTA.
-- **Mobile responsiveness** — some admin tables overflow on mobile; the smart access and compliance pages could use a mobile-first pass.
-- **Bulk operations** — no way to update pricing or availability for a date range at once; each change goes through individual forms.
+- **Metrics/analytics dashboard** — ✅ **DONE** (home dashboard shows occupancy rate, monthly/YT revenue, booking source breakdown, upcoming check-ins/outs, pending Questura submissions).
+- **Notification system** — ✅ **DONE** (`Notification` model, admin alerts page with read/unread, nav badge counter, auto-created on bookings/cancellations).
+- **iCal feed visibility** — ✅ **DONE** (admin page at `/admin/ical-feeds` shows blocked dates with OTA source).
+- **Mobile responsiveness** — ✅ **DONE** (added responsive CSS: `table-responsive` wrappers, stacked cards on mobile, improved padding).
+- **Bulk operations** — ✅ **DONE** (bulk pricing update for date ranges via `/admin/pricing/bulk`).
 
 ### Booking Flow UX
 - **No real-time availability calendar** — the booking page shows a static form but doesn't visually block dates already taken by iCal imports. Guests can submit and get rejected later.
 - **No price summary before contact** — the booking flow requires contacting the host first. A real-time quote (nights × rate + cleaning + tax) before form submission would reduce abandonment.
-- **No deposit/partial payment** — Stripe is wired up but unused. Offering a 30% deposit at booking time (with auto-collection) would reduce no-shows.
+- **Deposit/partial payment** — ✅ **DONE** (30% deposit option via Stripe; guest can choose full or deposit payment at checkout).
 - **No coupon/promotion visibility** — coupons exist in the admin but guests never see a discount field or promo banner.

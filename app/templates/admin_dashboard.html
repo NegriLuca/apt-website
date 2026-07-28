@@ -102,19 +102,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header">{{ _('Unread Messages') }}</div>
-                <div class="card-body">
-                    <a href="{{ url_for('routes.admin_messages') }}" class="btn btn-sm btn-outline-primary">
-                        {% if data.unread_messages > 0 %}
-                        <strong>{{ data.unread_messages }} {{ _('unread messages') }}</strong>
-                        {% else %}
-                        {{ _('No unread messages') }}
-                        {% endif %}
-                    </a>
-                </div>
-            </div>
         </div>
     </div>
 

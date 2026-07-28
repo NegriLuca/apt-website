@@ -19,19 +19,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_messages' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
-                   href="{{ url_for('routes.admin_messages') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
-                    <i class="bi bi-chat me-1"></i> {{ _('Inbox') }}
-                    {% if unread_notifications > 0 %}<span class="badge bg-danger ms-1">{{ unread_notifications }}</span>{% endif %}
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_cleaning' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
-                   href="{{ url_for('routes.admin_cleaning') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
-                    <i class="bi bi-brush me-1"></i> {{ _('Cleaning') }}
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.compliance_dashboard' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.compliance_dashboard') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-shield-lock me-1"></i> {{ _('Compliance') }}
@@ -57,7 +44,19 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint in ['routes.admin_trust_badges', 'routes.admin_ical_feeds', 'routes.admin_audit_log_view'] %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_ical_feeds' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_ical_feeds') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-calendar-event me-1"></i> {{ _('iCal') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_audit_log_view' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_audit_log_view') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-journal-text me-1"></i> {{ _('Audit Log') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_trust_badges' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_trust_badges') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-gear me-1"></i> {{ _('Settings') }}
                 </a>
@@ -69,9 +68,6 @@
                 </a>
             </li>
         </ul>
-        <div class="text-end mb-2">
-            <a href="{{ url_for('routes.admin_ical_feeds') }}" class="btn btn-sm btn-outline-secondary me-1">{{ _('iCal Feeds') }}</a>
-            <a href="{{ url_for('routes.admin_audit_log_view') }}" class="btn btn-sm btn-outline-secondary">{{ _('Audit Log') }}</a>
-        </div>
+
     </div>
 </div>

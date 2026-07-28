@@ -375,40 +375,6 @@ class Notification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-class Message(db.Model):
-    """Unified messaging inbox for guest communication"""
-    __tablename__ = 'messages'
-
-    id = db.Column(db.Integer, primary_key=True)
-    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=True, index=True)
-    guest_name = db.Column(db.String(100), nullable=False)
-    guest_email = db.Column(db.String(120), nullable=True)
-    subject = db.Column(db.String(200), nullable=False)
-    body = db.Column(db.Text, nullable=False)
-    direction = db.Column(db.String(10), nullable=False, default='incoming')
-    is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    reservation = db.relationship('Reservation', backref=db.backref('messages', lazy='dynamic'))
-
-
-class CleaningTask(db.Model):
-    """Cleaning/turnover task scheduler"""
-    __tablename__ = 'cleaning_tasks'
-
-    id = db.Column(db.Integer, primary_key=True)
-    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=True, index=True)
-    title = db.Column(db.String(200), nullable=False)
-    scheduled_date = db.Column(db.Date, nullable=False, index=True)
-    assigned_to = db.Column(db.String(100), nullable=True)
-    status = db.Column(db.String(20), nullable=False, default='pending')
-    notes = db.Column(db.Text, nullable=True)
-    completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    reservation = db.relationship('Reservation', backref=db.backref('cleaning_tasks', lazy='dynamic'))
-
-
 class QuesturaLog(db.Model):
     """Audit log for all Questura submissions"""
     __tablename__ = 'questura_log'

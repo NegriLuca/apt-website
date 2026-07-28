@@ -113,7 +113,7 @@
                                     <td><span class="badge bg-{{ 'warning' if r.questura_status in [None, 'pending'] else 'danger' }}">{{ r.questura_status or 'da inviare' }}</span></td>
                                     <td class="text-muted small">{{ r.questura_ready() and 'Completo' or 'Dati ospite mancanti' }}</td>
                                     <td>
-                                        <a href="{{ url_for('routes.admin_guest_data', reservation_id=r.id) }}" class="btn btn-sm btn-primary">{{ _('Enter Data') }}</a>
+                                        <a href="{{ url_for('routes.guest_self_checkin', token=r.checkin_token) if r.checkin_token else '#' }}" class="btn btn-sm btn-primary">{{ _('Enter Data') }}</a>
                                     </td>
                                 </tr>
                                 {% endfor %}

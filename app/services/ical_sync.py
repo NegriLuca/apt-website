@@ -175,3 +175,20 @@ def sync_all_feeds() -> tuple[int, int, list]:
             log.error('iCal sync failed — %s', msg)
 
     return total_added, total_cancelled, errors
+
+
+def get_blocked_dates():
+    """Return a sorted list of ISO-date strings that are blocked by iCal feeds."""
+    blocked = set()
+    active_feeds = ICalFeed.query.filter_by(active=True).all()
+    for feed in active_feeds:
+        reservations = Reservation.query.filter(
+            Reservation.source == feed.source,
+            Reservation.status == 'confirmed',
+        ).all()
+        for r in reservations:
+            current = r.check_in
+            while current < r.check_out:
+                blocked.add(current.isoformat())
+                current += __import__('datetime').timedelta(days=1)
+    return sorted(blocked)

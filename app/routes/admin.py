@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app.routes import bp
 from app.routes.helpers import get_apartment, calculate_dynamic_total, get_payment_summary
 from app import db, limiter
-from app.models import Apartment, Reservation, User, ICalFeed, Coupon, Testimonial, AuditLog, Notification, Message, CleaningTask
+from app.models import Apartment, Reservation, User, ICalFeed, Coupon, Testimonial, AuditLog, Notification
 from app.forms import LoginForm, ICalFeedForm
 from datetime import datetime, date, timedelta
 from sqlalchemy.exc import IntegrityError
@@ -99,8 +99,6 @@ def admin_dashboard():
         Reservation.check_in <= today
     ).count()
 
-    unread_messages = Message.query.filter_by(is_read=False).count()
-
     occupancy_days = sum(r.nights for r in monthly_confirmed)
     month_days = (today.replace(month=today.month % 12 + 1, day=1) - timedelta(days=1)).day if today.month < 12 else 31
     occupancy_rate = round((occupancy_days / month_days) * 100, 1) if month_days else 0
@@ -119,7 +117,6 @@ def admin_dashboard():
         'today_checkouts': len(today_checkouts),
         'in_house': len(in_house),
         'pending_questura': pending_questura,
-        'unread_messages': unread_messages,
     }
 
     now = datetime.utcnow()
@@ -738,156 +735,7 @@ def admin_mark_all_read():
     return redirect(url_for('routes.admin_notifications'))
 
 
-# ── Messages Inbox ────────────────────────────────────────────────────────────
 
-
-@bp.route('/admin/messages')
-@login_required
-def admin_messages():
-    if not current_user.is_admin:
-        abort(403)
-    page = request.args.get('page', 1, type=int)
-    messages = Message.query.order_by(Message.created_at.desc()).paginate(page=page, per_page=30, error_out=False)
-    return render_template('admin_messages.html', messages=messages)
-
-
-@bp.route('/admin/messages/<int:msg_id>/read', methods=['POST'])
-@login_required
-def admin_mark_message_read(msg_id):
-    if not current_user.is_admin:
-        abort(403)
-    msg = Message.query.get_or_404(msg_id)
-    msg.is_read = True
-    db.session.commit()
-    return redirect(url_for('routes.admin_messages'))
-
-
-@bp.route('/admin/messages/send', methods=['POST'])
-@login_required
-def admin_send_message():
-    if not current_user.is_admin:
-        abort(403)
-    res_id = request.form.get('reservation_id', type=int)
-    body = request.form.get('body', '').strip()
-    if not body:
-        flash('Message body is required.', 'danger')
-        return redirect(url_for('routes.admin_messages'))
-    res = Reservation.query.get(res_id) if res_id else None
-    msg = Message(
-        reservation_id=res_id,
-        guest_name=res.guest_name if res else request.form.get('guest_name', 'Guest'),
-        guest_email=res.guest_email if res else None,
-        subject=request.form.get('subject', ''),
-        body=body,
-        direction='outgoing',
-    )
-    db.session.add(msg)
-    db.session.commit()
-    admin_audit_log('send_message', 'Message', msg.id, f'Sent message to {msg.guest_name}')
-    flash('Message sent.', 'success')
-    return redirect(url_for('routes.admin_messages'))
-
-
-# ── Cleaning Tasks ────────────────────────────────────────────────────────────
-
-
-@bp.route('/admin/cleaning')
-@login_required
-def admin_cleaning():
-    if not current_user.is_admin:
-        abort(403)
-    today = date.today()
-    week_end = today + timedelta(days=7)
-    tasks = CleaningTask.query.filter(
-        CleaningTask.scheduled_date >= today,
-        CleaningTask.scheduled_date <= week_end,
-    ).order_by(CleaningTask.scheduled_date).all()
-    pending_count = CleaningTask.query.filter_by(status='pending').count()
-    completed_count = CleaningTask.query.filter_by(status='completed').count()
-    upcoming_checkouts = Reservation.query.filter(
-        Reservation.status == 'confirmed',
-        Reservation.check_out >= today,
-        Reservation.check_out <= week_end,
-    ).order_by(Reservation.check_out).all()
-    return render_template('admin_cleaning.html',
-        tasks=tasks, pending_count=pending_count,
-        completed_count=completed_count,
-        upcoming_checkouts=upcoming_checkouts, today=today)
-
-
-@bp.route('/admin/cleaning/create', methods=['POST'])
-@login_required
-def admin_create_cleaning_task():
-    if not current_user.is_admin:
-        abort(403)
-    res_id = request.form.get('reservation_id', type=int)
-    scheduled = request.form.get('scheduled_date')
-    title = request.form.get('title', 'Turnover cleaning')
-    task = CleaningTask(
-        reservation_id=res_id or None,
-        title=title,
-        scheduled_date=datetime.strptime(scheduled, '%Y-%m-%d').date() if scheduled else date.today(),
-        assigned_to=request.form.get('assigned_to', '').strip() or None,
-        notes=request.form.get('notes', '').strip() or None,
-    )
-    db.session.add(task)
-    db.session.commit()
-    admin_audit_log('create_cleaning_task', 'CleaningTask', task.id, f'Created: {title}')
-    flash('Cleaning task created.', 'success')
-    return redirect(url_for('routes.admin_cleaning'))
-
-
-@bp.route('/admin/cleaning/<int:task_id>/complete', methods=['POST'])
-@login_required
-def admin_complete_cleaning_task(task_id):
-    if not current_user.is_admin:
-        abort(403)
-    task = CleaningTask.query.get_or_404(task_id)
-    task.status = 'completed'
-    task.completed_at = datetime.utcnow()
-    db.session.commit()
-    flash('Task marked as completed.', 'success')
-    return redirect(url_for('routes.admin_cleaning'))
-
-
-@bp.route('/admin/cleaning/<int:task_id>/delete', methods=['POST'])
-@login_required
-def admin_delete_cleaning_task(task_id):
-    if not current_user.is_admin:
-        abort(403)
-    task = CleaningTask.query.get_or_404(task_id)
-    db.session.delete(task)
-    db.session.commit()
-    flash('Task deleted.', 'success')
-    return redirect(url_for('routes.admin_cleaning'))
-
-
-@bp.route('/admin/cleaning/auto-create', methods=['POST'])
-@login_required
-def admin_auto_create_cleaning():
-    if not current_user.is_admin:
-        abort(403)
-    today = date.today()
-    week_end = today + timedelta(days=7)
-    checkouts = Reservation.query.filter(
-        Reservation.status == 'confirmed',
-        Reservation.check_out >= today,
-        Reservation.check_out <= week_end,
-    ).all()
-    created = 0
-    for res in checkouts:
-        existing = CleaningTask.query.filter_by(reservation_id=res.id, scheduled_date=res.check_out).first()
-        if not existing:
-            task = CleaningTask(
-                reservation_id=res.id,
-                title=f'Turnover cleaning — #{res.id} {res.guest_name}',
-                scheduled_date=res.check_out,
-            )
-            db.session.add(task)
-            created += 1
-    db.session.commit()
-    flash(f'{created} cleaning tasks auto-created from checkouts.', 'success')
-    return redirect(url_for('routes.admin_cleaning'))
 
 
 # ── iCal Feeds ────────────────────────────────────────────────────────────────
@@ -929,5 +777,32 @@ def admin_audit_log_view():
     if not current_user.is_admin:
         abort(403)
     page = request.args.get('page', 1, type=int)
-    logs = AuditLog.query.order_by(AuditLog.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
-    return render_template('admin_audit_log.html', logs=logs)
+    search = request.args.get('search', '').strip()
+    admin_filter = request.args.get('admin', '').strip()
+    entity_filter = request.args.get('entity', '').strip()
+    date_from = request.args.get('date_from', '').strip()
+
+    query = AuditLog.query
+
+    if search:
+        query = query.filter(
+            db.or_(
+                AuditLog.action.ilike(f'%{search}%'),
+                AuditLog.details.ilike(f'%{search}%'),
+            )
+        )
+    if admin_filter:
+        query = query.filter(AuditLog.admin_user == admin_filter)
+    if entity_filter:
+        query = query.filter(AuditLog.entity_type == entity_filter)
+    if date_from:
+        try:
+            dt = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(AuditLog.created_at >= dt)
+        except ValueError:
+            pass
+
+    logs = query.order_by(AuditLog.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
+    return render_template('admin_audit_log.html',
+        logs=logs, search=search, admin_filter=admin_filter,
+        entity_filter=entity_filter, date_from=date_from)
