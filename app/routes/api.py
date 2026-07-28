@@ -243,4 +243,5 @@ def guest_portal(token):
         gate_configured=gate_configured,
         door_configured=door_configured,
         access_preview=False,
+        today=today,
     )

@@ -188,9 +188,9 @@
                         {% if reservation.checkin_token_used %}
                         {{ _('Check-in completed on %(date)s', date=reservation.checkin_completed_at.strftime('%d/%m/%Y') if reservation.checkin_completed_at else '—') }}
                         {% endif %}
-                        {% if date.today() > reservation.check_out %}
+                        {% if today > reservation.check_out %}
                         {{ _('Your stay has ended. Thank you for choosing us!') }}
-                        {% elif date.today() < reservation.check_in %}
+                        {% elif today < reservation.check_in %}
                         {{ _('Gate and door access will be available from check-in day.') }}
                         {% endif %}
                     </p>
