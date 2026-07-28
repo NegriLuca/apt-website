@@ -1,0 +1,162 @@
+{% if apartment and apartment.whatsapp_number %}
+<!-- WhatsApp Float Button -->
+<a href="https://wa.me/{{ apartment.whatsapp_number }}{% if apartment.whatsapp_default_message %}?text={{ apartment.whatsapp_default_message | urlencode }}{% endif %}" 
+   target="_blank" 
+   rel="noopener noreferrer" 
+   class="whatsapp-float-btn"
+   aria-label="{{ _('Contact us on WhatsApp') }}"
+   title="{{ _('Contact us on WhatsApp') }}">
+    <i class="bi bi-whatsapp"></i>
+    <span class="whatsapp-tooltip">{{ _('Chat on WhatsApp') }}</span>
+    <span class="whatsapp-pulse"></span>
+</a>
+{% endif %}
+
+<style>
+.whatsapp-float-btn {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    z-index: 9999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: whatsapp-entrance 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes whatsapp-entrance {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.whatsapp-float-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 30px rgba(37, 211, 102, 0.5);
+    color: white;
+    text-decoration: none;
+}
+
+.whatsapp-float-btn:active {
+    transform: scale(0.95);
+}
+
+.whatsapp-float-btn i {
+    font-size: 28px;
+    transition: transform 0.3s ease;
+}
+
+.whatsapp-float-btn:hover i {
+    transform: rotate(10deg) scale(1.1);
+}
+
+/* Tooltip */
+.whatsapp-tooltip {
+    position: absolute;
+    right: 72px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1a1a2e;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-50%) translateX(10px);
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.whatsapp-tooltip::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: #1a1a2e;
+}
+
+.whatsapp-float-btn:hover .whatsapp-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+
+/* Pulse animation */
+.whatsapp-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(37, 211, 102, 0.4);
+    animation: whatsapp-pulse 2s infinite;
+    pointer-events: none;
+}
+
+@keyframes whatsapp-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 575.98px) {
+    .whatsapp-float-btn {
+        bottom: 80px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+    }
+    
+    .whatsapp-float-btn i {
+        font-size: 24px;
+    }
+    
+    .whatsapp-tooltip {
+        display: none;
+    }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    .whatsapp-float-btn {
+        animation: none;
+    }
+    .whatsapp-pulse {
+        animation: none;
+    }
+}
+
+/* When footer is visible, adjust position */
+@media (max-width: 767.98px) {
+    .whatsapp-float-btn {
+        bottom: 100px;
+    }
+}
+</style>

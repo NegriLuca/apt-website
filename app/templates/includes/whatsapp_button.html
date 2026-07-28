@@ -1,0 +1,121 @@
+<!-- WhatsApp Float Button -->
+{% if apartment and apartment.whatsapp_number %}
+<a href="https://wa.me/{{ apartment.whatsapp_number }}{% if apartment.whatsapp_default_message %}?text={{ apartment.whatsapp_default_message | urlencode }}{% endif %}" 
+   target="_blank" 
+   rel="noopener noreferrer"
+   class="whatsapp-float-btn"
+   aria-label="{{ _('Contact us on WhatsApp') }}"
+   title="{{ _('Contact us on WhatsApp') }}">
+    <i class="bi bi-whatsapp"></i>
+    <span class="whatsapp-tooltip">{{ _('WhatsApp') }}</span>
+</a>
+{% endif %}
+
+<style>
+.whatsapp-float-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    z-index: 9999;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: whatsappPulse 2s infinite;
+}
+
+.whatsapp-float-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
+    color: white;
+    text-decoration: none;
+}
+
+.whatsapp-float-btn i {
+    font-size: 28px;
+    transition: transform 0.3s ease;
+}
+
+.whatsapp-float-btn:hover i {
+    transform: rotate(15deg) scale(1.1);
+}
+
+.whatsapp-tooltip {
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.whatsapp-float-btn:hover .whatsapp-tooltip {
+    opacity: 1;
+    visibility: visible;
+    right: 75px;
+}
+
+.whatsapp-float-btn:focus {
+    outline: 3px solid rgba(37, 211, 102, 0.5);
+    outline-offset: 3px;
+}
+
+@keyframes whatsappPulse {
+    0% {
+        box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(37, 211, 102, 0.6);
+    }
+    100% {
+        box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .whatsapp-float-btn {
+        animation: none;
+    }
+    .whatsapp-float-btn:hover {
+        transform: none;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 576px) {
+    .whatsapp-float-btn {
+        bottom: 16px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+    }
+    .whatsapp-float-btn i {
+        font-size: 26px;
+    }
+    .whatsapp-tooltip {
+        display: none;
+    }
+}
+
+/* Don't show on admin pages */
+body.admin-page .whatsapp-float-btn {
+    display: none;
+}
+</style>

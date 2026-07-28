@@ -173,6 +173,27 @@
                             </div>
                         </div>
                         
+                        <hr class="my-4">
+                        
+                        <!-- WhatsApp Configuration -->
+                        <h5 class="mb-3 text-info"><i class="bi bi-whatsapp me-2"></i>{{ _('WhatsApp Contact Button') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="whatsapp_enabled" id="whatsapp_enabled" {% if apartment.whatsapp_number %}checked{% endif %}>
+                                    <label class="form-check-label fw-semibold" for="whatsapp_enabled">{{ _('Enable WhatsApp Float Button') }}</label>
+                                </div>
+                                <label class="form-label fw-semibold">{{ _('WhatsApp Number') }}</label>
+                                <input type="text" class="form-control" name="whatsapp_number" value="{{ apartment.whatsapp_number or '' }}" placeholder="+39 3XX XXXXXXX or 393XXXXXXXXX">
+                                <div class="form-text">{{ _('International format without + or spaces. Example: 393000000000') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Default Message (optional)') }}</label>
+                                <textarea class="form-control" name="whatsapp_default_message" rows="2" placeholder="{{ _('Ciao, vorrei informazioni per prenotare...') }}">{{ apartment.whatsapp_default_message or '' }}</textarea>
+                                <div class="form-text">{{ _('Pre-filled message when user clicks the button') }}</div>
+                            </div>
+                        </div>
+                        
                         <div class="d-flex gap-3">
                             <button type="submit" name="action" value="save" class="btn btn-primary fw-bold px-4 py-2">{{ _('Save Smart Access Config') }}</button>
                             <button type="button" class="btn btn-outline-primary fw-bold px-4 py-2" {% if not apartment.shelly_enabled %}disabled{% endif %} onclick="testGate()">

@@ -52,6 +52,10 @@ class Apartment(db.Model):
     nuki_web_base_url = db.Column(db.String(100), default='https://api.nuki.io', comment='Nuki Web API base URL')
     nuki_unlock_action = db.Column(db.String(20), default='unlock', comment='unlock or unlatch (open door)')
 
+    # WhatsApp Contact
+    whatsapp_number = db.Column(db.String(30), nullable=True, comment='WhatsApp number in international format (e.g., 393000000000)')
+    whatsapp_default_message = db.Column(db.Text, nullable=True, comment='Default pre-filled message for WhatsApp')
+
 
 class Reservation(db.Model):
     __tablename__ = "reservation"

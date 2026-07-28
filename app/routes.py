@@ -1098,6 +1098,10 @@ def admin_pricing():
             apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'
             apartment.nuki_unlock_action = request.form.get('nuki_unlock_action', 'unlock')
             
+            # WhatsApp configuration
+            apartment.whatsapp_number = request.form.get('whatsapp_number', '').strip() or None
+            apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
+            
             db.session.commit()
             flash('Smart access settings updated successfully!', 'success')
             return redirect(url_for('routes.admin_pricing'))
