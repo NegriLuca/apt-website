@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-28 22:25+0200\n"
+"POT-Creation-Date: 2026-07-28 23:15+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: it <LL@li.org>\n"
@@ -33,7 +33,8 @@ msgstr "Email"
 #: app/templates/admin_guest_checkin.html:109
 #: app/templates/admin_questura.html:67
 #: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
-#: app/templates/guest_access.html:16 app/templates/guest_self_checkin.html:23
+#: app/templates/guest_access.html:16 app/templates/guest_portal.html:19
+#: app/templates/guest_self_checkin.html:23
 msgid "Check-in"
 msgstr "Check-in"
 
@@ -41,7 +42,8 @@ msgstr "Check-in"
 #: app/templates/admin_guest_checkin.html:113
 #: app/templates/admin_questura.html:68
 #: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
-#: app/templates/guest_access.html:20 app/templates/guest_self_checkin.html:27
+#: app/templates/guest_access.html:20 app/templates/guest_portal.html:23
+#: app/templates/guest_self_checkin.html:27
 msgid "Check-out"
 msgstr "Check-out"
 
@@ -256,7 +258,7 @@ msgstr "Dettagli prenotazione"
 
 #: app/templates/admin_calendar.html:73
 #: app/templates/booking_confirmed.html:22
-#: app/templates/guest_access_denied.html:21
+#: app/templates/guest_access_denied.html:20
 msgid "Guest:"
 msgstr "Ospite:"
 
@@ -348,7 +350,7 @@ msgstr ""
 #: app/templates/admin_questura.html:66
 #: app/templates/admin_testimonials.html:49
 #: app/templates/admin_tourist_tax.html:155 app/templates/checkout.html:30
-#: app/templates/guest_access.html:24
+#: app/templates/guest_access.html:24 app/templates/guest_portal.html:27
 msgid "Guest"
 msgstr "Ospite"
 
@@ -818,7 +820,7 @@ msgstr ""
 #: app/templates/admin_guest_checkin.html:106
 #: app/templates/booking_confirmed.html:20
 #: app/templates/email_cancellation.html:34
-#: app/templates/guest_access_denied.html:20
+#: app/templates/guest_access_denied.html:19
 msgid "Reservation Details"
 msgstr "Dettagli della prenotazione"
 
@@ -1161,7 +1163,7 @@ msgstr ""
 
 #: app/templates/admin_questura_logs.html:27
 #: app/templates/email_guest_access.html:30 app/templates/guest_access.html:28
-#: app/templates/guest_self_checkin.html:35
+#: app/templates/guest_portal.html:31 app/templates/guest_self_checkin.html:35
 msgid "Reservation"
 msgstr "Prenotazione"
 
@@ -2196,9 +2198,9 @@ msgstr ""
 "ricevuta arriverà nella tua casella di posta a breve."
 
 #: app/templates/booking_confirmed.html:51 app/templates/csrf_error.html:14
-#: app/templates/guest_access_denied.html:30
+#: app/templates/guest_access_denied.html:28
 #: app/templates/guest_checkin_done.html:15
-#: app/templates/wire_transfer.html:31
+#: app/templates/guest_portal.html:181 app/templates/wire_transfer.html:31
 msgid "Back to Home"
 msgstr "Torna alla home"
 
@@ -2604,7 +2606,7 @@ msgstr "Il tuo link di accesso"
 msgid "Your Stay"
 msgstr "Il tuo soggiorno"
 
-#: app/templates/email_guest_access.html:30
+#: app/templates/email_guest_access.html:30 app/templates/guest_portal.html:36
 msgid "nights"
 msgstr "notti"
 
@@ -2695,6 +2697,7 @@ msgstr "Clicca il pulsante qui sotto per completare il check-in online:"
 
 #: app/templates/email_guest_checkin.html:43
 #: app/templates/email_pending_payment.html:61
+#: app/templates/guest_portal.html:64
 msgid "Complete Check-in Now"
 msgstr "Completa il check-in ora"
 
@@ -3064,7 +3067,7 @@ msgstr "Elegante cocktail bar (2 min a piedi)"
 msgid "Guest Access"
 msgstr "Accesso Ospiti"
 
-#: app/templates/guest_access.html:10
+#: app/templates/guest_access.html:10 app/templates/guest_portal.html:88
 msgid "Valid during your stay"
 msgstr "Valido durante il soggiorno"
 
@@ -3072,7 +3075,7 @@ msgstr "Valido durante il soggiorno"
 msgid "Building Gate"
 msgstr "Cancello"
 
-#: app/templates/guest_access.html:41
+#: app/templates/guest_access.html:41 app/templates/guest_portal.html:109
 msgid "Press to open the building gate."
 msgstr "Premi per aprire il cancello."
 
@@ -3160,11 +3163,11 @@ msgstr "Accesso negato"
 msgid "Access Not Available"
 msgstr "Accesso non disponibile"
 
-#: app/templates/guest_access_denied.html:22
+#: app/templates/guest_access_denied.html:21
 msgid "Stay:"
 msgstr "Soggiorno:"
 
-#: app/templates/guest_access_denied.html:23
+#: app/templates/guest_access_denied.html:22
 msgid "Reservation:"
 msgstr "Prenotazione:"
 
@@ -3175,6 +3178,131 @@ msgstr "Check-in / Check-out"
 #: app/templates/guest_checkin_done.html:11
 msgid "Check-in Completed!"
 msgstr "Check-in / Check-out"
+
+#: app/templates/guest_portal.html:2 app/templates/guest_portal.html:11
+msgid "Guest Portal"
+msgstr "Portale Ospiti"
+
+#: app/templates/guest_portal.html:49 app/templates/guest_self_checkin.html:16
+msgid "Online Check-in"
+msgstr "Check-in"
+
+#: app/templates/guest_portal.html:50
+msgid "Required by Italian law - Questura registration"
+msgstr "Obbligatorio per legge italiana - registrazione in Questura"
+
+#: app/templates/guest_portal.html:57
+msgid "Legal Requirement:"
+msgstr "Obbligo di legge:"
+
+#: app/templates/guest_portal.html:58
+msgid ""
+"All guests must be registered with the Police (Questura) within 24 hours of "
+"arrival. Complete this before arrival to speed up the process."
+msgstr ""
+"Tutti gli ospiti devono essere registrati presso la Questura entro 24 ore "
+"dall'arrivo. Completalo prima dell'arrivo per accelerare la procedura."
+
+#: app/templates/guest_portal.html:69
+msgid "Takes about 2 minutes · You'll need passport/ID for each guest"
+msgstr ""
+"Ci vogliono circa 2 minuti · Servono passaporto/documento per ogni ospite"
+
+#: app/templates/guest_portal.html:85
+msgid "Gate & Door Access"
+msgstr "Accesso a cancello e porta"
+
+#: app/templates/guest_portal.html:90
+#, python-format
+msgid "Available during your stay (%(checkin)s - %(checkout)s)"
+msgstr "Disponibile durante il soggiorno (%(checkin)s - %(checkout)s)"
+
+#: app/templates/guest_portal.html:103
+msgid "Open Building Gate"
+msgstr "Apri cancello"
+
+#: app/templates/guest_portal.html:116
+msgid "Gate control not configured. Contact host for access."
+msgstr "Controllo cancello non configurato. Contatta l'host per l'accesso."
+
+#: app/templates/guest_portal.html:125
+msgid "Unlock Apartment Door"
+msgstr "Sblocca porta appartamento"
+
+#: app/templates/guest_portal.html:131
+msgid "Press to unlatch the apartment door."
+msgstr "Premi per sbloccare la porta dell'appartamento."
+
+#: app/templates/guest_portal.html:138
+msgid "Door control not configured. Contact host for access."
+msgstr "Controllo porta non configurato. Contatta l'host per l'accesso."
+
+#: app/templates/guest_portal.html:145
+msgid "Smart Access Not Configured"
+msgstr "Accesso intelligente non configurato"
+
+#: app/templates/guest_portal.html:146
+msgid ""
+"The host has not yet configured the gate/door automation. Please contact "
+"them for access instructions."
+msgstr ""
+"L'host non ha ancora configurato l'automazione di cancello/porta. Contattalo"
+" per le istruzioni di accesso."
+
+#: app/templates/guest_portal.html:148 app/templates/guest_portal.html:192
+msgid "Contact Host"
+msgstr "Contatta l'host"
+
+#: app/templates/guest_portal.html:156
+msgid "Security Notice:"
+msgstr "Avviso di sicurezza:"
+
+#: app/templates/guest_portal.html:157
+#, python-format
+msgid ""
+"This access is personal and valid only during your stay (%(checkin)s - "
+"%(checkout)s)."
+msgstr "L'accesso è valido solo durante le date del soggiorno"
+
+#: app/templates/guest_portal.html:158
+msgid "Do not share this link with unauthorized persons. Access is logged."
+msgstr ""
+"Non condividere questo link con persone non autorizzate. L'accesso viene "
+"registrato."
+
+#: app/templates/guest_portal.html:169
+msgid "All Set!"
+msgstr "Tutto pronto!"
+
+#: app/templates/guest_portal.html:172
+#, python-format
+msgid "Check-in completed on %(date)s"
+msgstr "Check-in completato il %(date)s"
+
+#: app/templates/guest_portal.html:175
+msgid "Your stay has ended. Thank you for choosing us!"
+msgstr "Il soggiorno è terminato. Grazie per averci scelto!"
+
+#: app/templates/guest_portal.html:177
+msgid "Gate and door access will be available from check-in day."
+msgstr ""
+"L'accesso a cancello e porta sarà disponibile dal giorno del check-in."
+
+#: app/templates/guest_portal.html:190
+msgid "Need help?"
+msgstr "Serve aiuto?"
+
+#: app/templates/guest_portal.html:234
+msgid "Success!"
+msgstr "Operazione riuscita!"
+
+#: app/templates/guest_portal.html:238
+msgid "Error occurred"
+msgstr "Si è verificato un errore"
+
+#: app/templates/guest_portal.html:242
+msgid "Connection error. Please try again."
+msgstr "Errore di connessione. Riprova."
 
 #: app/templates/guest_self_checkin.html:2
 msgid "Check-in Online"
@@ -3191,10 +3319,6 @@ msgstr "Hai già inviato i tuoi dati."
 #: app/templates/guest_self_checkin.html:13
 msgid "Return to Portal"
 msgstr "Torna al portale"
-
-#: app/templates/guest_self_checkin.html:16
-msgid "Online Check-in"
-msgstr "Check-in"
 
 #: app/templates/guest_self_checkin.html:17
 msgid ""
