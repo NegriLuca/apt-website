@@ -167,6 +167,9 @@ def admin_trust_badges():
         apartment.show_reviews_in_footer = bool(request.form.get('show_reviews_in_footer'))
         apartment.show_reviews_on_homepage = bool(request.form.get('show_reviews_on_homepage'))
         apartment.show_reviews_on_booking = bool(request.form.get('show_reviews_on_booking'))
+        apartment.show_payment_badges_in_footer = bool(request.form.get('show_payment_badges_in_footer'))
+        apartment.show_payment_badges_on_checkout = bool(request.form.get('show_payment_badges_on_checkout'))
+
 
         apartment.booking_widget_js = request.form.get('booking_widget_js', '').strip() or None
         apartment.airbnb_widget_js = request.form.get('airbnb_widget_js', '').strip() or None

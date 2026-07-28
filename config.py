@@ -46,3 +46,7 @@ class Config:
     # ── Analytics ─────────────────────────────────────────────────────────────
     GTM_ID = os.environ.get('GTM_ID')  # e.g., GTM-XXXXXXX
     GA4_ID = os.environ.get('GA4_ID')  # e.g., G-XXXXXXXXXX
+
+    # ── Italian Compliance Codes (CIN/CIR) ────────────────────────────────────
+    CIN_CODE = os.environ.get('CIN_CODE', 'IT058091C2TXZ44TA6')
+    CIR_CODE = os.environ.get('CIR_CODE', '058091-LOC-19856')

@@ -192,6 +192,18 @@
                                     <label class="form-check-label" for="show_reviews_on_booking">{{ _('Show review badges on booking page') }}</label>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="show_payment_badges_in_footer" id="show_payment_badges_in_footer" {% if apartment.show_payment_badges_in_footer %}checked{% endif %}>
+                                    <label class="form-check-label" for="show_payment_badges_in_footer">{{ _('Show payment badges in footer') }}</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input form-check-input-lg" type="checkbox" name="show_payment_badges_on_checkout" id="show_payment_badges_on_checkout" {% if apartment.show_payment_badges_on_checkout %}checked{% endif %}>
+                                    <label class="form-check-label" for="show_payment_badges_on_checkout">{{ _('Show payment badges on checkout page') }}</label>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex gap-3">

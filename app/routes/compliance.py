@@ -143,6 +143,23 @@ def tourist_tax():
                            apt=apt, report=report, year=year, month=month)
 
 
+@bp.route('/admin/compliance/tourist-tax/save-config', methods=['POST'])
+@login_required
+def tourist_tax_save_config():
+    if not current_user.is_admin:
+        abort(403)
+
+    apt = get_apartment()
+    apt.cin_code = request.form.get('cin_code', '').strip() or None
+    apt.cir_code = request.form.get('cir_code', '').strip() or None
+    apt.tourist_tax_category = request.form.get('tourist_tax_category', 'CAV')
+    apt.tourist_tax_rate = request.form.get('tourist_tax_rate', type=float, default=3.50)
+    apt.max_guests = request.form.get('max_guests', type=int, default=4)
+    db.session.commit()
+    flash('Property configuration saved.', 'success')
+    return redirect(url_for('routes.tourist_tax'))
+
+
 @bp.route('/admin/compliance/tourist-tax/export')
 @login_required
 def tourist_tax_export():

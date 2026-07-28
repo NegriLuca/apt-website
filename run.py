@@ -72,7 +72,9 @@ with app.app_context():
         default_apartment = Apartment(
             name="Lotto 235 Garbatella",
             price_per_night=130.00,
-            image_file="apartment/living_room.jpg" 
+            image_file="apartment/living_room.jpg",
+            cin_code=os.environ.get('CIN_CODE', 'IT058091C2TXZ44TA6'),
+            cir_code=os.environ.get('CIR_CODE', '058091-LOC-19856'),
         )
         db.session.add(default_apartment)
         db.session.commit()

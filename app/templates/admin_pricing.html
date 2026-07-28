@@ -33,11 +33,11 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">{{ _('CIN Code (National Identification Code)') }}</label>
-                            <input type="text" class="form-control" value="IT058091C2TXZ44TA6" readonly>
+                            <input type="text" class="form-control" value="{{ apartment.cin_code or 'IT058091C2TXZ44TA6' }}" readonly>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">{{ _('CIR Code (Lazio Regional Identification Code)') }}</label>
-                            <input type="text" class="form-control" value="058091-LOC-19856" readonly>
+                            <input type="text" class="form-control" value="{{ apartment.cir_code or '058091-LOC-19856' }}" readonly>
                         </div>
                     </div>
                     <p class="small text-muted mb-0">{{ _('These codes are fixed for the property and cannot be changed.') }}</p>
