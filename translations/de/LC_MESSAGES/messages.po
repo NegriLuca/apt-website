@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-28 21:09+0200\n"
+"POT-Creation-Date: 2026-07-28 22:19+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de <LL@li.org>\n"
@@ -3542,16 +3542,18 @@ msgid "> 14 days before check-in"
 msgstr "> 14 Tage vor dem Check-in"
 
 #: app/templates/policies/cancellation.html:26
-msgid "Full refund (100%)"
-msgstr "Vollständige Rückerstattung (100%)"
+#, no-python-format
+msgid "Full refund (100%%)"
+msgstr "Vollständige Rückerstattung (100%%)"
 
 #: app/templates/policies/cancellation.html:29
 msgid "7-14 days before check-in"
 msgstr "7-14 Tage vor dem Check-in"
 
 #: app/templates/policies/cancellation.html:30
-msgid "Half refund (50%)"
-msgstr "Teilweise Rückerstattung (50%)"
+#, no-python-format
+msgid "Half refund (50%%)"
+msgstr "Teilweise Rückerstattung (50%%)"
 
 #: app/templates/policies/cancellation.html:33
 msgid "< 7 days before check-in"
@@ -4493,10 +4495,10 @@ msgstr "Alle Preise sind in EUR und enthalten geltende Steuern (MwSt.)."
 #: app/templates/policies/terms.html:20
 #, no-python-format
 msgid ""
-"Base rate €130/night. +10% weekends and Italian public holidays. +€15/night "
-"per extra guest over 2."
+"Base rate €130/night. +10%% weekends and Italian public holidays. +€15/night"
+" per extra guest over 2."
 msgstr ""
-"Grundpreis €130/Nacht. +10% an Wochenenden und italienischen Feiertagen. "
+"Grundpreis €130/Nacht. +10%% an Wochenenden und italienischen Feiertagen. "
 "+€15/Nacht pro zusätzlichem Gast über 2."
 
 #: app/templates/policies/terms.html:21

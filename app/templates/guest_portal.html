@@ -250,7 +250,7 @@
 {% block scripts %}
 <script>
 const accessToken = '{{ access_token }}';
-const apiBase = '{{ url_for("routes.api_gate_open", _external=True).replace("/api/access/gate/open", "") }}';
+const apiBase = '{{ url_for("routes.home", _external=True) }}';
 
 async function callApi(endpoint, buttonId, loadingId, statusId) {
     const btn = document.getElementById(buttonId);
