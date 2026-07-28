@@ -66,6 +66,12 @@ def create_app(config_class=Config):
         handler.setLevel(logging.INFO)
         handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
         app.logger.addHandler(handler)
+
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        stream_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
+        app.logger.addHandler(stream_handler)
+
         app.logger.setLevel(logging.INFO)
         app.logger.info('Apt_Website starting')
 
