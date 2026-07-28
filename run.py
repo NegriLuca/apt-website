@@ -44,26 +44,6 @@ with app.app_context():
             print("⏳ Il database interno non è ancora pronto. Attendo 3 secondi...")
             time.sleep(3)
 
-    # ── DB SCHEMA PATCH: Force inject missing column if using an existing DB ──
-    try:
-        engine = db.engine
-        with engine.connect() as conn:
-            try:
-                from sqlalchemy import text
-                conn.execute(text("ALTER TABLE reservations ADD COLUMN coupon_code VARCHAR(20) NULL;"))
-                conn.commit()
-                print("🛠️ Database schema updated: coupon_code column injected.")
-            except Exception:
-                pass
-            try:
-                conn.execute(text("ALTER TABLE reservations ADD COLUMN tourist_tax_excluded BOOLEAN DEFAULT 0;"))
-                conn.commit()
-                print("🛠️ Database schema updated: tourist_tax_excluded column injected.")
-            except Exception:
-                pass
-    except Exception as e:
-        print(f"ℹ️ Schema check skipped: {e}")
-
     # ── AUTO-CREATE & SYNC ADMIN FROM .ENV ──
     env_password = os.environ.get('ADMIN_PASSWORD')
     

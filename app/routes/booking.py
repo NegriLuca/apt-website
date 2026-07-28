@@ -1,0 +1,430 @@
+from flask import render_template, redirect, url_for, flash, request, session, current_app, abort, jsonify
+from flask_babel import gettext as _
+from flask_login import current_user
+from app.routes import bp
+from app.routes.helpers import (
+    get_apartment, is_available, calculate_dynamic_total,
+    _send_confirmation_emails, send_payment_verified_email,
+    send_pending_payment_email, send_cancellation_emails,
+    calculate_refund_percentage, get_payment_summary
+)
+from app import db, csrf
+from app.models import Apartment, Reservation
+from app.forms import ReservationForm
+from datetime import datetime, date, timedelta
+import stripe
+import json
+import secrets
+import os
+
+
+@bp.route('/reserve', methods=['GET', 'POST'])
+def reserve():
+    apartment = get_apartment()
+    form = ReservationForm()
+
+    if not apartment:
+        return render_template(
+            'reservation.html',
+            form=form,
+            apartment=None,
+            disabled_dates=[]
+        )
+
+    reservations = Reservation.query.filter(
+        Reservation.status != 'cancelled'
+    ).all()
+
+    disabled_dates = []
+    for r in reservations:
+        current = r.check_in
+        last_night = r.check_out - timedelta(days=1)
+        while current <= last_night:
+            disabled_dates.append(current.isoformat())
+            current += timedelta(days=1)
+
+    if form.validate_on_submit():
+        check_in = form.check_in.data
+        check_out = form.check_out.data
+
+        if check_out <= check_in:
+            flash("Check-out must be after check-in.", "danger")
+            return redirect(request.url)
+
+        nights = (check_out - check_in).days
+        if nights > 28:
+            flash("You can book a maximum of 28 nights.", "danger")
+            return redirect(request.url)
+
+        session.pop('pending_reservation', None)
+
+        if not is_available(check_in, check_out):
+            flash('Selected dates are not available.', 'danger')
+            return redirect(request.url)
+
+        coupon_code = request.form.get('applied_coupon_code', '').strip().upper()
+        num_guests = form.num_guests.data
+        base_total = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night)
+        final_total = base_total
+        validated_code = None
+
+        if coupon_code:
+            coupon = Coupon.query.filter_by(code=coupon_code, active=True).first()
+            if coupon:
+                final_total = coupon.apply_discount(base_total)
+                validated_code = coupon.code
+
+        session['pending_reservation'] = {
+            'guest_name': form.guest_name.data,
+            'guest_email': form.guest_email.data,
+            'check_in': check_in.isoformat(),
+            'check_out': check_out.isoformat(),
+            'num_guests': form.num_guests.data,
+            'base_total': base_total,
+            'total_price': final_total,
+            'coupon_code': validated_code
+        }
+        return redirect(url_for('routes.checkout'))
+
+    return render_template(
+        'reservation.html',
+        form=form,
+        apartment=apartment,
+        disabled_dates=disabled_dates,
+    )
+
+
+@bp.route('/checkout')
+def checkout():
+    pending = session.get('pending_reservation')
+    if not pending:
+        flash(_('Please fill in the booking form first.'), 'warning')
+        return redirect(url_for('routes.reserve'))
+
+    apartment = get_apartment()
+    check_in = date.fromisoformat(pending['check_in'])
+    check_out = date.fromisoformat(pending['check_out'])
+    nights = (check_out - check_in).days
+
+    base_rate = apartment.price_per_night if apartment else 0
+    num_guests = pending.get('num_guests', 2)
+    calculated_base = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=base_rate)
+
+    base_total = pending.get('base_total', calculated_base)
+    total_price = pending.get('total_price', base_total)
+
+    stripe_pub = current_app.config.get('STRIPE_PUBLISHABLE_KEY', '')
+
+    return render_template(
+        'checkout.html',
+        pending=pending,
+        apartment=apartment,
+        nights=nights,
+        base_total=base_total,
+        total=total_price,
+        stripe_publishable_key=stripe_pub,
+        check_in=check_in,
+        check_out=check_out,
+    )
+
+
+@bp.route('/process-payment', methods=['POST'])
+def process_payment():
+    method = request.form.get('payment_method')
+
+    if method == 'stripe':
+        return create_checkout_session()
+
+    elif method == 'wire_transfer':
+        pending = session.get('pending_reservation')
+        if not pending:
+            flash(_('Session expired. Please try again.'), 'danger')
+            return redirect(url_for('routes.reserve'))
+
+        apartment = get_apartment()
+        check_in_dt = date.fromisoformat(pending['check_in'])
+        check_out_dt = date.fromisoformat(pending['check_out'])
+
+        base_rate = apartment.price_per_night if apartment else 0
+        num_guests = int(pending['num_guests'])
+        fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, num_guests=num_guests, base_rate=base_rate)
+        total_price = pending.get('total_price', fallback_total)
+
+        new_reservation = Reservation(
+            guest_name=pending['guest_name'],
+            guest_email=pending['guest_email'],
+            check_in=check_in_dt,
+            check_out=check_out_dt,
+            num_guests=int(pending['num_guests']),
+            status='pending',
+            source='direct',
+            total_price=total_price,
+            coupon_code=pending.get('coupon_code'),
+            payment_status='unpaid',
+            payment_method='wire_transfer',
+            cancel_token=secrets.token_urlsafe(32)
+        )
+
+        db.session.add(new_reservation)
+        db.session.commit()
+
+        send_pending_payment_email(new_reservation)
+
+        session['completed_wire_res_id'] = new_reservation.id
+        session['completed_wire_total'] = new_reservation.total_price
+
+        session.pop('pending_reservation', None)
+        return redirect(url_for('routes.wire_transfer_instructions'))
+
+    return redirect(url_for('routes.checkout'))
+
+
+@bp.route('/checkout/wire-transfer')
+def wire_transfer_instructions():
+    reservation_id = session.get('completed_wire_res_id')
+    total = session.get('completed_wire_total')
+
+    if not reservation_id:
+        return redirect(url_for('routes.home'))
+
+    session.pop('completed_wire_res_id', None)
+    session.pop('completed_wire_total', None)
+
+    return render_template('wire_transfer.html', reservation_id=reservation_id, total=total)
+
+
+@bp.route('/checkout/create-session', methods=['POST'])
+def create_checkout_session():
+    pending = session.get('pending_reservation')
+    if not pending:
+        flash(_('Session expired. Please try again.'), 'danger')
+        return redirect(url_for('routes.reserve'))
+
+    apartment = get_apartment()
+    check_in_dt = date.fromisoformat(pending['check_in'])
+    check_out_dt = date.fromisoformat(pending['check_out'])
+
+    base_rate = apartment.price_per_night if apartment else 0
+    num_guests = int(pending['num_guests'])
+    fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, num_guests=num_guests, base_rate=base_rate)
+    total_price = pending.get('total_price', fallback_total)
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+    if not stripe.api_key:
+        abort(500, "Stripe secret key is not configured.")
+
+    checkout_session = stripe.checkout.Session.create(
+        line_items=[{
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {'name': 'Apartment Booking'},
+                'unit_amount': int(total_price * 100),
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=url_for('routes.payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('routes.checkout', _external=True),
+        customer_email=pending.get('guest_email'),
+        metadata={
+            'guest_name': pending.get('guest_name', 'Guest'),
+            'guest_email': pending.get('guest_email', ''),
+            'check_in': pending['check_in'],
+            'check_out': pending['check_out'],
+            'num_guests': str(num_guests),
+            'total_price': str(total_price),
+            'coupon_code': pending.get('coupon_code', ''),
+        },
+    )
+
+    session['pending_stripe_session'] = {
+        'guest_name': pending.get('guest_name', 'Guest'),
+        'guest_email': pending.get('guest_email', ''),
+        'check_in': pending['check_in'],
+        'check_out': pending['check_out'],
+        'num_guests': str(num_guests),
+        'total_price': str(total_price),
+        'coupon_code': pending.get('coupon_code', ''),
+    }
+
+    return redirect(checkout_session.url, 303)
+
+
+@bp.route('/payment/success')
+def payment_success():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return redirect(url_for('routes.home'))
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+    try:
+        checkout_session = stripe.checkout.Session.retrieve(session_id, expand=['line_items'])
+    except Exception:
+        flash(_('Payment verification failed. Please contact support.'), 'danger')
+        return redirect(url_for('routes.home'))
+
+    reservation = _create_reservation_from_stripe(checkout_session)
+    session.pop('pending_reservation_id', None)
+    session.pop('booking_data', None)
+
+    return redirect(url_for('routes.booking_confirmed', reservation_id=reservation.id))
+
+
+def _create_reservation_from_stripe(cs):
+    data = cs.to_dict() if hasattr(cs, 'to_dict') else cs
+    pi_id = data.get('payment_intent') or f"stripe_session_{data.get('id')}"
+
+    existing = Reservation.query.filter_by(stripe_payment_intent_id=pi_id).first()
+    if existing:
+        return existing
+
+    meta = data.get('metadata') or {}
+    guest_name = meta.get('guest_name', 'Guest')
+    guest_email = data.get('customer_email') or meta.get('guest_email') or 'info@myapartment.com'
+
+    try:
+        check_in = date.fromisoformat(meta.get('check_in'))
+        check_out = date.fromisoformat(meta.get('check_out'))
+    except (TypeError, ValueError):
+        pending = session.get('pending_reservation') or {}
+        check_in = date.fromisoformat(pending.get('check_in', date.today().isoformat()))
+        check_out = date.fromisoformat(pending.get('check_out', (date.today() + timedelta(days=1)).isoformat()))
+
+    try:
+        total_price = float(meta.get('total_price'))
+    except (TypeError, ValueError):
+        apartment = get_apartment()
+        num_guests = int(meta.get('num_guests', 2))
+        total_price = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night) if apartment else 0
+
+    reservation = Reservation(
+        guest_name=guest_name,
+        guest_email=guest_email,
+        check_in=check_in,
+        check_out=check_out,
+        num_guests=int(meta.get('num_guests', 1)),
+        status='confirmed',
+        source='direct',
+        cancel_token=secrets.token_urlsafe(32),
+        total_price=total_price,
+        coupon_code=meta.get('coupon_code') if meta.get('coupon_code') else None,
+        payment_status='paid' if data.get('payment_status') == 'paid' else 'unpaid',
+        payment_method='stripe',
+        stripe_payment_intent_id=pi_id,
+    )
+
+    db.session.add(reservation)
+    db.session.commit()
+
+    try:
+        _send_confirmation_emails(reservation)
+    except Exception as exc:
+        current_app.logger.error('Failed to send confirmation email: %s', exc)
+
+    return reservation
+
+
+@bp.route('/stripe/webhook', methods=['POST'])
+@csrf.exempt
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    endpoint_secret = current_app.config.get('STRIPE_WEBHOOK_SECRET')
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except (ValueError, stripe.error.SignatureVerificationError):
+        return 'Invalid signature', 400
+
+    if event['type'] == 'checkout.session.completed':
+        session_obj = event['data']['object']
+        reservation = _create_reservation_from_stripe(session_obj)
+        send_payment_verified_email(reservation)
+
+    return '', 200
+
+
+@bp.route("/booking/confirmed/<int:reservation_id>")
+def booking_confirmed(reservation_id):
+    reservation = Reservation.query.get_or_404(reservation_id)
+    return render_template('booking_confirmed.html', reservation=reservation)
+
+
+@bp.route("/cancel/<token>")
+def cancel_reservation(token):
+    reservation = Reservation.query.filter_by(cancel_token=token).first_or_404()
+    today = date.today()
+
+    if reservation.status == "cancelled":
+        return render_template(
+            "cancellation_result.html",
+            success=False,
+            message="This reservation has already been cancelled."
+        )
+
+    if reservation.status != "confirmed":
+        return render_template(
+            "cancellation_result.html",
+            success=False,
+            message="This reservation cannot be cancelled."
+        )
+
+    if today >= reservation.check_in:
+        return render_template(
+            "cancellation_result.html",
+            success=False,
+            message="Cancellation is no longer possible after check-in."
+        )
+
+    refund_percentage = calculate_refund_percentage(reservation.check_in)
+    refund_amount = round(reservation.total_price * refund_percentage, 2)
+
+    refund_failed_warning = False
+    refund_issued = False
+
+    if reservation.stripe_payment_intent_id and refund_amount > 0:
+        try:
+            stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+            stripe.Refund.create(
+                payment_intent=reservation.stripe_payment_intent_id,
+                amount=int(refund_amount * 100),
+                reason='requested_by_customer'
+            )
+            refund_issued = True
+        except stripe.error.StripeError as e:
+            current_app.logger.error(f"Stripe refund transaction failed: {str(e)}")
+            refund_failed_warning = True
+
+    reservation.status = "cancelled"
+    db.session.commit()
+
+    send_cancellation_emails(reservation, refund_failed_warning, refund_percentage, refund_amount)
+
+    if refund_percentage == 1.0:
+        refund_text = "A full refund (100%) has been issued back to your payment card."
+    elif refund_percentage == 0.5:
+        refund_text = "A partial refund (50%) has been issued back to your payment card."
+    else:
+        refund_text = "No refund is available per our cancellation policy (cancelled within 7 days of check-in)."
+
+    if refund_failed_warning:
+        refund_text += " However, there was an issue processing your automatic refund. We will review it manually."
+
+    final_ui_message = "Your reservation has been cancelled successfully. " + refund_text
+
+    return render_template(
+        "cancellation_result.html",
+        success=True,
+        message=final_ui_message
+    )
+
+
+@bp.route('/review-and-pay')
+def review_and_pay():
+    booking_data = session.get('booking_data')
+    if not booking_data:
+        return redirect(url_for('routes.home'))
+    total_to_charge = booking_data['total_price']
+    return render_template('review_and_pay.html', booking=booking_data, total=total_to_charge)

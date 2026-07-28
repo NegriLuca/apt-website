@@ -4,7 +4,7 @@ Email service for guest communications including check-in links.
 from flask import current_app, render_template, url_for
 from app import db
 from app.models import Reservation
-from app.routes import send_pending_payment_email
+from app.routes.helpers import send_pending_payment_email
 import requests
 import json
 

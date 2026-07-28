@@ -66,13 +66,29 @@ def create_app():
     moment = Moment(app)
     limiter.init_app(app)
 
+    # ── DB SCHEMA PATCHES: Add missing columns for existing databases ──
+    with app.app_context():
+        from sqlalchemy import text
+        patches = [
+            ("coupon_code", "VARCHAR(20)"),
+            ("tourist_tax_excluded", "BOOLEAN DEFAULT false"),
+        ]
+        for col_name, col_type in patches:
+            try:
+                db.session.execute(text(f"ALTER TABLE reservation ADD COLUMN {col_name} {col_type}"))
+                db.session.commit()
+                app.logger.info(f"Schema patch: added column {col_name}")
+            except Exception:
+                db.session.rollback()
+                app.logger.info(f"Schema patch: column {col_name} already exists, skipping")
+
     # Initialize Babel with the context selector function configuration
     babel.init_app(app, locale_selector=get_locale)
     app.jinja_env.filters['format_date'] = format_date
     app.jinja_env.filters['format_datetime'] = format_datetime
 
-    from app import routes
-    app.register_blueprint(routes.bp)
+    from app.routes import bp
+    app.register_blueprint(bp)
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
