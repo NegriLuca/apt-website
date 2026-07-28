@@ -1,1 +1,1 @@
-web: export FLASK_APP=app:create_app; pybabel compile -d translations 2>&1; flask db upgrade 2>&1; exec gunicorn "app:create_app()" --access-logfile=- --error-logfile=- --log-level=info
+web: gunicorn "app:create_app()" --access-logfile=- --error-logfile=- --log-level=info

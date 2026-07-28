@@ -91,9 +91,14 @@ def create_app(config_class=Config):
 
     # ── Babel ──────────────────────────────────────────────────────────────────
     babel.init_app(app, locale_selector=get_locale)
-    babel.init_app(app, locale_selector=get_locale)
     app.jinja_env.filters['format_date'] = format_date
     app.jinja_env.filters['format_datetime'] = format_datetime
+
+    # ── Auto-compile translations on startup ───────────────────────────────────
+    _compile_translations(app)
+
+    # ── Run pending DB migrations on startup ───────────────────────────────────
+    _run_migrations(app)
 
     from app.routes import bp
 
@@ -135,6 +140,33 @@ def create_app(config_class=Config):
     _start_scheduler(app)
 
     return app
+
+
+def _compile_translations(app: Flask):
+    try:
+        import subprocess
+        translations_dir = os.path.join(app.root_path, '..', 'translations')
+        if os.path.isdir(translations_dir):
+            result = subprocess.run(
+                ['pybabel', 'compile', '-d', translations_dir],
+                capture_output=True, text=True, timeout=30,
+            )
+            if result.returncode == 0:
+                app.logger.info('Translations compiled')
+            else:
+                app.logger.warning('Translation compile: %s', result.stderr[:200])
+    except Exception as e:
+        app.logger.warning('Translation compile skipped: %s', e)
+
+
+def _run_migrations(app: Flask):
+    try:
+        with app.app_context():
+            from flask_migrate import upgrade
+            upgrade(directory=os.path.join(app.root_path, '..', 'migrations'), revision='head')
+            app.logger.info('DB migrations up to date')
+    except Exception as e:
+        app.logger.warning('DB migration skipped: %s', e)
 
 
 def _start_scheduler(app: Flask):
