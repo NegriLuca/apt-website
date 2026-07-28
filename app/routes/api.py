@@ -209,10 +209,37 @@ def guest_self_checkin(token):
 @bp.route('/access/<token>')
 def guest_access(token):
     reservation = Reservation.query.filter_by(access_token=token).first_or_404()
-    return render_template('guest_access.html', reservation=reservation)
+    apartment = get_apartment()
+    gate_configured = bool(apartment and apartment.shelly_enabled)
+    door_configured = bool(apartment and apartment.nuki_enabled)
+    return render_template('guest_access.html',
+        reservation=reservation,
+        apartment=apartment,
+        gate_configured=gate_configured,
+        door_configured=door_configured,
+    )
 
 
 @bp.route('/portal/<token>')
 def guest_portal(token):
     reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
-    return render_template('guest_portal.html', reservation=reservation)
+    apartment = get_apartment()
+    today = date.today()
+
+    show_checkin = not (reservation.checkin_token_used and reservation.checkin_completed_at)
+    in_stay = reservation.check_in <= today <= reservation.check_out
+    show_access = bool(reservation.access_token) and in_stay
+
+    access_token = reservation.access_token
+    gate_configured = bool(apartment and apartment.shelly_enabled) if apartment else False
+    door_configured = bool(apartment and apartment.nuki_enabled) if apartment else False
+
+    return render_template('guest_portal.html',
+        reservation=reservation,
+        apartment=apartment,
+        show_checkin=show_checkin,
+        show_access=show_access,
+        access_token=access_token,
+        gate_configured=gate_configured,
+        door_configured=door_configured,
+    )
