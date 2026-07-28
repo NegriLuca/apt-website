@@ -71,14 +71,15 @@ def questura_list():
     if not current_user.is_admin:
         abort(403)
 
-    today = date.today()
-    active_reservations = Reservation.query.filter(
-        Reservation.status == 'confirmed',
-        Reservation.check_in <= today,
-        Reservation.check_out >= today
-    ).order_by(Reservation.check_in).all()
+    status_filter = request.args.get('status', 'all')
+    page = request.args.get('page', 1, type=int)
 
-    return render_template('admin_questura.html', reservations=active_reservations)
+    query = Reservation.query.order_by(Reservation.check_in.desc())
+    if status_filter != 'all':
+        query = query.filter(Reservation.questura_status == status_filter)
+
+    reservations = query.paginate(page=page, per_page=25, error_out=False)
+    return render_template('admin_questura.html', reservations=reservations, status_filter=status_filter)
 
 
 @bp.route('/admin/compliance/questura/submit', methods=['POST'])
@@ -115,7 +116,9 @@ def questura_logs():
     if not current_user.is_admin:
         abort(403)
 
-    logs = QuesturaLog.query.order_by(QuesturaLog.created_at.desc()).limit(100).all()
+    page = request.args.get('page', 1, type=int)
+    logs = QuesturaLog.query.order_by(QuesturaLog.created_at.desc()).paginate(
+        page=page, per_page=50, error_out=False)
     return render_template('admin_questura_logs.html', logs=logs)
 
 
