@@ -33,7 +33,9 @@ with app.app_context():
     while not db_connected and retries > 0:
         try:
             print(f"🔌 Tentativo di connessione al database... (Rimasti: {retries})")
-            db.create_all()  # Crea le tabelle se non esistono
+            db.create_all()
+            from flask_migrate import upgrade
+            upgrade(directory='migrations', revision='head')
             db_connected = True
             print("💾 Database connesso con successo sulla rete interna privata!")
         except OperationalError as e:
