@@ -56,6 +56,54 @@ class Apartment(db.Model):
     whatsapp_number = db.Column(db.String(30), nullable=True, comment='WhatsApp number in international format (e.g., 393000000000)')
     whatsapp_default_message = db.Column(db.Text, nullable=True, comment='Default pre-filled message for WhatsApp')
 
+    # Trust Badges & Reviews
+    # Review Platforms
+    booking_review_score = db.Column(db.Float, nullable=True, comment='Booking.com review score (0-10)')
+    booking_review_count = db.Column(db.Integer, nullable=True, comment='Booking.com number of reviews')
+    booking_property_id = db.Column(db.String(50), nullable=True, comment='Booking.com property ID for widget')
+    
+    airbnb_review_score = db.Column(db.Float, nullable=True, comment='Airbnb review score (0-5)')
+    airbnb_review_count = db.Column(db.Integer, nullable=True, comment='Airbnb number of reviews')
+    airbnb_listing_id = db.Column(db.String(50), nullable=True, comment='Airbnb listing ID')
+    
+    google_review_score = db.Column(db.Float, nullable=True, comment='Google reviews score (0-5)')
+    google_review_count = db.Column(db.Integer, nullable=True, comment='Google reviews count')
+    google_place_id = db.Column(db.String(100), nullable=True, comment='Google Places ID')
+    
+    tripadvisor_review_score = db.Column(db.Float, nullable=True, comment='TripAdvisor score (0-5)')
+    tripadvisor_review_count = db.Column(db.Integer, nullable=True, comment='TripAdvisor review count')
+    tripadvisor_location_id = db.Column(db.String(50), nullable=True, comment='TripAdvisor location ID')
+    
+    vrbo_review_score = db.Column(db.Float, nullable=True, comment='VRBO/HomeAway score (0-5)')
+    vrbo_review_count = db.Column(db.Integer, nullable=True, comment='VRBO review count')
+    vrbo_listing_id = db.Column(db.String(50), nullable=True, comment='VRBO listing ID')
+    
+    # Payment & Security Badges
+    stripe_verified = db.Column(db.Boolean, default=False, comment='Show Stripe verified badge')
+    ssl_certified = db.Column(db.Boolean, default=True, comment='Show SSL/Secure badge')
+    gdpr_compliant = db.Column(db.Boolean, default=True, comment='Show GDPR compliant badge')
+    pci_compliant = db.Column(db.Boolean, default=False, comment='Show PCI DSS compliant badge')
+    
+    # Custom Trust Badges (upload images)
+    custom_badge_1_image = db.Column(db.String(200), nullable=True, comment='Custom badge 1 image filename')
+    custom_badge_1_link = db.Column(db.String(300), nullable=True, comment='Custom badge 1 link URL')
+    custom_badge_1_alt = db.Column(db.String(100), nullable=True, comment='Custom badge 1 alt text')
+    
+    custom_badge_2_image = db.Column(db.String(200), nullable=True, comment='Custom badge 2 image filename')
+    custom_badge_2_link = db.Column(db.String(300), nullable=True, comment='Custom badge 2 link URL')
+    custom_badge_2_alt = db.Column(db.String(100), nullable=True, comment='Custom badge 2 alt text')
+    
+    custom_badge_3_image = db.Column(db.String(200), nullable=True, comment='Custom badge 3 image filename')
+    custom_badge_3_link = db.Column(db.String(300), nullable=True, comment='Custom badge 3 link URL')
+    custom_badge_3_alt = db.Column(db.String(100), nullable=True, comment='Custom badge 3 alt text')
+
+    # Display Settings
+    show_reviews_in_footer = db.Column(db.Boolean, default=True, comment='Show review badges in footer')
+    show_reviews_on_homepage = db.Column(db.Boolean, default=True, comment='Show review badges on homepage')
+    show_reviews_on_booking = db.Column(db.Boolean, default=True, comment='Show review badges on booking page')
+    show_payment_badges_in_footer = db.Column(db.Boolean, default=True, comment='Show payment badges in footer')
+    show_payment_badges_on_checkout = db.Column(db.Boolean, default=True, comment='Show payment badges on checkout')
+
 
 class Reservation(db.Model):
     __tablename__ = "reservation"

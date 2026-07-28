@@ -306,6 +306,11 @@
         </iframe>
     </div>
 
+    {% if apartment and apartment.show_reviews_on_homepage %}
+    <!-- Trust Badges & Reviews Section -->
+    {% include 'components/trust_badges_reviews.html' %}
+    {% endif %}
+
     <!-- Testimonials Section -->
     <hr class="divider">
     <section class="testimonials" aria-labelledby="testimonials-heading">

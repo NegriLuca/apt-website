@@ -7,6 +7,13 @@
         <div class="col-lg-6">
             <h1 class="page-title mb-2 text-center text-lg-start">{{ _('Review & Pay') }}</h1>
 
+            <!-- Trust Badges at top of checkout -->
+            {% if apartment and apartment.show_payment_badges_on_checkout %}
+            <div class="mb-4">
+                {% include 'components/trust_badges_payment.html' %}
+            </div>
+            {% endif %}
+
             <!-- SUMMARY CARD -->
             <div class="card border-0 shadow-sm mb-5">
                 <div class="card-header bg-dark text-white py-3">
@@ -95,6 +102,11 @@
             </div>
 
             <div class="text-center mt-4">
+            {% if apartment and apartment.show_reviews_on_booking %}
+            <div class="mb-4">
+                {% include 'components/trust_badges_reviews.html' %}
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

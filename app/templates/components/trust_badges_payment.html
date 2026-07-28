@@ -1,0 +1,100 @@
+{# Trust Badges Component - Payment & Security #}
+{% if apartment and (apartment.stripe_verified or apartment.ssl_certified or apartment.gdpr_compliant or apartment.pci_compliant or apartment.custom_badge_1_image or apartment.custom_badge_2_image or apartment.custom_badge_3_image) %}
+<div class="trust-badges-payment mb-4">
+    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center justify-content-md-start">
+        
+        <!-- Stripe Verified -->
+        {% if apartment.stripe_verified %}
+        <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2" style="min-width: 140px;" title="{{ _('Payments powered by Stripe') }}">
+            <svg width="24" height="16" viewBox="0 0 168 112" fill="none">
+                <path fill="#008CFF" d="M0 0h168v112H0z"/>
+                <path fill="#FFF" d="M42 56c0-13.8 11.2-25 25-25s25 11.2 25 25-11.2 25-25 25-25-11.2-25-25zm0 10c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15zm30-10c0-13.8 11.2-25 25-25s25 11.2 25 25-11.2 25-25 25-25-11.2-25-25zm0 10c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15zm30-10c0-13.8 11.2-25 25-25s25 11.2 25 25-11.2 25-25 25-25-11.2-25-25zm0 10c-8.3 0-15-6.7-15-15s6.7-15 15-15 15 6.7 15 15-6.7 15-15 15z"/>
+            </svg>
+            <span class="fw-semibold text-primary small">{{ _('Stripe Verified') }}</span>
+        </div>
+        {% endif %}
+        
+        <!-- SSL Secured -->
+        {% if apartment.ssl_certified %}
+        <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2" style="min-width: 130px;" title="{{ _('SSL Secured Connection') }}">
+            <i class="bi bi-lock-fill text-success" style="font-size: 1.1rem;"></i>
+            <span class="fw-semibold text-success small">{{ _('SSL Secured') }}</span>
+        </div>
+        {% endif %}
+        
+        <!-- GDPR Compliant -->
+        {% if apartment.gdpr_compliant %}
+        <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2" style="min-width: 140px;" title="{{ _('GDPR Compliant - EU Data Protection') }}">
+            <i class="bi bi-shield-lock-fill text-info" style="font-size: 1.1rem;"></i>
+            <span class="fw-semibold text-info small">{{ _('GDPR Compliant') }}</span>
+        </div>
+        {% endif %}
+        
+        <!-- PCI DSS -->
+        {% if apartment.pci_compliant %}
+        <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2" style="min-width: 120px;" title="{{ _('PCI DSS Level 1 Certified') }}">
+            <i class="bi bi-badge-cc-fill text-warning" style="font-size: 1.1rem;"></i>
+            <span class="fw-semibold text-warning small">{{ _('PCI DSS') }}</span>
+        </div>
+        {% endif %}
+        
+        <!-- Custom Badge 1 -->
+        {% if apartment.custom_badge_1_image %}
+        {% set badge_link = apartment.custom_badge_1_link or '#' %}
+        {% set badge_alt = apartment.custom_badge_1_alt or 'Trust Badge' %}
+        <a href="{{ badge_link }}" target="_blank" rel="noopener noreferrer" class="badge-link" title="{{ badge_alt }}">
+            <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2">
+                <img src="{{ url_for('static', filename='images/badges/' + apartment.custom_badge_1_image) }}" alt="{{ badge_alt }}" style="height: 24px; width: auto;">
+            </div>
+        </a>
+        {% endif %}
+        
+        <!-- Custom Badge 2 -->
+        {% if apartment.custom_badge_2_image %}
+        {% set badge_link = apartment.custom_badge_2_link or '#' %}
+        {% set badge_alt = apartment.custom_badge_2_alt or 'Trust Badge' %}
+        <a href="{{ badge_link }}" target="_blank" rel="noopener noreferrer" class="badge-link" title="{{ badge_alt }}">
+            <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2">
+                <img src="{{ url_for('static', filename='images/badges/' + apartment.custom_badge_2_image) }}" alt="{{ badge_alt }}" style="height: 24px; width: auto;">
+            </div>
+        </a>
+        {% endif %}
+        
+        <!-- Custom Badge 3 -->
+        {% if apartment.custom_badge_3_image %}
+        {% set badge_link = apartment.custom_badge_3_link or '#' %}
+        {% set badge_alt = apartment.custom_badge_3_alt or 'Trust Badge' %}
+        <a href="{{ badge_link }}" target="_blank" rel="noopener noreferrer" class="badge-link" title="{{ badge_alt }}">
+            <div class="badge-pill bg-white border px-3 py-2 d-flex align-items-center gap-2">
+                <img src="{{ url_for('static', filename='images/badges/' + apartment.custom_badge_3_image) }}" alt="{{ badge_alt }}" style="height: 24px; width: auto;">
+            </div>
+        </a>
+        {% endif %}
+        
+    </div>
+</div>
+{% endif %}
+
+<style>
+.badge-pill {
+    border-radius: 50px;
+    font-size: 0.8rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.badge-link {
+    text-decoration: none;
+}
+.badge-link:hover .badge-pill,
+.badge-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 576px) {
+    .badge-pill {
+        min-width: auto !important;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.7rem;
+    }
+}
+</style>

@@ -1105,6 +1105,52 @@ def admin_pricing():
             db.session.commit()
             flash('Smart access settings updated successfully!', 'success')
             return redirect(url_for('routes.admin_pricing'))
+        
+        # Handle Trust Badges configuration fields
+        if 'booking_property_id' in request.form:
+            # Review platforms
+            apartment.booking_property_id = request.form.get('booking_property_id', '').strip() or None
+            apartment.booking_review_score = request.form.get('booking_review_score', type=float)
+            apartment.booking_review_count = request.form.get('booking_review_count', type=int)
+            
+            apartment.airbnb_listing_id = request.form.get('airbnb_listing_id', '').strip() or None
+            apartment.airbnb_review_score = request.form.get('airbnb_review_score', type=float)
+            apartment.airbnb_review_count = request.form.get('airbnb_review_count', type=int)
+            
+            apartment.google_place_id = request.form.get('google_place_id', '').strip() or None
+            apartment.google_review_score = request.form.get('google_review_score', type=float)
+            apartment.google_review_count = request.form.get('google_review_count', type=int)
+            
+            apartment.tripadvisor_location_id = request.form.get('tripadvisor_location_id', '').strip() or None
+            apartment.tripadvisor_review_score = request.form.get('tripadvisor_review_score', type=float)
+            apartment.tripadvisor_review_count = request.form.get('tripadvisor_review_count', type=int)
+            
+            apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
+            apartment.vrbo_review_score = request.form.get('vrbo_review_score', type=float)
+            apartment.vrbo_review_count = request.form.get('vrbo_review_count', type=int)
+            
+            # Payment badges
+            apartment.stripe_verified = bool(request.form.get('stripe_verified'))
+            apartment.ssl_certified = bool(request.form.get('ssl_certified'))
+            apartment.gdpr_compliant = bool(request.form.get('gdpr_compliant'))
+            apartment.pci_compliant = bool(request.form.get('pci_compliant'))
+            
+            # Custom badges
+            for i in [1, 2, 3]:
+                setattr(apartment, f'custom_badge_{i}_image', request.form.get(f'custom_badge_{i}_image', '').strip() or None)
+                setattr(apartment, f'custom_badge_{i}_link', request.form.get(f'custom_badge_{i}_link', '').strip() or None)
+                setattr(apartment, f'custom_badge_{i}_alt', request.form.get(f'custom_badge_{i}_alt', '').strip() or None)
+            
+            # Display settings
+            apartment.show_reviews_in_footer = bool(request.form.get('show_reviews_in_footer'))
+            apartment.show_reviews_on_homepage = bool(request.form.get('show_reviews_on_homepage'))
+            apartment.show_reviews_on_booking = bool(request.form.get('show_reviews_on_booking'))
+            apartment.show_payment_badges_in_footer = bool(request.form.get('show_payment_badges_in_footer'))
+            apartment.show_payment_badges_on_checkout = bool(request.form.get('show_payment_badges_on_checkout'))
+            
+            db.session.commit()
+            flash('Trust badges settings updated successfully!', 'success')
+            return redirect(url_for('routes.admin_pricing'))
 
     all_coupons = Coupon.query.all()
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
@@ -1509,12 +1555,43 @@ def logout():
 
 @bp.route('/sitemap.xml', methods=['GET'])
 def sitemap():
-    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemapindex.org/schemas/sitemap/0.9">
-        <url><loc>https://www.lotto235garbatella.it/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-        <url><loc>https://www.lotto235garbatella.it/reserve</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-        <url><loc>https://www.lotto235garbatella.it/contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+    """Generate dynamic sitemap with all public pages"""
+    base_url = current_app.config.get('BASE_URL', 'https://www.lotto235garbatella.it').rstrip('/')
+    
+    # Static public pages
+    static_pages = [
+        ('/', 'weekly', 1.0),
+        ('/reserve', 'monthly', 0.9),
+        ('/faq', 'monthly', 0.7),
+        ('/terms', 'yearly', 0.5),
+        ('/cancellation-policy', 'yearly', 0.5),
+        ('/refund-policy', 'yearly', 0.5),
+        ('/house-rules', 'yearly', 0.5),
+        ('/privacy', 'yearly', 0.5),
+        ('/food_recommendations', 'monthly', 0.6),
+        ('/attractions', 'monthly', 0.6),
+        ('/contact', 'monthly', 0.5),
+    ]
+    
+    # Generate URLs
+    urls = []
+    for path, changefreq, priority in static_pages:
+        urls.append(f'        <url><loc>{base_url}{path}</loc><changefreq>{changefreq}</changefreq><priority>{priority}</priority></url>')
+    
+    # Add language variants for main pages
+    languages = ['en', 'it', 'de', 'fr', 'es']
+    main_pages = ['/', '/reserve', '/faq', '/contact']
+    for lang in languages:
+        if lang != 'en':  # English is default
+            for path in main_pages:
+                lang_path = f'/{lang}{path}' if path != '/' else f'/{lang}/'
+                urls.append(f'        <url><loc>{base_url}{lang_path}</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>')
+    
+    xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{chr(10).join(urls)}
     </urlset>"""
+    
     return Response(xml_content, mimetype='text/xml')
 
 
