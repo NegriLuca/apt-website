@@ -7,139 +7,231 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-26 13:00+0200\n"
+"POT-Creation-Date: 2026-07-28 21:09+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: es\n"
 "Language-Team: es <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: app/forms.py:12
+#: app/forms.py:16
 msgid "Name"
 msgstr "Nombre"
 
-#: app/forms.py:13 app/templates/checkout.html:27
+#: app/forms.py:17 app/templates/admin_guest_checkin.html:121
+#: app/templates/checkout.html:34
 msgid "Email"
 msgstr "Correo electrónico"
 
-#: app/forms.py:14 app/templates/admin_dashboard.html:84
-#: app/templates/checkout.html:31
+#: app/forms.py:18 app/templates/admin_compliance.html:101
+#: app/templates/admin_dashboard.html:114
+#: app/templates/admin_dashboard.html:144
+#: app/templates/admin_guest_checkin.html:109
+#: app/templates/admin_questura.html:67
+#: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
+#: app/templates/guest_access.html:16 app/templates/guest_self_checkin.html:23
 msgid "Check-in"
 msgstr "Check-in"
 
-#: app/forms.py:15 app/templates/admin_dashboard.html:85
-#: app/templates/checkout.html:35
+#: app/forms.py:19 app/templates/admin_dashboard.html:145
+#: app/templates/admin_guest_checkin.html:113
+#: app/templates/admin_questura.html:68
+#: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
+#: app/templates/guest_access.html:20 app/templates/guest_self_checkin.html:27
 msgid "Check-out"
 msgstr "Check-out"
 
-#: app/forms.py:17 app/templates/checkout.html:43
+#: app/forms.py:21 app/templates/admin_tourist_tax.html:159
+#: app/templates/admin_tourist_tax.html:209 app/templates/checkout.html:50
+#: app/templates/guest_self_checkin.html:31
 msgid "Guests"
 msgstr "Huéspedes"
 
-#: app/forms.py:22
+#: app/forms.py:23
 msgid "Proceed to payment"
 msgstr "Proceder al pago"
 
-#: app/forms.py:25
+#: app/forms.py:27 app/templates/admin_compliance_config.html:41
 msgid "Username"
 msgstr "Nombre de usuario"
 
-#: app/forms.py:26
+#: app/forms.py:28 app/templates/admin_compliance_config.html:46
 msgid "Password"
 msgstr "Contraseña"
 
-#: app/forms.py:27
+#: app/forms.py:29
 msgid "Remember Me"
 msgstr "Recordarme"
 
-#: app/forms.py:28 app/templates/login.html:3
+#: app/forms.py:30 app/templates/login.html:3
 msgid "Login"
 msgstr "Iniciar sesión"
 
-#: app/forms.py:31
+#: app/forms.py:34
 msgid "Your name"
 msgstr "Tu nombre"
 
-#: app/forms.py:32
+#: app/forms.py:35
 msgid "Email address"
 msgstr "Dirección de correo electrónico"
 
-#: app/forms.py:33
+#: app/forms.py:36
 msgid "Message"
 msgstr "Mensaje"
 
-#: app/forms.py:34 app/templates/contact.html:39
+#: app/forms.py:37 app/templates/admin_dashboard.html:208
+#: app/templates/contact.html:39
 msgid "Send message"
 msgstr "Enviar mensaje"
 
-#: app/forms.py:38 app/templates/admin_dashboard.html:194
+#: app/forms.py:42
 msgid "Platform"
 msgstr "Plataforma"
 
-#: app/forms.py:47
+#: app/forms.py:51
 msgid "iCal URL"
 msgstr "URL iCal"
 
-#: app/forms.py:48 app/templates/admin_dashboard.html:207
+#: app/forms.py:52 app/templates/admin_ical_feeds.html:22
+#: app/templates/admin_ical_feeds.html:31
 msgid "Active"
 msgstr "Activo"
 
-#: app/forms.py:49
+#: app/forms.py:53 app/templates/admin_tourist_tax.html:221
 msgid "Save"
 msgstr "Guardar"
 
-#: app/forms.py:53 app/templates/apartment.html:375
+#: app/forms.py:57 app/templates/apartment.html:380
 msgid "Your Name"
 msgstr "Tu nombre"
 
-#: app/forms.py:54
+#: app/forms.py:58
 msgid "Location (City, Country)"
 msgstr "Ubicación (Ciudad, País)"
 
-#: app/forms.py:55 app/templates/admin_testimonials.html:50
-#: app/templates/apartment.html:335
+#: app/forms.py:60 app/templates/admin_testimonials.html:50
+#: app/templates/apartment.html:340
 msgid "Rating"
 msgstr "Valoración"
 
-#: app/forms.py:56
+#: app/forms.py:65
 msgid "Your Review"
 msgstr "Tu reseña"
 
-#: app/forms.py:57
+#: app/forms.py:66
 msgid "Stay Date (optional)"
 msgstr "Fecha de estancia (opcional)"
 
-#: app/forms.py:58
+#: app/forms.py:67
 msgid "Submit Review"
 msgstr "Enviar reseña"
 
-#: app/routes.py:489
+#: app/routes/admin.py:245
+msgid "Trust Badges & Widgets settings saved!"
+msgstr ""
+
+#: app/routes/booking.py:99
 msgid "Please fill in the booking form first."
 msgstr "Por favor, completa primero el formulario de reserva."
 
-#: app/routes.py:530
+#: app/routes/booking.py:139 app/routes/booking.py:198
 msgid "Session expired. Please try again."
 msgstr "Sesión expirada. Por favor, inténtalo de nuevo."
 
-#: app/routes.py:589
-msgid "Session expired. Please start again."
-msgstr "Sesión expirada. Por favor, comienza de nuevo."
+#: app/routes/booking.py:272
+msgid "Payment verification failed. Please contact support."
+msgstr ""
 
-#: app/routes.py:608
-msgid "Sorry, those dates were just booked. Please choose again."
-msgstr "Lo sentimos, esas fechas acaban de reservarse. Por favor, elige otras."
+#: app/routes/public.py:129
+msgid "Thank you! Your message has been sent."
+msgstr ""
 
-#: app/routes.py:647
-msgid "Payment provider error. Please try again later."
+#: app/routes/public.py:131
+#, fuzzy
+msgid "Failed to send message. Please try again later."
 msgstr "Error del proveedor de pagos. Por favor, inténtalo más tarde."
 
-#: app/routes.py:895
+#: app/routes/public.py:133
+#, fuzzy
+msgid "Network error. Please try again later."
+msgstr "Error del proveedor de pagos. Por favor, inténtalo más tarde."
+
+#: app/routes/public.py:155
 msgid "Thank you for your review! It will be published after moderation."
 msgstr "¡Gracias por tu reseña! Se publicará tras la moderación."
+
+#: app/templates/admin_audit_log.html:2 app/templates/admin_header.html:55
+#, fuzzy
+msgid "Audit Log"
+msgstr "Acceso admin"
+
+#: app/templates/admin_audit_log.html:7
+#, fuzzy
+msgid "Admin Audit Log"
+msgstr "Acceso admin"
+
+#: app/templates/admin_audit_log.html:8
+msgid "Clear Filters"
+msgstr ""
+
+#: app/templates/admin_audit_log.html:13
+#, fuzzy
+msgid "Search action or details..."
+msgstr "Detalles de la reserva"
+
+#: app/templates/admin_audit_log.html:16
+#, fuzzy
+msgid "Admin user"
+msgstr "Calendario de administración"
+
+#: app/templates/admin_audit_log.html:20
+#, fuzzy
+msgid "All entities"
+msgstr "Servicios"
+
+#: app/templates/admin_audit_log.html:32
+msgid "Filter"
+msgstr ""
+
+#: app/templates/admin_audit_log.html:41
+msgid "When"
+msgstr ""
+
+#: app/templates/admin_audit_log.html:42
+#, fuzzy
+msgid "Admin"
+msgstr "Acceso admin"
+
+#: app/templates/admin_audit_log.html:43
+#: app/templates/admin_compliance.html:104
+#: app/templates/admin_questura.html:71
+#: app/templates/admin_questura_logs.html:28
+#, fuzzy
+msgid "Action"
+msgstr "Acciones"
+
+#: app/templates/admin_audit_log.html:44
+#, fuzzy
+msgid "Entity"
+msgstr "Editar"
+
+#: app/templates/admin_audit_log.html:45
+#: app/templates/admin_questura_logs.html:31
+#, fuzzy
+msgid "Details"
+msgstr "Detalles de la estancia:"
+
+#: app/templates/admin_audit_log.html:46
+msgid "IP"
+msgstr ""
+
+#: app/templates/admin_audit_log.html:60
+msgid "No audit log entries found."
+msgstr ""
 
 #: app/templates/admin_calendar.html:3
 msgid "Admin Calendar"
@@ -157,8 +249,7 @@ msgstr "Directa (Confirmada)"
 msgid "Pending Verification"
 msgstr "Pendiente de verificación"
 
-#: app/templates/admin_calendar.html:15 app/templates/admin_dashboard.html:31
-#: app/templates/admin_dashboard.html:72 app/templates/admin_dashboard.html:160
+#: app/templates/admin_calendar.html:15 app/templates/admin_dashboard.html:55
 msgid "Cancelled"
 msgstr "Cancelada"
 
@@ -166,7 +257,9 @@ msgstr "Cancelada"
 msgid "Booking Details"
 msgstr "Detalles de la reserva"
 
-#: app/templates/admin_calendar.html:73 app/templates/booking_confirmed.html:22
+#: app/templates/admin_calendar.html:73
+#: app/templates/booking_confirmed.html:22
+#: app/templates/guest_access_denied.html:21
 msgid "Guest:"
 msgstr "Huésped:"
 
@@ -180,7 +273,7 @@ msgstr "Pago:"
 
 #: app/templates/admin_calendar.html:76
 #: app/templates/email_confirmation.html:38
-#: app/templates/email_pending_payment.html:43
+#: app/templates/email_pending_payment.html:69
 msgid "Status:"
 msgstr "Estado:"
 
@@ -188,187 +281,621 @@ msgstr "Estado:"
 msgid "Revenue:"
 msgstr "Ingresos:"
 
-#: app/templates/admin_dashboard.html:3
+#: app/templates/admin_compliance.html:2
+#, fuzzy
+msgid "Compliance Dashboard"
+msgstr "Panel de administración"
+
+#: app/templates/admin_compliance.html:9
+#, fuzzy
+msgid "Italian Compliance Dashboard"
+msgstr "Panel de administración"
+
+#: app/templates/admin_compliance.html:20
+msgid "To be sent to Questura"
+msgstr ""
+
+#: app/templates/admin_compliance.html:21
+#: app/templates/admin_compliance.html:30
+#: app/templates/admin_compliance.html:39
+#: app/templates/admin_notifications.html:26
+msgid "View"
+msgstr ""
+
+#: app/templates/admin_compliance.html:29
+msgid "Rejected / With errors"
+msgstr ""
+
+#: app/templates/admin_compliance.html:38 app/templates/admin_questura.html:30
+#: app/templates/admin_questura.html:91
+#, fuzzy
+msgid "Accepted"
+msgstr "Creado"
+
+#: app/templates/admin_compliance.html:47
+msgid "Current Month Tourist Tax"
+msgstr ""
+
+#: app/templates/admin_compliance.html:48
+#, fuzzy
+msgid "Manage"
+msgstr "Gestionar en OTA"
+
+#: app/templates/admin_compliance.html:59
+#, fuzzy
+msgid "Quick Actions"
+msgstr "Acciones"
+
+#: app/templates/admin_compliance.html:65
+msgid "Run Daily Questura Submission"
+msgstr ""
+
+#: app/templates/admin_compliance.html:70
+msgid "Generate Tourist Tax Report"
+msgstr ""
+
+#: app/templates/admin_compliance.html:74
+msgid "Credentials Configuration"
+msgstr ""
+
+#: app/templates/admin_compliance.html:77
+msgid "Questura Log"
+msgstr ""
+
+#: app/templates/admin_compliance.html:91
+msgid "Upcoming Check-ins Without Questura Data"
+msgstr ""
+
+#: app/templates/admin_compliance.html:100
+#: app/templates/admin_dashboard.html:114
+#: app/templates/admin_dashboard.html:142
+#: app/templates/admin_guest_checkin.html:117
+#: app/templates/admin_questura.html:66
+#: app/templates/admin_testimonials.html:49
+#: app/templates/admin_tourist_tax.html:155 app/templates/checkout.html:30
+#: app/templates/guest_access.html:24
+msgid "Guest"
+msgstr "Huésped"
+
+#: app/templates/admin_compliance.html:102
+#: app/templates/admin_compliance.html:140
+#: app/templates/admin_compliance_config.html:180
+#: app/templates/admin_questura.html:27
+#: app/templates/admin_questura_logs.html:29
+#: app/templates/admin_testimonials.html:53
+msgid "Status"
+msgstr "Estado"
+
+#: app/templates/admin_compliance.html:103
+msgid "Missing Fields"
+msgstr ""
+
+#: app/templates/admin_compliance.html:116
+msgid "Enter Data"
+msgstr ""
+
+#: app/templates/admin_compliance.html:134
+msgid "Questura Configuration Status"
+msgstr ""
+
+#: app/templates/admin_compliance.html:140
+#, fuzzy
+msgid "Parameter"
+msgstr "Apartamento"
+
+#: app/templates/admin_compliance.html:148
+#: app/templates/admin_compliance_config.html:188
+#, fuzzy
+msgid "Configured"
+msgstr "Confirmada"
+
+#: app/templates/admin_compliance.html:150
+msgid "Missing"
+msgstr ""
+
+#: app/templates/admin_compliance.html:164
+msgid "Regulatory Requirements"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:2
+#, fuzzy
+msgid "Compliance Configuration"
+msgstr "Confirmación de reserva"
+
+#: app/templates/admin_compliance_config.html:9
+msgid "Compliance Credentials Configuration"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:11
+#: app/templates/admin_questura.html:13
+#: app/templates/admin_questura_logs.html:12
+#: app/templates/admin_tourist_tax.html:13
+#, fuzzy
+msgid "Back to Dashboard"
+msgstr "← Volver al panel"
+
+#: app/templates/admin_compliance_config.html:21
+msgid "Questura / AlloggiatiWeb"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:27
+#, fuzzy
+msgid "WSDL URL"
+msgstr "URL iCal"
+
+#: app/templates/admin_compliance_config.html:31
+msgid "URL of the SOAP service. Use test version for development."
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:34
+msgid "Questura Protocol"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:38
+msgid "Protocol number assigned by Rome Questura."
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:51
+msgid "Certificate Path (.pfx/.p12)"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:55
+msgid "Absolute path of client certificate for mTLS."
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:58
+msgid "Certificate Password"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:61
+msgid "Password of .pfx/.p12 file."
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:66
+msgid "Save Questura Configuration"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:79
+msgid "Tourist Tax - Roma Capitale"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:85
+#, fuzzy
+msgid "Property Category"
+msgstr "Filtrar por categoría"
+
+#: app/templates/admin_compliance_config.html:97
+msgid "Custom Rate (€)"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:102
+msgid "Tax Office Email"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:108
+msgid "Save Tourist Tax Configuration"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:120
+msgid "ROSS1000 / Lazio Region"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:126
+#, fuzzy
+msgid "ROSS1000 Username"
+msgstr "Nombre de usuario"
+
+#: app/templates/admin_compliance_config.html:131
+#, fuzzy
+msgid "ROSS1000 Password"
+msgstr "Contraseña"
+
+#: app/templates/admin_compliance_config.html:137
+msgid "Save ROSS1000 Configuration"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:142
+msgid "Note:"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:142
+msgid ""
+"ROSS1000 has no public API. This configuration is for future integrations or"
+" reference. Currently management is manual via web portal."
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:153
+msgid "Encryption Key for Sensitive Data"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:158
+msgid ""
+"The encryption key COMPLIANCE_ENCRYPTION_KEY must be set as an environment "
+"variable. Do not save it in the database."
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:174
+#, fuzzy
+msgid "Saved Configurations"
+msgstr "Confirmación de reserva"
+
+#: app/templates/admin_compliance_config.html:180
+msgid "Key"
+msgstr ""
+
+#: app/templates/admin_compliance_config.html:180
+#, fuzzy
+msgid "Description"
+msgstr "Deducciones"
+
+#: app/templates/admin_compliance_config.html:180
+#, fuzzy
+msgid "Last Update"
+msgstr "Fecha de estancia"
+
+#: app/templates/admin_compliance_config.html:190
+msgid "Not set"
+msgstr ""
+
+#: app/templates/admin_dashboard.html:2
 msgid "Admin Dashboard"
 msgstr "Panel de administración"
 
-#: app/templates/admin_dashboard.html:13
-msgid "Total Bookings"
+#: app/templates/admin_dashboard.html:10
+#, fuzzy
+msgid "Monthly Revenue"
+msgstr "Ingresos totales"
+
+#: app/templates/admin_dashboard.html:16
+#, fuzzy
+msgid "Yearly Revenue"
+msgstr "Ingresos totales"
+
+#: app/templates/admin_dashboard.html:22
+msgid "Occupancy"
+msgstr ""
+
+#: app/templates/admin_dashboard.html:28
+#, fuzzy
+msgid "Monthly Bookings"
 msgstr "Total de reservas"
 
-#: app/templates/admin_dashboard.html:19 app/templates/admin_dashboard.html:70
+#: app/templates/admin_dashboard.html:37
+#: app/templates/admin_tourist_tax.html:230 app/templates/checkout.html:54
+msgid "Total"
+msgstr "Total"
+
+#: app/templates/admin_dashboard.html:43
 msgid "Confirmed"
 msgstr "Confirmada"
 
-#: app/templates/admin_dashboard.html:25 app/templates/admin_dashboard.html:71
+#: app/templates/admin_dashboard.html:49 app/templates/admin_questura.html:31
+#: app/templates/admin_questura.html:92
 #: app/templates/admin_testimonials.html:30
 #: app/templates/admin_testimonials.html:101
 msgid "Pending"
 msgstr "Pendiente"
 
-#: app/templates/admin_dashboard.html:41
-#: app/templates/admin_testimonials.html:18
-msgid "Total Reviews"
-msgstr "Total de reseñas"
-
-#: app/templates/admin_dashboard.html:47
-#: app/templates/admin_testimonials.html:24
-#: app/templates/admin_testimonials.html:99
-msgid "Published"
-msgstr "Publicada"
-
-#: app/templates/admin_dashboard.html:53
-msgid "Pending Review"
-msgstr "Pendiente de revisión"
-
-#: app/templates/admin_dashboard.html:59
-#: app/templates/admin_testimonials.html:36
-#: app/templates/admin_testimonials.html:54
-#: app/templates/admin_testimonials.html:107
-msgid "Featured"
-msgstr "Destacada"
+#: app/templates/admin_dashboard.html:61
+msgid "In House"
+msgstr ""
 
 #: app/templates/admin_dashboard.html:67
-msgid "Reservation Ledger"
-msgstr "Registro de reservas"
+#, fuzzy
+msgid "Questura"
+msgstr "Restaurantes"
 
-#: app/templates/admin_dashboard.html:69 app/templates/attractions.html:13
-#: app/templates/food_recommendations.html:12
-#: app/templates/food_recommendations.html:111
-msgid "All"
-msgstr "Todas"
+#: app/templates/admin_dashboard.html:77
+#, fuzzy
+msgid "Booking Sources"
+msgstr "Resumen de la reserva"
 
-#: app/templates/admin_dashboard.html:81
-#: app/templates/admin_testimonials.html:48
-msgid "ID"
-msgstr "ID"
+#: app/templates/admin_dashboard.html:94
+#, fuzzy
+msgid "Today"
+msgstr "Total"
 
-#: app/templates/admin_dashboard.html:82
-msgid "Guest Name / Contact"
-msgstr "Nombre del huésped / Contacto"
+#: app/templates/admin_dashboard.html:99
+#, fuzzy
+msgid "check-ins"
+msgstr "Check-in"
 
-#: app/templates/admin_dashboard.html:83
-msgid "Source Channel"
-msgstr "Canal de origen"
+#: app/templates/admin_dashboard.html:100
+#, fuzzy
+msgid "check-outs"
+msgstr "Check-out"
 
-#: app/templates/admin_dashboard.html:86 app/templates/checkout.html:39
-#: app/templates/email_admin_alert.html:40
+#: app/templates/admin_dashboard.html:110
+#, fuzzy
+msgid "Upcoming Check-ins"
+msgstr "Check-in"
+
+#: app/templates/admin_dashboard.html:114
+#: app/templates/admin_dashboard.html:146
+#: app/templates/admin_tourist_tax.html:158
+#: app/templates/admin_tourist_tax.html:205 app/templates/checkout.html:46
+#: app/templates/email_admin_alert.html:72
 #: app/templates/email_admin_cancellation.html:35
 #: app/templates/email_admin_payment_confirmed.html:35
 #: app/templates/email_cancellation.html:51
 msgid "Nights"
 msgstr "Noches"
 
-#: app/templates/admin_dashboard.html:87
-msgid "Total Revenue"
-msgstr "Ingresos totales"
+#: app/templates/admin_dashboard.html:114
+#: app/templates/admin_dashboard.html:143
+#: app/templates/admin_ical_feeds.html:19
+#: app/templates/admin_testimonials.html:52
+msgid "Source"
+msgstr "Fuente"
 
-#: app/templates/admin_dashboard.html:88
-#: app/templates/email_confirmation.html:36
-#: app/templates/email_pending_payment.html:41
-msgid "Payment Details"
-msgstr "Detalles de pago"
+#: app/templates/admin_dashboard.html:133
+msgid "Reservation Ledger"
+msgstr "Registro de reservas"
 
-#: app/templates/admin_dashboard.html:89 app/templates/admin_dashboard.html:197
-#: app/templates/admin_pricing.html:42 app/templates/admin_testimonials.html:56
+#: app/templates/admin_dashboard.html:141 app/templates/admin_questura.html:65
+#: app/templates/admin_testimonials.html:48
+msgid "ID"
+msgstr "ID"
+
+#: app/templates/admin_dashboard.html:147
+#, fuzzy
+msgid "Revenue"
+msgstr "Ingresos:"
+
+#: app/templates/admin_dashboard.html:148
+#, fuzzy
+msgid "Payment"
+msgstr "Pago:"
+
+#: app/templates/admin_dashboard.html:149 app/templates/admin_pricing.html:65
+#: app/templates/admin_testimonials.html:56
+#: app/templates/admin_tourist_tax.html:163
 msgid "Actions"
 msgstr "Acciones"
 
-#: app/templates/admin_dashboard.html:99
-msgid "No email provided via sync"
-msgstr "No se proporcionó email vía sincronización"
-
-#: app/templates/admin_dashboard.html:104
-#: app/templates/admin_testimonials.html:86 app/templates/apartment.html:347
+#: app/templates/admin_dashboard.html:162
+#: app/templates/admin_testimonials.html:86 app/templates/apartment.html:352
 msgid "Direct"
 msgstr "Directa"
 
-#: app/templates/admin_dashboard.html:116
-msgid "nights"
-msgstr "noches"
+#: app/templates/admin_dashboard.html:177
+#: app/templates/admin_tourist_tax.html:162
+#: app/templates/admin_tourist_tax.html:219
+#, fuzzy
+msgid "Paid"
+msgstr "No pagado"
 
-#: app/templates/admin_dashboard.html:127
-msgid "Paid via"
-msgstr "Pagado vía"
+#: app/templates/admin_dashboard.html:179
+msgid "Deposit"
+msgstr ""
 
-#: app/templates/admin_dashboard.html:131
+#: app/templates/admin_dashboard.html:181
 msgid "Unpaid"
 msgstr "No pagado"
 
-#: app/templates/admin_dashboard.html:138
-msgid "Processed by Channel"
-msgstr "Procesado por canal"
+#: app/templates/admin_dashboard.html:183
+#, fuzzy
+msgid "Refunded"
+msgstr "Reembolso"
 
-#: app/templates/admin_dashboard.html:147
-msgid "Approve & Paid"
-msgstr "Aprobar y marcar como pagado"
+#: app/templates/admin_dashboard.html:193
+#, fuzzy
+msgid "Confirm"
+msgstr "Confirmada"
 
-#: app/templates/admin_dashboard.html:153
-msgid ""
-"WARNING: Are you sure you want to cancel this booking and issue a full "
-"Stripe refund?"
+#: app/templates/admin_dashboard.html:199
+msgid "Charge Remaining"
 msgstr ""
-"ADVERTENCIA: ¿Seguro que quieres cancelar esta reserva y emitir un reembolso "
-"completo de Stripe?"
 
-#: app/templates/admin_dashboard.html:156
-msgid "Cancel & Refund"
-msgstr "Cancelar y reembolsar"
-
-#: app/templates/admin_dashboard.html:162
-msgid "Manage on OTA"
-msgstr "Gestionar en OTA"
-
-#: app/templates/admin_dashboard.html:169
-msgid "No reservations logged matching this state."
-msgstr "No hay reservas registradas que coincidan con este estado."
-
-#: app/templates/admin_dashboard.html:179
-msgid "External iCal Synchronization Feeds"
-msgstr "Feeds de sincronización iCal externos"
-
-#: app/templates/admin_dashboard.html:181
-msgid "Add iCal Feed"
-msgstr "Añadir feed iCal"
-
-#: app/templates/admin_dashboard.html:184
-msgid "Sync Feeds Now"
-msgstr "Sincronizar feeds ahora"
-
-#: app/templates/admin_dashboard.html:195
-msgid "URL"
-msgstr "URL"
-
-#: app/templates/admin_dashboard.html:196
-#: app/templates/admin_testimonials.html:53
-msgid "Status"
-msgstr "Estado"
-
-#: app/templates/admin_dashboard.html:209
-msgid "Inactive"
-msgstr "Inactivo"
-
-#: app/templates/admin_dashboard.html:214
-msgid "Edit"
-msgstr "Editar"
-
-#: app/templates/admin_dashboard.html:215
-msgid "Are you sure you want to delete this feed?"
-msgstr "¿Seguro que quieres eliminar este feed?"
-
-#: app/templates/admin_dashboard.html:217
-#: app/templates/admin_testimonials.html:147
-#: app/templates/admin_testimonials.html:148
-msgid "Delete"
-msgstr "Eliminar"
-
-#: app/templates/admin_dashboard.html:224
-msgid "No external calendar feeds added yet."
-msgstr "Aún no se han añadido feeds de calendario externos."
-
+#: app/templates/admin_dashboard.html:205
 #: app/templates/admin_feed_form.html:43
 msgid "Cancel"
 msgstr "Cancelar"
+
+#: app/templates/admin_dashboard.html:213
+#, fuzzy
+msgid "No reservations."
+msgstr "Cancelar reserva"
+
+#: app/templates/admin_dashboard.html:222
+#: app/templates/admin_ical_feeds.html:2
+#, fuzzy
+msgid "iCal Feeds"
+msgstr "Añadir feed iCal"
+
+#: app/templates/admin_dashboard.html:224
+#, fuzzy
+msgid "Manage Feeds"
+msgstr "Daños y tasas"
+
+#: app/templates/admin_dashboard.html:227
+#, fuzzy
+msgid "Sync Now"
+msgstr "Sincronizar feeds ahora"
+
+#: app/templates/admin_guest_checkin.html:2
+msgid "Guest Check-in - Questura Data"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:12
+msgid "Guest Data for Questura"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:15
+msgid "Complete"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:15
+msgid "Incomplete"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:25
+#: app/templates/guest_self_checkin.html:45
+msgid "Required by law:"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:25
+msgid ""
+"All guests must be registered with the Questura (Alloggiati Portal) within "
+"24h of check-in."
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:35
+#, fuzzy
+msgid "Main Guest Identity"
+msgstr "Detalles del huésped"
+
+#: app/templates/admin_guest_checkin.html:38
+#: app/templates/guest_self_checkin.html:55
+#, fuzzy
+msgid "Surname"
+msgstr "Nombre de usuario"
+
+#: app/templates/admin_guest_checkin.html:43
+#: app/templates/guest_self_checkin.html:59
+#, fuzzy
+msgid "First Name"
+msgstr "Tu nombre"
+
+#: app/templates/admin_guest_checkin.html:48
+#: app/templates/guest_self_checkin.html:63
+msgid "Date of Birth"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:53
+msgid "Place of Birth (City)"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:58
+#: app/templates/email_guest_checkin.html:50
+#: app/templates/guest_self_checkin.html:71
+#, fuzzy
+msgid "Nationality"
+msgstr "Política de cancelación"
+
+#: app/templates/admin_guest_checkin.html:64
+#: app/templates/email_guest_checkin.html:52
+#: app/templates/guest_self_checkin.html:75
+#, fuzzy
+msgid "Gender"
+msgstr "Leyenda:"
+
+#: app/templates/admin_guest_checkin.html:66
+#: app/templates/admin_guest_checkin.html:79
+#: app/templates/guest_self_checkin.html:77
+#: app/templates/guest_self_checkin.html:89
+#, fuzzy
+msgid "Select"
+msgstr "Eliminar"
+
+#: app/templates/admin_guest_checkin.html:67
+#: app/templates/guest_self_checkin.html:78
+#, fuzzy
+msgid "Male"
+msgstr "Correo electrónico"
+
+#: app/templates/admin_guest_checkin.html:68
+#: app/templates/guest_self_checkin.html:79
+#, fuzzy
+msgid "Female"
+msgstr "Correo electrónico"
+
+#: app/templates/admin_guest_checkin.html:74
+#: app/templates/guest_self_checkin.html:84
+msgid "Identity Document"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:77
+#: app/templates/guest_self_checkin.html:87
+#, fuzzy
+msgid "Document Type"
+msgstr "TIPO DE DESCUENTO"
+
+#: app/templates/admin_guest_checkin.html:80
+#: app/templates/guest_self_checkin.html:90
+#, fuzzy
+msgid "Passport"
+msgstr "Contraseña"
+
+#: app/templates/admin_guest_checkin.html:81
+#: app/templates/guest_self_checkin.html:91
+#, fuzzy
+msgid "Identity Card"
+msgstr "Tarjeta de crédito"
+
+#: app/templates/admin_guest_checkin.html:82
+#: app/templates/guest_self_checkin.html:92
+msgid "Driving License"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:83
+#, fuzzy
+msgid "Other"
+msgstr "Términos"
+
+#: app/templates/admin_guest_checkin.html:87
+#: app/templates/guest_self_checkin.html:96
+msgid "Document Number"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:92
+#: app/templates/guest_self_checkin.html:100
+#, fuzzy
+msgid "Expiry Date"
+msgstr "Fecha de estancia"
+
+#: app/templates/admin_guest_checkin.html:97
+msgid "Issuing Country (ISO 3166-1 alpha-3)"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:106
+#: app/templates/booking_confirmed.html:20
+#: app/templates/email_cancellation.html:34
+#: app/templates/guest_access_denied.html:20
+msgid "Reservation Details"
+msgstr "Detalles de la reserva"
+
+#: app/templates/admin_guest_checkin.html:129
+#, fuzzy
+msgid "Save Guest Data"
+msgstr "Detalles del huésped"
+
+#: app/templates/admin_guest_checkin.html:133
+msgid "Submit to Questura Now"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:141
+msgid "Data already submitted and accepted by Questura"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:142
+msgid "Submitted on:"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:147
+msgid "Submission rejected by Questura"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:149
+#: app/templates/admin_questura_logs.html:103
+msgid "Error:"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:155
+msgid "Submission in progress / Awaiting confirmation"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:161
+msgid "Back to Questura List"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:175
+msgid "Submit this guest data to Questura now?"
+msgstr ""
+
+#: app/templates/admin_guest_checkin.html:185
+msgid "Submission started! Task ID:"
+msgstr ""
 
 #: app/templates/admin_header.html:12
 msgid "Dashboard"
@@ -379,26 +906,118 @@ msgid "Calendar"
 msgstr "Calendario"
 
 #: app/templates/admin_header.html:24
-msgid "Testimonials"
-msgstr "Testimonios"
+#, fuzzy
+msgid "Compliance"
+msgstr "Cancelar"
 
 #: app/templates/admin_header.html:30
+msgid "Alerts"
+msgstr ""
+
+#: app/templates/admin_header.html:37
+#, fuzzy
+msgid "Reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/admin_header.html:43
+msgid "Access"
+msgstr ""
+
+#: app/templates/admin_header.html:49
+#, fuzzy
+msgid "iCal"
+msgstr "URL iCal"
+
+#: app/templates/admin_header.html:61
+#, fuzzy
+msgid "Settings"
+msgstr "Calefacción"
+
+#: app/templates/admin_header.html:67
 msgid "Pricing"
 msgstr "Precios"
+
+#: app/templates/admin_ical_feeds.html:7
+msgid "iCal Sync & Blocked Dates"
+msgstr ""
+
+#: app/templates/admin_ical_feeds.html:8
+#, fuzzy
+msgid "Back"
+msgstr "Banco:"
+
+#: app/templates/admin_ical_feeds.html:14
+msgid "Connected Feeds"
+msgstr ""
+
+#: app/templates/admin_ical_feeds.html:20
+msgid "URL"
+msgstr "URL"
+
+#: app/templates/admin_ical_feeds.html:21
+msgid "Last Sync"
+msgstr ""
+
+#: app/templates/admin_ical_feeds.html:31
+msgid "Inactive"
+msgstr "Inactivo"
+
+#: app/templates/admin_ical_feeds.html:34
+msgid "No feeds configured."
+msgstr ""
+
+#: app/templates/admin_ical_feeds.html:43
+msgid "Blocked Dates (from iCal)"
+msgstr ""
+
+#: app/templates/admin_ical_feeds.html:52
+msgid "No blocked dates from iCal feeds."
+msgstr ""
+
+#: app/templates/admin_ical_feeds.html:60
+#, fuzzy
+msgid "Add Feed"
+msgstr "Añadir feed iCal"
+
+#: app/templates/admin_ical_feeds.html:76
+msgid "Add"
+msgstr ""
+
+#: app/templates/admin_notifications.html:2
+#, fuzzy
+msgid "Notifications"
+msgstr "Ubicación"
+
+#: app/templates/admin_notifications.html:7
+msgid "Notifications & Alerts"
+msgstr ""
+
+#: app/templates/admin_notifications.html:10
+#, fuzzy
+msgid "Mark All Read"
+msgstr "Marcar como destacado"
+
+#: app/templates/admin_notifications.html:30
+msgid "Dismiss"
+msgstr ""
+
+#: app/templates/admin_notifications.html:36
+msgid "No notifications yet."
+msgstr ""
 
 #: app/templates/admin_pricing.html:3
 msgid "Pricing Rules & Coupons"
 msgstr "Reglas de precios y cupones"
 
-#: app/templates/admin_pricing.html:12
+#: app/templates/admin_pricing.html:11
 msgid "Base Apartment Value"
 msgstr "Valor base del apartamento"
 
-#: app/templates/admin_pricing.html:16
+#: app/templates/admin_pricing.html:15
 msgid "Nightly Base Cost:"
 msgstr "Coste base por noche:"
 
-#: app/templates/admin_pricing.html:21
+#: app/templates/admin_pricing.html:20
 msgid ""
 "Editing this value directly adjusts what direct checkouts pay instantly "
 "across public booking fields."
@@ -406,82 +1025,363 @@ msgstr ""
 "Editar este valor ajusta directamente lo que pagan los checkouts directos "
 "instantáneamente en todos los campos de reserva públicos."
 
-#: app/templates/admin_pricing.html:22
+#: app/templates/admin_pricing.html:21
 msgid "Update Global Rate"
 msgstr "Actualizar tarifa global"
 
-#: app/templates/admin_pricing.html:32
+#: app/templates/admin_pricing.html:30
+msgid "CIN / CIR Codes"
+msgstr ""
+
+#: app/templates/admin_pricing.html:35
+msgid "CIN Code (National Identification Code)"
+msgstr ""
+
+#: app/templates/admin_pricing.html:39
+msgid "CIR Code (Lazio Regional Identification Code)"
+msgstr ""
+
+#: app/templates/admin_pricing.html:43
+msgid "These codes are fixed for the property and cannot be changed."
+msgstr ""
+
+#: app/templates/admin_pricing.html:55
 msgid "Operational System Vouchers"
 msgstr "Vales operativos del sistema"
 
-#: app/templates/admin_pricing.html:33
+#: app/templates/admin_pricing.html:56
 msgid "Create Code"
 msgstr "Crear código"
 
-#: app/templates/admin_pricing.html:39
+#: app/templates/admin_pricing.html:62
 msgid "Code String"
 msgstr "Cadena de código"
 
-#: app/templates/admin_pricing.html:40
+#: app/templates/admin_pricing.html:63
 msgid "Impact"
 msgstr "Impacto"
 
-#: app/templates/admin_pricing.html:41
+#: app/templates/admin_pricing.html:64
 msgid "Condition Type"
 msgstr "Tipo de condición"
 
-#: app/templates/admin_pricing.html:49
+#: app/templates/admin_pricing.html:72
 msgid "OFF"
 msgstr "DESCUENTO"
 
-#: app/templates/admin_pricing.html:50
+#: app/templates/admin_pricing.html:73
 msgid "Deductions"
 msgstr "Deducciones"
 
-#: app/templates/admin_pricing.html:52
-msgid "Purge this active promo code out of circulación?"
+#: app/templates/admin_pricing.html:75
+#, fuzzy
+msgid "Purge this active promo code out of circulation?"
 msgstr "¿Eliminar este código promocional activo de circulación?"
 
-#: app/templates/admin_pricing.html:54
+#: app/templates/admin_pricing.html:77
 msgid "Remove"
 msgstr "Eliminar"
 
-#: app/templates/admin_pricing.html:60
+#: app/templates/admin_pricing.html:83
 msgid "No operational promotional vouchers found in storage."
-msgstr "No se encontraron vales promocionales operativos en el almacenamiento."
+msgstr ""
+"No se encontraron vales promocionales operativos en el almacenamiento."
 
-#: app/templates/admin_pricing.html:77
+#: app/templates/admin_pricing.html:99
 msgid "Generate New Coupon"
 msgstr "Generar nuevo cupón"
 
-#: app/templates/admin_pricing.html:82
+#: app/templates/admin_pricing.html:104
 msgid "COUPON STRING CODE"
 msgstr "CÓDIGO DE CUPÓN"
 
-#: app/templates/admin_pricing.html:87
+#: app/templates/admin_pricing.html:109
 msgid "DISCOUNT TYPE"
 msgstr "TIPO DE DESCUENTO"
 
-#: app/templates/admin_pricing.html:89
+#: app/templates/admin_pricing.html:111
 msgid "Percentage"
 msgstr "Porcentaje"
 
-#: app/templates/admin_pricing.html:90
+#: app/templates/admin_pricing.html:112
 msgid "Flat Value"
 msgstr "Valor fijo"
 
-#: app/templates/admin_pricing.html:94
+#: app/templates/admin_pricing.html:116
 msgid "VALUE AMOUNT"
 msgstr "IMPORTE"
 
-#: app/templates/admin_pricing.html:100
+#: app/templates/admin_pricing.html:122
 #: app/templates/admin_testimonials.html:170
 msgid "Close"
 msgstr "Cerrar"
 
-#: app/templates/admin_pricing.html:101
+#: app/templates/admin_pricing.html:123
 msgid "Publish Code"
 msgstr "Publicar código"
+
+#: app/templates/admin_questura.html:2
+#, fuzzy
+msgid "Questura Submissions"
+msgstr "¿Preguntas?"
+
+#: app/templates/admin_questura.html:10
+#, fuzzy
+msgid "Questura Submissions Management"
+msgstr "Gestión de reseñas de huéspedes"
+
+#: app/templates/admin_questura.html:29 app/templates/attractions.html:13
+#: app/templates/food_recommendations.html:12
+#: app/templates/food_recommendations.html:111
+msgid "All"
+msgstr "Todas"
+
+#: app/templates/admin_questura.html:32 app/templates/admin_questura.html:93
+#, fuzzy
+msgid "Rejected"
+msgstr "Creado"
+
+#: app/templates/admin_questura.html:33
+#, fuzzy
+msgid "Not sent"
+msgstr "Consentimiento:"
+
+#: app/templates/admin_questura.html:37
+#, fuzzy
+msgid "Bulk Actions"
+msgstr "Acciones"
+
+#: app/templates/admin_questura.html:40
+#, fuzzy
+msgid "Send Selected"
+msgstr "No se ha seleccionado apartamento"
+
+#: app/templates/admin_questura.html:43
+msgid "Retry Failed"
+msgstr ""
+
+#: app/templates/admin_questura.html:69
+#, fuzzy
+msgid "Questura Status"
+msgstr "Restaurantes"
+
+#: app/templates/admin_questura.html:70
+msgid "Last Submission"
+msgstr ""
+
+#: app/templates/admin_questura.html:94
+msgid "To be sent"
+msgstr ""
+
+#: app/templates/admin_questura.html:106
+#, fuzzy
+msgid "Guest Data"
+msgstr "Detalles del huésped"
+
+#: app/templates/admin_questura.html:110
+msgid "Send to Questura"
+msgstr ""
+
+#: app/templates/admin_questura.html:115
+msgid "Retry"
+msgstr ""
+
+#: app/templates/admin_questura.html:124
+#, fuzzy
+msgid "No reservations found"
+msgstr "Reserva pendiente"
+
+#: app/templates/admin_questura.html:133
+#: app/templates/admin_questura_logs.html:120
+#, fuzzy
+msgid "Pagination"
+msgstr "Panteón"
+
+#: app/templates/admin_questura_logs.html:2
+#, fuzzy
+msgid "Questura Logs"
+msgstr "¿Preguntas?"
+
+#: app/templates/admin_questura_logs.html:10
+msgid "Questura Submissions Log"
+msgstr ""
+
+#: app/templates/admin_questura_logs.html:27
+#: app/templates/email_guest_access.html:30 app/templates/guest_access.html:28
+#: app/templates/guest_self_checkin.html:35
+#, fuzzy
+msgid "Reservation"
+msgstr "Registro de reservas"
+
+#: app/templates/admin_questura_logs.html:30
+#, fuzzy
+msgid "Data"
+msgstr "Fechas"
+
+#: app/templates/admin_questura_logs.html:64
+msgid "View Request"
+msgstr ""
+
+#: app/templates/admin_questura_logs.html:69
+msgid "View Response"
+msgstr ""
+
+#: app/templates/admin_questura_logs.html:81
+msgid "Request XML"
+msgstr ""
+
+#: app/templates/admin_questura_logs.html:96
+msgid "Response XML"
+msgstr ""
+
+#: app/templates/admin_questura_logs.html:112
+msgid "No logs found"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:3
+msgid "Smart Access & WhatsApp"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:14
+msgid "Smart Access Configuration"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:15
+msgid "Gate: Shelly Mini 1 Gen4 | Door: Nuki Smart Lock Ultra"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:21
+msgid "Building Gate (Shelly Mini 1 Gen4)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:26
+#, fuzzy
+msgid "Enable Gate Access"
+msgstr "No se puede cancelar"
+
+#: app/templates/admin_smart_access.html:28
+msgid "Shelly Host / IP Address"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:30
+msgid "Local IP or mDNS hostname of the Shelly device"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:33
+#, fuzzy
+msgid "Auth Key (Optional)"
+msgstr "Fecha de estancia (opcional)"
+
+#: app/templates/admin_smart_access.html:35
+msgid "Gen4 auth key if authentication is enabled on device"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:38
+#, fuzzy
+msgid "Relay Channel"
+msgstr "Canal de origen"
+
+#: app/templates/admin_smart_access.html:42
+msgid "Pulse Duration (seconds)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:44
+msgid "How long to keep gate open"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:49
+msgid "Test Mode (dry run)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:54
+msgid "Apartment Door (Nuki Smart Lock Ultra)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:59
+#, fuzzy
+msgid "Enable Door Access"
+msgstr "No se puede cancelar"
+
+#: app/templates/admin_smart_access.html:61
+msgid "Smart Lock ID (Decimal)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:63
+msgid "Get from Nuki Web API: GET /smartlock"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:66
+msgid "Web API Token"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:68
+msgid "Generate at web.nuki.io → API"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:71
+#, fuzzy
+msgid "API Base URL"
+msgstr "URL iCal"
+
+#: app/templates/admin_smart_access.html:75
+#, fuzzy
+msgid "Unlock Action"
+msgstr "Ubicación"
+
+#: app/templates/admin_smart_access.html:77
+msgid "Unlock (turn cylinder)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:78
+msgid "Unlatch (open door)"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:80
+msgid "Unlatch opens the door; unlock just turns the cylinder"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:84
+msgid "WhatsApp Contact Button"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:89
+msgid "Enable WhatsApp Float Button"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:91
+msgid "WhatsApp Number"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:93
+msgid "International format without + or spaces. Example: 393000000000"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:96
+#, fuzzy
+msgid "Default Message (optional)"
+msgstr "Fecha de estancia (opcional)"
+
+#: app/templates/admin_smart_access.html:97
+msgid "Ciao, vorrei informazioni per prenotare..."
+msgstr ""
+
+#: app/templates/admin_smart_access.html:98
+msgid "Pre-filled message when user clicks the button"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:105
+msgid "Save Smart Access & WhatsApp Config"
+msgstr ""
+
+#: app/templates/admin_smart_access.html:107
+#, fuzzy
+msgid "Test Gate"
+msgstr "Fecha de estancia"
+
+#: app/templates/admin_smart_access.html:110
+#, fuzzy
+msgid "Test Door"
+msgstr "Exteriores"
 
 #: app/templates/admin_testimonials.html:3
 msgid "Manage Testimonials"
@@ -495,17 +1395,24 @@ msgstr "Gestión de reseñas de huéspedes"
 msgid "← Back to Dashboard"
 msgstr "← Volver al panel"
 
-#: app/templates/admin_testimonials.html:49 app/templates/checkout.html:23
-msgid "Guest"
-msgstr "Huésped"
+#: app/templates/admin_testimonials.html:18
+msgid "Total Reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/admin_testimonials.html:24
+#: app/templates/admin_testimonials.html:99
+msgid "Published"
+msgstr "Publicada"
+
+#: app/templates/admin_testimonials.html:36
+#: app/templates/admin_testimonials.html:54
+#: app/templates/admin_testimonials.html:107
+msgid "Featured"
+msgstr "Destacada"
 
 #: app/templates/admin_testimonials.html:51
 msgid "Stay Date"
 msgstr "Fecha de estancia"
-
-#: app/templates/admin_testimonials.html:52
-msgid "Source"
-msgstr "Fuente"
 
 #: app/templates/admin_testimonials.html:55
 msgid "Created"
@@ -538,8 +1445,14 @@ msgid "Feature"
 msgstr "Destacar"
 
 #: app/templates/admin_testimonials.html:145
-msgid "Are you sure you want to delete this testimonial? This cannot be undone."
+msgid ""
+"Are you sure you want to delete this testimonial? This cannot be undone."
 msgstr "¿Seguro que quieres eliminar este testimonio? No se puede deshacer."
+
+#: app/templates/admin_testimonials.html:147
+#: app/templates/admin_testimonials.html:148
+msgid "Delete"
+msgstr "Eliminar"
 
 #: app/templates/admin_testimonials.html:156
 msgid "No testimonials submitted yet."
@@ -549,81 +1462,339 @@ msgstr "Aún no se han enviado testimonios."
 msgid "Review Content"
 msgstr "Contenido de la reseña"
 
+#: app/templates/admin_tourist_tax.html:2
+msgid "Tourist Tax"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:10
+#, fuzzy
+msgid "Tourist Tax Management"
+msgstr "Gestión de reseñas de huéspedes"
+
+#: app/templates/admin_tourist_tax.html:26
+#, fuzzy
+msgid "Property Configuration"
+msgstr "Confirmación de reserva"
+
+#: app/templates/admin_tourist_tax.html:31
+#, fuzzy
+msgid "Category"
+msgstr "Filtrar por categoría"
+
+#: app/templates/admin_tourist_tax.html:43
+msgid "Custom Rate (€/night/guest)"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:48
+#, fuzzy
+msgid "CIN"
+msgstr "Precios"
+
+#: app/templates/admin_tourist_tax.html:52
+msgid "CIR"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:56
+#, fuzzy
+msgid "Max Guests"
+msgstr "Huéspedes"
+
+#: app/templates/admin_tourist_tax.html:60
+#, fuzzy
+msgid "Save Configuration"
+msgstr "Confirmación de reserva"
+
+#: app/templates/admin_tourist_tax.html:76
+msgid "Year"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:84
+#, fuzzy
+msgid "Month"
+msgstr "Importe:"
+
+#: app/templates/admin_tourist_tax.html:92
+msgid "View Report"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:96
+msgid "Download CSV Rome"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:112
+#, fuzzy
+msgid "Reservations"
+msgstr "Detalles de la reserva"
+
+#: app/templates/admin_tourist_tax.html:120
+#, fuzzy
+msgid "Total Tourist Tax"
+msgstr "Estancia total:"
+
+#: app/templates/admin_tourist_tax.html:128
+#, fuzzy
+msgid "Total Nights"
+msgstr "Total de reservas"
+
+#: app/templates/admin_tourist_tax.html:136
+#, fuzzy
+msgid "Total Guests"
+msgstr "Estancia total:"
+
+#: app/templates/admin_tourist_tax.html:147
+#, fuzzy
+msgid "Detail per Reservation"
+msgstr "Cancelar reserva"
+
+#: app/templates/admin_tourist_tax.html:160
+#, fuzzy
+msgid "Rate"
+msgstr "Curado"
+
+#: app/templates/admin_tourist_tax.html:161
+msgid "Tax (€)"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:170
+msgid "Excluded"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:179
+msgid "Yes"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:181
+msgid "No"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:193
+msgid "Include in tax"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:193
+msgid "Exclude from tax"
+msgstr ""
+
+#: app/templates/admin_tourist_tax.html:213
+#, fuzzy
+msgid "Amount (€)"
+msgstr "Importe:"
+
+#: app/templates/admin_tourist_tax.html:246
+msgid "CSV Preview (Roma Capitale Format)"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:3
+msgid "Trust Badges & Widgets"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:14
+#, fuzzy
+msgid "Trust Badges & Reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/admin_trust_badges.html:15
+msgid "Builds guest confidence & increases conversions"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:21
+msgid "Review Platform IDs"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:31
+#, fuzzy
+msgid "Property ID"
+msgstr "Propiedad:"
+
+#: app/templates/admin_trust_badges.html:45
+#: app/templates/admin_trust_badges.html:87
+msgid "Listing ID"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:59
+msgid "Place ID"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:73
+#, fuzzy
+msgid "Location ID"
+msgstr "Ubicación"
+
+#: app/templates/admin_trust_badges.html:98
+msgid "Official Widget Embeds"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:99
+msgid ""
+"Paste the official JavaScript widget snippets from each platform. These will"
+" render on the homepage."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:107
+msgid "Paste Booking.com widget JS here..."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:117
+msgid "Paste Airbnb widget JS here..."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:127
+msgid "Paste Google Reviews widget JS here..."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:137
+msgid "Paste Trustpilot widget JS here..."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:146
+#, fuzzy
+msgid "Custom Trust Badges (Optional)"
+msgstr "Fecha de estancia (opcional)"
+
+#: app/templates/admin_trust_badges.html:147
+msgid ""
+"Upload custom badge images to /static/images/badges/ and enter filenames "
+"below"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:152
+msgid "Custom Badge"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:155
+msgid "Image Filename"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:159
+#, fuzzy
+msgid "Link URL (optional)"
+msgstr "Fecha de estancia (opcional)"
+
+#: app/templates/admin_trust_badges.html:163
+msgid "Alt Text"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:164
+msgid "Certified Secure"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:175
+msgid "Display Settings"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:180
+msgid "Show review badges in footer"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:186
+msgid "Show review badges on homepage"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:192
+msgid "Show review badges on booking page"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:198
+msgid "Show payment badges in footer"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:204
+msgid "Show payment badges on checkout page"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:211
+msgid "Save Trust Badges & Widgets Config"
+msgstr ""
+
 #: app/templates/apartment.html:10 app/templates/base.html:47
 #: app/templates/base.html:65
 msgid ""
-"Elegante e raffinato appartamento nel cuore della Garbatella a Roma. "
-"Prenota il tuo soggiorno ideale."
+"Elegant and refined apartment in the heart of Garbatella, Rome. Book your "
+"ideal stay."
 msgstr ""
-"Elegante y refinado apartamento en el corazón de Garbatella en Roma. "
-"Reserva tu estancia ideal."
 
 #: app/templates/apartment.html:65
 msgid "Welcome to our beautiful, fully equipped rental property."
-msgstr "Bienvenido a nuestra hermosa propiedad de alquiler totalmente equipada."
+msgstr ""
+"Bienvenido a nuestra hermosa propiedad de alquiler totalmente equipada."
 
 #: app/templates/apartment.html:76
-msgid "Camera da letto - Bedroom"
-msgstr "Dormitorio"
+msgid "Bedroom"
+msgstr ""
 
 #: app/templates/apartment.html:86
-msgid "Camera da letto - Bedroom view 2"
-msgstr "Dormitorio - vista 2"
+#, fuzzy
+msgid "Bedroom - View 2"
+msgstr "Baño - vista 2"
 
 #: app/templates/apartment.html:96
-msgid "Cucina moderna - Modern kitchen"
-msgstr "Cocina moderna"
+#, fuzzy
+msgid "Modern Kitchen"
+msgstr "Cocina"
 
 #: app/templates/apartment.html:106
-msgid "Cucina - vista alternativa - Kitchen alternative view"
+#, fuzzy
+msgid "Kitchen - Alternative View"
 msgstr "Cocina - vista alternativa"
 
 #: app/templates/apartment.html:116
-msgid "Cucina - Kitchen view 3"
+#, fuzzy
+msgid "Kitchen - View 3"
 msgstr "Cocina - vista 3"
 
 #: app/templates/apartment.html:126
-msgid "Cucina - Kitchen view 4"
+#, fuzzy
+msgid "Kitchen - View 4"
 msgstr "Cocina - vista 4"
 
 #: app/templates/apartment.html:136
-msgid "Bagno elegante - Elegant bathroom"
+#, fuzzy
+msgid "Elegant Bathroom"
 msgstr "Baño elegante"
 
 #: app/templates/apartment.html:146
-msgid "Bagno - Bathroom view 2"
+#, fuzzy
+msgid "Bathroom - View 2"
 msgstr "Baño - vista 2"
 
 #: app/templates/apartment.html:156
-msgid "Soggiorno - Living room"
+#, fuzzy
+msgid "Living Room"
 msgstr "Salón"
 
 #: app/templates/apartment.html:166
-msgid "Soggiorno - Living room view 2"
+#, fuzzy
+msgid "Living Room - View 2"
 msgstr "Salón - vista 2"
 
 #: app/templates/apartment.html:176
-msgid "Soggiorno - Living room view 3"
+#, fuzzy
+msgid "Living Room - View 3"
 msgstr "Salón - vista 3"
 
 #: app/templates/apartment.html:186
-msgid "Soggiorno - Living room view 4"
+#, fuzzy
+msgid "Living Room - View 4"
 msgstr "Salón - vista 4"
 
 #: app/templates/apartment.html:196
-msgid "Soggiorno - Living room view 5"
+#, fuzzy
+msgid "Living Room - View 5"
 msgstr "Salón - vista 5"
 
 #: app/templates/apartment.html:206
-msgid "Metro Garbatella - Metro station"
+#, fuzzy
+msgid "Garbatella Metro - Metro Station"
 msgstr "Metro Garbatella - estación de metro"
 
 #: app/templates/apartment.html:216
-msgid "Palazzo esterno - Building exterior"
+#, fuzzy
+msgid "Building Exterior"
 msgstr "Exterior del edificio"
 
 #: app/templates/apartment.html:226
-msgid "Palazzo esterno - Building exterior view 2"
+#, fuzzy
+msgid "Building Exterior - View 2"
 msgstr "Exterior del edificio - vista 2"
 
 #: app/templates/apartment.html:233
@@ -716,8 +1887,8 @@ msgstr "Auto check-in disponible"
 
 #: app/templates/apartment.html:270 app/templates/reservation.html:13
 msgid ""
-"Rates depend on your selected dates and group size. Enter your details to"
-" get an exact quote."
+"Rates depend on your selected dates and group size. Enter your details to "
+"get an exact quote."
 msgstr ""
 "Las tarifas dependen de las fechas seleccionadas y el tamaño del grupo. "
 "Ingresa tus datos para obtener un presupuesto exacto."
@@ -762,47 +1933,50 @@ msgstr "Ubicación"
 msgid "Location map of Lotto 235 Garbatella"
 msgstr "Mapa de ubicación de Lotto 235 Garbatella"
 
-#: app/templates/apartment.html:313
+#: app/templates/apartment.html:318
+#: app/templates/components/trust_badges_reviews.html:13
 msgid "Guest Reviews"
 msgstr "Reseñas de huéspedes"
 
-#: app/templates/apartment.html:314
+#: app/templates/apartment.html:319
 msgid "What our guests say about their stay"
 msgstr "Lo que dicen nuestros huéspedes sobre su estancia"
 
-#: app/templates/apartment.html:347
+#: app/templates/apartment.html:352
+#: app/templates/components/trust_badges_reviews.html:31
 msgid "Airbnb"
 msgstr "Airbnb"
 
-#: app/templates/apartment.html:347
+#: app/templates/apartment.html:352
+#: app/templates/components/trust_badges_reviews.html:18
 msgid "Booking.com"
 msgstr "Booking.com"
 
-#: app/templates/apartment.html:347
+#: app/templates/apartment.html:352
 msgid "Google"
 msgstr "Google"
 
-#: app/templates/apartment.html:349
+#: app/templates/apartment.html:354
 msgid "Read original"
 msgstr "Leer original"
 
-#: app/templates/apartment.html:357
+#: app/templates/apartment.html:362
 msgid "No reviews yet. Be the first to share your experience!"
 msgstr "Aún no hay reseñas. ¡Sé el primero en compartir tu experiencia!"
 
-#: app/templates/apartment.html:365
+#: app/templates/apartment.html:370
 msgid "Leave a Review"
 msgstr "Dejar una reseña"
 
-#: app/templates/apartment.html:366
+#: app/templates/apartment.html:371
 msgid "Share your experience with future guests"
 msgstr "Comparte tu experiencia con futuros huéspedes"
 
-#: app/templates/apartment.html:382
+#: app/templates/apartment.html:387
 msgid "City, Country"
 msgstr "Ciudad, País"
 
-#: app/templates/apartment.html:408
+#: app/templates/apartment.html:413
 msgid "Tell us about your stay..."
 msgstr "Cuéntanos sobre tu estancia..."
 
@@ -812,17 +1986,18 @@ msgstr "Atracciones de Roma"
 
 #: app/templates/attractions.html:8
 msgid ""
-"Explore Rome through curated landmarks, walks and scenic spots — all "
-"easily reachable from your apartment."
+"Explore Rome through curated landmarks, walks and scenic spots — all easily "
+"reachable from your apartment."
 msgstr ""
-"Explora Roma a través de lugares emblemáticos, paseos y rincones con "
-"encanto — todos fácilmente accesibles desde tu apartamento."
+"Explora Roma a través de lugares emblemáticos, paseos y rincones con encanto"
+" — todos fácilmente accesibles desde tu apartamento."
 
 #: app/templates/attractions.html:10
 msgid "Curated experiences around Rome"
 msgstr "Experiencias seleccionadas en Roma"
 
-#: app/templates/attractions.html:12 app/templates/food_recommendations.html:11
+#: app/templates/attractions.html:12
+#: app/templates/food_recommendations.html:11
 msgid "Filter by category"
 msgstr "Filtrar por categoría"
 
@@ -838,7 +2013,8 @@ msgstr "Paseos"
 msgid "Outdoor"
 msgstr "Exteriores"
 
-#: app/templates/attractions.html:19 app/templates/food_recommendations.html:21
+#: app/templates/attractions.html:19
+#: app/templates/food_recommendations.html:21
 msgid "Map and listings"
 msgstr "Mapa y listados"
 
@@ -928,35 +2104,39 @@ msgid "Riverside walk at sunset"
 msgstr "Paseo junto al río al atardecer"
 
 #: app/templates/base.html:36
+#, fuzzy
 msgid ""
-"Soggiorna a Lotto 235 Garbatella: elegante appartamento per vacanze a "
-"Roma. Comfort moderno, self check-in e posizione strategica vicina alla "
-"metro."
+"Stay at Lotto 235 Garbatella: elegant vacation apartment in Rome. Modern "
+"comfort, self check-in and strategic location near metro."
 msgstr ""
 "Alójate en Lotto 235 Garbatella: elegante apartamento vacacional en Roma. "
 "Comodidad moderna, auto check-in y ubicación estratégica cerca del metro."
 
 #: app/templates/base.html:37
+#, fuzzy
 msgid ""
-"Lotto 235, Garbatella, Casa Vacanze Roma, Appartamento Garbatella, "
-"Affitto Breve Roma"
+"Lotto 235, Garbatella, Vacation Home Rome, Garbatella Apartment, Short Term "
+"Rental Rome"
 msgstr ""
 "Lotto 235, Garbatella, Casa Vacacional Roma, Apartamento Garbatella, "
 "Alquiler Corto Roma"
 
 #: app/templates/base.html:46 app/templates/base.html:64
-msgid "Luxury Rental Property Roma"
+#, fuzzy
+msgid "Luxury Rental Property Rome"
 msgstr "Propiedad de alquiler de lujo Roma"
 
 #: app/templates/base.html:51 app/templates/base.html:67
-msgid "Lotto 235 Garbatella - Soggiorno"
-msgstr "Lotto 235 Garbatella - Estancia"
+#, fuzzy
+msgid "Lotto 235 Garbatella - Living Room"
+msgstr "Lotto 235 Garbatella - Inicio"
 
 #: app/templates/base.html:84
+#, fuzzy
 msgid ""
-"Elegante appartamento per vacanze nel cuore della Garbatella a Roma. "
-"Comfort moderno, self check-in, Wi-Fi veloce, aria condizionata e "
-"posizione strategica vicino alla metro."
+"Elegant vacation apartment in the heart of Garbatella, Rome. Modern comfort,"
+" self check-in, fast Wi-Fi, air conditioning and strategic location near "
+"metro."
 msgstr ""
 "Elegante apartamento vacacional en el corazón de Garbatella en Roma. "
 "Comodidad moderna, auto check-in, Wi-Fi rápido, aire acondicionado y "
@@ -1027,7 +2207,7 @@ msgstr "Contacto"
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
 
-#: app/templates/base.html:255 app/templates/checkout.html:94
+#: app/templates/base.html:255 app/templates/checkout.html:111
 #: app/templates/policies/privacy.html:2 app/templates/policies/privacy.html:6
 #: app/templates/policies/terms.html:70 app/templates/reservation.html:77
 msgid "Privacy Policy"
@@ -1041,7 +2221,7 @@ msgstr "Términos"
 msgid "Cancellation"
 msgstr "Cancelación"
 
-#: app/templates/base.html:258 app/templates/checkout.html:92
+#: app/templates/base.html:258 app/templates/checkout.html:109
 #: app/templates/policies/refund.html:2 app/templates/policies/refund.html:6
 #: app/templates/policies/terms.html:37
 msgid "Refund Policy"
@@ -1062,22 +2242,21 @@ msgstr "¡Reserva confirmada!"
 msgid "Thank you for choosing us!"
 msgstr "¡Gracias por elegirnos!"
 
-#: app/templates/booking_confirmed.html:20
-#: app/templates/email_cancellation.html:34
-msgid "Reservation Details"
-msgstr "Detalles de la reserva"
-
 #: app/templates/booking_confirmed.html:25
 msgid "Dates:"
 msgstr "Fechas:"
 
 #: app/templates/booking_confirmed.html:28
 #: app/templates/email_confirmation.html:30
-#: app/templates/email_pending_payment.html:35
+#: app/templates/email_guest_checkin.html:33
+#: app/templates/email_pending_payment.html:39
 msgid "Guests:"
 msgstr "Huéspedes:"
 
 #: app/templates/booking_confirmed.html:31 app/templates/contact.html:45
+#: app/templates/email_admin_checkin_completed.html:27
+#: app/templates/policies/cancellation.html:87
+#: app/templates/policies/privacy.html:13 app/templates/policies/terms.html:94
 msgid "Email:"
 msgstr "Correo:"
 
@@ -1091,13 +2270,16 @@ msgstr "Estamos finalizando tu reserva..."
 
 #: app/templates/booking_confirmed.html:44
 msgid ""
-"Your payment was fully secured. A confirmation email with receipt records"
-" will land in your inbox within a few moments."
+"Your payment was fully secured. A confirmation email with receipt records "
+"will land in your inbox within a few moments."
 msgstr ""
-"Tu pago fue totalmente asegurado. Un correo de confirmación con los "
-"recibos llegará a tu bandeja de entrada en unos momentos."
+"Tu pago fue totalmente asegurado. Un correo de confirmación con los recibos "
+"llegará a tu bandeja de entrada en unos momentos."
 
-#: app/templates/booking_confirmed.html:51 app/templates/wire_transfer.html:31
+#: app/templates/booking_confirmed.html:51 app/templates/csrf_error.html:14
+#: app/templates/guest_access_denied.html:30
+#: app/templates/guest_checkin_done.html:15
+#: app/templates/wire_transfer.html:31
 msgid "Back to Home"
 msgstr "Volver al inicio"
 
@@ -1125,55 +2307,62 @@ msgstr "Completa tu reserva"
 msgid "Review & Pay"
 msgstr "Revisar y pagar"
 
-#: app/templates/checkout.html:13
+#: app/templates/checkout.html:20
 msgid "Booking Summary"
 msgstr "Resumen de la reserva"
 
-#: app/templates/checkout.html:19 app/templates/reservation.html:3
+#: app/templates/checkout.html:26 app/templates/reservation.html:3
 msgid "Apartment"
 msgstr "Apartamento"
 
-#: app/templates/checkout.html:47
-msgid "Total"
-msgstr "Total"
-
-#: app/templates/checkout.html:59
+#: app/templates/checkout.html:66
 msgid "Select Payment Method"
 msgstr "Seleccionar método de pago"
 
-#: app/templates/checkout.html:62 app/templates/checkout.html:66
+#: app/templates/checkout.html:69 app/templates/checkout.html:73
 msgid "Credit Card"
 msgstr "Tarjeta de crédito"
 
-#: app/templates/checkout.html:73 app/templates/checkout.html:77
+#: app/templates/checkout.html:80
+#, fuzzy
+msgid "Pay full amount"
+msgstr "IMPORTE"
+
+#: app/templates/checkout.html:84
+#, python-format
+msgid "Pay 30%% deposit"
+msgstr ""
+
+#: app/templates/checkout.html:90 app/templates/checkout.html:94
+#: app/templates/policies/refund.html:53
 msgid "Bank Wire Transfer"
 msgstr "Transferencia bancaria"
 
-#: app/templates/checkout.html:84 app/templates/checkout.html:122
+#: app/templates/checkout.html:101 app/templates/checkout.html:144
 msgid "Pay securely with Stripe"
 msgstr "Paga de forma segura con Stripe"
 
-#: app/templates/checkout.html:91 app/templates/policies/cancellation.html:2
+#: app/templates/checkout.html:108 app/templates/policies/cancellation.html:2
 #: app/templates/policies/cancellation.html:6
 #: app/templates/policies/refund.html:17 app/templates/policies/terms.html:37
 #: app/templates/reservation.html:75
 msgid "Cancellation Policy"
 msgstr "Política de cancelación"
 
-#: app/templates/checkout.html:93 app/templates/policies/terms.html:2
+#: app/templates/checkout.html:110 app/templates/policies/terms.html:2
 #: app/templates/policies/terms.html:6 app/templates/reservation.html:76
 msgid "Terms & Conditions"
 msgstr "Términos y condiciones"
 
-#: app/templates/checkout.html:123
+#: app/templates/checkout.html:145
 msgid "You will be redirected to Stripe's secure checkout page."
 msgstr "Serás redirigido a la página de pago segura de Stripe."
 
-#: app/templates/checkout.html:126
+#: app/templates/checkout.html:148
 msgid "Confirm & Get Wire Instructions"
 msgstr "Confirmar y obtener instrucciones de transferencia"
 
-#: app/templates/checkout.html:127
+#: app/templates/checkout.html:149
 msgid ""
 "Your reservation will be held pending verification of the bank wire "
 "transfer."
@@ -1185,58 +2374,104 @@ msgstr ""
 msgid "If you have any questions, feel free to reach out."
 msgstr "Si tienes alguna pregunta, no dudes en contactarnos."
 
-#: app/templates/contact.html:48
+#: app/templates/contact.html:48 app/templates/policies/cancellation.html:88
+#: app/templates/policies/privacy.html:14 app/templates/policies/terms.html:95
 msgid "Phone:"
 msgstr "Teléfono:"
+
+#: app/templates/csrf_error.html:3
+msgid "Request Expired"
+msgstr ""
+
+#: app/templates/csrf_error.html:12
+#, fuzzy
+msgid "Session Expired"
+msgstr "Sesión expirada. Por favor, inténtalo de nuevo."
+
+#: app/templates/csrf_error.html:13
+msgid ""
+"Your form session expired. Please go back and try again — your security is "
+"important to us."
+msgstr ""
 
 #: app/templates/email_admin_alert.html:13
 msgid "New Booking Received"
 msgstr "Nueva reserva recibida"
 
-#: app/templates/email_admin_alert.html:24
+#: app/templates/email_admin_alert.html:25
+#: app/templates/email_pending_payment.html:46
+#, fuzzy
+msgid "Bank Transfer Details"
+msgstr "Transferencia bancaria"
+
+#: app/templates/email_admin_alert.html:28
+#: app/templates/email_pending_payment.html:47
+#: app/templates/wire_transfer.html:18
+msgid "Bank:"
+msgstr "Banco:"
+
+#: app/templates/email_admin_alert.html:32
+#: app/templates/email_pending_payment.html:48
+#: app/templates/wire_transfer.html:19
+msgid "Beneficiary:"
+msgstr "Beneficiario:"
+
+#: app/templates/email_admin_alert.html:44
+#: app/templates/email_pending_payment.html:51
+#: app/templates/wire_transfer.html:22
+msgid "Amount:"
+msgstr "Importe:"
+
+#: app/templates/email_admin_alert.html:48
+#: app/templates/email_pending_payment.html:52
+#: app/templates/wire_transfer.html:23
+msgid "Payment Reference:"
+msgstr "Referencia de pago:"
+
+#: app/templates/email_admin_alert.html:56
 #: app/templates/email_admin_cancellation.html:19
 #: app/templates/email_admin_payment_confirmed.html:19
 msgid "Guest Details"
 msgstr "Detalles del huésped"
 
-#: app/templates/email_admin_alert.html:31
+#: app/templates/email_admin_alert.html:63
 #: app/templates/email_admin_cancellation.html:26
 #: app/templates/email_admin_payment_confirmed.html:26
 #: app/templates/email_cancellation.html:42
 msgid "Check-In:"
 msgstr "Check-in:"
 
-#: app/templates/email_admin_alert.html:35
+#: app/templates/email_admin_alert.html:67
 #: app/templates/email_admin_cancellation.html:30
 #: app/templates/email_admin_payment_confirmed.html:30
 #: app/templates/email_cancellation.html:46
 msgid "Check-Out:"
 msgstr "Check-out:"
 
-#: app/templates/email_admin_alert.html:39
+#: app/templates/email_admin_alert.html:71
 #: app/templates/email_admin_cancellation.html:34
 #: app/templates/email_admin_payment_confirmed.html:34
 #: app/templates/email_cancellation.html:50
 msgid "Total Stay:"
 msgstr "Estancia total:"
 
-#: app/templates/email_admin_alert.html:43
+#: app/templates/email_admin_alert.html:75
 msgid "Revenue Total:"
 msgstr "Ingresos totales:"
 
-#: app/templates/email_admin_alert.html:52
+#: app/templates/email_admin_alert.html:84
 msgid "Cancel Booking & Refund"
 msgstr "Cancelar reserva y reembolsar"
 
-#: app/templates/email_admin_alert.html:55
+#: app/templates/email_admin_alert.html:87
 msgid ""
-"Warning: Clicking this immediately triggers an official transaction "
-"reversal on Stripe."
+"Warning: Clicking this immediately triggers an official transaction reversal"
+" on Stripe."
 msgstr ""
-"Advertencia: Al hacer clic se activa inmediatamente una reversión oficial "
-"de la transacción en Stripe."
+"Advertencia: Al hacer clic se activa inmediatamente una reversión oficial de"
+" la transacción en Stripe."
 
-#: app/templates/email_admin_alert.html:59
+#: app/templates/email_admin_alert.html:91
 msgid "Automated notification via your Railway App engine."
 msgstr "Notificación automática vía tu motor de Railway App."
 
@@ -1264,6 +2499,59 @@ msgstr "Reembolso de Stripe procesado automáticamente"
 #: app/templates/email_admin_payment_confirmed.html:55
 msgid "Admin action via your Railway App engine."
 msgstr "Acción de admin vía tu motor de Railway App."
+
+#: app/templates/email_admin_checkin_completed.html:20
+#: app/templates/email_confirmation.html:21
+#: app/templates/email_guest_checkin.html:24
+#: app/templates/email_pending_payment.html:26
+msgid "Hi"
+msgstr "Hola"
+
+#: app/templates/email_admin_checkin_completed.html:21
+msgid "The guest has completed their online check-in for reservation"
+msgstr ""
+
+#: app/templates/email_admin_checkin_completed.html:24
+#, fuzzy
+msgid "Guest Details:"
+msgstr "Detalles del huésped"
+
+#: app/templates/email_admin_checkin_completed.html:26
+#, fuzzy
+msgid "Name:"
+msgstr "Nombre"
+
+#: app/templates/email_admin_checkin_completed.html:28
+#: app/templates/email_confirmation.html:27
+#: app/templates/email_guest_checkin.html:31
+#: app/templates/email_pending_payment.html:36
+msgid "Check-in:"
+msgstr "Check-in:"
+
+#: app/templates/email_admin_checkin_completed.html:29
+#: app/templates/email_confirmation.html:28
+#: app/templates/email_guest_checkin.html:32
+#: app/templates/email_pending_payment.html:37
+msgid "Check-out:"
+msgstr "Check-out:"
+
+#: app/templates/email_admin_checkin_completed.html:30
+msgid "Completed at:"
+msgstr ""
+
+#: app/templates/email_admin_checkin_completed.html:30
+msgid "N/A"
+msgstr ""
+
+#: app/templates/email_admin_checkin_completed.html:34
+msgid ""
+"Questura submission will be processed automatically if all data is complete."
+msgstr ""
+
+#: app/templates/email_admin_checkin_completed.html:38
+#, fuzzy
+msgid "Automated notification via your booking engine."
+msgstr "Notificación automática vía tu motor de Railway App."
 
 #: app/templates/email_admin_payment_confirmed.html:13
 msgid "Payment Confirmed by Admin"
@@ -1333,11 +2621,6 @@ msgstr "Confirmación de reserva"
 msgid "Booking Confirmed! 🎉"
 msgstr "¡Reserva confirmada! 🎉"
 
-#: app/templates/email_confirmation.html:21
-#: app/templates/email_pending_payment.html:22
-msgid "Hi"
-msgstr "Hola"
-
 #: app/templates/email_confirmation.html:22
 msgid "Thank you for your booking! We are excited to host you at"
 msgstr "¡Gracias por tu reserva! Estamos emocionados de alojarte en"
@@ -1347,33 +2630,29 @@ msgid "Our Cozy Apartment"
 msgstr "Nuestro acogedor apartamento"
 
 #: app/templates/email_confirmation.html:25
-#: app/templates/email_pending_payment.html:30
+#: app/templates/email_guest_checkin.html:29
+#: app/templates/email_pending_payment.html:34
 msgid "Stay Details:"
 msgstr "Detalles de la estancia:"
 
-#: app/templates/email_confirmation.html:27
-#: app/templates/email_pending_payment.html:32
-msgid "Check-in:"
-msgstr "Check-in:"
-
-#: app/templates/email_confirmation.html:28
-#: app/templates/email_pending_payment.html:33
-msgid "Check-out:"
-msgstr "Check-out:"
-
 #: app/templates/email_confirmation.html:29
-#: app/templates/email_pending_payment.html:34
+#: app/templates/email_pending_payment.html:38
 msgid "Duration:"
 msgstr "Duración:"
 
 #: app/templates/email_confirmation.html:29
-#: app/templates/email_pending_payment.html:34
+#: app/templates/email_pending_payment.html:38
 msgid "night(s)"
 msgstr "noche(s)"
 
 #: app/templates/email_confirmation.html:31
 msgid "Total Paid:"
 msgstr "Total pagado:"
+
+#: app/templates/email_confirmation.html:36
+#: app/templates/email_pending_payment.html:67
+msgid "Payment Details"
+msgstr "Detalles de pago"
 
 #: app/templates/email_confirmation.html:41
 msgid ""
@@ -1384,54 +2663,211 @@ msgstr ""
 "en el enlace de abajo:"
 
 #: app/templates/email_confirmation.html:43
-#: app/templates/email_pending_payment.html:48
+#: app/templates/email_pending_payment.html:74
 msgid "Cancel Reservation"
 msgstr "Cancelar reserva"
 
 #: app/templates/email_confirmation.html:48
-#: app/templates/email_pending_payment.html:53
+#: app/templates/email_guest_checkin.html:61
+#: app/templates/email_pending_payment.html:79
 msgid "This is an automated message from your property booking engine."
 msgstr "Este es un mensaje automatizado de tu motor de reservas."
+
+#: app/templates/email_guest_access.html:6
+#: app/templates/email_guest_access.html:17
+msgid "Your Access Link"
+msgstr ""
+
+#: app/templates/email_guest_access.html:28
+#, fuzzy
+msgid "Your Stay"
+msgstr "Tu nombre"
+
+#: app/templates/email_guest_access.html:30
+msgid "nights"
+msgstr "noches"
+
+#: app/templates/email_guest_access.html:36
+#, fuzzy
+msgid "Hello"
+msgstr "Amarillo:"
+
+#: app/templates/email_guest_access.html:38
+msgid ""
+"Your stay is approaching! Use the button below to open the building gate and"
+" apartment door during your stay. This link is only valid from check-in to "
+"check-out."
+msgstr ""
+
+#: app/templates/email_guest_access.html:47
+msgid "Open Gate & Door"
+msgstr ""
+
+#: app/templates/email_guest_access.html:58
+msgid "What you can do:"
+msgstr ""
+
+#: app/templates/email_guest_access.html:64
+msgid "Open the building gate (Shelly Mini 1 Gen4)"
+msgstr ""
+
+#: app/templates/email_guest_access.html:65
+msgid "Unlock the apartment door (Nuki Smart Lock Ultra)"
+msgstr ""
+
+#: app/templates/email_guest_access.html:66
+#, fuzzy
+msgid "Access works only during your stay dates"
+msgstr "¿Podemos contactaros durante la estancia?"
+
+#: app/templates/email_guest_access.html:76
+#, fuzzy
+msgid "Security Notice"
+msgstr "8. Seguridad"
+
+#: app/templates/email_guest_access.html:77
+msgid ""
+"This link is personal and should not be shared. Access automatically expires"
+" on your check-out day."
+msgstr ""
+
+#: app/templates/email_guest_access.html:84
+msgid "If the button doesn't work, copy this link:"
+msgstr ""
+
+#: app/templates/email_guest_access.html:93
+msgid "Need help? Contact us."
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:6
+#: app/templates/email_guest_checkin.html:21
+#, fuzzy
+msgid "Complete Your Check-in"
+msgstr "Completa tu reserva"
+
+#: app/templates/email_guest_checkin.html:26
+#, fuzzy
+msgid "Your stay at"
+msgstr "Fecha de estancia"
+
+#: app/templates/email_guest_checkin.html:26
+msgid "is coming up!"
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:38
+#, fuzzy
+msgid "Action Required:"
+msgstr "Importe reembolsado:"
+
+#: app/templates/email_guest_checkin.html:38
+msgid ""
+"Italian law requires all guests to be registered with the Police (Questura) "
+"within 24 hours of arrival. Please complete the online check-in before your "
+"arrival to speed up the process."
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:41
+msgid "Click the button below to complete your check-in online:"
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:43
+#: app/templates/email_pending_payment.html:61
+#, fuzzy
+msgid "Complete Check-in Now"
+msgstr "Seleccionar check-in y check-out"
+
+#: app/templates/email_guest_checkin.html:46
+msgid "The check-in form will ask for:"
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:48
+msgid "Full name (as on ID document)"
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:49
+msgid "Date and place of birth"
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:51
+msgid "ID document type, number, and expiry date"
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:55
+msgid ""
+"The link is valid until your check-in date. You can complete it anytime up "
+"to 30 days before arrival."
+msgstr ""
+
+#: app/templates/email_guest_checkin.html:57
+#, fuzzy
+msgid "If you have any questions, feel free to contact us."
+msgstr "Si tienes alguna pregunta, no dudes en contactarnos."
 
 #: app/templates/email_pending_payment.html:5
 msgid "Booking Received"
 msgstr "Reserva recibida"
 
-#: app/templates/email_pending_payment.html:19
+#: app/templates/email_pending_payment.html:23
 msgid "Booking Received — Awaiting Payment"
 msgstr "Reserva recibida — Esperando pago"
 
-#: app/templates/email_pending_payment.html:23
-msgid "Thank you for your booking request! We have received your reservation for"
+#: app/templates/email_pending_payment.html:27
+msgid ""
+"Thank you for your booking request! We have received your reservation for"
 msgstr "¡Gracias por tu solicitud de reserva! Hemos recibido tu reserva para"
 
-#: app/templates/email_pending_payment.html:23
+#: app/templates/email_pending_payment.html:27
+#: app/templates/policies/cancellation.html:85
+#: app/templates/policies/privacy.html:11 app/templates/policies/terms.html:92
 msgid "Lotto 235 Garbatella"
 msgstr "Lotto 235 Garbatella"
 
-#: app/templates/email_pending_payment.html:26
+#: app/templates/email_pending_payment.html:30
 msgid "Important:"
 msgstr "Importante:"
 
-#: app/templates/email_pending_payment.html:26
+#: app/templates/email_pending_payment.html:30
 msgid ""
-"Your reservation is currently pending payment confirmation. To secure "
-"your dates, please complete the payment within 24 hours."
+"Your reservation is currently pending payment confirmation. To secure your "
+"dates, please complete the payment within 24 hours."
 msgstr ""
-"Tu reserva está actualmente pendiente de confirmación de pago. Para "
-"asegurar tus fechas, completa el pago en 24 horas."
+"Tu reserva está actualmente pendiente de confirmación de pago. Para asegurar"
+" tus fechas, completa el pago en 24 horas."
 
-#: app/templates/email_pending_payment.html:36
+#: app/templates/email_pending_payment.html:40
 msgid "Total Amount:"
 msgstr "Importe total:"
 
-#: app/templates/email_pending_payment.html:46
+#: app/templates/email_pending_payment.html:53
+#: app/templates/wire_transfer.html:27
 msgid ""
-"If you need to cancel your booking request, you can do so by clicking the"
-" link below:"
+"Please make sure to include the Payment Reference exactly as shown above."
 msgstr ""
-"Si necesitas cancelar tu solicitud de reserva, puedes hacerlo haciendo "
-"clic en el enlace a continuación:"
+"Asegúrate de incluir la Referencia de pago exactamente como se muestra "
+"arriba."
+
+#: app/templates/email_pending_payment.html:58
+#, fuzzy
+msgid "Complete Your Check-in Online"
+msgstr "Completa tu reserva"
+
+#: app/templates/email_pending_payment.html:59
+msgid ""
+"Save time at arrival by completing your guest registration now. Required by "
+"Italian law for all guests."
+msgstr ""
+
+#: app/templates/email_pending_payment.html:63
+msgid "Available 30 days before check-in. One-time use link."
+msgstr ""
+
+#: app/templates/email_pending_payment.html:72
+msgid ""
+"If you need to cancel your booking request, you can do so by clicking the "
+"link below:"
+msgstr ""
+"Si necesitas cancelar tu solicitud de reserva, puedes hacerlo haciendo clic "
+"en el enlace a continuación:"
 
 #: app/templates/faq.html:8 app/templates/faq.html:14
 msgid "Frequently Asked Questions"
@@ -1447,11 +2883,11 @@ msgstr "Check-in y check-out"
 
 #: app/templates/faq.html:22
 msgid ""
-"Check-in is from 15:00 and check-out is by 11:00. We will send you all "
-"the access details shortly before your arrival."
+"Check-in is from 15:00 and check-out is by 11:00. We will send you all the "
+"access details shortly before your arrival."
 msgstr ""
-"El check-in es desde las 15:00 y el check-out hasta las 11:00. Te "
-"enviaremos todos los detalles de acceso poco antes de tu llegada."
+"El check-in es desde las 15:00 y el check-out hasta las 11:00. Te enviaremos"
+" todos los detalles de acceso poco antes de tu llegada."
 
 #: app/templates/faq.html:28
 msgid "How does check-in work?"
@@ -1459,8 +2895,8 @@ msgstr "¿Cómo funciona el check-in?"
 
 #: app/templates/faq.html:32
 msgid ""
-"Check-in is self-service. You will receive simple step-by-step "
-"instructions before arrival."
+"Check-in is self-service. You will receive simple step-by-step instructions "
+"before arrival."
 msgstr ""
 "El check-in es autoservicio. Recibirás instrucciones simples paso a paso "
 "antes de la llegada."
@@ -1471,8 +2907,8 @@ msgstr "¿Dónde está ubicado el apartamento?"
 
 #: app/templates/faq.html:42
 msgid ""
-"The apartment is located in the Garbatella area, one of Rome's most "
-"vibrant and authentic neighborhoods, well connected to the city center."
+"The apartment is located in the Garbatella area, one of Rome's most vibrant "
+"and authentic neighborhoods, well connected to the city center."
 msgstr ""
 "El apartamento está en la zona de Garbatella, uno de los barrios más "
 "vibrantes y auténticos de Roma, bien conectado con el centro."
@@ -1483,7 +2919,8 @@ msgstr "¿Hay transporte público cerca?"
 
 #: app/templates/faq.html:52
 msgid "Yes, metro line B and several bus lines are within walking distance."
-msgstr "Sí, la línea B de metro y varias líneas de autobús están a poca distancia."
+msgstr ""
+"Sí, la línea B de metro y varias líneas de autobús están a poca distancia."
 
 #: app/templates/faq.html:58
 msgid "How can I get there from Termini station?"
@@ -1494,8 +2931,8 @@ msgid ""
 "Take Metro Line B (direction Laurentina) and get off at Garbatella, then "
 "walk about 500 meters."
 msgstr ""
-"Toma la línea B de metro (dirección Laurentina) y baja en Garbatella, "
-"luego camina unos 500 metros."
+"Toma la línea B de metro (dirección Laurentina) y baja en Garbatella, luego "
+"camina unos 500 metros."
 
 #: app/templates/faq.html:68
 msgid "How can I get there from the airport?"
@@ -1503,13 +2940,13 @@ msgstr "¿Cómo llego desde el aeropuerto?"
 
 #: app/templates/faq.html:72
 msgid ""
-"From Fiumicino Airport, take the train to Ostiense station. From Ciampino"
-" Airport, take a shuttle to Termini and then Metro Line B. Taxi and "
-"private transfers are also available."
+"From Fiumicino Airport, take the train to Ostiense station. From Ciampino "
+"Airport, take a shuttle to Termini and then Metro Line B. Taxi and private "
+"transfers are also available."
 msgstr ""
-"Desde el aeropuerto de Fiumicino, toma el tren a la estación Ostiense. "
-"Desde Ciampino, toma un autobús a Termini y luego la línea B de metro. "
-"También hay taxis y traslados privados."
+"Desde el aeropuerto de Fiumicino, toma el tren a la estación Ostiense. Desde"
+" Ciampino, toma un autobús a Termini y luego la línea B de metro. También "
+"hay taxis y traslados privados."
 
 #: app/templates/faq.html:78
 msgid "Is parking available?"
@@ -1517,9 +2954,8 @@ msgstr "¿Hay parking disponible?"
 
 #: app/templates/faq.html:82
 msgid ""
-"We do not have a private parking space, but free street parking is "
-"available nearby. It may require a short search, and we'll be happy to "
-"give tips."
+"We do not have a private parking space, but free street parking is available"
+" nearby. It may require a short search, and we'll be happy to give tips."
 msgstr ""
 "No tenemos parking privado, pero hay parking gratuito en la calle cerca. "
 "Puede requerir una búsqueda breve, y estaremos felices de dar consejos."
@@ -1530,8 +2966,8 @@ msgstr "¿Puedo dejar mi equipaje?"
 
 #: app/templates/faq.html:92
 msgid ""
-"Depending on availability, we may offer early check-in or luggage drop-"
-"off. Please contact us in advance."
+"Depending on availability, we may offer early check-in or luggage drop-off. "
+"Please contact us in advance."
 msgstr ""
 "Según disponibilidad, podemos ofrecer check-in temprano o guardaequipaje. "
 "Contáctanos con antelación."
@@ -1550,8 +2986,7 @@ msgstr "¿Hay aire acondicionado y calefacción?"
 
 #: app/templates/faq.html:112
 msgid ""
-"Yes, the apartment is fully equipped with both air conditioning and "
-"heating."
+"Yes, the apartment is fully equipped with both air conditioning and heating."
 msgstr ""
 "Sí, el apartamento está totalmente equipado con aire acondicionado y "
 "calefacción."
@@ -1562,8 +2997,8 @@ msgstr "¿Se admiten mascotas?"
 
 #: app/templates/faq.html:122
 msgid ""
-"We love animals, but unfortunately we cannot host pets. Thank you for "
-"your understanding."
+"We love animals, but unfortunately we cannot host pets. Thank you for your "
+"understanding."
 msgstr ""
 "Nos encantan los animales, pero lamentablemente no admitimos mascotas. "
 "Gracias por tu comprensión."
@@ -1586,21 +3021,22 @@ msgstr "¡Por supuesto! Siempre estamos disponibles y felices de ayudar."
 
 #: app/templates/food_recommendations.html:8
 msgid ""
-"Discover our favorite places to eat, drink, and experience the real Rome "
-"– just a few minutes from your apartment."
+"Discover our favorite places to eat, drink, and experience the real Rome – "
+"just a few minutes from your apartment."
 msgstr ""
 "Descubre nuestros lugares favoritos para comer, beber y vivir la verdadera "
 "Roma — a solo minutos de tu apartamento."
 
 #: app/templates/food_recommendations.html:9
 #: app/templates/food_recommendations.html:105
-msgid "Curated local picks near Garbatella"
+#, fuzzy
+msgid "Selected for you local picks near Garbatella"
 msgstr "Selección local curada cerca de Garbatella"
 
 #: app/templates/food_recommendations.html:13
-#: app/templates/food_recommendations.html:112
-msgid "Curated"
-msgstr "Curado"
+#, fuzzy
+msgid "Selected"
+msgstr "Eliminar"
 
 #: app/templates/food_recommendations.html:14
 msgid "Trattorie"
@@ -1650,6 +3086,10 @@ msgstr "☕ Cafés"
 msgid "🍸 Drinks"
 msgstr "🍸 Bebidas"
 
+#: app/templates/food_recommendations.html:112
+msgid "Selected for you"
+msgstr ""
+
 #: app/templates/food_recommendations.html:134
 msgid "Modern trattoria (8 min walk)"
 msgstr "Trattoria moderna (8 min a pie)"
@@ -1694,6 +3134,187 @@ msgstr "Perfecto para una copa rápida (2 min a pie)"
 msgid "Stylish cocktail bar (2 min walk)"
 msgstr "Bar de cócteles elegante (2 min a pie)"
 
+#: app/templates/guest_access.html:2 app/templates/guest_access.html:9
+#, fuzzy
+msgid "Guest Access"
+msgstr "Huéspedes"
+
+#: app/templates/guest_access.html:10
+msgid "Valid during your stay"
+msgstr ""
+
+#: app/templates/guest_access.html:40
+msgid "Building Gate"
+msgstr ""
+
+#: app/templates/guest_access.html:41
+msgid "Press to open the building gate."
+msgstr ""
+
+#: app/templates/guest_access.html:44
+msgid "Open Gate"
+msgstr ""
+
+#: app/templates/guest_access.html:50
+msgid "Gate control not configured. Please contact the host."
+msgstr ""
+
+#: app/templates/guest_access.html:62
+#, fuzzy
+msgid "Apartment Door"
+msgstr "Apartamento"
+
+#: app/templates/guest_access.html:63
+msgid "Press to unlock the apartment door."
+msgstr ""
+
+#: app/templates/guest_access.html:66
+msgid "Unlock Door"
+msgstr ""
+
+#: app/templates/guest_access.html:72
+msgid "Door control not configured. Please contact the host."
+msgstr ""
+
+#: app/templates/guest_access.html:80
+#, fuzzy
+msgid "Important"
+msgstr "Importante:"
+
+#: app/templates/guest_access.html:82
+msgid "Access is only valid during your stay dates"
+msgstr ""
+
+#: app/templates/guest_access.html:83
+msgid "Do not share this link with anyone outside your booking"
+msgstr ""
+
+#: app/templates/guest_access.html:84
+msgid "If the gate/door does not respond, contact the host"
+msgstr ""
+
+#: app/templates/guest_access.html:85
+msgid "Access expires automatically on check-out day"
+msgstr ""
+
+#: app/templates/guest_access.html:110
+#, fuzzy
+msgid "Processing..."
+msgstr "Procesamiento de reembolso"
+
+#: app/templates/guest_access.html:113
+msgid "Try Again"
+msgstr ""
+
+#: app/templates/guest_access.html:127
+msgid "Opening gate..."
+msgstr ""
+
+#: app/templates/guest_access.html:130
+msgid "Gate opened"
+msgstr ""
+
+#: app/templates/guest_access.html:131 app/templates/guest_access.html:142
+msgid "Failed"
+msgstr ""
+
+#: app/templates/guest_access.html:132 app/templates/guest_access.html:143
+#, fuzzy
+msgid "Connection error"
+msgstr "Tipo de condición"
+
+#: app/templates/guest_access.html:138
+msgid "Unlocking door..."
+msgstr ""
+
+#: app/templates/guest_access.html:141
+msgid "Door unlocked"
+msgstr ""
+
+#: app/templates/guest_access_denied.html:2
+#, fuzzy
+msgid "Access Denied"
+msgstr "¡Éxito! Código aplicado."
+
+#: app/templates/guest_access_denied.html:11
+#, fuzzy
+msgid "Access Not Available"
+msgstr "¿Hay parking disponible?"
+
+#: app/templates/guest_access_denied.html:22
+#, fuzzy
+msgid "Stay:"
+msgstr "Estado:"
+
+#: app/templates/guest_access_denied.html:23
+#, fuzzy
+msgid "Reservation:"
+msgstr "Registro de reservas"
+
+#: app/templates/guest_checkin_done.html:2
+#, fuzzy
+msgid "Check-in Completed"
+msgstr "Check-in / Check-out"
+
+#: app/templates/guest_checkin_done.html:11
+#, fuzzy
+msgid "Check-in Completed!"
+msgstr "Check-in / Check-out"
+
+#: app/templates/guest_self_checkin.html:2
+#, fuzzy
+msgid "Check-in Online"
+msgstr "Check-in"
+
+#: app/templates/guest_self_checkin.html:11
+msgid "Check-in Already Completed"
+msgstr ""
+
+#: app/templates/guest_self_checkin.html:12
+msgid "You have already submitted your details."
+msgstr ""
+
+#: app/templates/guest_self_checkin.html:13
+#, fuzzy
+msgid "Return to Portal"
+msgstr "Volver a la página de inicio"
+
+#: app/templates/guest_self_checkin.html:16
+#, fuzzy
+msgid "Online Check-in"
+msgstr "Check-in"
+
+#: app/templates/guest_self_checkin.html:17
+#, fuzzy
+msgid ""
+"Complete your guest registration before arrival. Required by Italian law."
+msgstr "Registro de huéspedes Questura (requisito legal)"
+
+#: app/templates/guest_self_checkin.html:45
+msgid ""
+"All guests must be registered with the Police (Questura) within 24 hours of "
+"arrival."
+msgstr ""
+
+#: app/templates/guest_self_checkin.html:52
+#, fuzzy
+msgid "Main Guest"
+msgstr "Huésped"
+
+#: app/templates/guest_self_checkin.html:67
+msgid "Place of Birth"
+msgstr ""
+
+#: app/templates/guest_self_checkin.html:104
+#, fuzzy
+msgid "Issuing Country"
+msgstr "Ciudad, País"
+
+#: app/templates/guest_self_checkin.html:111
+#, fuzzy
+msgid "Complete Check-in"
+msgstr "Check-in"
+
 #: app/templates/login.html:9
 msgid "Admin Login"
 msgstr "Acceso admin"
@@ -1724,8 +3345,10 @@ msgid "We are opening your secure payment link on PayPal.Me."
 msgstr "Estamos abriendo tu enlace de pago seguro en PayPal.Me."
 
 #: app/templates/paypal_redirect.html:23
-msgid "If you are not redirected within a few seconds, click the button below:"
-msgstr "Si no eres redirigido en unos segundos, haz clic en el botón de abajo:"
+msgid ""
+"If you are not redirected within a few seconds, click the button below:"
+msgstr ""
+"Si no eres redirigido en unos segundos, haz clic en el botón de abajo:"
 
 #: app/templates/paypal_redirect.html:25
 msgid "Go to PayPal.Me Now"
@@ -1760,8 +3383,11 @@ msgid "No apartment selected"
 msgstr "No se ha seleccionado apartamento"
 
 #: app/templates/reservation.html:88
-msgid "Please navigate back to the listings page and choose an apartment to book."
-msgstr "Por favor, vuelve a la página de listados y elige un apartamento para reservar."
+msgid ""
+"Please navigate back to the listings page and choose an apartment to book."
+msgstr ""
+"Por favor, vuelve a la página de listados y elige un apartamento para "
+"reservar."
 
 #: app/templates/reservation.html:117
 msgid "Please select a valid check-in date range first."
@@ -1785,31 +3411,94 @@ msgstr "¡Reserva recibida!"
 
 #: app/templates/wire_transfer.html:14
 msgid ""
-"Your booking is safely registered. To secure your dates, please submit "
-"the bank transfer within 24 hours."
+"Your booking is safely registered. To secure your dates, please submit the "
+"bank transfer within 24 hours."
 msgstr ""
 "Tu reserva está registrada de forma segura. Para asegurar tus fechas, "
 "realiza la transferencia bancaria en 24 horas."
 
-#: app/templates/wire_transfer.html:18
-msgid "Bank:"
-msgstr "Banco:"
+#: app/templates/components/trust_badges_reviews.html:6
+msgid "Trusted by Thousands of Guests"
+msgstr ""
 
-#: app/templates/wire_transfer.html:19
-msgid "Beneficiary:"
-msgstr "Beneficiario:"
+#: app/templates/components/trust_badges_reviews.html:7
+msgid "Verified reviews and secure payments for your peace of mind"
+msgstr ""
 
-#: app/templates/wire_transfer.html:22
-msgid "Amount:"
-msgstr "Importe:"
+#: app/templates/components/trust_badges_reviews.html:18
+#: app/templates/components/trust_badges_reviews.html:23
+#: app/templates/components/trust_badges_reviews.html:31
+#: app/templates/components/trust_badges_reviews.html:38
+#: app/templates/components/trust_badges_reviews.html:46
+#: app/templates/components/trust_badges_reviews.html:56
+#: app/templates/components/trust_badges_reviews.html:64
+#: app/templates/components/trust_badges_reviews.html:71
+#: app/templates/components/trust_badges_reviews.html:79
+#: app/templates/components/trust_badges_reviews.html:86
+#, fuzzy
+msgid "reviews"
+msgstr "Total de reseñas"
 
-#: app/templates/wire_transfer.html:23
-msgid "Payment Reference:"
-msgstr "Referencia de pago:"
+#: app/templates/components/trust_badges_reviews.html:18
+#, fuzzy
+msgid "Booking.com reviews"
+msgstr "Booking.com"
 
-#: app/templates/wire_transfer.html:27
-msgid "Please make sure to include the Payment Reference exactly as shown above."
-msgstr "Asegúrate de incluir la Referencia de pago exactamente como se muestra arriba."
+#: app/templates/components/trust_badges_reviews.html:31
+#, fuzzy
+msgid "Airbnb reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/components/trust_badges_reviews.html:46
+#, fuzzy
+msgid "Google Reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/components/trust_badges_reviews.html:46
+#, fuzzy
+msgid "Google reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/components/trust_badges_reviews.html:64
+msgid "TripAdvisor"
+msgstr ""
+
+#: app/templates/components/trust_badges_reviews.html:64
+#, fuzzy
+msgid "TripAdvisor reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/components/trust_badges_reviews.html:79
+msgid "VRBO"
+msgstr ""
+
+#: app/templates/components/trust_badges_reviews.html:79
+#, fuzzy
+msgid "VRBO reviews"
+msgstr "Total de reseñas"
+
+#: app/templates/components/trust_badges_reviews.html:100
+msgid "Certifications & Awards"
+msgstr ""
+
+#: app/templates/components/trust_badges_reviews.html:121
+msgid "Widget Embeds"
+msgstr ""
+
+#: app/templates/components/whatsapp_button.html:7
+#: app/templates/components/whatsapp_button.html:8
+#: app/templates/includes/whatsapp_button.html:7
+#: app/templates/includes/whatsapp_button.html:8
+msgid "Contact us on WhatsApp"
+msgstr ""
+
+#: app/templates/components/whatsapp_button.html:10
+msgid "Chat on WhatsApp"
+msgstr ""
+
+#: app/templates/includes/whatsapp_button.html:10
+msgid "WhatsApp"
+msgstr ""
 
 #: app/templates/policies/cancellation.html:7
 #: app/templates/policies/privacy.html:7 app/templates/policies/refund.html:7
@@ -1824,8 +3513,8 @@ msgstr "Resumen:"
 
 #: app/templates/policies/cancellation.html:11
 msgid ""
-"Free cancellation up to 14 days before check-in. After that, cancellation"
-" fees apply."
+"Free cancellation up to 14 days before check-in. After that, cancellation "
+"fees apply."
 msgstr ""
 "Cancelación gratis hasta 14 días antes del check-in. Después se aplican "
 "tasas de cancelación."
@@ -1842,29 +3531,171 @@ msgstr "Cuándo se cancela"
 msgid "Refund"
 msgstr "Reembolso"
 
+#: app/templates/policies/cancellation.html:25
+msgid "> 14 days before check-in"
+msgstr "> 14 días antes del check-in"
+
+#: app/templates/policies/cancellation.html:26
+msgid "Full refund (100%)"
+msgstr "Reembolso completo (100%)"
+
+#: app/templates/policies/cancellation.html:29
+msgid "7-14 days before check-in"
+msgstr "7-14 días antes del check-in"
+
+#: app/templates/policies/cancellation.html:30
+msgid "Half refund (50%)"
+msgstr "Reembolso parcial (50%)"
+
+#: app/templates/policies/cancellation.html:33
+msgid "< 7 days before check-in"
+msgstr "< 7 días antes del check-in"
+
+#: app/templates/policies/cancellation.html:34
+#: app/templates/policies/cancellation.html:38
+msgid "No refund"
+msgstr "Sin reembolso"
+
+#: app/templates/policies/cancellation.html:37
+#, fuzzy
+msgid "No-show / Early departure"
+msgstr "No-shows o salidas anticipadas"
+
 #: app/templates/policies/cancellation.html:45
 msgid "How to Cancel"
 msgstr "Cómo cancelar"
+
+#: app/templates/policies/cancellation.html:47
+msgid "Use the cancellation link in your booking confirmation email, OR"
+msgstr ""
+"Use el enlace de cancelación en su correo de confirmación de reserva, O"
+
+#: app/templates/policies/cancellation.html:48
+#, fuzzy
+msgid "Contact us at"
+msgstr "Contacto"
+
+#: app/templates/policies/cancellation.html:48
+#, fuzzy
+msgid "with your reservation ID"
+msgstr "Estamos finalizando tu reserva..."
+
+#: app/templates/policies/cancellation.html:49
+msgid "Cancellation is effective upon our confirmation"
+msgstr "La cancelación es efectiva tras nuestra confirmación"
 
 #: app/templates/policies/cancellation.html:54
 msgid "Refund Processing"
 msgstr "Procesamiento de reembolso"
 
+#: app/templates/policies/cancellation.html:56
+msgid ""
+"Stripe payments: Refunded to original payment method within 5-10 business "
+"days"
+msgstr ""
+"Pagos con Stripe: reembolsados al método de pago original en un plazo de 5 a"
+" 10 días hábiles"
+
+#: app/templates/policies/cancellation.html:57
+msgid ""
+"Wire transfers: Refunded via bank transfer within 5 business days (provide "
+"IBAN)"
+msgstr ""
+"Transferencias bancarias: reembolsadas mediante transferencia bancaria en un"
+" plazo de 5 días hábiles (proporcione IBAN)"
+
+#: app/templates/policies/cancellation.html:58
+#, fuzzy
+msgid "Refunds issued in EUR only; currency conversion fees not refunded"
+msgstr ""
+"Todos los reembolsos se emiten en EUR. Las comisiones de conversión de "
+"divisa (si las hay) no se reembolsan."
+
 #: app/templates/policies/cancellation.html:63
 msgid "Exceptions & Special Cases"
 msgstr "Excepciones y casos especiales"
+
+#: app/templates/policies/cancellation.html:65
+#, fuzzy
+msgid "Government travel restrictions:"
+msgstr "Restricciones de viaje gubernamentales que impiden la llegada"
+
+#: app/templates/policies/cancellation.html:65
+msgid ""
+"If official restrictions prevent travel, full refund or free rebooking "
+"offered."
+msgstr ""
+"Si las restricciones oficiales impiden viajar, se ofrece un reembolso "
+"completo o una reserva gratuita."
+
+#: app/templates/policies/cancellation.html:66
+msgid "Property uninhabitable:"
+msgstr "Alojamiento inhabitable:"
+
+#: app/templates/policies/cancellation.html:66
+msgid ""
+"If apartment becomes unavailable due to damage/emergency, full refund + "
+"assistance finding alternative."
+msgstr ""
+"Si el apartamento no está disponible debido a daños/emergencia, reembolso "
+"completo + asistencia para encontrar una alternativa."
+
+#: app/templates/policies/cancellation.html:67
+msgid "Medical emergencies:"
+msgstr "Emergencias médicas:"
+
+#: app/templates/policies/cancellation.html:67
+msgid ""
+"Considered case-by-case with documentation; we recommend travel insurance."
+msgstr ""
+"Se evalúan caso por caso con documentación; recomendamos un seguro de viaje."
+
+#: app/templates/policies/cancellation.html:68
+#, fuzzy
+msgid "Force majeure:"
+msgstr "Fuerza mayor"
+
+#: app/templates/policies/cancellation.html:68
+msgid "Natural disasters, pandemics, strikes - full refund or free rebooking."
+msgstr ""
+"Desastres naturales, pandemias, huelgas: reembolso completo o reserva "
+"gratuita."
 
 #: app/templates/policies/cancellation.html:73
 msgid "Non-Refundable Bookings"
 msgstr "Reservas no reembolsables"
 
+#: app/templates/policies/cancellation.html:74
+msgid ""
+"Promotional or \"Non-Refundable\" rate bookings cannot be cancelled or "
+"refunded under any circumstances. These are clearly marked during booking."
+msgstr ""
+"Las reservas con tarifas promocionales o \"No reembolsables\" no se pueden "
+"cancelar ni reembolsar bajo ninguna circunstancia. Están claramente marcadas"
+" durante la reserva."
+
 #: app/templates/policies/cancellation.html:78
 msgid "Rebooking Instead of Cancelling"
 msgstr "Reprogramar en lugar de cancelar"
 
+#: app/templates/policies/cancellation.html:79
+msgid ""
+"We are happy to help you change dates instead of cancelling, subject to "
+"availability and rate differences. Contact us to discuss options."
+msgstr ""
+"Estaremos encantados de ayudarle a cambiar las fechas en lugar de cancelar, "
+"sujeto a disponibilidad y diferencias de tarifa. Contáctenos para discutir "
+"opciones."
+
+#: app/templates/policies/cancellation.html:86
+#: app/templates/policies/privacy.html:12 app/templates/policies/terms.html:93
+msgid "Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy"
+msgstr "Via Circonvallazione Ostiense 235, 00154 Roma RM, Italia"
+
 #: app/templates/policies/house_rules.html:7
 msgid "Please respect these rules for a pleasant stay for everyone"
-msgstr "Por favor, respeta estas normas para una estancia agradable para todos"
+msgstr ""
+"Por favor, respeta estas normas para una estancia agradable para todos"
 
 #: app/templates/policies/house_rules.html:10
 msgid "General Conduct"
@@ -1880,7 +3711,8 @@ msgstr "Horas de silencio: 22:00 - 08:00 (normativa del edificio)"
 
 #: app/templates/policies/house_rules.html:14
 msgid "No parties, events, or gatherings without prior written consent"
-msgstr "Sin fiestas, eventos o reuniones sin consentimiento previo por escrito"
+msgstr ""
+"Sin fiestas, eventos o reuniones sin consentimiento previo por escrito"
 
 #: app/templates/policies/house_rules.html:15
 msgid "Maximum occupancy: As per booking (no extra overnight guests)"
@@ -1904,7 +3736,8 @@ msgstr "Por favor, usa el cenicero provisto"
 
 #: app/templates/policies/house_rules.html:25
 msgid "Violation: €200 cleaning fee + possible early termination"
-msgstr "Incumplimiento: 200 € tasa de limpieza + posible terminación anticipada"
+msgstr ""
+"Incumplimiento: 200 € tasa de limpieza + posible terminación anticipada"
 
 #: app/templates/policies/house_rules.html:30
 msgid "Guests & Visitors"
@@ -1940,7 +3773,8 @@ msgstr "a las 10:00 en punto"
 
 #: app/templates/policies/house_rules.html:44
 msgid "Late check-out: €30/hr (subject to availability, request by 09:00)"
-msgstr "Check-out tardío: 30 €/h (sujeto a disponibilidad, solicitar antes de 09:00)"
+msgstr ""
+"Check-out tardío: 30 €/h (sujeto a disponibilidad, solicitar antes de 09:00)"
 
 #: app/templates/policies/house_rules.html:45
 msgid "Return keys to lockbox / leave on counter"
@@ -1952,7 +3786,8 @@ msgstr "Residuos y reciclaje (Normativa de Roma)"
 
 #: app/templates/policies/house_rules.html:51
 msgid "Rome has strict waste separation. Please use the bins provided:"
-msgstr "Roma tiene separación estricta de residuos. Usa los contenedores provistos:"
+msgstr ""
+"Roma tiene separación estricta de residuos. Usa los contenedores provistos:"
 
 #: app/templates/policies/house_rules.html:53
 msgid "Blue:"
@@ -2092,7 +3927,9 @@ msgstr "Daños y tasas"
 
 #: app/templates/policies/house_rules.html:108
 msgid "Report any damage immediately - no penalty for accidental breakage"
-msgstr "Reporta cualquier daño inmediatamente - sin penalización por roturas accidentales"
+msgstr ""
+"Reporta cualquier daño inmediatamente - sin penalización por roturas "
+"accidentales"
 
 #: app/templates/policies/house_rules.html:109
 msgid "Lost keys: €50 (lockbox) / €150 (building key)"
@@ -2108,7 +3945,8 @@ msgstr "Fumar dentro: 200 € + terminación anticipada"
 
 #: app/templates/policies/house_rules.html:112
 msgid "Damage deposit may be charged via Stripe for significant issues"
-msgstr "Depósito por daños puede cargarse vía Stripe por problemas significativos"
+msgstr ""
+"Depósito por daños puede cargarse vía Stripe por problemas significativos"
 
 #: app/templates/policies/house_rules.html:118
 msgid "Questions?"
@@ -2128,7 +3966,8 @@ msgstr "2. Datos que recopilamos"
 
 #: app/templates/policies/privacy.html:19
 msgid "We collect only data necessary for your booking and legal obligations:"
-msgstr "Recopilamos solo datos necesarios para tu reserva y obligaciones legales:"
+msgstr ""
+"Recopilamos solo datos necesarios para tu reserva y obligaciones legales:"
 
 #: app/templates/policies/privacy.html:21
 msgid "Identity: Name, email, phone number"
@@ -2148,7 +3987,8 @@ msgstr "Técnicos: IP, tipo de navegador, origen (para analítica)"
 
 #: app/templates/policies/privacy.html:25
 msgid "Reviews: Name, location, rating, content (if you submit a testimonial)"
-msgstr "Reseñas: Nombre, ubicación, valoración, contenido (si envías testimonio)"
+msgstr ""
+"Reseñas: Nombre, ubicación, valoración, contenido (si envías testimonio)"
 
 #: app/templates/policies/privacy.html:30
 msgid "3. Legal Basis for Processing"
@@ -2252,7 +4092,9 @@ msgstr "Rectificar datos inexactos"
 
 #: app/templates/policies/privacy.html:67
 msgid "Erasure (\"right to be forgotten\") - where not legally required to retain"
-msgstr "Supresión (\"derecho al olvido\") - donde no sea legalmente requerido retener"
+msgstr ""
+"Supresión (\"derecho al olvido\") - donde no sea legalmente requerido "
+"retener"
 
 #: app/templates/policies/privacy.html:68
 msgid "Restrict processing"
@@ -2272,7 +4114,9 @@ msgstr "Retirar consentimiento (para marketing)"
 
 #: app/templates/policies/privacy.html:72
 msgid "Lodge complaint with Italian Data Protection Authority (Garante)"
-msgstr "Presentar reclamación ante la Autoridad Italiana de Protección de Datos (Garante)"
+msgstr ""
+"Presentar reclamación ante la Autoridad Italiana de Protección de Datos "
+"(Garante)"
 
 #: app/templates/policies/privacy.html:74
 msgid ""
@@ -2301,12 +4145,12 @@ msgstr "Analítica (Google Analytics 4):"
 #: app/templates/policies/privacy.html:81
 msgid ""
 "Anonymized IP, 26-month retention. Opt-out: <a "
-"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" class"
-"=\"text-decoration-underline\">Google Opt-out</a>"
+"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" "
+"class=\"text-decoration-underline\">Google Opt-out</a>"
 msgstr ""
 "IP anonimizada, retención 26 meses. Opt-out: <a "
-"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" class"
-"=\"text-decoration-underline\">Google Opt-out</a>"
+"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" "
+"class=\"text-decoration-underline\">Google Opt-out</a>"
 
 #: app/templates/policies/privacy.html:82
 msgid "No advertising/tracking cookies"
@@ -2342,7 +4186,8 @@ msgstr "9. Transferencias internacionales"
 
 #: app/templates/policies/privacy.html:99
 msgid "Your data may be processed outside EU/EEA by our processors:"
-msgstr "Tus datos pueden ser tratados fuera de UE/EEE por nuestros procesadores:"
+msgstr ""
+"Tus datos pueden ser tratados fuera de UE/EEE por nuestros procesadores:"
 
 #: app/templates/policies/privacy.html:101
 msgid "Stripe (USA) - EU Standard Contractual Clauses"
@@ -2366,7 +4211,8 @@ msgid ""
 "collect children's data. Bookings must be made by adults (18+)."
 msgstr ""
 "Nuestros servicios no van dirigidos a menores de 16 años. No recopilamos "
-"conscientemente datos de menores. Las reservas las deben hacer adultos (18+)."
+"conscientemente datos de menores. Las reservas las deben hacer adultos "
+"(18+)."
 
 #: app/templates/policies/privacy.html:113
 msgid "11. Changes to This Policy"
@@ -2374,13 +4220,14 @@ msgstr "11. Cambios en esta política"
 
 #: app/templates/policies/privacy.html:114
 msgid ""
-"We may update this policy. Changes posted here with updated date. "
-"Material changes notified via email."
+"We may update this policy. Changes posted here with updated date. Material "
+"changes notified via email."
 msgstr ""
 "Podemos actualizar esta política. Cambios publicados aquí con fecha "
 "actualizada. Cambios materiales notificados por email."
 
-#: app/templates/policies/privacy.html:118 app/templates/policies/terms.html:89
+#: app/templates/policies/privacy.html:118
+#: app/templates/policies/terms.html:89
 msgid "12. Contact"
 msgstr "12. Contacto"
 
@@ -2401,8 +4248,8 @@ msgid ""
 "5-10 business days."
 msgstr ""
 "Reembolsos completos para cancelaciones >14 días antes del check-in. "
-"Reembolsos parciales 7-14 días. Sin reembolsos <7 días. Reembolsos al "
-"método de pago original en 5-10 días hábiles."
+"Reembolsos parciales 7-14 días. Sin reembolsos <7 días. Reembolsos al método"
+" de pago original en 5-10 días hábiles."
 
 #: app/templates/policies/refund.html:15
 msgid "Eligible Refunds"
@@ -2418,8 +4265,8 @@ msgstr "Cargos duplicados o errores de procesamiento de pago"
 
 #: app/templates/policies/refund.html:19
 msgid ""
-"Property unavailable due to our fault (maintenance, double-booking, force"
-" majeure)"
+"Property unavailable due to our fault (maintenance, double-booking, force "
+"majeure)"
 msgstr ""
 "Propiedad no disponible por nuestra culpa (mantenimiento, doble reserva, "
 "fuerza mayor)"
@@ -2434,7 +4281,8 @@ msgstr "Situaciones no reembolsables"
 
 #: app/templates/policies/refund.html:27
 msgid "Cancellations within 7 days of check-in (per Cancellation Policy)"
-msgstr "Cancelaciones dentro de 7 días del check-in (según Política de Cancelación)"
+msgstr ""
+"Cancelaciones dentro de 7 días del check-in (según Política de Cancelación)"
 
 #: app/templates/policies/refund.html:28
 msgid "No-shows or early departures"
@@ -2442,7 +4290,8 @@ msgstr "No-shows o salidas anticipadas"
 
 #: app/templates/policies/refund.html:29
 msgid "Non-refundable promotional rates (clearly marked at booking)"
-msgstr "Tarifas promocionales no reembolsables (claramente marcadas en la reserva)"
+msgstr ""
+"Tarifas promocionales no reembolsables (claramente marcadas en la reserva)"
 
 #: app/templates/policies/refund.html:30
 msgid "Violation of House Rules resulting in eviction"
@@ -2472,6 +4321,27 @@ msgstr "Método de reembolso"
 msgid "Timeline"
 msgstr "Plazo"
 
+#: app/templates/policies/refund.html:48
+msgid "Stripe (Card, PayPal, Klarna)"
+msgstr "Stripe (Tarjeta, PayPal, Klarna)"
+
+#: app/templates/policies/refund.html:49
+#, fuzzy
+msgid "Original payment method"
+msgstr "Pago original"
+
+#: app/templates/policies/refund.html:50
+msgid "5-10 business days"
+msgstr "5-10 días hábiles"
+
+#: app/templates/policies/refund.html:54
+msgid "Bank transfer (provide IBAN)"
+msgstr "Transferencia bancaria (proporcione IBAN)"
+
+#: app/templates/policies/refund.html:55
+msgid "3-5 business days"
+msgstr "3-5 días hábiles"
+
 #: app/templates/policies/refund.html:59
 msgid ""
 "All refunds issued in EUR. Currency conversion fees (if any) are not "
@@ -2487,8 +4357,7 @@ msgstr "Cómo solicitar un reembolso"
 #: app/templates/policies/refund.html:65
 msgid ""
 "Contact us at <a href=\"mailto:lotto235roma@gmail.com\" class=\"text-"
-"decoration-underline\">lotto235roma@gmail.com</a> with your reservation "
-"ID"
+"decoration-underline\">lotto235roma@gmail.com</a> with your reservation ID"
 msgstr ""
 "Contáctanos en <a href=\"mailto:lotto235roma@gmail.com\" class=\"text-"
 "decoration-underline\">lotto235roma@gmail.com</a> con tu ID de reserva"
@@ -2499,7 +4368,8 @@ msgstr "Indica el motivo de la solicitud de reembolso"
 
 #: app/templates/policies/refund.html:67
 msgid "For wire transfers, provide IBAN and account holder name"
-msgstr "Para transferencias, proporciona IBAN y nombre del titular de la cuenta"
+msgstr ""
+"Para transferencias, proporciona IBAN y nombre del titular de la cuenta"
 
 #: app/templates/policies/refund.html:68
 msgid "We review within 2 business days and confirm eligibility"
@@ -2515,13 +4385,13 @@ msgstr "Cargos disputados / Chargebacks"
 
 #: app/templates/policies/refund.html:75
 msgid ""
-"We strongly prefer to resolve issues directly. Chargebacks delay "
-"resolution and may incur fees that we reserve the right to pass on. "
-"Please contact us first."
+"We strongly prefer to resolve issues directly. Chargebacks delay resolution "
+"and may incur fees that we reserve the right to pass on. Please contact us "
+"first."
 msgstr ""
 "Preferimos firmemente resolver problemas directamente. Los chargebacks "
-"retrasan la resolución y pueden incurrir en comisiones que nos reservamos "
-"el derecho de repercutir. Por favor, contáctanos primero."
+"retrasan la resolución y pueden incurrir en comisiones que nos reservamos el"
+" derecho de repercutir. Por favor, contáctanos primero."
 
 #: app/templates/policies/refund.html:79
 msgid "Partial Refunds for Service Issues"
@@ -2529,14 +4399,14 @@ msgstr "Reembolsos parciales por problemas de servicio"
 
 #: app/templates/policies/refund.html:80
 msgid ""
-"If a significant amenity is unavailable during your stay (e.g., AC "
-"failure in summer, no hot water), contact us immediately. We will assess "
-"and offer appropriate compensation (partial refund, credit, or repair)."
+"If a significant amenity is unavailable during your stay (e.g., AC failure "
+"in summer, no hot water), contact us immediately. We will assess and offer "
+"appropriate compensation (partial refund, credit, or repair)."
 msgstr ""
-"Si un servicio importante no está disponible durante tu estancia (ej. "
-"fallo de AC en verano, sin agua caliente), contáctanos inmediatamente. "
-"Evaluaremos y ofreceremos compensación adecuada (reembolso parcial, "
-"crédito o reparación)."
+"Si un servicio importante no está disponible durante tu estancia (ej. fallo "
+"de AC en verano, sin agua caliente), contáctanos inmediatamente. Evaluaremos"
+" y ofreceremos compensación adecuada (reembolso parcial, crédito o "
+"reparación)."
 
 #: app/templates/policies/refund.html:84
 msgid "Force Majeure"
@@ -2560,53 +4430,327 @@ msgstr "O reprogramación gratis para fechas futuras (válido 12 meses)"
 
 #: app/templates/policies/refund.html:93
 msgid ""
-"Questions? Contact us at <a href=\"mailto:lotto235roma@gmail.com\" class"
-"=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
+"Questions? Contact us at <a href=\"mailto:lotto235roma@gmail.com\" "
+"class=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
 msgstr ""
-"¿Preguntas? Contáctanos en <a href=\"mailto:lotto235roma@gmail.com\" class"
-"=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
+"¿Preguntas? Contáctanos en <a href=\"mailto:lotto235roma@gmail.com\" "
+"class=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
 
 #: app/templates/policies/terms.html:10
 msgid "1. Acceptance of Terms"
 msgstr "1. Aceptación de los términos"
 
+#: app/templates/policies/terms.html:11
+msgid ""
+"By booking a stay at Lotto 235 Garbatella, you agree to these Terms and "
+"Conditions. Please read them carefully before making a reservation. If you "
+"do not agree with any part of these terms, please do not book."
+msgstr ""
+"Al reservar una estancia en Lotto 235 Garbatella, acepta estos Términos y "
+"Condiciones. Léalos atentamente antes de hacer una reserva. Si no está de "
+"acuerdo con alguna parte de estos términos, no reserve."
+
 #: app/templates/policies/terms.html:15
 msgid "2. Booking & Payment"
 msgstr "2. Reserva y pago"
+
+#: app/templates/policies/terms.html:17
+msgid ""
+"Reservations are confirmed upon receipt of full payment or deposit as "
+"specified during booking."
+msgstr ""
+"Las reservas se confirman al recibir el pago completo o el depósito según lo"
+" especificado durante la reserva."
+
+#: app/templates/policies/terms.html:18
+msgid ""
+"We accept payments via Stripe (Credit Card, PayPal, Klarna) and Bank Wire "
+"Transfer."
+msgstr ""
+"Aceptamos pagos a través de Stripe (Tarjeta de crédito, PayPal, Klarna) y "
+"transferencia bancaria."
+
+#: app/templates/policies/terms.html:19
+msgid "All prices are in EUR and include applicable taxes (VAT)."
+msgstr ""
+"Todos los precios están en EUR e incluyen los impuestos aplicables (IVA)."
+
+#: app/templates/policies/terms.html:20
+#, no-python-format
+msgid ""
+"Base rate €130/night. +10% weekends and Italian public holidays. +€15/night "
+"per extra guest over 2."
+msgstr ""
+"Tarifa base 130 €/noche. +10 % fines de semana y festivos italianos. +15 "
+"€/noche por huésped adicional a partir de 2."
+
+#: app/templates/policies/terms.html:21
+msgid ""
+"Coupon codes must be applied at time of booking and cannot be added "
+"retroactively."
+msgstr ""
+"Los códigos de cupón deben aplicarse en el momento de la reserva y no se "
+"pueden añadir retroactivamente."
 
 #: app/templates/policies/terms.html:26
 msgid "3. Check-in / Check-out"
 msgstr "3. Check-in / Check-out"
 
+#: app/templates/policies/terms.html:28
+#, fuzzy
+msgid ""
+"Check-in: 13:00 - 20:00 (Self check-in available after hours with key "
+"lockbox)"
+msgstr "13:00 - 20:00 (auto check-in vía caja fuerte fuera de horario)"
+
+#: app/templates/policies/terms.html:29
+#, fuzzy
+msgid "Check-out: by 10:00"
+msgstr "Check-out:"
+
+#: app/templates/policies/terms.html:30
+msgid ""
+"Early check-in / late check-out subject to availability and may incur "
+"additional fees."
+msgstr ""
+"Check-in temprano / check-out tardío sujeto a disponibilidad y puede "
+"incurrir en cargos adicionales."
+
+#: app/templates/policies/terms.html:31
+msgid ""
+"Please communicate your estimated arrival time at least 24 hours in advance."
+msgstr ""
+"Por favor, comunique su hora de llegada prevista con al menos 24 horas de "
+"antelación."
+
 #: app/templates/policies/terms.html:36
 msgid "4. Cancellation & Refunds"
 msgstr "4. Cancelación y reembolsos"
+
+#: app/templates/policies/terms.html:37
+msgid "Please refer to our detailed"
+msgstr "Por favor, consulte nuestra"
+
+#: app/templates/policies/terms.html:37
+msgid "and"
+msgstr "y"
 
 #: app/templates/policies/terms.html:41
 msgid "5. House Rules"
 msgstr "5. Normas de la casa"
 
+#: app/templates/policies/terms.html:42
+msgid "All guests must comply with our"
+msgstr "Todos los huéspedes deben cumplir con nuestras"
+
+#: app/templates/policies/terms.html:42
+msgid ""
+". Violation may result in immediate termination of stay without refund."
+msgstr ""
+". La infracción puede resultar en la terminación inmediata de la estancia "
+"sin reembolso."
+
 #: app/templates/policies/terms.html:46
 msgid "6. Guest Responsibilities"
 msgstr "6. Responsabilidades del huésped"
+
+#: app/templates/policies/terms.html:48
+msgid "Respect the property, neighbors, and building rules."
+msgstr "Respete la propiedad, los vecinos y las normas del edificio."
+
+#: app/templates/policies/terms.html:49
+#, fuzzy
+msgid ""
+"No smoking inside the apartment (smoking permitted on balcony/terrace only)."
+msgstr "Fumar permitido solo en balcón/terraza"
+
+#: app/templates/policies/terms.html:50
+#, fuzzy
+msgid "No parties or events without prior written consent."
+msgstr ""
+"Sin fiestas, eventos o reuniones sin consentimiento previo por escrito"
+
+#: app/templates/policies/terms.html:51
+#, fuzzy
+msgid ""
+"Maximum occupancy as stated in booking; no additional overnight guests."
+msgstr "Ocupación máxima: Según reserva (sin huéspedes extra pernoctando)"
+
+#: app/templates/policies/terms.html:52
+#, fuzzy
+msgid "Report any damage or issues immediately."
+msgstr "Reporta cualquier problema de seguridad inmediatamente"
+
+#: app/templates/policies/terms.html:53
+msgid "Leave the apartment in reasonable condition upon departure."
+msgstr ""
+"Deje el apartamento en condiciones razonables al momento de la salida."
 
 #: app/templates/policies/terms.html:58
 msgid "7. Liability & Insurance"
 msgstr "7. Responsabilidad y seguro"
 
+#: app/templates/policies/terms.html:59
+#, fuzzy
+msgid "Lotto 235 Garbatella is not responsible for:"
+msgstr "Lotto 235 Garbatella - Estancia"
+
+#: app/templates/policies/terms.html:61
+msgid ""
+"Personal injury, illness, or death during your stay (except caused by our "
+"negligence)."
+msgstr ""
+"Lesiones personales, enfermedades o muerte durante su estancia (excepto las "
+"causadas por nuestra negligencia)."
+
+#: app/templates/policies/terms.html:62
+msgid "Loss, theft, or damage to personal property."
+msgstr "Pérdida, robo o daño a la propiedad personal."
+
+#: app/templates/policies/terms.html:63
+msgid "Travel disruptions, weather events, or force majeure."
+msgstr "Interrupciones de viaje, eventos climáticos o fuerza mayor."
+
+#: app/templates/policies/terms.html:65
+msgid "We recommend guests obtain appropriate travel insurance."
+msgstr ""
+"Recomendamos a los huéspedes que obtengan un seguro de viaje adecuado."
+
 #: app/templates/policies/terms.html:69
 msgid "8. Data Protection & Privacy"
 msgstr "8. Protección de datos y privacidad"
+
+#: app/templates/policies/terms.html:70
+msgid "Your personal data is processed in accordance with our"
+msgstr "Sus datos personales se procesan de acuerdo con nuestra"
+
+#: app/templates/policies/terms.html:70
+#, fuzzy
+msgid ""
+"and GDPR (EU Regulation 2016/679). We only collect data necessary for your "
+"booking and legal obligations."
+msgstr ""
+"Recopilamos solo datos necesarios para tu reserva y obligaciones legales:"
 
 #: app/templates/policies/terms.html:74
 msgid "9. Force Majeure"
 msgstr "9. Fuerza mayor"
 
+#: app/templates/policies/terms.html:75
+msgid ""
+"Neither party is liable for failure to perform obligations due to events "
+"beyond reasonable control (natural disasters, pandemics, government "
+"restrictions, strikes, etc.). In such cases, we will work with you to "
+"reschedule or refund per our policies."
+msgstr ""
+"Ninguna de las partes es responsable del incumplimiento de las obligaciones "
+"debido a eventos fuera del control razonable (desastres naturales, "
+"pandemias, restricciones gubernamentales, huelgas, etc.). En tales casos, "
+"trabajaremos con usted para reprogramar o reembolsar según nuestras "
+"políticas."
+
 #: app/templates/policies/terms.html:79
 msgid "10. Governing Law & Disputes"
 msgstr "10. Ley aplicable y disputas"
+
+#: app/templates/policies/terms.html:80
+msgid ""
+"These terms are governed by Italian law. Any disputes shall be resolved in "
+"the courts of Rome, Italy. For EU consumers, mandatory consumer protection "
+"laws of your country of residence may apply."
+msgstr ""
+"Estos términos se rigen por la ley italiana. Cualquier disputa se resolverá "
+"en los tribunales de Roma, Italia. Para los consumidores de la UE, pueden "
+"aplicarse las leyes obligatorias de protección al consumidor de su país de "
+"residencia."
 
 #: app/templates/policies/terms.html:84
 msgid "11. Changes to Terms"
 msgstr "11. Cambios en los términos"
 
+#: app/templates/policies/terms.html:85
+msgid ""
+"We may update these terms periodically. Changes apply to new bookings; "
+"existing reservations remain under terms at time of booking. Continued use "
+"constitutes acceptance of updated terms."
+msgstr ""
+"Podemos actualizar estos términos periódicamente. Los cambios se aplican a "
+"las nuevas reservas; las reservas existentes permanecen bajo los términos "
+"vigentes al momento de la reserva. El uso continuado constituye la "
+"aceptación de los términos actualizados."
+
+#: app/templates/policies/terms.html:90
+msgid "For questions about these terms, contact us at:"
+msgstr "Para preguntas sobre estos términos, contáctenos en:"
+
+#~ msgid "Session expired. Please start again."
+#~ msgstr "Sesión expirada. Por favor, comienza de nuevo."
+
+#~ msgid "Sorry, those dates were just booked. Please choose again."
+#~ msgstr ""
+#~ "Lo sentimos, esas fechas acaban de reservarse. Por favor, elige otras."
+
+#~ msgid "Pending Review"
+#~ msgstr "Pendiente de revisión"
+
+#~ msgid "Guest Name / Contact"
+#~ msgstr "Nombre del huésped / Contacto"
+
+#~ msgid "No email provided via sync"
+#~ msgstr "No se proporcionó email vía sincronización"
+
+#~ msgid "Paid via"
+#~ msgstr "Pagado vía"
+
+#~ msgid "Processed by Channel"
+#~ msgstr "Procesado por canal"
+
+#~ msgid "Approve & Paid"
+#~ msgstr "Aprobar y marcar como pagado"
+
+#~ msgid ""
+#~ "WARNING: Are you sure you want to cancel this booking and issue a full "
+#~ "Stripe refund?"
+#~ msgstr ""
+#~ "ADVERTENCIA: ¿Seguro que quieres cancelar esta reserva y emitir un reembolso"
+#~ " completo de Stripe?"
+
+#~ msgid "Cancel & Refund"
+#~ msgstr "Cancelar y reembolsar"
+
+#~ msgid "No reservations logged matching this state."
+#~ msgstr "No hay reservas registradas que coincidan con este estado."
+
+#~ msgid "External iCal Synchronization Feeds"
+#~ msgstr "Feeds de sincronización iCal externos"
+
+#~ msgid "Are you sure you want to delete this feed?"
+#~ msgstr "¿Seguro que quieres eliminar este feed?"
+
+#~ msgid "No external calendar feeds added yet."
+#~ msgstr "Aún no se han añadido feeds de calendario externos."
+
+#~ msgid "Testimonials"
+#~ msgstr "Testimonios"
+
+#~ msgid ""
+#~ "Elegante e raffinato appartamento nel cuore della Garbatella a Roma. Prenota"
+#~ " il tuo soggiorno ideale."
+#~ msgstr ""
+#~ "Elegante y refinado apartamento en el corazón de Garbatella en Roma. Reserva"
+#~ " tu estancia ideal."
+
+#~ msgid "Camera da letto - Bedroom"
+#~ msgstr "Dormitorio"
+
+#~ msgid "Camera da letto - Bedroom view 2"
+#~ msgstr "Dormitorio - vista 2"
+
+#~ msgid "Cucina moderna - Modern kitchen"
+#~ msgstr "Cocina moderna"
+
+#~ msgid "100% refund"
+#~ msgstr "Reembolso del 100%"
+
+#~ msgid "50% refund"
+#~ msgstr "Reembolso del 50%"

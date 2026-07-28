@@ -22,20 +22,20 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><strong>> 14 days before check-in</strong></td>
-                    <td class="text-success fw-bold">100% refund</td>
+                    <td><strong>{{ _('> 14 days before check-in') }}</strong></td>
+                    <td class="text-success fw-bold">{{ _('Full refund (100%)') }}</td>
                 </tr>
                 <tr>
-                    <td><strong>7-14 days before check-in</strong></td>
-                    <td class="text-warning fw-bold">50% refund</td>
+                    <td><strong>{{ _('7-14 days before check-in') }}</strong></td>
+                    <td class="text-warning fw-bold">{{ _('Half refund (50%)') }}</td>
                 </tr>
                 <tr>
-                    <td><strong>< 7 days before check-in</strong></td>
-                    <td class="text-danger fw-bold">No refund</td>
+                    <td><strong>{{ _('< 7 days before check-in') }}</strong></td>
+                    <td class="text-danger fw-bold">{{ _('No refund') }}</td>
                 </tr>
                 <tr>
-                    <td><strong>No-show / Early departure</strong></td>
-                    <td class="text-danger fw-bold">No refund</td>
+                    <td><strong>{{ _('No-show / Early departure') }}</strong></td>
+                    <td class="text-danger fw-bold">{{ _('No refund') }}</td>
                 </tr>
             </tbody>
         </table>
@@ -44,48 +44,48 @@
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('How to Cancel') }}</h3>
         <ol class="ms-3">
-            <li class="mb-2">Use the cancellation link in your booking confirmation email, OR</li>
-            <li class="mb-2">Contact us at <a href="mailto:lotto235roma@gmail.com">lotto235roma@gmail.com</a> with your reservation ID</li>
-            <li class="mb-2">Cancellation is effective upon our confirmation</li>
+            <li class="mb-2">{{ _('Use the cancellation link in your booking confirmation email, OR') }}</li>
+            <li class="mb-2">{{ _('Contact us at') }} <a href="mailto:lotto235roma@gmail.com">lotto235roma@gmail.com</a> {{ _('with your reservation ID') }}</li>
+            <li class="mb-2">{{ _('Cancellation is effective upon our confirmation') }}</li>
         </ol>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('Refund Processing') }}</h3>
         <ul class="list-unstyled ms-3">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Stripe payments: Refunded to original payment method within 5-10 business days</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Wire transfers: Refunded via bank transfer within 5 business days (provide IBAN)</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Refunds issued in EUR only; currency conversion fees not refunded</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Stripe payments: Refunded to original payment method within 5-10 business days') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Wire transfers: Refunded via bank transfer within 5 business days (provide IBAN)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Refunds issued in EUR only; currency conversion fees not refunded') }}</li>
         </ul>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('Exceptions & Special Cases') }}</h3>
         <ul class="list-unstyled ms-3">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Government travel restrictions:</strong> If official restrictions prevent travel, full refund or free rebooking offered.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Property uninhabitable:</strong> If apartment becomes unavailable due to damage/emergency, full refund + assistance finding alternative.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Medical emergencies:</strong> Considered case-by-case with documentation; we recommend travel insurance.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>Force majeure:</strong> Natural disasters, pandemics, strikes - full refund or free rebooking.</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Government travel restrictions:') }}</strong> {{ _('If official restrictions prevent travel, full refund or free rebooking offered.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Property uninhabitable:') }}</strong> {{ _('If apartment becomes unavailable due to damage/emergency, full refund + assistance finding alternative.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Medical emergencies:') }}</strong> {{ _('Considered case-by-case with documentation; we recommend travel insurance.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i><strong>{{ _('Force majeure:') }}</strong> {{ _('Natural disasters, pandemics, strikes - full refund or free rebooking.') }}</li>
         </ul>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('Non-Refundable Bookings') }}</h3>
-        <p>Promotional or "Non-Refundable" rate bookings cannot be cancelled or refunded under any circumstances. These are clearly marked during booking.</p>
+        <p>{{ _('Promotional or "Non-Refundable" rate bookings cannot be cancelled or refunded under any circumstances. These are clearly marked during booking.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('Rebooking Instead of Cancelling') }}</h3>
-        <p>We're happy to help you change dates instead of cancelling, subject to availability and rate differences. Contact us to discuss options.</p>
+        <p>{{ _('We are happy to help you change dates instead of cancelling, subject to availability and rate differences. Contact us to discuss options.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('Contact') }}</h3>
         <address class="text-muted">
-            <strong>Lotto 235 Garbatella</strong><br>
-            Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy<br>
-            Email: <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a><br>
-            Phone: +39 328 452 1227
+            <strong>{{ _('Lotto 235 Garbatella') }}</strong><br>
+            {{ _('Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy') }}<br>
+            {{ _('Email:') }} <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a><br>
+            {{ _('Phone:') }} +39 328 452 1227
         </address>
     </div>
 </div>

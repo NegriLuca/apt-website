@@ -8,91 +8,91 @@
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('1. Acceptance of Terms') }}</h3>
-        <p>By booking a stay at Lotto 235 Garbatella, you agree to these Terms and Conditions. Please read them carefully before making a reservation. If you do not agree with any part of these terms, please do not book.</p>
+        <p>{{ _('By booking a stay at Lotto 235 Garbatella, you agree to these Terms and Conditions. Please read them carefully before making a reservation. If you do not agree with any part of these terms, please do not book.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('2. Booking & Payment') }}</h3>
         <ul class="list-unstyled ms-3">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Reservations are confirmed upon receipt of full payment or deposit as specified during booking.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>We accept payments via Stripe (Credit Card, PayPal, Klarna) and Bank Wire Transfer.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>All prices are in EUR and include applicable taxes (VAT).</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Base rate €130/night. +10% weekends & Italian public holidays. +€15/night per extra guest over 2.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Coupon codes must be applied at time of booking and cannot be added retroactively.</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Reservations are confirmed upon receipt of full payment or deposit as specified during booking.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('We accept payments via Stripe (Credit Card, PayPal, Klarna) and Bank Wire Transfer.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('All prices are in EUR and include applicable taxes (VAT).') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Base rate €130/night. +10% weekends and Italian public holidays. +€15/night per extra guest over 2.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Coupon codes must be applied at time of booking and cannot be added retroactively.') }}</li>
         </ul>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('3. Check-in / Check-out') }}</h3>
         <ul class="list-unstyled ms-3">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Check-in: 13:00 - 20:00 (Self check-in available after hours with key lockbox)</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Check-out: by 10:00</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Early check-in / late check-out subject to availability and may incur additional fees.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Please communicate your estimated arrival time at least 24 hours in advance.</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Check-in: 13:00 - 20:00 (Self check-in available after hours with key lockbox)') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Check-out: by 10:00') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Early check-in / late check-out subject to availability and may incur additional fees.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Please communicate your estimated arrival time at least 24 hours in advance.') }}</li>
         </ul>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('4. Cancellation & Refunds') }}</h3>
-        <p>Please refer to our detailed <a href="{{ url_for('routes.cancellation_policy') }}" class="text-decoration-underline">{{ _('Cancellation Policy') }}</a> and <a href="{{ url_for('routes.refund_policy') }}" class="text-decoration-underline">{{ _('Refund Policy') }}</a>.</p>
+        <p>{{ _('Please refer to our detailed') }} <a href="{{ url_for('routes.cancellation_policy') }}" class="text-decoration-underline">{{ _('Cancellation Policy') }}</a> {{ _('and') }} <a href="{{ url_for('routes.refund_policy') }}" class="text-decoration-underline">{{ _('Refund Policy') }}</a>.</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('5. House Rules') }}</h3>
-        <p>All guests must comply with our <a href="{{ url_for('routes.house_rules') }}" class="text-decoration-underline">{{ _('House Rules') }}</a>. Violation may result in immediate termination of stay without refund.</p>
+        <p>{{ _('All guests must comply with our') }} <a href="{{ url_for('routes.house_rules') }}" class="text-decoration-underline">{{ _('House Rules') }}</a>{{ _('. Violation may result in immediate termination of stay without refund.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('6. Guest Responsibilities') }}</h3>
         <ul class="list-unstyled ms-3">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Respect the property, neighbors, and building rules.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>No smoking inside the apartment (smoking permitted on balcony/terrace only).</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>No parties or events without prior written consent.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Maximum occupancy as stated in booking; no additional overnight guests.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Report any damage or issues immediately.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Leave the apartment in reasonable condition upon departure.</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Respect the property, neighbors, and building rules.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('No smoking inside the apartment (smoking permitted on balcony/terrace only).') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('No parties or events without prior written consent.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Maximum occupancy as stated in booking; no additional overnight guests.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Report any damage or issues immediately.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Leave the apartment in reasonable condition upon departure.') }}</li>
         </ul>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('7. Liability & Insurance') }}</h3>
-        <p>Lotto 235 Garbatella is not responsible for:</p>
+        <p>{{ _('Lotto 235 Garbatella is not responsible for:') }}</p>
         <ul class="list-unstyled ms-3">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Personal injury, illness, or death during your stay (except caused by our negligence).</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Loss, theft, or damage to personal property.</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>Travel disruptions, weather events, or force majeure.</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Personal injury, illness, or death during your stay (except caused by our negligence).') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Loss, theft, or damage to personal property.') }}</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-accent me-2"></i>{{ _('Travel disruptions, weather events, or force majeure.') }}</li>
         </ul>
-        <p>We recommend guests obtain appropriate travel insurance.</p>
+        <p>{{ _('We recommend guests obtain appropriate travel insurance.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('8. Data Protection & Privacy') }}</h3>
-        <p>Your personal data is processed in accordance with our <a href="{{ url_for('routes.privacy') }}" class="text-decoration-underline">{{ _('Privacy Policy') }}</a> and GDPR (EU Regulation 2016/679). We only collect data necessary for your booking and legal obligations.</p>
+        <p>{{ _('Your personal data is processed in accordance with our') }} <a href="{{ url_for('routes.privacy') }}" class="text-decoration-underline">{{ _('Privacy Policy') }}</a> {{ _('and GDPR (EU Regulation 2016/679). We only collect data necessary for your booking and legal obligations.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('9. Force Majeure') }}</h3>
-        <p>Neither party is liable for failure to perform obligations due to events beyond reasonable control (natural disasters, pandemics, government restrictions, strikes, etc.). In such cases, we will work with you to reschedule or refund per our policies.</p>
+        <p>{{ _('Neither party is liable for failure to perform obligations due to events beyond reasonable control (natural disasters, pandemics, government restrictions, strikes, etc.). In such cases, we will work with you to reschedule or refund per our policies.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('10. Governing Law & Disputes') }}</h3>
-        <p>These terms are governed by Italian law. Any disputes shall be resolved in the courts of Rome, Italy. For EU consumers, mandatory consumer protection laws of your country of residence may apply.</p>
+        <p>{{ _('These terms are governed by Italian law. Any disputes shall be resolved in the courts of Rome, Italy. For EU consumers, mandatory consumer protection laws of your country of residence may apply.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('11. Changes to Terms') }}</h3>
-        <p>We may update these terms periodically. Changes apply to new bookings; existing reservations remain under terms at time of booking. Continued use constitutes acceptance of updated terms.</p>
+        <p>{{ _('We may update these terms periodically. Changes apply to new bookings; existing reservations remain under terms at time of booking. Continued use constitutes acceptance of updated terms.') }}</p>
     </div>
 
     <div class="mb-5">
         <h3 class="section-title mb-3">{{ _('12. Contact') }}</h3>
-        <p>For questions about these terms, contact us at:</p>
+        <p>{{ _('For questions about these terms, contact us at:') }}</p>
         <address class="text-muted">
-            <strong>Lotto 235 Garbatella</strong><br>
-            Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy<br>
-            Email: <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a><br>
-            Phone: +39 328 452 1227
+            <strong>{{ _('Lotto 235 Garbatella') }}</strong><br>
+            {{ _('Via Circonvallazione Ostiense 235, 00154 Roma RM, Italy') }}<br>
+            {{ _('Email:') }} <a href="mailto:lotto235roma@gmail.com" class="text-decoration-underline">lotto235roma@gmail.com</a><br>
+            {{ _('Phone:') }} +39 328 452 1227
         </address>
     </div>
 </div>

@@ -6,11 +6,11 @@
 <div class="main-content">
     <h1 class="page-title mb-2">🍝🍸 {{ _('Food & Drinks') }}</h1>
     <p class="lead text-muted mb-4">{{ _('Discover our favorite places to eat, drink, and experience the real Rome – just a few minutes from your apartment.') }}</p>
-    <div class="tag mb-5">{{ _('Curated local picks near Garbatella') }}</div>
+    <div class="tag mb-5">{{ _('Selected for you local picks near Garbatella') }}</div>
 
     <div id="filters" class="mb-4" role="group" aria-label="{{ _('Filter by category') }}">
         <button class="filter btn-luxury-outline btn-sm active" data-type="all">🌍 {{ _('All') }}</button>
-        <button class="filter btn-luxury-outline btn-sm" data-type="curated">⭐ {{ _('Curated') }}</button>
+        <button class="filter btn-luxury-outline btn-sm" data-type="curated">⭐ {{ _('Selected') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="pasta">🍝 {{ _('Trattorie') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="pizza">🍕 {{ _('Pizza') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="coffee">☕ {{ _('Cafés') }}</button>
@@ -102,14 +102,14 @@
     const t = {
         yourBnB: {{ _('Your BnB') | tojson }},
         openInMaps: {{ _('📍 Open in Maps') | tojson }},
-        curatedLocalPicks: {{ _('Curated local picks near Garbatella') | tojson }},
+        curatedLocalPicks: {{ _('Selected for you local picks near Garbatella') | tojson }},
         restaurants: {{ _('🍝 Restaurants') | tojson }},
         trattorie: {{ _('🍝 Trattorie') | tojson }},
         pizza: {{ _('🍕 Pizza') | tojson }},
         cafes: {{ _('☕ Cafés') | tojson }},
         drinks: {{ _('🍸 Drinks') | tojson }},
         all: {{ _('All') | tojson }},
-        curated: {{ _('Curated') | tojson }},
+        curated: {{ _('Selected for you') | tojson }},
     };
 
     const bnb = [41.86731700, 12.49094300];
