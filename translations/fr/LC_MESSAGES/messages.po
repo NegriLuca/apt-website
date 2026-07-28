@@ -179,9 +179,8 @@ msgid "Clear Filters"
 msgstr ""
 
 #: app/templates/admin_audit_log.html:13
-#, fuzzy
 msgid "Search action or details..."
-msgstr "Détails de la réservation"
+msgstr "Rechercher une action ou des détails..."
 
 #: app/templates/admin_audit_log.html:16
 #, fuzzy
@@ -189,9 +188,8 @@ msgid "Admin user"
 msgstr "Calendrier d'administration"
 
 #: app/templates/admin_audit_log.html:20
-#, fuzzy
 msgid "All entities"
-msgstr "Équipements"
+msgstr "Toutes les entités"
 
 #: app/templates/admin_audit_log.html:32
 msgid "Filter"
@@ -210,9 +208,8 @@ msgstr "Connexion admin"
 #: app/templates/admin_compliance.html:104
 #: app/templates/admin_questura.html:71
 #: app/templates/admin_questura_logs.html:28
-#, fuzzy
 msgid "Action"
-msgstr "Actions"
+msgstr "Action"
 
 #: app/templates/admin_audit_log.html:44
 #, fuzzy
@@ -308,9 +305,8 @@ msgstr ""
 
 #: app/templates/admin_compliance.html:38 app/templates/admin_questura.html:30
 #: app/templates/admin_questura.html:91
-#, fuzzy
 msgid "Accepted"
-msgstr "Créé"
+msgstr "Accepté"
 
 #: app/templates/admin_compliance.html:47
 msgid "Current Month Tourist Tax"
@@ -322,9 +318,8 @@ msgid "Manage"
 msgstr "Gérer sur OTA"
 
 #: app/templates/admin_compliance.html:59
-#, fuzzy
 msgid "Quick Actions"
-msgstr "Actions"
+msgstr "Actions rapides"
 
 #: app/templates/admin_compliance.html:65
 msgid "Run Daily Questura Submission"
@@ -379,15 +374,13 @@ msgid "Questura Configuration Status"
 msgstr ""
 
 #: app/templates/admin_compliance.html:140
-#, fuzzy
 msgid "Parameter"
-msgstr "Appartement"
+msgstr "Paramètre"
 
 #: app/templates/admin_compliance.html:148
 #: app/templates/admin_compliance_config.html:188
-#, fuzzy
 msgid "Configured"
-msgstr "Confirmée"
+msgstr "Configuré"
 
 #: app/templates/admin_compliance.html:150
 msgid "Missing"
@@ -398,9 +391,8 @@ msgid "Regulatory Requirements"
 msgstr ""
 
 #: app/templates/admin_compliance_config.html:2
-#, fuzzy
 msgid "Compliance Configuration"
-msgstr "Confirmation de réservation"
+msgstr "Configuration de conformité"
 
 #: app/templates/admin_compliance_config.html:9
 msgid "Compliance Credentials Configuration"
@@ -419,9 +411,8 @@ msgid "Questura / AlloggiatiWeb"
 msgstr ""
 
 #: app/templates/admin_compliance_config.html:27
-#, fuzzy
 msgid "WSDL URL"
-msgstr "URL iCal"
+msgstr "URL WSDL"
 
 #: app/templates/admin_compliance_config.html:31
 msgid "URL of the SOAP service. Use test version for development."
@@ -515,23 +506,20 @@ msgid ""
 msgstr ""
 
 #: app/templates/admin_compliance_config.html:174
-#, fuzzy
 msgid "Saved Configurations"
-msgstr "Confirmation de réservation"
+msgstr "Configurations enregistrées"
 
 #: app/templates/admin_compliance_config.html:180
 msgid "Key"
 msgstr ""
 
 #: app/templates/admin_compliance_config.html:180
-#, fuzzy
 msgid "Description"
-msgstr "Déductions"
+msgstr "Description"
 
 #: app/templates/admin_compliance_config.html:180
-#, fuzzy
 msgid "Last Update"
-msgstr "Date de séjour"
+msgstr "Dernière mise à jour"
 
 #: app/templates/admin_compliance_config.html:190
 msgid "Not set"
@@ -556,9 +544,8 @@ msgid "Occupancy"
 msgstr ""
 
 #: app/templates/admin_dashboard.html:28
-#, fuzzy
 msgid "Monthly Bookings"
-msgstr "Total des réservations"
+msgstr "Réservations mensuelles"
 
 #: app/templates/admin_dashboard.html:37
 #: app/templates/admin_tourist_tax.html:230 app/templates/checkout.html:54
@@ -581,9 +568,8 @@ msgid "In House"
 msgstr ""
 
 #: app/templates/admin_dashboard.html:67
-#, fuzzy
 msgid "Questura"
-msgstr "Restaurants"
+msgstr "Questura"
 
 #: app/templates/admin_dashboard.html:77
 #, fuzzy
@@ -591,9 +577,8 @@ msgid "Booking Sources"
 msgstr "Résumé de la réservation"
 
 #: app/templates/admin_dashboard.html:94
-#, fuzzy
 msgid "Today"
-msgstr "Total"
+msgstr "Aujourd'hui"
 
 #: app/templates/admin_dashboard.html:99
 #, fuzzy
@@ -661,27 +646,24 @@ msgstr "Directe"
 #: app/templates/admin_dashboard.html:177
 #: app/templates/admin_tourist_tax.html:162
 #: app/templates/admin_tourist_tax.html:219
-#, fuzzy
 msgid "Paid"
-msgstr "Non payé"
+msgstr "Payé"
 
 #: app/templates/admin_dashboard.html:179
 msgid "Deposit"
-msgstr ""
+msgstr "Acompte"
 
 #: app/templates/admin_dashboard.html:181
 msgid "Unpaid"
 msgstr "Non payé"
 
 #: app/templates/admin_dashboard.html:183
-#, fuzzy
 msgid "Refunded"
-msgstr "Remboursement"
+msgstr "Remboursé"
 
 #: app/templates/admin_dashboard.html:193
-#, fuzzy
 msgid "Confirm"
-msgstr "Confirmée"
+msgstr "Confirmer"
 
 #: app/templates/admin_dashboard.html:199
 msgid "Charge Remaining"
@@ -693,20 +675,17 @@ msgid "Cancel"
 msgstr "Annuler"
 
 #: app/templates/admin_dashboard.html:213
-#, fuzzy
 msgid "No reservations."
-msgstr "Annuler la réservation"
+msgstr "Aucune réservation."
 
 #: app/templates/admin_dashboard.html:222
 #: app/templates/admin_ical_feeds.html:2
-#, fuzzy
 msgid "iCal Feeds"
-msgstr "Ajouter un flux iCal"
+msgstr "Flux iCal"
 
 #: app/templates/admin_dashboard.html:224
-#, fuzzy
 msgid "Manage Feeds"
-msgstr "Dégâts et frais"
+msgstr "Gérer les flux"
 
 #: app/templates/admin_dashboard.html:227
 #, fuzzy
@@ -748,12 +727,12 @@ msgstr "Détails de l'invité"
 #: app/templates/admin_guest_checkin.html:38
 #: app/templates/guest_self_checkin.html:55
 msgid "Surname"
-msgstr "Nom d'utilisateur"
+msgstr "Nom de famille"
 
 #: app/templates/admin_guest_checkin.html:43
 #: app/templates/guest_self_checkin.html:59
 msgid "First Name"
-msgstr "Votre nom"
+msgstr "Prénom"
 
 #: app/templates/admin_guest_checkin.html:48
 #: app/templates/guest_self_checkin.html:63
@@ -768,30 +747,30 @@ msgstr ""
 #: app/templates/email_guest_checkin.html:50
 #: app/templates/guest_self_checkin.html:71
 msgid "Nationality"
-msgstr "Politique d'annulation"
+msgstr "Nationalité"
 
 #: app/templates/admin_guest_checkin.html:64
 #: app/templates/email_guest_checkin.html:52
 #: app/templates/guest_self_checkin.html:75
 msgid "Gender"
-msgstr "Légende:"
+msgstr "Sexe"
 
 #: app/templates/admin_guest_checkin.html:66
 #: app/templates/admin_guest_checkin.html:79
 #: app/templates/guest_self_checkin.html:77
 #: app/templates/guest_self_checkin.html:89
 msgid "Select"
-msgstr "Supprimer"
+msgstr "Sélectionner"
 
 #: app/templates/admin_guest_checkin.html:67
 #: app/templates/guest_self_checkin.html:78
 msgid "Male"
-msgstr "Email"
+msgstr "Masculin"
 
 #: app/templates/admin_guest_checkin.html:68
 #: app/templates/guest_self_checkin.html:79
 msgid "Female"
-msgstr "Email"
+msgstr "Féminin"
 
 #: app/templates/admin_guest_checkin.html:74
 #: app/templates/guest_self_checkin.html:84
@@ -801,12 +780,12 @@ msgstr "Pièce d'identité"
 #: app/templates/admin_guest_checkin.html:77
 #: app/templates/guest_self_checkin.html:87
 msgid "Document Type"
-msgstr "TYPE DE RÉDUCTION"
+msgstr "Type de document"
 
 #: app/templates/admin_guest_checkin.html:80
 #: app/templates/guest_self_checkin.html:90
 msgid "Passport"
-msgstr "Mot de passe"
+msgstr "Passeport"
 
 #: app/templates/admin_guest_checkin.html:81
 #: app/templates/guest_self_checkin.html:91
@@ -819,9 +798,8 @@ msgid "Driving License"
 msgstr "Permis de conduire"
 
 #: app/templates/admin_guest_checkin.html:83
-#, fuzzy
 msgid "Other"
-msgstr "Conditions"
+msgstr "Autre"
 
 #: app/templates/admin_guest_checkin.html:87
 #: app/templates/guest_self_checkin.html:96
@@ -831,7 +809,7 @@ msgstr "Numéro du document"
 #: app/templates/admin_guest_checkin.html:92
 #: app/templates/guest_self_checkin.html:100
 msgid "Expiry Date"
-msgstr "Date de séjour"
+msgstr "Date d'expiration"
 
 #: app/templates/admin_guest_checkin.html:97
 msgid "Issuing Country (ISO 3166-1 alpha-3)"
@@ -895,9 +873,8 @@ msgid "Calendar"
 msgstr "Calendrier"
 
 #: app/templates/admin_header.html:24
-#, fuzzy
 msgid "Compliance"
-msgstr "Annuler"
+msgstr "Conformité"
 
 #: app/templates/admin_header.html:30
 msgid "Alerts"
@@ -918,9 +895,8 @@ msgid "iCal"
 msgstr "URL iCal"
 
 #: app/templates/admin_header.html:61
-#, fuzzy
 msgid "Settings"
-msgstr "Chauffage"
+msgstr "Paramètres"
 
 #: app/templates/admin_header.html:67
 msgid "Pricing"
@@ -931,9 +907,8 @@ msgid "iCal Sync & Blocked Dates"
 msgstr ""
 
 #: app/templates/admin_ical_feeds.html:8
-#, fuzzy
 msgid "Back"
-msgstr "Banque:"
+msgstr "Retour"
 
 #: app/templates/admin_ical_feeds.html:14
 msgid "Connected Feeds"
@@ -973,9 +948,8 @@ msgid "Add"
 msgstr ""
 
 #: app/templates/admin_notifications.html:2
-#, fuzzy
 msgid "Notifications"
-msgstr "Emplacement"
+msgstr "Notifications"
 
 #: app/templates/admin_notifications.html:7
 msgid "Notifications & Alerts"
@@ -1124,33 +1098,28 @@ msgid "All"
 msgstr "Toutes"
 
 #: app/templates/admin_questura.html:32 app/templates/admin_questura.html:93
-#, fuzzy
 msgid "Rejected"
-msgstr "Créé"
+msgstr "Rejeté"
 
 #: app/templates/admin_questura.html:33
-#, fuzzy
 msgid "Not sent"
-msgstr "Consentement:"
+msgstr "Non envoyé"
 
 #: app/templates/admin_questura.html:37
-#, fuzzy
 msgid "Bulk Actions"
-msgstr "Actions"
+msgstr "Actions groupées"
 
 #: app/templates/admin_questura.html:40
-#, fuzzy
 msgid "Send Selected"
-msgstr "Aucun appartement sélectionné"
+msgstr "Envoyer la sélection"
 
 #: app/templates/admin_questura.html:43
 msgid "Retry Failed"
 msgstr ""
 
 #: app/templates/admin_questura.html:69
-#, fuzzy
 msgid "Questura Status"
-msgstr "Restaurants"
+msgstr "Statut Questura"
 
 #: app/templates/admin_questura.html:70
 msgid "Last Submission"
@@ -1174,9 +1143,8 @@ msgid "Retry"
 msgstr ""
 
 #: app/templates/admin_questura.html:124
-#, fuzzy
 msgid "No reservations found"
-msgstr "Réservation en attente"
+msgstr "Aucune réservation trouvée"
 
 #: app/templates/admin_questura.html:133
 #: app/templates/admin_questura_logs.html:120
@@ -1197,12 +1165,11 @@ msgstr ""
 #: app/templates/email_guest_access.html:30 app/templates/guest_access.html:28
 #: app/templates/guest_self_checkin.html:35
 msgid "Reservation"
-msgstr "Registre des réservations"
+msgstr "Réservation"
 
 #: app/templates/admin_questura_logs.html:30
-#, fuzzy
 msgid "Data"
-msgstr "Dates"
+msgstr "Données"
 
 #: app/templates/admin_questura_logs.html:64
 msgid "View Request"
@@ -1241,9 +1208,8 @@ msgid "Building Gate (Shelly Mini 1 Gen4)"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:26
-#, fuzzy
 msgid "Enable Gate Access"
-msgstr "Impossible d'annuler"
+msgstr "Activer l'accès au portail"
 
 #: app/templates/admin_smart_access.html:28
 msgid "Shelly Host / IP Address"
@@ -1254,9 +1220,8 @@ msgid "Local IP or mDNS hostname of the Shelly device"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:33
-#, fuzzy
 msgid "Auth Key (Optional)"
-msgstr "Date de séjour (optionnel)"
+msgstr "Clé d'authentification (facultative)"
 
 #: app/templates/admin_smart_access.html:35
 msgid "Gen4 auth key if authentication is enabled on device"
@@ -1284,9 +1249,8 @@ msgid "Apartment Door (Nuki Smart Lock Ultra)"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:59
-#, fuzzy
 msgid "Enable Door Access"
-msgstr "Impossible d'annuler"
+msgstr "Activer l'accès à la porte"
 
 #: app/templates/admin_smart_access.html:61
 msgid "Smart Lock ID (Decimal)"
@@ -1305,14 +1269,12 @@ msgid "Generate at web.nuki.io → API"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:71
-#, fuzzy
 msgid "API Base URL"
-msgstr "URL iCal"
+msgstr "URL de base API"
 
 #: app/templates/admin_smart_access.html:75
-#, fuzzy
 msgid "Unlock Action"
-msgstr "Emplacement"
+msgstr "Action de déverrouillage"
 
 #: app/templates/admin_smart_access.html:77
 msgid "Unlock (turn cylinder)"
@@ -1343,9 +1305,8 @@ msgid "International format without + or spaces. Example: 393000000000"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:96
-#, fuzzy
 msgid "Default Message (optional)"
-msgstr "Date de séjour (optionnel)"
+msgstr "Message par défaut (facultatif)"
 
 #: app/templates/admin_smart_access.html:97
 msgid "Ciao, vorrei informazioni per prenotare..."
@@ -1360,14 +1321,12 @@ msgid "Save Smart Access & WhatsApp Config"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:107
-#, fuzzy
 msgid "Test Gate"
-msgstr "Date de séjour"
+msgstr "Tester le portail"
 
 #: app/templates/admin_smart_access.html:110
-#, fuzzy
 msgid "Test Door"
-msgstr "Extérieur"
+msgstr "Tester la porte"
 
 #: app/templates/admin_testimonials.html:3
 msgid "Manage Testimonials"
@@ -1460,9 +1419,8 @@ msgid "Tourist Tax Management"
 msgstr "Gestion des avis clients"
 
 #: app/templates/admin_tourist_tax.html:26
-#, fuzzy
 msgid "Property Configuration"
-msgstr "Confirmation de réservation"
+msgstr "Configuration de la propriété"
 
 #: app/templates/admin_tourist_tax.html:31
 #, fuzzy
@@ -1474,9 +1432,8 @@ msgid "Custom Rate (€/night/guest)"
 msgstr ""
 
 #: app/templates/admin_tourist_tax.html:48
-#, fuzzy
 msgid "CIN"
-msgstr "Tarifs"
+msgstr "CIN"
 
 #: app/templates/admin_tourist_tax.html:52
 msgid "CIR"
@@ -1488,18 +1445,16 @@ msgid "Max Guests"
 msgstr "Invités"
 
 #: app/templates/admin_tourist_tax.html:60
-#, fuzzy
 msgid "Save Configuration"
-msgstr "Confirmation de réservation"
+msgstr "Enregistrer la configuration"
 
 #: app/templates/admin_tourist_tax.html:76
 msgid "Year"
 msgstr ""
 
 #: app/templates/admin_tourist_tax.html:84
-#, fuzzy
 msgid "Month"
-msgstr "Montant:"
+msgstr "Mois"
 
 #: app/templates/admin_tourist_tax.html:92
 msgid "View Report"
@@ -1520,9 +1475,8 @@ msgid "Total Tourist Tax"
 msgstr "Séjour total:"
 
 #: app/templates/admin_tourist_tax.html:128
-#, fuzzy
 msgid "Total Nights"
-msgstr "Total des réservations"
+msgstr "Nuits totales"
 
 #: app/templates/admin_tourist_tax.html:136
 #, fuzzy
@@ -1530,9 +1484,8 @@ msgid "Total Guests"
 msgstr "Séjour total:"
 
 #: app/templates/admin_tourist_tax.html:147
-#, fuzzy
 msgid "Detail per Reservation"
-msgstr "Annuler la réservation"
+msgstr "Détail de la réservation"
 
 #: app/templates/admin_tourist_tax.html:160
 #, fuzzy
@@ -1604,9 +1557,8 @@ msgid "Place ID"
 msgstr ""
 
 #: app/templates/admin_trust_badges.html:73
-#, fuzzy
 msgid "Location ID"
-msgstr "Emplacement"
+msgstr "ID d'emplacement"
 
 #: app/templates/admin_trust_badges.html:98
 msgid "Official Widget Embeds"
@@ -1635,9 +1587,8 @@ msgid "Paste Trustpilot widget JS here..."
 msgstr ""
 
 #: app/templates/admin_trust_badges.html:146
-#, fuzzy
 msgid "Custom Trust Badges (Optional)"
-msgstr "Date de séjour (optionnel)"
+msgstr "Badges personnalisés (facultatif)"
 
 #: app/templates/admin_trust_badges.html:147
 msgid ""
@@ -1654,9 +1605,8 @@ msgid "Image Filename"
 msgstr ""
 
 #: app/templates/admin_trust_badges.html:159
-#, fuzzy
 msgid "Link URL (optional)"
-msgstr "Date de séjour (optionnel)"
+msgstr "URL du lien (facultatif)"
 
 #: app/templates/admin_trust_badges.html:163
 msgid "Alt Text"
@@ -1714,7 +1664,7 @@ msgstr "Chambre"
 
 #: app/templates/apartment.html:86
 msgid "Bedroom - View 2"
-msgstr "Salle de bain - vue 2"
+msgstr "Chambre - Vue 2"
 
 #: app/templates/apartment.html:96
 msgid "Modern Kitchen"
@@ -2650,7 +2600,7 @@ msgstr "Votre lien d'accès"
 
 #: app/templates/email_guest_access.html:28
 msgid "Your Stay"
-msgstr "Votre nom"
+msgstr "Votre séjour"
 
 #: app/templates/email_guest_access.html:30
 msgid "nights"
@@ -2658,7 +2608,7 @@ msgstr "nuits"
 
 #: app/templates/email_guest_access.html:36
 msgid "Hello"
-msgstr "Jaune:"
+msgstr "Bonjour"
 
 #: app/templates/email_guest_access.html:38
 msgid ""
@@ -2688,7 +2638,7 @@ msgstr "Déverrouiller la porte de l'appartement (Nuki Smart Lock Ultra)"
 
 #: app/templates/email_guest_access.html:66
 msgid "Access works only during your stay dates"
-msgstr "Pouvons-nous vous contacter pendant notre séjour?"
+msgstr "L'accès est valable uniquement pendant votre séjour"
 
 #: app/templates/email_guest_access.html:76
 msgid "Security Notice"
@@ -2713,11 +2663,11 @@ msgstr "Besoin d'aide ? Contactez-nous."
 #: app/templates/email_guest_checkin.html:6
 #: app/templates/email_guest_checkin.html:21
 msgid "Complete Your Check-in"
-msgstr "Finaliser votre réservation"
+msgstr "Compléter le check-in"
 
 #: app/templates/email_guest_checkin.html:26
 msgid "Your stay at"
-msgstr "Date de séjour"
+msgstr "Votre séjour au"
 
 #: app/templates/email_guest_checkin.html:26
 msgid "is coming up!"
@@ -2725,7 +2675,7 @@ msgstr "arrive bientôt!"
 
 #: app/templates/email_guest_checkin.html:38
 msgid "Action Required:"
-msgstr "Montant remboursé:"
+msgstr "Action requise:"
 
 #: app/templates/email_guest_checkin.html:38
 msgid ""
@@ -2745,7 +2695,7 @@ msgstr ""
 #: app/templates/email_guest_checkin.html:43
 #: app/templates/email_pending_payment.html:61
 msgid "Complete Check-in Now"
-msgstr "Sélectionner arrivée et départ"
+msgstr "Compléter le check-in maintenant"
 
 #: app/templates/email_guest_checkin.html:46
 msgid "The check-in form will ask for:"
@@ -2822,7 +2772,7 @@ msgstr ""
 
 #: app/templates/email_pending_payment.html:58
 msgid "Complete Your Check-in Online"
-msgstr "Finaliser votre réservation"
+msgstr "Compléter le check-in en ligne"
 
 #: app/templates/email_pending_payment.html:59
 msgid ""
@@ -3012,7 +2962,7 @@ msgstr "Sélection locale soignée près de Garbatella"
 
 #: app/templates/food_recommendations.html:13
 msgid "Selected"
-msgstr "Supprimer"
+msgstr "Sélectionné"
 
 #: app/templates/food_recommendations.html:14
 msgid "Trattorie"
@@ -3112,7 +3062,7 @@ msgstr "Bar à cocktails élégant (2 min à pied)"
 
 #: app/templates/guest_access.html:2 app/templates/guest_access.html:9
 msgid "Guest Access"
-msgstr "Invités"
+msgstr "Accès invités"
 
 #: app/templates/guest_access.html:10
 msgid "Valid during your stay"
@@ -3136,7 +3086,7 @@ msgstr "Contrôle du portail non configuré. Veuillez contacter l'hôte."
 
 #: app/templates/guest_access.html:62
 msgid "Apartment Door"
-msgstr "Appartement"
+msgstr "Porte de l'appartement"
 
 #: app/templates/guest_access.html:63
 msgid "Press to unlock the apartment door."
@@ -3173,7 +3123,7 @@ msgstr "L'accès expire automatiquement le jour du départ"
 
 #: app/templates/guest_access.html:110
 msgid "Processing..."
-msgstr "Traitement du remboursement"
+msgstr "Traitement en cours..."
 
 #: app/templates/guest_access.html:113
 msgid "Try Again"
@@ -3193,7 +3143,7 @@ msgstr "Échec"
 
 #: app/templates/guest_access.html:132 app/templates/guest_access.html:143
 msgid "Connection error"
-msgstr "Type de condition"
+msgstr "Erreur de connexion"
 
 #: app/templates/guest_access.html:138
 msgid "Unlocking door..."
@@ -3205,19 +3155,19 @@ msgstr "Porte déverrouillée"
 
 #: app/templates/guest_access_denied.html:2
 msgid "Access Denied"
-msgstr "Succès! Code appliqué."
+msgstr "Accès refusé"
 
 #: app/templates/guest_access_denied.html:11
 msgid "Access Not Available"
-msgstr "Y a-t-il du stationnement?"
+msgstr "Accès non disponible"
 
 #: app/templates/guest_access_denied.html:22
 msgid "Stay:"
-msgstr "Statut:"
+msgstr "Séjour:"
 
 #: app/templates/guest_access_denied.html:23
 msgid "Reservation:"
-msgstr "Registre des réservations"
+msgstr "Réservation:"
 
 #: app/templates/guest_checkin_done.html:2
 msgid "Check-in Completed"
@@ -3241,7 +3191,7 @@ msgstr "Vous avez déjà soumis vos informations."
 
 #: app/templates/guest_self_checkin.html:13
 msgid "Return to Portal"
-msgstr "Retour à la page d'accueil"
+msgstr "Retour au portail"
 
 #: app/templates/guest_self_checkin.html:16
 msgid "Online Check-in"
@@ -3274,7 +3224,7 @@ msgstr "ex. Italienne, Française"
 
 #: app/templates/guest_self_checkin.html:104
 msgid "Issuing Country"
-msgstr "Ville, Pays"
+msgstr "Pays de délivrance"
 
 #: app/templates/guest_self_checkin.html:111
 msgid "Complete Check-in"
@@ -3385,11 +3335,11 @@ msgstr ""
 
 #: app/templates/components/trust_badges_reviews.html:6
 msgid "Trusted by Thousands of Guests"
-msgstr ""
+msgstr "Apprécié par des milliers de voyageurs"
 
 #: app/templates/components/trust_badges_reviews.html:7
 msgid "Verified reviews and secure payments for your peace of mind"
-msgstr ""
+msgstr "Avis vérifiés et paiements sécurisés pour votre tranquillité"
 
 #: app/templates/components/trust_badges_reviews.html:18
 #: app/templates/components/trust_badges_reviews.html:23
@@ -3401,70 +3351,63 @@ msgstr ""
 #: app/templates/components/trust_badges_reviews.html:71
 #: app/templates/components/trust_badges_reviews.html:79
 #: app/templates/components/trust_badges_reviews.html:86
-#, fuzzy
 msgid "reviews"
-msgstr "Total des avis"
+msgstr "avis"
 
 #: app/templates/components/trust_badges_reviews.html:18
-#, fuzzy
 msgid "Booking.com reviews"
-msgstr "Booking.com"
+msgstr "Avis Booking.com"
 
 #: app/templates/components/trust_badges_reviews.html:31
-#, fuzzy
 msgid "Airbnb reviews"
-msgstr "Total des avis"
+msgstr "Avis Airbnb"
 
 #: app/templates/components/trust_badges_reviews.html:46
-#, fuzzy
 msgid "Google Reviews"
-msgstr "Total des avis"
+msgstr "Avis Google"
 
 #: app/templates/components/trust_badges_reviews.html:46
-#, fuzzy
 msgid "Google reviews"
-msgstr "Total des avis"
+msgstr "avis Google"
 
 #: app/templates/components/trust_badges_reviews.html:64
 msgid "TripAdvisor"
-msgstr ""
+msgstr "TripAdvisor"
 
 #: app/templates/components/trust_badges_reviews.html:64
-#, fuzzy
 msgid "TripAdvisor reviews"
-msgstr "Total des avis"
+msgstr "Avis TripAdvisor"
 
 #: app/templates/components/trust_badges_reviews.html:79
 msgid "VRBO"
-msgstr ""
+msgstr "VRBO"
 
 #: app/templates/components/trust_badges_reviews.html:79
-#, fuzzy
 msgid "VRBO reviews"
-msgstr "Total des avis"
+msgstr "Avis VRBO"
 
 #: app/templates/components/trust_badges_reviews.html:100
 msgid "Certifications & Awards"
-msgstr ""
+msgstr "Certifications et récompenses"
 
 #: app/templates/components/trust_badges_reviews.html:121
 msgid "Widget Embeds"
-msgstr ""
+msgstr "Widgets intégrés"
 
 #: app/templates/components/whatsapp_button.html:7
 #: app/templates/components/whatsapp_button.html:8
 #: app/templates/includes/whatsapp_button.html:7
 #: app/templates/includes/whatsapp_button.html:8
 msgid "Contact us on WhatsApp"
-msgstr ""
+msgstr "Contactez-nous sur WhatsApp"
 
 #: app/templates/components/whatsapp_button.html:10
 msgid "Chat on WhatsApp"
-msgstr ""
+msgstr "Discutez sur WhatsApp"
 
 #: app/templates/includes/whatsapp_button.html:10
 msgid "WhatsApp"
-msgstr ""
+msgstr "WhatsApp"
 
 #: app/templates/policies/cancellation.html:7
 #: app/templates/policies/privacy.html:7 app/templates/policies/refund.html:7
@@ -3544,7 +3487,7 @@ msgstr "Contact"
 
 #: app/templates/policies/cancellation.html:48
 msgid "with your reservation ID"
-msgstr "Nous finalisons votre réservation..."
+msgstr "avec votre ID de réservation"
 
 #: app/templates/policies/cancellation.html:49
 msgid "Cancellation is effective upon our confirmation"
@@ -4302,7 +4245,7 @@ msgstr "Stripe (Carte, PayPal, Klarna)"
 
 #: app/templates/policies/refund.html:49
 msgid "Original payment method"
-msgstr "Paiement d'origine"
+msgstr "Mode de paiement d'origine"
 
 #: app/templates/policies/refund.html:50
 msgid "5-10 business days"
@@ -4549,7 +4492,7 @@ msgstr ""
 
 #: app/templates/policies/terms.html:52
 msgid "Report any damage or issues immediately."
-msgstr "Signaler tout problème de sécurité immédiatement"
+msgstr "Signalez tout dommage ou problème immédiatement."
 
 #: app/templates/policies/terms.html:53
 msgid "Leave the apartment in reasonable condition upon departure."
