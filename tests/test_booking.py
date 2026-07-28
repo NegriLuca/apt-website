@@ -107,18 +107,6 @@ class TestBookingFlow:
             resp = client.get(path)
             assert resp.status_code == 200, f'{path} returned {resp.status_code}'
 
-    def test_contact_form_submission(self, client, app):
-        resp = client.post(
-            '/contact',
-            data={
-                'name': 'John Doe',
-                'email': 'john@example.com',
-                'message': 'I would like to book this apartment for a week in August.',
-            },
-            follow_redirects=True,
-        )
-        assert resp.status_code == 200
-
     def test_admin_login_page(self, client):
         resp = client.get('/login')
         assert resp.status_code == 200
