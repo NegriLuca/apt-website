@@ -168,6 +168,36 @@
     </div>
 </section>
 
+<!-- Official Widget Embeds -->
+{% if apartment.booking_widget_js or apartment.airbnb_widget_js or apartment.google_widget_js or apartment.trustpilot_widget_js %}
+<section class="widget-embeds-section py-5" aria-label="{{ _('Widget Embeds') }}">
+    <div class="container">
+        <div class="row">
+            {% if apartment.booking_widget_js %}
+            <div class="col-12 mb-4">
+                {{ apartment.booking_widget_js|safe }}
+            </div>
+            {% endif %}
+            {% if apartment.airbnb_widget_js %}
+            <div class="col-12 mb-4">
+                {{ apartment.airbnb_widget_js|safe }}
+            </div>
+            {% endif %}
+            {% if apartment.google_widget_js %}
+            <div class="col-12 mb-4">
+                {{ apartment.google_widget_js|safe }}
+            </div>
+            {% endif %}
+            {% if apartment.trustpilot_widget_js %}
+            <div class="col-12 mb-4">
+                {{ apartment.trustpilot_widget_js|safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
 <style>
 .review-badge {
     display: inline-flex;

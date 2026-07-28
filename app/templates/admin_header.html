@@ -31,6 +31,18 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_smart_access' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_smart_access') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-key me-1"></i> {{ _('Smart Access') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_trust_badges' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_trust_badges') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-shield-check me-1"></i> {{ _('Trust Badges') }}
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_pricing' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_pricing') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-cash-coin me-1"></i> {{ _('Pricing') }}

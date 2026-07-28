@@ -9,6 +9,8 @@ load_dotenv()
 class Config:
     # ── Security ──────────────────────────────────────────────────────────────
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-only-change-in-production'
+    WTF_CSRF_TIME_LIMIT = 86400  # 24 hours
+    WTF_CSRF_SSL_STRICT = False
 
     # ── Database ──────────────────────────────────────────────────────────────
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///app.db')

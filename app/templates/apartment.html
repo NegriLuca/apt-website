@@ -373,7 +373,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <form method="POST" action="{{ url_for('routes.submit_testimonial') }}" class="testimonial-form" novalidate>
-                    {{ form.hidden_tag() }}
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
                             {{ form.guest_name.label(class="form-label") }}

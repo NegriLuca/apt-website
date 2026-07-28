@@ -104,6 +104,12 @@ class Apartment(db.Model):
     show_payment_badges_in_footer = db.Column(db.Boolean, default=True, comment='Show payment badges in footer')
     show_payment_badges_on_checkout = db.Column(db.Boolean, default=True, comment='Show payment badges on checkout')
 
+    # Official Widget Embeds (JavaScript snippets)
+    booking_widget_js = db.Column(db.Text, nullable=True, comment='Booking.com official widget embed JS')
+    airbnb_widget_js = db.Column(db.Text, nullable=True, comment='Airbnb official widget embed JS')
+    google_widget_js = db.Column(db.Text, nullable=True, comment='Google Reviews widget embed JS')
+    trustpilot_widget_js = db.Column(db.Text, nullable=True, comment='Trustpilot widget embed JS')
+
 
 class Reservation(db.Model):
     __tablename__ = "reservation"

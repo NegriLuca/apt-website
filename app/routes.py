@@ -898,6 +898,7 @@ def contact():
 
 
 @bp.route('/testimonial/submit', methods=['GET', 'POST'])
+@csrf.exempt
 def submit_testimonial():
     form = TestimonialForm()
     if form.validate_on_submit():
@@ -908,12 +909,16 @@ def submit_testimonial():
             content=form.content.data,
             stay_date=form.stay_date.data,
             source='direct',
-            is_published=False  # Requires admin approval
+            is_published=False
         )
         db.session.add(testimonial)
         db.session.commit()
         flash(_('Thank you for your review! It will be published after moderation.'), 'success')
         return redirect(url_for('routes.home'))
+    if form.errors:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{field}: {error}', 'danger')
     return render_template('apartment.html', apartment=get_apartment(), testimonials=get_testimonials(), form=form)
 
 
@@ -1155,8 +1160,111 @@ def admin_pricing():
     all_coupons = Coupon.query.all()
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
 
+
+# ── Smart Access Admin Page ────────────────────────────────────────────────────
+@bp.route('/admin/smart-access', methods=['GET', 'POST'])
+@login_required
+def admin_smart_access():
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = Apartment.query.first()
+    if not apartment:
+        apartment = Apartment(price_per_night=130.00)
+        db.session.add(apartment)
+        db.session.commit()
+
+    if request.method == 'POST':
+        apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
+        apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
+        apartment.shelly_auth_key = request.form.get('shelly_auth_key', '').strip() or None
+        apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
+        apartment.shelly_pulse_duration = request.form.get('shelly_pulse_duration', type=int) or 3
+
+        apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
+        apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
+        apartment.nuki_web_token = request.form.get('nuki_web_token', '').strip() or None
+        apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'
+        apartment.nuki_unlock_action = request.form.get('nuki_unlock_action', 'unlock')
+
+        apartment.whatsapp_number = request.form.get('whatsapp_number', '').strip() or None
+        apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
+
+        db.session.commit()
+        flash(_('Smart Access & WhatsApp settings saved!'), 'success')
+        return redirect(url_for('routes.admin_smart_access'))
+
+    return render_template('admin_smart_access.html', apartment=apartment)
+
+
+# ── Trust Badges & Widgets Admin Page ─────────────────────────────────────────
+@bp.route('/admin/trust-badges', methods=['GET', 'POST'])
+@login_required
+def admin_trust_badges():
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = Apartment.query.first()
+    if not apartment:
+        apartment = Apartment(price_per_night=130.00)
+        db.session.add(apartment)
+        db.session.commit()
+
+    if request.method == 'POST':
+        # Review platform IDs
+        apartment.booking_property_id = request.form.get('booking_property_id', '').strip() or None
+        apartment.booking_review_score = request.form.get('booking_review_score', type=float)
+        apartment.booking_review_count = request.form.get('booking_review_count', type=int)
+
+        apartment.airbnb_listing_id = request.form.get('airbnb_listing_id', '').strip() or None
+        apartment.airbnb_review_score = request.form.get('airbnb_review_score', type=float)
+        apartment.airbnb_review_count = request.form.get('airbnb_review_count', type=int)
+
+        apartment.google_place_id = request.form.get('google_place_id', '').strip() or None
+        apartment.google_review_score = request.form.get('google_review_score', type=float)
+        apartment.google_review_count = request.form.get('google_review_count', type=int)
+
+        apartment.tripadvisor_location_id = request.form.get('tripadvisor_location_id', '').strip() or None
+        apartment.tripadvisor_review_score = request.form.get('tripadvisor_review_score', type=float)
+        apartment.tripadvisor_review_count = request.form.get('tripadvisor_review_count', type=int)
+
+        apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
+        apartment.vrbo_review_score = request.form.get('vrbo_review_score', type=float)
+        apartment.vrbo_review_count = request.form.get('vrbo_review_count', type=int)
+
+        # Payment & security badges
+        apartment.stripe_verified = bool(request.form.get('stripe_verified'))
+        apartment.ssl_certified = bool(request.form.get('ssl_certified'))
+        apartment.gdpr_compliant = bool(request.form.get('gdpr_compliant'))
+        apartment.pci_compliant = bool(request.form.get('pci_compliant'))
+
+        # Custom badges
+        for i in [1, 2, 3]:
+            setattr(apartment, f'custom_badge_{i}_image', request.form.get(f'custom_badge_{i}_image', '').strip() or None)
+            setattr(apartment, f'custom_badge_{i}_link', request.form.get(f'custom_badge_{i}_link', '').strip() or None)
+            setattr(apartment, f'custom_badge_{i}_alt', request.form.get(f'custom_badge_{i}_alt', '').strip() or None)
+
+        # Display settings
+        apartment.show_reviews_in_footer = bool(request.form.get('show_reviews_in_footer'))
+        apartment.show_reviews_on_homepage = bool(request.form.get('show_reviews_on_homepage'))
+        apartment.show_reviews_on_booking = bool(request.form.get('show_reviews_on_booking'))
+        apartment.show_payment_badges_in_footer = bool(request.form.get('show_payment_badges_in_footer'))
+        apartment.show_payment_badges_on_checkout = bool(request.form.get('show_payment_badges_on_checkout'))
+
+        # Official widget embeds
+        apartment.booking_widget_js = request.form.get('booking_widget_js', '').strip() or None
+        apartment.airbnb_widget_js = request.form.get('airbnb_widget_js', '').strip() or None
+        apartment.google_widget_js = request.form.get('google_widget_js', '').strip() or None
+        apartment.trustpilot_widget_js = request.form.get('trustpilot_widget_js', '').strip() or None
+
+        db.session.commit()
+        flash(_('Trust Badges & Widgets settings saved!'), 'success')
+        return redirect(url_for('routes.admin_trust_badges'))
+
+    return render_template('admin_trust_badges.html', apartment=apartment)
+
+
 # CREATE COUPON ACTION
-@bp.route('/admin/coupons/create', methods=['POST'])
 @login_required
 def admin_create_coupon():
     if not current_user.is_admin: abort(403)

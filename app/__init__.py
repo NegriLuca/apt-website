@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, session, current_app
+from flask import Flask, request, session, current_app, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -72,6 +72,10 @@ def create_app():
 
     from app import routes
     app.register_blueprint(routes.bp)
+
+    @csrf.error_handler
+    def csrf_error_handler(reason):
+        return render_template('csrf_error.html', reason=reason), 400
 
     @app.context_processor
     def inject_apartment():
