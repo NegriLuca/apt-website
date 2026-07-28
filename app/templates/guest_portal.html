@@ -274,15 +274,15 @@ async function callApi(endpoint, buttonId, loadingId, statusId) {
         const data = await response.json();
         
         if (data.success) {
-            showStatus(statusId, data.message || 'Success!', 'success');
+            showStatus(statusId, data.message || '{{ _("Success!") }}', 'success');
             btn.classList.add('btn-success');
             setTimeout(() => btn.classList.remove('btn-success'), 1000);
         } else {
-            showStatus(statusId, data.error || 'Error occurred', 'danger');
+            showStatus(statusId, data.error || '{{ _("Error occurred") }}', 'danger');
         }
     } catch (error) {
         console.error('API Error:', error);
-        showStatus(statusId, 'Connection error. Please try again.', 'danger');
+        showStatus(statusId, '{{ _("Connection error. Please try again.") }}', 'danger');
     } finally {
         btn.disabled = false;
         loading.classList.add('d-none');

@@ -747,13 +747,11 @@ msgstr "Detalles del huésped"
 
 #: app/templates/admin_guest_checkin.html:38
 #: app/templates/guest_self_checkin.html:55
-#, fuzzy
 msgid "Surname"
 msgstr "Nombre de usuario"
 
 #: app/templates/admin_guest_checkin.html:43
 #: app/templates/guest_self_checkin.html:59
-#, fuzzy
 msgid "First Name"
 msgstr "Tu nombre"
 
@@ -769,14 +767,12 @@ msgstr ""
 #: app/templates/admin_guest_checkin.html:58
 #: app/templates/email_guest_checkin.html:50
 #: app/templates/guest_self_checkin.html:71
-#, fuzzy
 msgid "Nationality"
 msgstr "Política de cancelación"
 
 #: app/templates/admin_guest_checkin.html:64
 #: app/templates/email_guest_checkin.html:52
 #: app/templates/guest_self_checkin.html:75
-#, fuzzy
 msgid "Gender"
 msgstr "Leyenda:"
 
@@ -784,19 +780,16 @@ msgstr "Leyenda:"
 #: app/templates/admin_guest_checkin.html:79
 #: app/templates/guest_self_checkin.html:77
 #: app/templates/guest_self_checkin.html:89
-#, fuzzy
 msgid "Select"
 msgstr "Eliminar"
 
 #: app/templates/admin_guest_checkin.html:67
 #: app/templates/guest_self_checkin.html:78
-#, fuzzy
 msgid "Male"
 msgstr "Correo electrónico"
 
 #: app/templates/admin_guest_checkin.html:68
 #: app/templates/guest_self_checkin.html:79
-#, fuzzy
 msgid "Female"
 msgstr "Correo electrónico"
 
@@ -807,19 +800,16 @@ msgstr "Documento de identidad"
 
 #: app/templates/admin_guest_checkin.html:77
 #: app/templates/guest_self_checkin.html:87
-#, fuzzy
 msgid "Document Type"
 msgstr "TIPO DE DESCUENTO"
 
 #: app/templates/admin_guest_checkin.html:80
 #: app/templates/guest_self_checkin.html:90
-#, fuzzy
 msgid "Passport"
 msgstr "Contraseña"
 
 #: app/templates/admin_guest_checkin.html:81
 #: app/templates/guest_self_checkin.html:91
-#, fuzzy
 msgid "Identity Card"
 msgstr "Tarjeta de crédito"
 
@@ -840,7 +830,6 @@ msgstr "Número de documento"
 
 #: app/templates/admin_guest_checkin.html:92
 #: app/templates/guest_self_checkin.html:100
-#, fuzzy
 msgid "Expiry Date"
 msgstr "Fecha de estancia"
 
@@ -1209,7 +1198,6 @@ msgstr ""
 #: app/templates/admin_questura_logs.html:27
 #: app/templates/email_guest_access.html:30 app/templates/guest_access.html:28
 #: app/templates/guest_self_checkin.html:35
-#, fuzzy
 msgid "Reservation"
 msgstr "Registro de reservas"
 
@@ -1712,6 +1700,8 @@ msgid ""
 "Elegant and refined apartment in the heart of Garbatella, Rome. Book your "
 "ideal stay."
 msgstr ""
+"Apartamento elegante y refinado en el corazón de Garbatella, Roma. Reserve "
+"su estancia ideal."
 
 #: app/templates/apartment.html:65
 msgid "Welcome to our beautiful, fully equipped rental property."
@@ -1720,80 +1710,65 @@ msgstr ""
 
 #: app/templates/apartment.html:76
 msgid "Bedroom"
-msgstr ""
+msgstr "Dormitorio"
 
 #: app/templates/apartment.html:86
-#, fuzzy
 msgid "Bedroom - View 2"
 msgstr "Baño - vista 2"
 
 #: app/templates/apartment.html:96
-#, fuzzy
 msgid "Modern Kitchen"
 msgstr "Cocina"
 
 #: app/templates/apartment.html:106
-#, fuzzy
 msgid "Kitchen - Alternative View"
 msgstr "Cocina - vista alternativa"
 
 #: app/templates/apartment.html:116
-#, fuzzy
 msgid "Kitchen - View 3"
 msgstr "Cocina - vista 3"
 
 #: app/templates/apartment.html:126
-#, fuzzy
 msgid "Kitchen - View 4"
 msgstr "Cocina - vista 4"
 
 #: app/templates/apartment.html:136
-#, fuzzy
 msgid "Elegant Bathroom"
 msgstr "Baño elegante"
 
 #: app/templates/apartment.html:146
-#, fuzzy
 msgid "Bathroom - View 2"
 msgstr "Baño - vista 2"
 
 #: app/templates/apartment.html:156
-#, fuzzy
 msgid "Living Room"
 msgstr "Salón"
 
 #: app/templates/apartment.html:166
-#, fuzzy
 msgid "Living Room - View 2"
 msgstr "Salón - vista 2"
 
 #: app/templates/apartment.html:176
-#, fuzzy
 msgid "Living Room - View 3"
 msgstr "Salón - vista 3"
 
 #: app/templates/apartment.html:186
-#, fuzzy
 msgid "Living Room - View 4"
 msgstr "Salón - vista 4"
 
 #: app/templates/apartment.html:196
-#, fuzzy
 msgid "Living Room - View 5"
 msgstr "Salón - vista 5"
 
 #: app/templates/apartment.html:206
-#, fuzzy
 msgid "Garbatella Metro - Metro Station"
 msgstr "Metro Garbatella - estación de metro"
 
 #: app/templates/apartment.html:216
-#, fuzzy
 msgid "Building Exterior"
 msgstr "Exterior del edificio"
 
 #: app/templates/apartment.html:226
-#, fuzzy
 msgid "Building Exterior - View 2"
 msgstr "Exterior del edificio - vista 2"
 
@@ -2104,7 +2079,6 @@ msgid "Riverside walk at sunset"
 msgstr "Paseo junto al río al atardecer"
 
 #: app/templates/base.html:36
-#, fuzzy
 msgid ""
 "Stay at Lotto 235 Garbatella: elegant vacation apartment in Rome. Modern "
 "comfort, self check-in and strategic location near metro."
@@ -2113,7 +2087,6 @@ msgstr ""
 "Comodidad moderna, auto check-in y ubicación estratégica cerca del metro."
 
 #: app/templates/base.html:37
-#, fuzzy
 msgid ""
 "Lotto 235, Garbatella, Vacation Home Rome, Garbatella Apartment, Short Term "
 "Rental Rome"
@@ -2122,17 +2095,14 @@ msgstr ""
 "Alquiler Corto Roma"
 
 #: app/templates/base.html:46 app/templates/base.html:64
-#, fuzzy
 msgid "Luxury Rental Property Rome"
 msgstr "Propiedad de alquiler de lujo Roma"
 
 #: app/templates/base.html:51 app/templates/base.html:67
-#, fuzzy
 msgid "Lotto 235 Garbatella - Living Room"
 msgstr "Lotto 235 Garbatella - Inicio"
 
 #: app/templates/base.html:84
-#, fuzzy
 msgid ""
 "Elegant vacation apartment in the heart of Garbatella, Rome. Modern comfort,"
 " self check-in, fast Wi-Fi, air conditioning and strategic location near "
@@ -2324,14 +2294,13 @@ msgid "Credit Card"
 msgstr "Tarjeta de crédito"
 
 #: app/templates/checkout.html:80
-#, fuzzy
 msgid "Pay full amount"
 msgstr "IMPORTE"
 
 #: app/templates/checkout.html:84
 #, python-format
 msgid "Pay 30%% deposit"
-msgstr ""
+msgstr "Pague el 30%% de depósito"
 
 #: app/templates/checkout.html:90 app/templates/checkout.html:94
 #: app/templates/policies/refund.html:53
@@ -2381,10 +2350,9 @@ msgstr "Teléfono:"
 
 #: app/templates/csrf_error.html:3
 msgid "Request Expired"
-msgstr ""
+msgstr "Solicitud caducada"
 
 #: app/templates/csrf_error.html:12
-#, fuzzy
 msgid "Session Expired"
 msgstr "Sesión expirada. Por favor, inténtalo de nuevo."
 
@@ -2393,6 +2361,8 @@ msgid ""
 "Your form session expired. Please go back and try again — your security is "
 "important to us."
 msgstr ""
+"La sesión del formulario ha caducado. Vuelva atrás e inténtelo de nuevo: su "
+"seguridad es importante para nosotros."
 
 #: app/templates/email_admin_alert.html:13
 msgid "New Booking Received"
@@ -2400,7 +2370,6 @@ msgstr "Nueva reserva recibida"
 
 #: app/templates/email_admin_alert.html:25
 #: app/templates/email_pending_payment.html:46
-#, fuzzy
 msgid "Bank Transfer Details"
 msgstr "Transferencia bancaria"
 
@@ -2679,7 +2648,6 @@ msgid "Your Access Link"
 msgstr "Su enlace de acceso"
 
 #: app/templates/email_guest_access.html:28
-#, fuzzy
 msgid "Your Stay"
 msgstr "Tu nombre"
 
@@ -2688,7 +2656,6 @@ msgid "nights"
 msgstr "noches"
 
 #: app/templates/email_guest_access.html:36
-#, fuzzy
 msgid "Hello"
 msgstr "Amarillo:"
 
@@ -2719,12 +2686,10 @@ msgid "Unlock the apartment door (Nuki Smart Lock Ultra)"
 msgstr "Desbloquear la puerta del apartamento (Nuki Smart Lock Ultra)"
 
 #: app/templates/email_guest_access.html:66
-#, fuzzy
 msgid "Access works only during your stay dates"
 msgstr "¿Podemos contactaros durante la estancia?"
 
 #: app/templates/email_guest_access.html:76
-#, fuzzy
 msgid "Security Notice"
 msgstr "8. Seguridad"
 
@@ -2746,21 +2711,18 @@ msgstr "¿Necesitas ayuda? Contáctanos."
 
 #: app/templates/email_guest_checkin.html:6
 #: app/templates/email_guest_checkin.html:21
-#, fuzzy
 msgid "Complete Your Check-in"
 msgstr "Completa tu reserva"
 
 #: app/templates/email_guest_checkin.html:26
-#, fuzzy
 msgid "Your stay at"
 msgstr "Fecha de estancia"
 
 #: app/templates/email_guest_checkin.html:26
 msgid "is coming up!"
-msgstr ""
+msgstr "¡se acerca!"
 
 #: app/templates/email_guest_checkin.html:38
-#, fuzzy
 msgid "Action Required:"
 msgstr "Importe reembolsado:"
 
@@ -2770,41 +2732,44 @@ msgid ""
 "within 24 hours of arrival. Please complete the online check-in before your "
 "arrival to speed up the process."
 msgstr ""
+"La ley italiana exige que todos los huéspedes sean registrados en la Policía"
+" (Questura) dentro de las 24 horas posteriores a la llegada. Complete el "
+"check-in online antes de su llegada para agilizar el proceso."
 
 #: app/templates/email_guest_checkin.html:41
 msgid "Click the button below to complete your check-in online:"
-msgstr ""
+msgstr "Haga clic en el botón de abajo para completar su check-in online:"
 
 #: app/templates/email_guest_checkin.html:43
 #: app/templates/email_pending_payment.html:61
-#, fuzzy
 msgid "Complete Check-in Now"
 msgstr "Seleccionar check-in y check-out"
 
 #: app/templates/email_guest_checkin.html:46
 msgid "The check-in form will ask for:"
-msgstr ""
+msgstr "El formulario de check-in solicitará:"
 
 #: app/templates/email_guest_checkin.html:48
 msgid "Full name (as on ID document)"
-msgstr ""
+msgstr "Nombre completo (como en el documento de identidad)"
 
 #: app/templates/email_guest_checkin.html:49
 msgid "Date and place of birth"
-msgstr ""
+msgstr "Fecha y lugar de nacimiento"
 
 #: app/templates/email_guest_checkin.html:51
 msgid "ID document type, number, and expiry date"
-msgstr ""
+msgstr "Tipo, número y fecha de caducidad del documento de identidad"
 
 #: app/templates/email_guest_checkin.html:55
 msgid ""
 "The link is valid until your check-in date. You can complete it anytime up "
 "to 30 days before arrival."
 msgstr ""
+"El enlace es válido hasta la fecha de check-in. Puede completarlo en "
+"cualquier momento hasta 30 días antes de la llegada."
 
 #: app/templates/email_guest_checkin.html:57
-#, fuzzy
 msgid "If you have any questions, feel free to contact us."
 msgstr "Si tienes alguna pregunta, no dudes en contactarnos."
 
@@ -2852,7 +2817,6 @@ msgstr ""
 "arriba."
 
 #: app/templates/email_pending_payment.html:58
-#, fuzzy
 msgid "Complete Your Check-in Online"
 msgstr "Completa tu reserva"
 
@@ -2861,10 +2825,12 @@ msgid ""
 "Save time at arrival by completing your guest registration now. Required by "
 "Italian law for all guests."
 msgstr ""
+"Ahorre tiempo a su llegada completando ahora el registro de huésped. "
+"Obligatorio por ley italiana para todos los huéspedes."
 
 #: app/templates/email_pending_payment.html:63
 msgid "Available 30 days before check-in. One-time use link."
-msgstr ""
+msgstr "Disponible 30 días antes del check-in. Enlace de un solo uso."
 
 #: app/templates/email_pending_payment.html:72
 msgid ""
@@ -3034,12 +3000,10 @@ msgstr ""
 
 #: app/templates/food_recommendations.html:9
 #: app/templates/food_recommendations.html:105
-#, fuzzy
 msgid "Selected for you local picks near Garbatella"
 msgstr "Selección local curada cerca de Garbatella"
 
 #: app/templates/food_recommendations.html:13
-#, fuzzy
 msgid "Selected"
 msgstr "Eliminar"
 
@@ -3093,7 +3057,7 @@ msgstr "🍸 Bebidas"
 
 #: app/templates/food_recommendations.html:112
 msgid "Selected for you"
-msgstr ""
+msgstr "Seleccionado para usted"
 
 #: app/templates/food_recommendations.html:134
 msgid "Modern trattoria (8 min walk)"
@@ -3140,7 +3104,6 @@ msgid "Stylish cocktail bar (2 min walk)"
 msgstr "Bar de cócteles elegante (2 min a pie)"
 
 #: app/templates/guest_access.html:2 app/templates/guest_access.html:9
-#, fuzzy
 msgid "Guest Access"
 msgstr "Huéspedes"
 
@@ -3165,7 +3128,6 @@ msgid "Gate control not configured. Please contact the host."
 msgstr "Control de puerta no configurado. Por favor, contacte al anfitrión."
 
 #: app/templates/guest_access.html:62
-#, fuzzy
 msgid "Apartment Door"
 msgstr "Apartamento"
 
@@ -3182,7 +3144,6 @@ msgid "Door control not configured. Please contact the host."
 msgstr "Control de puerta no configurado. Por favor, contacte al anfitrión."
 
 #: app/templates/guest_access.html:80
-#, fuzzy
 msgid "Important"
 msgstr "Importante:"
 
@@ -3203,7 +3164,6 @@ msgid "Access expires automatically on check-out day"
 msgstr "El acceso caduca automáticamente el día del check-out"
 
 #: app/templates/guest_access.html:110
-#, fuzzy
 msgid "Processing..."
 msgstr "Procesamiento de reembolso"
 
@@ -3224,7 +3184,6 @@ msgid "Failed"
 msgstr "Falló"
 
 #: app/templates/guest_access.html:132 app/templates/guest_access.html:143
-#, fuzzy
 msgid "Connection error"
 msgstr "Tipo de condición"
 
@@ -3237,37 +3196,30 @@ msgid "Door unlocked"
 msgstr "Puerta desbloqueada"
 
 #: app/templates/guest_access_denied.html:2
-#, fuzzy
 msgid "Access Denied"
 msgstr "¡Éxito! Código aplicado."
 
 #: app/templates/guest_access_denied.html:11
-#, fuzzy
 msgid "Access Not Available"
 msgstr "¿Hay parking disponible?"
 
 #: app/templates/guest_access_denied.html:22
-#, fuzzy
 msgid "Stay:"
 msgstr "Estado:"
 
 #: app/templates/guest_access_denied.html:23
-#, fuzzy
 msgid "Reservation:"
 msgstr "Registro de reservas"
 
 #: app/templates/guest_checkin_done.html:2
-#, fuzzy
 msgid "Check-in Completed"
 msgstr "Check-in / Check-out"
 
 #: app/templates/guest_checkin_done.html:11
-#, fuzzy
 msgid "Check-in Completed!"
 msgstr "Check-in / Check-out"
 
 #: app/templates/guest_self_checkin.html:2
-#, fuzzy
 msgid "Check-in Online"
 msgstr "Check-in"
 
@@ -3280,17 +3232,14 @@ msgid "You have already submitted your details."
 msgstr "Ya ha enviado sus datos."
 
 #: app/templates/guest_self_checkin.html:13
-#, fuzzy
 msgid "Return to Portal"
 msgstr "Volver a la página de inicio"
 
 #: app/templates/guest_self_checkin.html:16
-#, fuzzy
 msgid "Online Check-in"
 msgstr "Check-in"
 
 #: app/templates/guest_self_checkin.html:17
-#, fuzzy
 msgid ""
 "Complete your guest registration before arrival. Required by Italian law."
 msgstr "Registro de huéspedes Questura (requisito legal)"
@@ -3304,7 +3253,6 @@ msgstr ""
 "las 24 horas posteriores a la llegada."
 
 #: app/templates/guest_self_checkin.html:52
-#, fuzzy
 msgid "Main Guest"
 msgstr "Huésped"
 
@@ -3317,12 +3265,10 @@ msgid "e.g. Italian, French"
 msgstr "ej. Italiana, Francesa"
 
 #: app/templates/guest_self_checkin.html:104
-#, fuzzy
 msgid "Issuing Country"
 msgstr "Ciudad, País"
 
 #: app/templates/guest_self_checkin.html:111
-#, fuzzy
 msgid "Complete Check-in"
 msgstr "Check-in"
 
@@ -3570,7 +3516,6 @@ msgid "No refund"
 msgstr "Sin reembolso"
 
 #: app/templates/policies/cancellation.html:37
-#, fuzzy
 msgid "No-show / Early departure"
 msgstr "No-shows o salidas anticipadas"
 
@@ -3584,12 +3529,10 @@ msgstr ""
 "Use el enlace de cancelación en su correo de confirmación de reserva, O"
 
 #: app/templates/policies/cancellation.html:48
-#, fuzzy
 msgid "Contact us at"
 msgstr "Contacto"
 
 #: app/templates/policies/cancellation.html:48
-#, fuzzy
 msgid "with your reservation ID"
 msgstr "Estamos finalizando tu reserva..."
 
@@ -3618,7 +3561,6 @@ msgstr ""
 " plazo de 5 días hábiles (proporcione IBAN)"
 
 #: app/templates/policies/cancellation.html:58
-#, fuzzy
 msgid "Refunds issued in EUR only; currency conversion fees not refunded"
 msgstr ""
 "Todos los reembolsos se emiten en EUR. Las comisiones de conversión de "
@@ -3629,7 +3571,6 @@ msgid "Exceptions & Special Cases"
 msgstr "Excepciones y casos especiales"
 
 #: app/templates/policies/cancellation.html:65
-#, fuzzy
 msgid "Government travel restrictions:"
 msgstr "Restricciones de viaje gubernamentales que impiden la llegada"
 
@@ -3664,7 +3605,6 @@ msgstr ""
 "Se evalúan caso por caso con documentación; recomendamos un seguro de viaje."
 
 #: app/templates/policies/cancellation.html:68
-#, fuzzy
 msgid "Force majeure:"
 msgstr "Fuerza mayor"
 
@@ -4339,7 +4279,6 @@ msgid "Stripe (Card, PayPal, Klarna)"
 msgstr "Stripe (Tarjeta, PayPal, Klarna)"
 
 #: app/templates/policies/refund.html:49
-#, fuzzy
 msgid "Original payment method"
 msgstr "Pago original"
 
@@ -4510,14 +4449,12 @@ msgid "3. Check-in / Check-out"
 msgstr "3. Check-in / Check-out"
 
 #: app/templates/policies/terms.html:28
-#, fuzzy
 msgid ""
 "Check-in: 13:00 - 20:00 (Self check-in available after hours with key "
 "lockbox)"
 msgstr "13:00 - 20:00 (auto check-in vía caja fuerte fuera de horario)"
 
 #: app/templates/policies/terms.html:29
-#, fuzzy
 msgid "Check-out: by 10:00"
 msgstr "Check-out:"
 
@@ -4572,25 +4509,21 @@ msgid "Respect the property, neighbors, and building rules."
 msgstr "Respete la propiedad, los vecinos y las normas del edificio."
 
 #: app/templates/policies/terms.html:49
-#, fuzzy
 msgid ""
 "No smoking inside the apartment (smoking permitted on balcony/terrace only)."
 msgstr "Fumar permitido solo en balcón/terraza"
 
 #: app/templates/policies/terms.html:50
-#, fuzzy
 msgid "No parties or events without prior written consent."
 msgstr ""
 "Sin fiestas, eventos o reuniones sin consentimiento previo por escrito"
 
 #: app/templates/policies/terms.html:51
-#, fuzzy
 msgid ""
 "Maximum occupancy as stated in booking; no additional overnight guests."
 msgstr "Ocupación máxima: Según reserva (sin huéspedes extra pernoctando)"
 
 #: app/templates/policies/terms.html:52
-#, fuzzy
 msgid "Report any damage or issues immediately."
 msgstr "Reporta cualquier problema de seguridad inmediatamente"
 
@@ -4604,7 +4537,6 @@ msgid "7. Liability & Insurance"
 msgstr "7. Responsabilidad y seguro"
 
 #: app/templates/policies/terms.html:59
-#, fuzzy
 msgid "Lotto 235 Garbatella is not responsible for:"
 msgstr "Lotto 235 Garbatella - Estancia"
 
@@ -4638,7 +4570,6 @@ msgid "Your personal data is processed in accordance with our"
 msgstr "Sus datos personales se procesan de acuerdo con nuestra"
 
 #: app/templates/policies/terms.html:70
-#, fuzzy
 msgid ""
 "and GDPR (EU Regulation 2016/679). We only collect data necessary for your "
 "booking and legal obligations."
