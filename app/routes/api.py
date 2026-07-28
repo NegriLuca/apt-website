@@ -1,13 +1,13 @@
-from flask import render_template, redirect, url_for, flash, request, session, current_app, abort, jsonify
-from flask_babel import gettext as _
-from flask_login import login_required, current_user
-from app.routes import bp
-from app.routes.helpers import get_apartment, is_available, calculate_dynamic_total
-from app import db, limiter
-from app.models import Apartment, Reservation, Coupon
-from app.services.smart_lock import trigger_gate_open, trigger_door_unlock
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
+from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask_login import current_user, login_required
+
+from app import db, limiter
+from app.models import Coupon, Reservation
+from app.routes import bp
+from app.routes.helpers import calculate_dynamic_total, get_apartment, is_available
+from app.services.smart_lock import trigger_door_unlock, trigger_gate_open
 
 # ── API Endpoints ────────────────────────────────────────────────────────────
 
@@ -22,7 +22,6 @@ def validate_coupon():
     if not booking_data:
         return jsonify({'valid': False, 'message': 'No active booking session.'})
 
-    from app.models import Coupon
     coupon = Coupon.query.filter_by(code=code, active=True).first()
     if not coupon:
         return jsonify({'valid': False, 'message': 'Invalid or expired coupon code.'})
@@ -31,7 +30,9 @@ def validate_coupon():
     check_out = date.fromisoformat(booking_data['check_out'])
     num_guests = booking_data['num_guests']
     apartment = get_apartment()
-    base_price = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night if apartment else 130.0)
+    base_price = calculate_dynamic_total(
+        check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night if apartment else 130.0
+    )
 
     if coupon.discount_type == 'percentage':
         discount_amount = round(base_price * coupon.discount_value / 100, 2)
@@ -42,16 +43,18 @@ def validate_coupon():
     else:
         return jsonify({'valid': False, 'message': 'Unknown discount type.'})
 
-    return jsonify({
-        'valid': True,
-        'code': coupon.code,
-        'discount_type': coupon.discount_type,
-        'discount_value': coupon.discount_value,
-        'discount_amount': discount_amount,
-        'original_price': base_price,
-        'new_total': new_total,
-        'message': f'Coupon applied! You saved €{discount_amount:.2f}'
-    })
+    return jsonify(
+        {
+            'valid': True,
+            'code': coupon.code,
+            'discount_type': coupon.discount_type,
+            'discount_value': coupon.discount_value,
+            'discount_amount': discount_amount,
+            'original_price': base_price,
+            'new_total': new_total,
+            'message': f'Coupon applied! You saved €{discount_amount:.2f}',
+        }
+    )
 
 
 @bp.route('/api/admin/calendar-reservations')
@@ -63,14 +66,16 @@ def api_calendar_reservations():
     reservations = Reservation.query.filter(Reservation.status != 'cancelled').all()
     events = []
     for r in reservations:
-        events.append({
-            'title': f'{r.guest_name} ({r.num_guests} guests)',
-            'start': r.check_in.isoformat(),
-            'end': r.check_out.isoformat(),
-            'backgroundColor': '#28a745' if r.status == 'confirmed' else '#ffc107',
-            'borderColor': '#28a745' if r.status == 'confirmed' else '#ffc107',
-            'allDay': True,
-        })
+        events.append(
+            {
+                'title': f'{r.guest_name} ({r.num_guests} guests)',
+                'start': r.check_in.isoformat(),
+                'end': r.check_out.isoformat(),
+                'backgroundColor': '#28a745' if r.status == 'confirmed' else '#ffc107',
+                'borderColor': '#28a745' if r.status == 'confirmed' else '#ffc107',
+                'allDay': True,
+            }
+        )
 
     return jsonify(events)
 
@@ -100,23 +105,25 @@ def api_calculate_price():
     base_rate = apartment.price_per_night if apartment else 130.0
     total = calculate_dynamic_total(check_in, check_out, num_guests=guests, base_rate=base_rate)
 
-    return jsonify({
-        'available': True,
-        'check_in': check_in_str,
-        'check_out': check_out_str,
-        'nights': (check_out - check_in).days,
-        'guests': guests,
-        'base_rate': base_rate,
-        'total': total,
-        'currency': 'EUR'
-    })
+    return jsonify(
+        {
+            'available': True,
+            'check_in': check_in_str,
+            'check_out': check_out_str,
+            'nights': (check_out - check_in).days,
+            'guests': guests,
+            'base_rate': base_rate,
+            'total': total,
+            'currency': 'EUR',
+        }
+    )
 
 
 # ── Smart Lock APIs ──────────────────────────────────────────────────────────
 
 
 @bp.route('/api/access/gate/open', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit('10 per minute')
 def api_gate_open():
     token = request.headers.get('X-Access-Token') or request.form.get('token')
     if not token:
@@ -136,7 +143,7 @@ def api_gate_open():
 
 
 @bp.route('/api/access/door/open', methods=['POST'])
-@limiter.limit("10 per minute")
+@limiter.limit('10 per minute')
 def api_door_open():
     token = request.headers.get('X-Access-Token') or request.form.get('token')
     if not token:

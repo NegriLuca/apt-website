@@ -1,9 +1,9 @@
 # Apt_Website — Improvement Opportunities
 
 ## Code Quality & Testing
-- **No tests** — zero test files. Critical paths (booking flow, Questura submission, tourist tax calculation) have no coverage.
-- **No linter/formatter** — no ruff, black, or flake8 config. Code style is inconsistent.
-- **No type hints** — functions lack type annotations, making refactoring risky.
+- **Tests** — ✅ **DONE** (38 tests across 3 test suites covering booking flow, Questura model, tourist tax calculation; test config uses in-memory SQLite with disabled CSRF/rate limiting; `conftest.py` seeds admin + apartment).
+- **Linter/formatter** — ✅ **DONE** (ruff configured in `pyproject.toml` with `ruff check` and `ruff format`; runs on `app/` and `tests/`; 20 pre-existing warnings remain, mostly multi-statement lines and bare excepts).
+- **Type hints** — ✅ **DONE** (added to all models, forms, route handlers, and key service methods using `Optional`, `Response | str`, `-> None`, etc.).
 - **No CI** — no GitHub Actions or other pipeline. Every deploy is a manual gamble.
 - **Hardcoded secrets in config** — `SECRET_KEY` has a fallback `'dev-only-change-in-production'` which could ship to prod.
 
@@ -11,10 +11,10 @@
 - **ComplianceConfig encryption uses SECRET_KEY as fallback** — if `COMPLIANCE_ENCRYPTION_KEY` is not set, Questura passwords are encrypted with the same key used for session signing.
 - **Rate limiting on login** — ✅ **DONE** (50/hour, 200/day per IP via Flask-Limiter).
 - **Audit logging** — ✅ **DONE** (`AuditLog` model, automatic logging on admin actions, filtered viewer at `/admin/audit-log`).
-- **WTForms CSRF exempt on many forms** — some forms use `{% csrf_token() %}` manually instead of Flask-WTF `form.hidden_tag()`, making it easy to forget.
+- **WTForms CSRF** — ✅ **DONE** (manual `{% csrf_token() %}` replaced with `{{ form.hidden_tag() }}` on forms backed by FlaskForm; manual tokens retained for simple POST buttons in admin panels).
 
 ## Infrastructure
-- **No migration management** — schema changes are patched via raw SQL in `run.py`. Flask-Migrate exists but isn't consistently used.
+- **Migration management** — ✅ **DONE** (raw SQL schema patches removed from `__init__.py`; `coupon_code` was already in a migration; `tourist_tax_excluded` now has its own migration `20260728_add_tourist_tax_excluded.py` chained to head `c99797619e6f`).
 - **Health check endpoint** — ✅ **DONE** (`/health` returns JSON with status, timestamp, DB connectivity).
 - **Structured logging** — ✅ **DONE** (migrated from `print()` to `app.logger.info/warning/error`; startup, DB connection, and admin operations are logged).
 - **No Docker compose for local dev** — if PostgreSQL is needed, there's no `docker-compose.yml`.

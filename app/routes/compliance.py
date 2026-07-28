@@ -1,20 +1,20 @@
-from flask import render_template, redirect, url_for, flash, request, current_app, abort, jsonify
-from flask_babel import gettext as _
-from flask_login import login_required, current_user
+import secrets
+from datetime import date, timedelta
+
+from flask import Response, abort, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+
+from app import db
+from app.models import Apartment, ComplianceConfig, QuesturaLog, Reservation
 from app.routes import bp
 from app.routes.helpers import get_apartment
-from app import db
-from app.models import Apartment, Reservation, ComplianceConfig, QuesturaLog
-from datetime import date, datetime, timedelta
-import secrets
-
 
 # ── Compliance Dashboard ─────────────────────────────────────────────────────
 
 
 @bp.route('/admin/compliance')
 @login_required
-def compliance_dashboard():
+def compliance_dashboard() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -23,7 +23,7 @@ def compliance_dashboard():
     questura_pending = Reservation.query.filter(
         Reservation.questura_status.in_([None, 'pending']),
         Reservation.status == 'confirmed',
-        Reservation.check_in <= today
+        Reservation.check_in <= today,
     ).count()
 
     questura_rejected = Reservation.query.filter_by(questura_status='rejected').count()
@@ -32,13 +32,14 @@ def compliance_dashboard():
     upcoming = Reservation.query.filter(
         Reservation.status == 'confirmed',
         Reservation.check_in >= today,
-        Reservation.check_in <= today + timedelta(days=7)
+        Reservation.check_in <= today + timedelta(days=7),
     ).all()
 
     needing_data = [r for r in upcoming if not r.questura_ready()]
 
     apt = Apartment.query.first()
     from app.services.tourist_tax import get_tax_service
+
     tax_service = get_tax_service(apt) if apt else None
     current_month_tax = 0
     if tax_service:
@@ -46,19 +47,24 @@ def compliance_dashboard():
         current_month_tax = report['total_tax']
 
     config_keys = [
-        'questura_wsdl_url', 'questura_username', 'questura_password',
-        'questura_cert_path', 'questura_cert_password', 'questura_protocol_number'
+        'questura_wsdl_url',
+        'questura_username',
+        'questura_password',
+        'questura_cert_path',
+        'questura_cert_password',
+        'questura_protocol_number',
     ]
     config_status = {k: bool(ComplianceConfig.get(k)) for k in config_keys}
 
-    return render_template('admin_compliance.html',
+    return render_template(
+        'admin_compliance.html',
         questura_pending=questura_pending,
         questura_rejected=questura_rejected,
         questura_accepted=questura_accepted,
         needing_data=needing_data,
         current_month_tax=current_month_tax,
         config_status=config_status,
-        today=today
+        today=today,
     )
 
 
@@ -67,7 +73,7 @@ def compliance_dashboard():
 
 @bp.route('/admin/compliance/questura')
 @login_required
-def questura_list():
+def questura_list() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -84,7 +90,7 @@ def questura_list():
 
 @bp.route('/admin/compliance/questura/submit', methods=['POST'])
 @login_required
-def questura_submit():
+def questura_submit() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -92,6 +98,7 @@ def questura_submit():
     res = Reservation.query.get_or_404(res_id)
 
     from app.services.questura import get_questura_service
+
     service = get_questura_service()
     ok, msg = service.submit_reservation(res)
     flash(msg or ('Submitted.' if ok else 'Failed.'), 'success' if ok else 'danger')
@@ -100,25 +107,25 @@ def questura_submit():
 
 @bp.route('/admin/compliance/questura/run-daily', methods=['POST'])
 @login_required
-def questura_run_daily():
+def questura_run_daily() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
     from app.tasks.compliance import run_daily_questura
-    results = run_daily_questura()
-    flash(f'Daily Questura run complete.', 'success')
+
+    run_daily_questura()
+    flash('Daily Questura run complete.', 'success')
     return redirect(url_for('routes.questura_list'))
 
 
 @bp.route('/admin/compliance/questura/logs')
 @login_required
-def questura_logs():
+def questura_logs() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
     page = request.args.get('page', 1, type=int)
-    logs = QuesturaLog.query.order_by(QuesturaLog.created_at.desc()).paginate(
-        page=page, per_page=50, error_out=False)
+    logs = QuesturaLog.query.order_by(QuesturaLog.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
     return render_template('admin_questura_logs.html', logs=logs)
 
 
@@ -127,7 +134,7 @@ def questura_logs():
 
 @bp.route('/admin/compliance/tourist-tax')
 @login_required
-def tourist_tax():
+def tourist_tax() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -136,16 +143,16 @@ def tourist_tax():
     month = request.args.get('month', date.today().month, type=int)
 
     from app.services.tourist_tax import get_tax_service
+
     service = get_tax_service(apt)
     report = service.generate_detailed_report(year, month)
 
-    return render_template('admin_tourist_tax.html',
-                           apt=apt, report=report, year=year, month=month)
+    return render_template('admin_tourist_tax.html', apt=apt, report=report, year=year, month=month)
 
 
 @bp.route('/admin/compliance/tourist-tax/save-config', methods=['POST'])
 @login_required
-def tourist_tax_save_config():
+def tourist_tax_save_config() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -162,7 +169,7 @@ def tourist_tax_save_config():
 
 @bp.route('/admin/compliance/tourist-tax/export')
 @login_required
-def tourist_tax_export():
+def tourist_tax_export() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -170,18 +177,23 @@ def tourist_tax_export():
     month = request.args.get('month', type=int) or date.today().month
 
     from app.services.tourist_tax import get_tax_service
+
     service = get_tax_service(get_apartment())
     csv_data = service.export_monthly_csv(year, month)
 
-    return csv_data, 200, {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': f'attachment; filename="tourist_tax_{year:04d}-{month:02d}.csv"'
-    }
+    return (
+        csv_data,
+        200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': f'attachment; filename="tourist_tax_{year:04d}-{month:02d}.csv"',
+        },
+    )
 
 
 @bp.route('/admin/compliance/tourist-tax/generate-report', methods=['POST'])
 @login_required
-def tourist_tax_generate():
+def tourist_tax_generate() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -189,6 +201,7 @@ def tourist_tax_generate():
     month = request.form.get('month', type=int) or date.today().month
 
     from app.services.tourist_tax import get_tax_service
+
     service = get_tax_service(get_apartment())
     service.export_monthly_csv(year, month)
 
@@ -198,7 +211,7 @@ def tourist_tax_generate():
 
 @bp.route('/admin/compliance/tourist-tax/update/<int:reservation_id>', methods=['POST'])
 @login_required
-def tourist_tax_update_reservation(reservation_id):
+def tourist_tax_update_reservation(reservation_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -227,7 +240,7 @@ def tourist_tax_update_reservation(reservation_id):
 
 @bp.route('/admin/compliance/tourist-tax/toggle-exclude/<int:reservation_id>', methods=['POST'])
 @login_required
-def tourist_tax_toggle_exclude(reservation_id):
+def tourist_tax_toggle_exclude(reservation_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -245,7 +258,7 @@ def tourist_tax_toggle_exclude(reservation_id):
 
 @bp.route('/admin/compliance/config')
 @login_required
-def compliance_config():
+def compliance_config() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -265,7 +278,7 @@ def compliance_config():
             'key': c.key,
             'value': '***' if c.value_encrypted else '',
             'description': c.description,
-            'updated_at': c.updated_at
+            'updated_at': c.updated_at,
         }
         for c in configs
     ]
@@ -275,7 +288,7 @@ def compliance_config():
 
 @bp.route('/admin/compliance/config/set', methods=['POST'])
 @login_required
-def config_set():
+def config_set() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -297,7 +310,7 @@ def config_set():
 
 @bp.route('/admin/compliance/send-checkin-link', methods=['POST'])
 @login_required
-def send_checkin_link():
+def send_checkin_link() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -312,18 +325,21 @@ def send_checkin_link():
 
     brevo_api_key = current_app.config.get('MAIL_PASSWORD')
     payload = {
-        "sender": {"name": "Lotto235 Garbatella", "email": "lotto235roma@gmail.com"},
-        "to": [{"email": res.guest_email}],
-        "subject": "Check-in Link — Lotto 235 Garbatella",
-        "htmlContent": render_template('email_checkin_link.html', reservation=res, checkin_url=checkin_url)
+        'sender': {'name': 'Lotto235 Garbatella', 'email': 'lotto235roma@gmail.com'},
+        'to': [{'email': res.guest_email}],
+        'subject': 'Check-in Link \u2014 Lotto 235 Garbatella',
+        'htmlContent': render_template('email_checkin_link.html', reservation=res, checkin_url=checkin_url),
     }
 
-    import requests, json
+    import json
+
+    import requests
+
     try:
         r = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-            headers={"accept": "application/json", "content-type": "application/json", "api-key": brevo_api_key},
-            data=json.dumps(payload)
+            'https://api.brevo.com/v3/smtp/email',
+            headers={'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key},
+            data=json.dumps(payload),
         )
         if r.status_code in [200, 201, 202]:
             flash('Check-in link sent.', 'success')
@@ -337,7 +353,7 @@ def send_checkin_link():
 
 @bp.route('/admin/compliance/regenerate-checkin-token', methods=['POST'])
 @login_required
-def regenerate_checkin_token():
+def regenerate_checkin_token() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 

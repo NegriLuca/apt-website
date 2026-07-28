@@ -1,20 +1,21 @@
 """
 Tourist tax (Tassa di Soggiorno) calculation and export for Roma Capitale.
 """
+
 import csv
 import io
-from datetime import date, datetime, timedelta
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from datetime import date, timedelta
+from typing import Any
 
-from flask import current_app
 from app import db
-from app.models import Reservation, Apartment
+from app.models import Apartment, Reservation
 
 
 @dataclass
 class TaxRow:
     """Single row for tourist tax CSV export"""
+
     reservation_id: int
     guest_name: str
     check_in: date
@@ -31,11 +32,11 @@ class TaxRow:
 
 class TouristTaxService:
     """Calculate and export tourist tax for Roma Capitale"""
-    
+
     # Roma 2024 rates by category (euro per night per person)
     DEFAULT_RATES = {
-        'CAV': 6.00,      # Case per vacanze / vacation rentals
-        'BB': 6.00,       # Bed & Breakfast
+        'CAV': 6.00,  # Case per vacanze / vacation rentals
+        'BB': 6.00,  # Bed & Breakfast
         'HOTEL_1': 6.00,
         'HOTEL_2': 6.00,
         'HOTEL_3': 6.00,
@@ -44,16 +45,15 @@ class TouristTaxService:
         'OSTELLO': 6.00,
         'CAMPEGGIO': 6.00,
     }
-    
+
     # Exemptions
     EXEMPT_AGE = 10  # Children under 10 exempt
     MAX_TAXABLE_NIGHTS = 10  # Max 10 nights taxable per stay
-    
+
     def __init__(self, apartment: Apartment = None):
         self.apartment = apartment
         if apartment:
-            rate_val = apartment.tourist_tax_rate or self.DEFAULT_RATES.get(
-                apartment.tourist_tax_category, 6.00)
+            rate_val = apartment.tourist_tax_rate or self.DEFAULT_RATES.get(apartment.tourist_tax_category, 6.00)
             self.rate = float(rate_val)
             self.category = apartment.tourist_tax_category or 'CAV'
             self.cin = apartment.cin_code
@@ -61,10 +61,10 @@ class TouristTaxService:
             self.rate = 6.00
             self.category = 'CAV'
             self.cin = None
-    
-    def calculate_tax(self, reservation: Reservation, guest_ages: List[int] = None) -> float:
+
+    def calculate_tax(self, reservation: Reservation, guest_ages: list[int] = None) -> float:
         """Calculate tourist tax for a reservation
-        
+
         Args:
             reservation: The reservation
             guest_ages: List of guest ages (for exemption calculation)
@@ -72,26 +72,26 @@ class TouristTaxService:
         """
         if reservation.status != 'confirmed':
             return 0.0
-        
+
         nights = min(reservation.nights, self.MAX_TAXABLE_NIGHTS)
         total_guests = reservation.num_guests or 1
-        
+
         # Calculate taxable guests (exclude children under 10)
         if guest_ages:
             taxable_guests = sum(1 for age in guest_ages if age >= self.EXEMPT_AGE)
         else:
             taxable_guests = total_guests  # Conservative: assume all taxable
-        
+
         if taxable_guests <= 0:
             return 0.0
-        
+
         total = nights * taxable_guests * self.rate
         return round(total, 2)
-    
+
     def calculate_for_reservation(self, reservation: Reservation) -> TaxRow:
         """Generate tax row for CSV export"""
         total_tax = self.calculate_tax(reservation)
-        
+
         return TaxRow(
             reservation_id=reservation.id,
             guest_name=reservation.guest_name,
@@ -104,9 +104,9 @@ class TouristTaxService:
             total_tax=total_tax,
             apartment_name=self.apartment.name if self.apartment else 'Unknown',
             cin_code=self.cin or '',
-            status=reservation.status
+            status=reservation.status,
         )
-    
+
     def export_monthly_csv(self, year: int, month: int) -> str:
         """Generate CSV for Roma Capitale monthly declaration"""
         # Date range for the month
@@ -115,52 +115,48 @@ class TouristTaxService:
             end_date = date(year + 1, 1, 1) - timedelta(days=1)
         else:
             end_date = date(year, month + 1, 1) - timedelta(days=1)
-        
+
         # Query confirmed reservations with check-in in this month (exclude flagged ones)
-        reservations = Reservation.query.filter(
-            Reservation.status == 'confirmed',
-            Reservation.tourist_tax_excluded != True,
-            Reservation.check_in >= start_date,
-            Reservation.check_in <= end_date
-        ).order_by(Reservation.check_in).all()
-        
+        reservations = (
+            Reservation.query.filter(
+                Reservation.status == 'confirmed',
+                Reservation.tourist_tax_excluded != True,
+                Reservation.check_in >= start_date,
+                Reservation.check_in <= end_date,
+            )
+            .order_by(Reservation.check_in)
+            .all()
+        )
+
         if not reservations:
-            # Return empty CSV with headers
             output = io.StringIO()
             writer = csv.writer(output, delimiter=';')
             writer.writerow(self._get_csv_headers())
             return output.getvalue()
-        
-        # Calculate tax for each
+
         rows = []
         total_tax = 0.0
         for res in reservations:
             row = self.calculate_for_reservation(res)
             rows.append(row)
             total_tax += row.total_tax
-            
-            # Update reservation with calculated tax
+
             res.tourist_tax_amount = row.total_tax
             db.session.add(res)
         db.session.commit()
-        
-        # Generate CSV
+
         output = io.StringIO()
         writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
         writer.writerow(self._get_csv_headers())
-        
+
         for row in rows:
             writer.writerow(self._row_to_csv(row))
-        
-        # Add total row
-        writer.writerow([
-            '', '', '', '', '', '', '',
-            f'{total_tax:.2f}', '', '', ''
-        ])
-        
+
+        writer.writerow(['', '', '', '', '', '', '', f'{total_tax:.2f}', '', '', ''])
+
         return output.getvalue()
-    
-    def _get_csv_headers(self) -> List[str]:
+
+    def _get_csv_headers(self) -> list[str]:
         """CSV headers matching Roma Capitale format"""
         return [
             'ID Prenotazione',
@@ -174,10 +170,10 @@ class TouristTaxService:
             'Totale tassa (€)',
             'Appartamento',
             'CIN',
-            'Stato'
+            'Stato',
         ]
-    
-    def _row_to_csv(self, row: TaxRow) -> List[str]:
+
+    def _row_to_csv(self, row: TaxRow) -> list[str]:
         return [
             str(row.reservation_id),
             row.guest_name,
@@ -190,22 +186,22 @@ class TouristTaxService:
             f'{row.total_tax:.2f}',
             row.apartment_name,
             row.cin_code,
-            row.status
+            row.status,
         ]
-    
-    def generate_detailed_report(self, year: int, month: int) -> Dict[str, Any]:
+
+    def generate_detailed_report(self, year: int, month: int) -> dict[str, Any]:
         """Generate detailed tax report for admin review"""
         csv_data = self.export_monthly_csv(year, month)
-        lines = csv_data.strip().split('\n')
-        
+        csv_data.strip().split('\n')
+
         reservations = Reservation.query.filter(
             Reservation.status == 'confirmed',
             Reservation.tourist_tax_excluded != True,
             Reservation.check_in >= date(year, month, 1),
-            Reservation.check_in <= date(year, month + 1 if month < 12 else year + 1,
-                                         1 if month < 12 else 1) - timedelta(days=1)
+            Reservation.check_in
+            <= date(year, month + 1 if month < 12 else year + 1, 1 if month < 12 else 1) - timedelta(days=1),
         ).all()
-        
+
         return {
             'period': f'{month:02d}/{year}',
             'category': self.category,
@@ -225,10 +221,10 @@ class TouristTaxService:
                     'guests': r.num_guests,
                     'tax': r.tourist_tax_amount or 0,
                     'tax_paid': r.tourist_tax_paid,
-                    'excluded': r.tourist_tax_excluded or False
+                    'excluded': r.tourist_tax_excluded or False,
                 }
                 for r in reservations
-            ]
+            ],
         }
 
 
@@ -238,14 +234,14 @@ def get_tax_service(apartment: Apartment = None) -> TouristTaxService:
 
 
 # Scheduled task for monthly report
-def generate_monthly_tax_report(year: int = None, month: int = None) -> Dict[str, Any]:
+def generate_monthly_tax_report(year: int = None, month: int = None) -> dict[str, Any]:
     """Generate monthly tax report for previous month"""
     today = date.today()
     if year is None:
         year = today.year if today.month > 1 else today.year - 1
     if month is None:
         month = today.month - 1 if today.month > 1 else 12
-    
+
     apt = Apartment.query.first()
     service = get_tax_service(apt)
     return service.generate_detailed_report(year, month)

@@ -1,23 +1,23 @@
-from flask import render_template, redirect, url_for, flash, request, current_app, abort, jsonify
-from flask_babel import gettext as _
-from flask_login import login_user, logout_user, login_required, current_user
-from app.routes import bp
-from app.routes.helpers import get_apartment, calculate_dynamic_total, get_payment_summary
-from app import db, limiter
-from app.models import Apartment, Reservation, User, ICalFeed, Coupon, Testimonial, AuditLog, Notification
-from app.forms import LoginForm, ICalFeedForm
-from datetime import datetime, date, timedelta
-from sqlalchemy.exc import IntegrityError
-from functools import wraps
-import stripe
-import secrets
 import json
+import secrets
+from datetime import date, datetime, timedelta
 
+from flask import Response, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask_babel import gettext as _
+from flask_login import current_user, login_required, login_user, logout_user
+
+from app import db, limiter
+from app.forms import ICalFeedForm, LoginForm
+from app.models import Apartment, AuditLog, Coupon, ICalFeed, Notification, Reservation, Testimonial, User
+from app.routes import bp
+from app.routes.helpers import get_apartment
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
 
-def admin_audit_log(action, entity_type=None, entity_id=None, details=None):
+def admin_audit_log(
+    action: str, entity_type: str | None = None, entity_id: int | None = None, details: str | None = None
+) -> None:
     log = AuditLog(
         action=action,
         entity_type=entity_type,
@@ -30,15 +30,15 @@ def admin_audit_log(action, entity_type=None, entity_id=None, details=None):
     db.session.commit()
 
 
-def push_notification(title, message, category='info', link=None):
+def push_notification(title: str, message: str, category: str = 'info', link: str | None = None) -> None:
     notif = Notification(title=title, message=message, category=category, link=link)
     db.session.add(notif)
     db.session.commit()
 
 
 @bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("10 per minute")
-def login():
+@limiter.limit('10 per minute')
+def login() -> Response | str:
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -52,7 +52,7 @@ def login():
 
 @bp.route('/logout')
 @login_required
-def logout():
+def logout() -> Response | str:
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('routes.home'))
@@ -63,7 +63,7 @@ def logout():
 
 @bp.route('/admin')
 @login_required
-def admin_dashboard():
+def admin_dashboard() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -96,7 +96,7 @@ def admin_dashboard():
     pending_questura = Reservation.query.filter(
         Reservation.questura_status.in_([None, 'pending']),
         Reservation.status == 'confirmed',
-        Reservation.check_in <= today
+        Reservation.check_in <= today,
     ).count()
 
     occupancy_days = sum(r.nights for r in monthly_confirmed)
@@ -120,7 +120,8 @@ def admin_dashboard():
     }
 
     now = datetime.utcnow()
-    return render_template('admin_dashboard.html',
+    return render_template(
+        'admin_dashboard.html',
         reservations=reservations,
         data=dashboard_data,
         today=today,
@@ -132,7 +133,7 @@ def admin_dashboard():
 
 @bp.route('/admin/calendar')
 @login_required
-def admin_calendar():
+def admin_calendar() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     return render_template('admin_calendar.html')
@@ -140,7 +141,7 @@ def admin_calendar():
 
 @bp.route('/admin/pricing', methods=['GET', 'POST'])
 @login_required
-def admin_pricing():
+def admin_pricing() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -156,7 +157,7 @@ def admin_pricing():
             try:
                 apartment.price_per_night = float(new_price)
                 db.session.commit()
-                admin_audit_log('update_price', 'Apartment', apartment.id, f'Price set to €{new_price}')
+                admin_audit_log('update_price', 'Apartment', apartment.id, f'Price set to \u20ac{new_price}')
                 flash('Nightly base rate updated successfully!', 'success')
             except ValueError:
                 flash('Invalid price format entered.', 'danger')
@@ -168,7 +169,7 @@ def admin_pricing():
 
 @bp.route('/admin/smart-access', methods=['GET', 'POST'])
 @login_required
-def admin_smart_access():
+def admin_smart_access() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -204,7 +205,7 @@ def admin_smart_access():
 
 @bp.route('/admin/trust-badges', methods=['GET', 'POST'])
 @login_required
-def admin_trust_badges():
+def admin_trust_badges() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -222,7 +223,9 @@ def admin_trust_badges():
         apartment.vrbo_listing_id = request.form.get('vrbo_listing_id', '').strip() or None
 
         for i in [1, 2, 3]:
-            setattr(apartment, f'custom_badge_{i}_image', request.form.get(f'custom_badge_{i}_image', '').strip() or None)
+            setattr(
+                apartment, f'custom_badge_{i}_image', request.form.get(f'custom_badge_{i}_image', '').strip() or None
+            )
             setattr(apartment, f'custom_badge_{i}_link', request.form.get(f'custom_badge_{i}_link', '').strip() or None)
             setattr(apartment, f'custom_badge_{i}_alt', request.form.get(f'custom_badge_{i}_alt', '').strip() or None)
 
@@ -231,7 +234,6 @@ def admin_trust_badges():
         apartment.show_reviews_on_booking = bool(request.form.get('show_reviews_on_booking'))
         apartment.show_payment_badges_in_footer = bool(request.form.get('show_payment_badges_in_footer'))
         apartment.show_payment_badges_on_checkout = bool(request.form.get('show_payment_badges_on_checkout'))
-
 
         apartment.booking_widget_js = request.form.get('booking_widget_js', '').strip() or None
         apartment.airbnb_widget_js = request.form.get('airbnb_widget_js', '').strip() or None
@@ -251,7 +253,7 @@ def admin_trust_badges():
 
 @bp.route('/admin/coupons/create', methods=['POST'])
 @login_required
-def admin_create_coupon():
+def admin_create_coupon() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -282,7 +284,7 @@ def admin_create_coupon():
 
 @bp.route('/admin/coupons/<int:coupon_id>/delete', methods=['POST'])
 @login_required
-def admin_delete_coupon(coupon_id):
+def admin_delete_coupon(coupon_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -298,7 +300,7 @@ def admin_delete_coupon(coupon_id):
 
 @bp.route('/admin/reservations/<int:res_id>/confirm', methods=['POST'])
 @login_required
-def admin_confirm_reservation(res_id):
+def admin_confirm_reservation(res_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -312,21 +314,21 @@ def admin_confirm_reservation(res_id):
 
 @bp.route('/admin/reservations/<int:res_id>/cancel', methods=['POST'])
 @login_required
-def admin_cancel_reservation(res_id):
+def admin_cancel_reservation(res_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
     res = Reservation.query.get_or_404(res_id)
     res.status = 'cancelled'
     db.session.commit()
-    admin_audit_log('cancel_reservation', 'Reservation', res_id, f'Cancelled by admin')
+    admin_audit_log('cancel_reservation', 'Reservation', res_id, 'Cancelled by admin')
     flash(f'Reservation #{res_id} cancelled.', 'info')
     return redirect(url_for('routes.admin_dashboard'))
 
 
 @bp.route('/admin/cancel-booking/<token>', methods=['GET'])
 @login_required
-def admin_cancel_via_token(token):
+def admin_cancel_via_token(token: str) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -342,17 +344,14 @@ def admin_cancel_via_token(token):
 
 @bp.route('/admin/feeds/add', methods=['GET', 'POST'])
 @login_required
-def add_feed():
+def add_feed() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
     form = ICalFeedForm()
     if form.validate_on_submit():
         feed = ICalFeed(
-            name=form.name.data,
-            ical_url=form.ical_url.data,
-            platform=form.platform.data,
-            active=form.active.data
+            name=form.name.data, ical_url=form.ical_url.data, platform=form.platform.data, active=form.active.data
         )
         db.session.add(feed)
         db.session.commit()
@@ -364,7 +363,7 @@ def add_feed():
 
 @bp.route('/admin/feeds/<int:feed_id>/edit', methods=['GET', 'POST'])
 @login_required
-def edit_feed(feed_id):
+def edit_feed(feed_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -381,7 +380,7 @@ def edit_feed(feed_id):
 
 @bp.route('/admin/feeds/<int:feed_id>/delete', methods=['POST'])
 @login_required
-def delete_feed(feed_id):
+def delete_feed(feed_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -394,11 +393,12 @@ def delete_feed(feed_id):
 
 @bp.route('/admin/feeds/sync', methods=['POST'])
 @login_required
-def sync_feeds_now():
+def sync_feeds_now() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
     from app.services.ical_sync import sync_all_feeds
+
     added, cancelled, errors = sync_all_feeds()
     flash(f'Sync complete: {added} added, {cancelled} cancelled, {errors} errors.', 'info')
     return redirect(url_for('routes.admin_dashboard'))
@@ -409,7 +409,7 @@ def sync_feeds_now():
 
 @bp.route('/admin/testimonials')
 @login_required
-def admin_testimonials():
+def admin_testimonials() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -425,7 +425,7 @@ def admin_testimonials():
 
 @bp.route('/admin/testimonials/<int:testimonial_id>/publish', methods=['POST'])
 @login_required
-def admin_toggle_testimonial_publish(testimonial_id):
+def admin_toggle_testimonial_publish(testimonial_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
     t = Testimonial.query.get_or_404(testimonial_id)
@@ -437,7 +437,7 @@ def admin_toggle_testimonial_publish(testimonial_id):
 
 @bp.route('/admin/testimonials/<int:testimonial_id>/feature', methods=['POST'])
 @login_required
-def admin_toggle_testimonial_feature(testimonial_id):
+def admin_toggle_testimonial_feature(testimonial_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
     t = Testimonial.query.get_or_404(testimonial_id)
@@ -449,7 +449,7 @@ def admin_toggle_testimonial_feature(testimonial_id):
 
 @bp.route('/admin/testimonials/<int:testimonial_id>/delete', methods=['POST'])
 @login_required
-def admin_delete_testimonial(testimonial_id):
+def admin_delete_testimonial(testimonial_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
     t = Testimonial.query.get_or_404(testimonial_id)
@@ -464,7 +464,7 @@ def admin_delete_testimonial(testimonial_id):
 
 @bp.route('/admin/access/generate-link', methods=['POST'])
 @login_required
-def admin_generate_access_link():
+def admin_generate_access_link() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     res_id = request.form.get('reservation_id', type=int)
@@ -481,7 +481,7 @@ def admin_generate_access_link():
 
 @bp.route('/admin/access/send-link', methods=['POST'])
 @login_required
-def admin_send_access_link():
+def admin_send_access_link() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     res_id = request.form.get('reservation_id', type=int)
@@ -493,25 +493,28 @@ def admin_send_access_link():
         db.session.commit()
 
     access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
-    checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True) if res.checkin_token else '#'
+    checkin_url = (
+        url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True) if res.checkin_token else '#'
+    )
 
-    subject = f"Accesso all'appartamento — {res.guest_name}"
+    subject = f"Accesso all'appartamento \u2014 {res.guest_name}"
     html = render_template('email_access_link.html', reservation=res, access_url=access_url, checkin_url=checkin_url)
 
     brevo_api_key = current_app.config.get('MAIL_PASSWORD')
     payload = {
-        "sender": {"name": "Lotto235 Garbatella", "email": "lotto235roma@gmail.com"},
-        "to": [{"email": res.guest_email}],
-        "subject": subject,
-        "htmlContent": html
+        'sender': {'name': 'Lotto235 Garbatella', 'email': 'lotto235roma@gmail.com'},
+        'to': [{'email': res.guest_email}],
+        'subject': subject,
+        'htmlContent': html,
     }
 
-    import requests, json
+    import requests
+
     try:
         r = requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-            headers={"accept": "application/json", "content-type": "application/json", "api-key": brevo_api_key},
-            data=json.dumps(payload)
+            'https://api.brevo.com/v3/smtp/email',
+            headers={'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key},
+            data=json.dumps(payload),
         )
         if r.status_code in [200, 201, 202]:
             flash('Access link sent to guest email.', 'success')
@@ -525,7 +528,7 @@ def admin_send_access_link():
 
 @bp.route('/admin/access/regenerate-token', methods=['POST'])
 @login_required
-def admin_regenerate_access_token():
+def admin_regenerate_access_token() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     res_id = request.form.get('reservation_id', type=int)
@@ -542,10 +545,11 @@ def admin_regenerate_access_token():
 
 @bp.route('/admin/smart-access/test-gate', methods=['POST'])
 @login_required
-def admin_test_gate():
+def admin_test_gate() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     from app.services.smart_lock import trigger_gate_open
+
     apartment = get_apartment()
     if not apartment:
         flash('No apartment configured.', 'danger')
@@ -557,10 +561,11 @@ def admin_test_gate():
 
 @bp.route('/admin/smart-access/test-door', methods=['POST'])
 @login_required
-def admin_test_door():
+def admin_test_door() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     from app.services.smart_lock import trigger_door_unlock
+
     apartment = get_apartment()
     if not apartment:
         flash('No apartment configured.', 'danger')
@@ -575,7 +580,7 @@ def admin_test_door():
 
 @bp.route('/admin/bulk-pricing', methods=['POST'])
 @login_required
-def admin_bulk_pricing():
+def admin_bulk_pricing() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     apartment = get_apartment()
@@ -583,8 +588,8 @@ def admin_bulk_pricing():
     if price and price > 0:
         apartment.price_per_night = price
         db.session.commit()
-        admin_audit_log('bulk_update_price', 'Apartment', apartment.id, f'Bulk price set to €{price}')
-        flash(f'Price updated to €{price:.2f} for all dates.', 'success')
+        admin_audit_log('bulk_update_price', 'Apartment', apartment.id, f'Bulk price set to \u20ac{price}')
+        flash(f'Price updated to \u20ac{price:.2f} for all dates.', 'success')
     else:
         flash('Invalid price.', 'danger')
     return redirect(url_for('routes.admin_pricing'))
@@ -595,7 +600,7 @@ def admin_bulk_pricing():
 
 @bp.route('/admin/send-review-request/<int:reservation_id>', methods=['POST'])
 @login_required
-def admin_send_review_request(reservation_id):
+def admin_send_review_request(reservation_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
     res = Reservation.query.get_or_404(reservation_id)
@@ -603,15 +608,16 @@ def admin_send_review_request(reservation_id):
         flash('No email on file for this reservation.', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
     try:
-        sender_email = "lotto235roma@gmail.com"
+        sender_email = 'lotto235roma@gmail.com'
         review_url = url_for('routes.submit_testimonial', _external=True)
         payload = {
-            "sender": {"name": "Lotto235 Garbatella", "email": sender_email},
-            "to": [{"email": res.guest_email}],
-            "subject": "How was your stay? Leave a review!",
-            "htmlContent": render_template('email_review_request.html', reservation=res, review_url=review_url)
+            'sender': {'name': 'Lotto235 Garbatella', 'email': sender_email},
+            'to': [{'email': res.guest_email}],
+            'subject': 'How was your stay? Leave a review!',
+            'htmlContent': render_template('email_review_request.html', reservation=res, review_url=review_url),
         }
         from app.routes.helpers import _send_brevo_email
+
         r = _send_brevo_email(payload)
         if r.status_code in [200, 201, 202]:
             admin_audit_log('send_review_request', 'Reservation', res.id, f'Review request sent to {res.guest_email}')
@@ -626,7 +632,7 @@ def admin_send_review_request(reservation_id):
 
 @bp.route('/admin/send-review-requests-bulk', methods=['POST'])
 @login_required
-def admin_send_review_requests_bulk():
+def admin_send_review_requests_bulk() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     today = date.today()
@@ -641,12 +647,13 @@ def admin_send_review_requests_bulk():
         try:
             review_url = url_for('routes.submit_testimonial', _external=True)
             payload = {
-                "sender": {"name": "Lotto235 Garbatella", "email": "lotto235roma@gmail.com"},
-                "to": [{"email": res.guest_email}],
-                "subject": "How was your stay? Leave a review!",
-                "htmlContent": render_template('email_review_request.html', reservation=res, review_url=review_url)
+                'sender': {'name': 'Lotto235 Garbatella', 'email': 'lotto235roma@gmail.com'},
+                'to': [{'email': res.guest_email}],
+                'subject': 'How was your stay? Leave a review!',
+                'htmlContent': render_template('email_review_request.html', reservation=res, review_url=review_url),
             }
             from app.routes.helpers import _send_brevo_email
+
             r = _send_brevo_email(payload)
             if r.status_code in [200, 201, 202]:
                 sent += 1
@@ -661,7 +668,7 @@ def admin_send_review_requests_bulk():
 
 @bp.route('/admin/communication/guest-message/<int:reservation_id>')
 @login_required
-def admin_guest_message(reservation_id):
+def admin_guest_message(reservation_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
@@ -679,25 +686,27 @@ def admin_guest_message(reservation_id):
     portal_url = url_for('routes.guest_portal', token=res.checkin_token, _external=True)
 
     apt_name = apt.name if apt else 'Lotto 235 Garbatella'
-    checkin_message = f"""Ciao {res.guest_name},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link è valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}\n\nOppure usa il portale unico per tutto:\n{portal_url}\n\nA presto!\n{apt_name}"""
+    checkin_message = f"""Ciao {res.guest_name},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}\n\nOppure usa il portale unico per tutto:\n{portal_url}\n\nA presto!\n{apt_name}"""
 
-    whatsapp_message = f"""Ciao {res.guest_name}! 👋\n\nGrazie per aver prenotato da {apt_name}!\n\n🔑 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n🚪 *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}\n\n📱 *Portale unico* (check-in + accessi):\n{portal_url}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
+    whatsapp_message = f"""Ciao {res.guest_name}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}\n\n\U0001f4f1 *Portale unico* (check-in + accessi):\n{portal_url}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
 
-    airbnb_message = f"""Hi {res.guest_name},\n\nThanks for booking at {apt_name}!\n\n🔑 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n🚪 *Gate & Door Access* (valid during your stay):\n{access_url}\n\n📱 *All-in-one Portal*:\n{portal_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
+    airbnb_message = f"""Hi {res.guest_name},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}\n\n\U0001f4f1 *All-in-one Portal*:\n{portal_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
 
-    return jsonify({
-        'success': True,
-        'reservation_id': res.id,
-        'guest_name': res.guest_name,
-        'checkin_url': checkin_url,
-        'access_url': access_url,
-        'portal_url': portal_url,
-        'templates': {
-            'standard': checkin_message,
-            'whatsapp': whatsapp_message,
-            'airbnb': airbnb_message,
+    return jsonify(
+        {
+            'success': True,
+            'reservation_id': res.id,
+            'guest_name': res.guest_name,
+            'checkin_url': checkin_url,
+            'access_url': access_url,
+            'portal_url': portal_url,
+            'templates': {
+                'standard': checkin_message,
+                'whatsapp': whatsapp_message,
+                'airbnb': airbnb_message,
+            },
         }
-    })
+    )
 
 
 # ── Notifications ─────────────────────────────────────────────────────────────
@@ -705,17 +714,19 @@ def admin_guest_message(reservation_id):
 
 @bp.route('/admin/notifications')
 @login_required
-def admin_notifications():
+def admin_notifications() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     page = request.args.get('page', 1, type=int)
-    notifications = Notification.query.order_by(Notification.created_at.desc()).paginate(page=page, per_page=30, error_out=False)
+    notifications = Notification.query.order_by(Notification.created_at.desc()).paginate(
+        page=page, per_page=30, error_out=False
+    )
     return render_template('admin_notifications.html', notifications=notifications)
 
 
 @bp.route('/admin/notifications/mark-read/<int:notif_id>', methods=['POST'])
 @login_required
-def admin_mark_notification_read(notif_id):
+def admin_mark_notification_read(notif_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
     notif = Notification.query.get_or_404(notif_id)
@@ -726,7 +737,7 @@ def admin_mark_notification_read(notif_id):
 
 @bp.route('/admin/notifications/mark-all-read', methods=['POST'])
 @login_required
-def admin_mark_all_read():
+def admin_mark_all_read() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     Notification.query.filter_by(is_read=False).update({'is_read': True})
@@ -735,26 +746,24 @@ def admin_mark_all_read():
     return redirect(url_for('routes.admin_notifications'))
 
 
-
-
-
 # ── iCal Feeds ────────────────────────────────────────────────────────────────
 
 
 @bp.route('/admin/ical-feeds')
 @login_required
-def admin_ical_feeds():
+def admin_ical_feeds() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     feeds = ICalFeed.query.all()
     from app.services.ical_sync import get_blocked_dates
+
     blocked_dates = get_blocked_dates() or []
     return render_template('admin_ical_feeds.html', feeds=feeds, blocked_dates=blocked_dates)
 
 
 @bp.route('/admin/ical-feeds/create', methods=['POST'])
 @login_required
-def admin_ical_create():
+def admin_ical_create() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     url = request.form.get('url', '').strip()
@@ -773,7 +782,7 @@ def admin_ical_create():
 
 @bp.route('/admin/audit-log')
 @login_required
-def admin_audit_log_view():
+def admin_audit_log_view() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     page = request.args.get('page', 1, type=int)
@@ -803,6 +812,11 @@ def admin_audit_log_view():
             pass
 
     logs = query.order_by(AuditLog.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
-    return render_template('admin_audit_log.html',
-        logs=logs, search=search, admin_filter=admin_filter,
-        entity_filter=entity_filter, date_from=date_from)
+    return render_template(
+        'admin_audit_log.html',
+        logs=logs,
+        search=search,
+        admin_filter=admin_filter,
+        entity_filter=entity_filter,
+        date_from=date_from,
+    )

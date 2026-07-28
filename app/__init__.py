@@ -1,18 +1,19 @@
-import os
 import logging
+import os
 from logging.handlers import RotatingFileHandler
-from flask import Flask, request, session, current_app, render_template, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
-from flask_wtf.csrf import CSRFProtect
-from flask_mail import Mail
-from flask_bcrypt import Bcrypt
+
+from flask import Flask, current_app, jsonify, render_template, request, session
 from flask_babel import Babel, format_date, format_datetime
-from flask_moment import Moment
+from flask_bcrypt import Bcrypt
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_wtf.csrf import CSRFError
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_migrate import Migrate
+from flask_moment import Moment
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFError, CSRFProtect
+
 from config import Config
 
 db = SQLAlchemy()
@@ -24,18 +25,19 @@ bcrypt = Bcrypt()
 babel = Babel()
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://",
+    default_limits=['200 per day', '50 per hour'],
+    storage_uri='memory://',
 )
 
 
 login_manager.login_view = 'routes.login'
 login_manager.login_message_category = 'info'
 
+
 def get_locale():
     # Elenco delle lingue supportate dall'applicazione
     supported_languages = ['en', 'it', 'de', 'fr', 'es']
-    
+
     # 1. Controlla se l'utente ha richiesto esplicitamente un cambio lingua tramite URL (?lang=fr)
     lang_override = request.args.get('lang')
     if lang_override in supported_languages:
@@ -45,25 +47,24 @@ def get_locale():
     # 2. Controlla se la lingua è già stata memorizzata nella sessione dell'utente
     if 'language' in session:
         return session['language']
-    
+
     # 3. Altrimenti, si affida alle impostazioni di default del browser dell'ospite
     return request.accept_languages.best_match(supported_languages) or 'en'
 
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
 
     if not Config.SECRET_KEY or Config.SECRET_KEY == 'dev-only-change-in-production':
         import warnings
+
         warnings.warn('SECRET_KEY is set to an insecure default. Set a strong SECRET_KEY in .env for production.')
 
     if not app.debug:
         handler = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=5)
         handler.setLevel(logging.INFO)
-        handler.setFormatter(logging.Formatter(
-            '%(asctime)s [%(levelname)s] %(module)s: %(message)s'
-        ))
+        handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
         app.logger.addHandler(handler)
         app.logger.setLevel(logging.INFO)
         app.logger.info('Apt_Website starting')
@@ -79,31 +80,17 @@ def create_app():
     csrf.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)
-    moment = Moment(app)
+    Moment(app)
     limiter.init_app(app)
 
-    # ── DB SCHEMA PATCHES: Add missing columns for existing databases ──
-    with app.app_context():
-        from sqlalchemy import text
-        patches = [
-            ("coupon_code", "VARCHAR(20)"),
-            ("tourist_tax_excluded", "BOOLEAN DEFAULT false"),
-        ]
-        for col_name, col_type in patches:
-            try:
-                db.session.execute(text(f"ALTER TABLE reservation ADD COLUMN {col_name} {col_type}"))
-                db.session.commit()
-                app.logger.info(f"Schema patch: added column {col_name}")
-            except Exception:
-                db.session.rollback()
-                app.logger.info(f"Schema patch: column {col_name} already exists, skipping")
-
-    # Initialize Babel with the context selector function configuration
+    # ── Babel ──────────────────────────────────────────────────────────────────
+    babel.init_app(app, locale_selector=get_locale)
     babel.init_app(app, locale_selector=get_locale)
     app.jinja_env.filters['format_date'] = format_date
     app.jinja_env.filters['format_datetime'] = format_datetime
 
     from app.routes import bp
+
     app.register_blueprint(bp)
 
     @app.errorhandler(CSRFError)
@@ -117,12 +104,14 @@ def create_app():
     @app.context_processor
     def inject_apartment():
         from app.models import Apartment
+
         apartment = Apartment.query.first()
         return dict(apartment=apartment)
 
     @app.context_processor
     def inject_notifications():
         from app.models import Notification
+
         unread = Notification.query.filter_by(is_read=False).count()
         return dict(unread_notifications=unread)
 
@@ -133,6 +122,7 @@ def create_app():
     @app.context_processor
     def inject_now():
         from datetime import datetime
+
         return dict(now=datetime.utcnow)
 
     # ── Start APScheduler for periodic iCal sync ──────────────────────────────
@@ -153,10 +143,7 @@ def _start_scheduler(app: Flask):
     try:
         from apscheduler.schedulers.background import BackgroundScheduler
     except ImportError:
-        app.logger.warning(
-            'APScheduler not installed — iCal auto-sync disabled. '
-            'Run: pip install apscheduler'
-        )
+        app.logger.warning('APScheduler not installed — iCal auto-sync disabled. Run: pip install apscheduler')
         return
 
     interval = app.config.get('ICAL_SYNC_INTERVAL_MINUTES', 30)
@@ -164,6 +151,7 @@ def _start_scheduler(app: Flask):
     def _sync_job():
         with app.app_context():
             from app.services.ical_sync import sync_all_feeds
+
             added, cancelled, errors = sync_all_feeds()
             if errors:
                 app.logger.warning('iCal sync errors: %s', errors)
