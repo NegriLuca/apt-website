@@ -3,12 +3,13 @@
 
 {% block content %}
 <div class="main-content">
+    {% include 'admin_header.html' %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h1 class="page-title mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Questura Submissions Management') }}</h1>
                 <div>
-                    <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary me-2">
+                    <a href="{{ url_for('routes.compliance_dashboard') }}" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                     </a>
                 </div>
@@ -102,7 +103,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('compliance.guest_checkin', reservation_id=r.id) }}" class="btn btn-outline-primary" title="{{ _('Guest Data') }}">
+                                            <a href="{{ url_for('routes.guest_self_checkin', token=r.checkin_token) }}" class="btn btn-outline-primary" title="{{ _('Guest Data') }}">
                                                 <i class="bi bi-person"></i>
                                             </a>
                                             {% if r.questura_ready() and status != 'accepted' %}
@@ -132,17 +133,17 @@
                     <nav aria-label="{{ _('Pagination') }}">
                         <ul class="pagination justify-content-center mb-0">
                             {% if reservations.has_prev %}
-                            <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_list', page=reservations.prev_num, status=status_filter) }}">&laquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_list', page=reservations.prev_num, status=status_filter) }}">&laquo;</a></li>
                             {% endif %}
                             {% for p in reservations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                                 {% if p %}
-                                    <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('compliance.questura_list', page=p, status=status_filter) }}">{{ p }}</a></li>
+                                    <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.questura_list', page=p, status=status_filter) }}">{{ p }}</a></li>
                                 {% else %}
                                     <li class="page-item disabled"><span class="page-link">…</span></li>
                                 {% endif %}
                             {% endfor %}
                             {% if reservations.has_next %}
-                            <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_list', page=reservations.next_num, status=status_filter) }}">&raquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_list', page=reservations.next_num, status=status_filter) }}">&raquo;</a></li>
                             {% endif %}
                         </ul>
                     </nav>

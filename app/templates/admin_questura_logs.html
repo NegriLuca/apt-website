@@ -3,11 +3,12 @@
 
 {% block content %}
 <div class="main-content">
+    {% include 'admin_header.html' %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h1 class="page-title mb-0"><i class="bi bi-journal-text me-2"></i>{{ _('Questura Submissions Log') }}</h1>
-                <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('routes.compliance_dashboard') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                 </a>
             </div>
@@ -119,17 +120,17 @@
                         <nav aria-label="{{ _('Pagination') }}">
                             <ul class="pagination justify-content-center mb-0">
                                 {% if logs.has_prev %}
-                                <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_logs', page=logs.prev_num) }}">&laquo;</a></li>
+                                <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_logs', page=logs.prev_num) }}">&laquo;</a></li>
                                 {% endif %}
                                 {% for p in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                                     {% if p %}
-                                        <li class="page-item {% if p == logs.page %}active{% endif %}"><a class="page-link" href="{{ url_for('compliance.questura_logs', page=p) }}">{{ p }}</a></li>
+                                        <li class="page-item {% if p == logs.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.questura_logs', page=p) }}">{{ p }}</a></li>
                                     {% else %}
                                         <li class="page-item disabled"><span class="page-link">…</span></li>
                                     {% endif %}
                                 {% endfor %}
                                 {% if logs.has_next %}
-                                <li class="page-item"><a class="page-link" href="{{ url_for('compliance.questura_logs', page=logs.next_num) }}">&raquo;</a></li>
+                                <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_logs', page=logs.next_num) }}">&raquo;</a></li>
                                 {% endif %}
                             </ul>
                         </nav>

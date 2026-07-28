@@ -7,7 +7,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h1 class="page-title mb-0"><i class="bi bi-gear me-2"></i>{{ _('Compliance Credentials Configuration') }}</h1>
-                <a href="{{ url_for('compliance.dashboard') }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('routes.compliance_dashboard') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                 </a>
             </div>
@@ -155,7 +155,7 @@
                 <div class="card-body">
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        {{ _('The encryption key COMPLIANCE_ENCRYPTION_KEY must be set as an environment variable.')ambiente. Non salvarla nel database.' }}
+                        {{ _('The encryption key COMPLIANCE_ENCRYPTION_KEY must be set as an environment variable. Do not save it in the database.') }}
                     </div>
                     <pre class="bg-light p-3 rounded"><code># Aggiungi a Railway / .env / systemd:
 export COMPLIANCE_ENCRYPTION_KEY="your-32-byte-base64-key-here"

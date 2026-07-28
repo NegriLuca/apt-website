@@ -103,7 +103,7 @@
                     <span class="badge bg-light text-dark">{{ _('Gate: Shelly Mini 1 Gen4 | Door: Nuki Smart Lock Ultra') }}</span>
                 </div>
                 <div class="card-body py-4">
-                    <form action="{{ url_for('routes.admin_smart_access') }}" method="POST" novalidate>
+                    <form action="{{ url_for('routes.admin_pricing') }}" method="POST" novalidate>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         
                         <!-- Shelly Gate Configuration -->
@@ -175,10 +175,10 @@
                         
                         <div class="d-flex gap-3">
                             <button type="submit" name="action" value="save" class="btn btn-primary fw-bold px-4 py-2">{{ _('Save Smart Access Config') }}</button>
-                            <button type="submit" name="action" value="test_gate" class="btn btn-outline-primary fw-bold px-4 py-2" {% if not apartment.shelly_enabled %}disabled{% endif %}>
+                            <button type="button" class="btn btn-outline-primary fw-bold px-4 py-2" {% if not apartment.shelly_enabled %}disabled{% endif %} onclick="testGate()">
                                 <i class="bi bi-gate me-1"></i>{{ _('Test Gate') }}
                             </button>
-                            <button type="submit" name="action" value="test_door" class="btn btn-outline-success fw-bold px-4 py-2" {% if not apartment.nuki_enabled %}disabled{% endif %}>
+                            <button type="button" class="btn btn-outline-success fw-bold px-4 py-2" {% if not apartment.nuki_enabled %}disabled{% endif %} onclick="testDoor()">
                                 <i class="bi bi-door-open me-1"></i>{{ _('Test Door') }}
                             </button>
                         </div>
@@ -269,4 +269,96 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function testGate() {
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
+    
+    fetch('{{ url_for("routes.admin_test_gate") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', 'Gate Test', data.message);
+        } else {
+            showToast('danger', 'Gate Test Failed', data.error);
+        }
+    })
+    .catch(err => {
+        showToast('danger', 'Error', err.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function testDoor() {
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
+    
+    fetch('{{ url_for("routes.admin_test_door") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', 'Door Test', data.message);
+        } else {
+            showToast('danger', 'Door Test Failed', data.error);
+        }
+    })
+    .catch(err => {
+        showToast('danger', 'Error', err.message);
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer') || createToastContainer();
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}</strong>: ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    container.appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+</script>
 {% endblock %}
