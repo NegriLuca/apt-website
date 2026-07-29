@@ -177,11 +177,6 @@ class Reservation(db.Model):
     ross1000_response = db.Column(db.Text, nullable=True)
     ross1000_error = db.Column(db.Text, nullable=True)
 
-    # Self-service check-in token (for guest-facing form)
-    checkin_token = db.Column(db.String(128), unique=True, index=True, nullable=True)
-    checkin_completed_at = db.Column(db.DateTime, nullable=True)
-    checkin_token_used = db.Column(db.Boolean, default=False)
-
     # Guest Access Token (for gate/door opening during stay)
     access_token = db.Column(db.String(128), unique=True, index=True, nullable=True)
     access_token_created = db.Column(db.DateTime, nullable=True)

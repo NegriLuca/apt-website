@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 {% if apartment %}
+<style>
+    .flatpickr-checkout-only {
+        text-decoration: line-through;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
 <div class="main-content">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
@@ -39,6 +46,7 @@
                         class="form-control form-control-lg"
                         placeholder="{{ _('Select check-in and check-out') }}"
                     >
+                    <div id="checkin_msg" class="text-danger small mt-1" style="display:none">{{ _('This date can only be used for check-out. Please choose a different check-in date.') }}</div>
                 </div>
 
                 {{ form.check_in(type="hidden", id="check_in") }}
@@ -184,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const checkOutStr = hiddenCheckOut.value;
                 const numGuests = parseInt(this.value) || 2;
 
-                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&num_guests=${numGuests}`)
+                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&guests=${numGuests}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.error) {
@@ -220,6 +228,13 @@ document.addEventListener("DOMContentLoaded", function() {
         disable: disabledDates,
         locale: currentLang === 'it' ? 'it' : 'default',
 
+        onDayCreate: function(dObj, dStr, fp, dayElem) {
+            if (blockedCheckin.indexOf(dStr) !== -1) {
+                dayElem.title = "Check-out only";
+                dayElem.className += " flatpickr-checkout-only";
+            }
+        },
+
         onChange: function(selectedDates, dateStr, instance) {
             if (selectedDates.length === 0) {
                 resetPrice();
@@ -229,6 +244,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 const checkInStr = instance.formatDate(selectedDates[0], 'Y-m-d');
                 if (blockedCheckin.indexOf(checkInStr) !== -1) {
                     instance.clear();
+                    var msg = document.getElementById("checkin_msg");
+                    if (msg) {
+                        msg.style.display = "block";
+                        setTimeout(function() { msg.style.display = "none"; }, 3000);
+                    }
                     if (nightsEl) nightsEl.textContent = '0';
                     if (priceCalculationRow) priceCalculationRow.innerHTML = '€<span id="total">0</span>';
                     return;
@@ -261,7 +281,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (hiddenCheckIn) hiddenCheckIn.value = checkInStr;
                 if (hiddenCheckOut) hiddenCheckOut.value = checkOutStr;
 
-                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&num_guests=${numGuests}`)
+                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&guests=${numGuests}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.error) {

@@ -384,15 +384,19 @@ def ross1000_test():
     if not current_user.is_admin:
         abort(403)
 
-    from app.services.ross1000 import get_ross1000_service
+    try:
+        from app.services.ross1000 import get_ross1000_service
 
-    service = get_ross1000_service()
-    result = service.test_connection()
+        service = get_ross1000_service()
+        result = service.test_connection()
 
-    if result.get('success'):
-        flash('ROSS1000 connection successful!', 'success')
-    else:
-        flash(f'ROSS1000 connection failed: {result.get("error", "Unknown error")}', 'danger')
+        if result.get('success'):
+            flash('ROSS1000 connection successful!', 'success')
+        else:
+            flash(f'ROSS1000 connection failed: {result.get("error", "Unknown error")}', 'danger')
+    except Exception as e:
+        current_app.logger.exception('ROSS1000 test failed')
+        flash(f'ROSS1000 test error: {e}', 'danger')
 
     return redirect(url_for('routes.compliance_dashboard'))
 

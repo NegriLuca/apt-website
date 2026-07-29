@@ -89,6 +89,10 @@ def _send_confirmation_emails(reservation):
         payment_summary = get_payment_summary(reservation)
         sender_email = 'lotto235roma@gmail.com'
 
+        if not reservation.checkin_token:
+            reservation.checkin_token = secrets.token_urlsafe(32)
+            db.session.commit()
+
         guest_payload = {
             'sender': {'name': 'Lotto235 Garbatella', 'email': sender_email},
             'to': [{'email': reservation.guest_email}],

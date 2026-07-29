@@ -63,21 +63,24 @@ def create_app(config_class=Config):
         warnings.warn('SECRET_KEY is set to an insecure default. Set a strong SECRET_KEY in .env for production.')
 
     # ── Logging ─────────────────────────────────────────────────────────────────
-    # Root logger writes to stdout so Railway / Gunicorn always sees logs
+    # All loggers write to stdout so Railway / Gunicorn always sees errors
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(module)s: %(message)s',
         stream=sys.stdout,
         force=True,
     )
-    app.logger.setLevel(logging.INFO)
+    for name in ('flask.app', 'flask.wtf', 'werkzeug', 'app', __name__):
+        log = logging.getLogger(name)
+        log.setLevel(logging.INFO)
+        log.propagate = True
 
     if not app.debug:
         try:
             fh = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=5)
             fh.setLevel(logging.INFO)
             fh.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
-            app.logger.addHandler(fh)
+            logging.getLogger().addHandler(fh)
         except Exception:
             pass  # non-fatal — file logging may fail on Railway ephemeral FS
 
