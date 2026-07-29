@@ -6,12 +6,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 {% if apartment %}
-<style>
-    .flatpickr-disabled-checkin {
-        text-decoration: line-through;
-        opacity: 0.5;
-    }
-</style>
 <div class="main-content">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
@@ -217,6 +211,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const currentLang = `{{ session.get('language', 'en') }}`;
+    const blockedCheckin = checkinBlocked || [];
 
     const picker = flatpickr("#date_range", {
         mode: "range",
@@ -225,15 +220,6 @@ document.addEventListener("DOMContentLoaded", function() {
         disable: disabledDates,
         locale: currentLang === 'it' ? 'it' : 'default',
 
-        onDayCreate: function(dObj, dStr, fp, dayElem) {
-            const ds = dObj.toISOString().slice(0, 10);
-            if (checkinBlocked.includes(ds)) {
-                dayElem.title = '{{ _("Available for check-out only") }}';
-                dayElem.style.textDecoration = 'line-through';
-                dayElem.style.opacity = '0.5';
-            }
-        },
-
         onChange: function(selectedDates, dateStr, instance) {
             if (selectedDates.length === 0) {
                 resetPrice();
@@ -241,7 +227,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             if (selectedDates.length === 1) {
                 const checkInStr = instance.formatDate(selectedDates[0], 'Y-m-d');
-                if (checkinBlocked.includes(checkInStr)) {
+                if (blockedCheckin.indexOf(checkInStr) !== -1) {
                     instance.clear();
                     if (nightsEl) nightsEl.textContent = '0';
                     if (priceCalculationRow) priceCalculationRow.innerHTML = '€<span id="total">0</span>';

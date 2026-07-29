@@ -67,10 +67,11 @@ def api_calendar_reservations():
     events = []
     for r in reservations:
         color = '#28a745' if r.status == 'confirmed' else '#ffc107'
+        method_label = (r.payment_method or 'n/a').upper()
         events.append(
             {
                 'id': r.id,
-                'title': f'{r.guest_name} ({r.num_guests} guests)',
+                'title': f'{r.guest_name} ({r.num_guests} guests, {method_label})',
                 'start': r.check_in.isoformat(),
                 'end': r.check_out.isoformat(),
                 'backgroundColor': color,
@@ -236,8 +237,10 @@ def guest_access(token):
 
 @bp.route('/portal/<token>')
 def guest_portal(token):
+    from datetime import date
     reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
     apartment = get_apartment()
+    today = date.today()
 
     show_checkin = not (reservation.checkin_token_used and reservation.checkin_completed_at)
     show_access = bool(reservation.access_token) and reservation.is_access_valid()

@@ -47,19 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        events: {
-            url: "{{ url_for('routes.api_calendar_reservations') }}",
-            method: 'GET',
-        },
-        eventDataTransform: function(event) {
-            var props = event.extendedProps || {};
-            if (props.status === 'pending') {
-                event.classNames = ['pending-event'];
-            }
-            var method = props.payment_method ? props.payment_method.toUpperCase() : 'N/A';
-            event.title = event.title + ' (' + method + ')';
-            return event;
-        },
+        events: "{{ url_for('routes.api_calendar_reservations') }}",
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',

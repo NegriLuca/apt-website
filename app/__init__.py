@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, current_app, jsonify, render_template, request, session
@@ -61,19 +62,26 @@ def create_app(config_class=Config):
 
         warnings.warn('SECRET_KEY is set to an insecure default. Set a strong SECRET_KEY in .env for production.')
 
+    # ── Logging ─────────────────────────────────────────────────────────────────
+    # Root logger writes to stdout so Railway / Gunicorn always sees logs
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(module)s: %(message)s',
+        stream=sys.stdout,
+        force=True,
+    )
+    app.logger.setLevel(logging.INFO)
+
     if not app.debug:
-        handler = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=5)
-        handler.setLevel(logging.INFO)
-        handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
-        app.logger.addHandler(handler)
+        try:
+            fh = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=5)
+            fh.setLevel(logging.INFO)
+            fh.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
+            app.logger.addHandler(fh)
+        except Exception:
+            pass  # non-fatal — file logging may fail on Railway ephemeral FS
 
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        stream_handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(module)s: %(message)s'))
-        app.logger.addHandler(stream_handler)
-
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('Apt_Website starting')
+    app.logger.info('Apt_Website starting')
 
     # Core Babel Config Setup Engine Parameters
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'

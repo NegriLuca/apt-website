@@ -234,9 +234,13 @@ class Reservation(db.Model):
         try:
             from zoneinfo import ZoneInfo
             rome = ZoneInfo('Europe/Rome')
-        except ImportError:
-            from datetime import timezone, timedelta
-            rome = timezone(timedelta(hours=1), 'CET')
+        except Exception:
+            try:
+                from pytz import timezone
+                rome = timezone('Europe/Rome')
+            except ImportError:
+                from datetime import timezone, timedelta
+                rome = timezone(timedelta(hours=2), 'CEST') if date.today().month in range(3, 11) else timezone(timedelta(hours=1), 'CET')
 
         now = datetime.now(rome)
         start = datetime(self.check_in.year, self.check_in.month, self.check_in.day, 13, 0, tzinfo=rome)
