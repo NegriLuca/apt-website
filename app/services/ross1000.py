@@ -35,10 +35,10 @@ class Ross1000Service:
     def _create_session(self) -> requests.Session:
         session = requests.Session()
         retry_strategy = Retry(
-            total=3,
-            backoff_factor=1,
-            status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=['HEAD', 'GET', 'OPTIONS', 'POST'],
+            total=2,
+            backoff_factor=0.5,
+            status_forcelist=[429, 502, 503, 504],
+            allowed_methods=['POST'],
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount('http://', adapter)
@@ -229,8 +229,8 @@ class Ross1000Service:
         response_text = response.text
 
         if response.status_code != 200:
-            logger.error('ROSS1000 HTTP %s: %s', response.status_code, response_text[:500])
-            return {'success': False, 'error': f'HTTP {response.status_code}', 'response_xml': response_text}
+            logger.error('ROSS1000 HTTP %s: %s', response.status_code, response_text[:1000])
+            return {'success': False, 'error': f'HTTP {response.status_code} — {response_text[:300]}', 'response_xml': response_text}
 
         return self._parse_response(response_text)
 

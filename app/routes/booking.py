@@ -176,6 +176,8 @@ def process_payment():
             payment_method='wire_transfer',
             cancel_token=secrets.token_urlsafe(32),
         )
+        if not new_reservation.access_token:
+            new_reservation.generate_access_token()
 
         db.session.add(new_reservation)
         db.session.commit()
@@ -347,6 +349,8 @@ def _create_reservation_from_stripe(cs):
         payment_method='stripe',
         stripe_payment_intent_id=pi_id,
     )
+    if not reservation.access_token:
+        reservation.generate_access_token()
 
     db.session.add(reservation)
     db.session.commit()
