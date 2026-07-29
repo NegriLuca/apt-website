@@ -48,11 +48,44 @@
                             </tr>
                             <tr>
                                 <td class="text-muted py-2 small">{{ _('Guests') }}</td>
-                                <td class="py-2">{{ pending.num_guests }}</td>
+                                <td class="py-2">{{ num_guests }}</td>
                             </tr>
-                            <tr class="bg-luxury-floor border-top">
-                                <td class="py-3"><strong>{{ _('Total') }}</strong></td>
-                                <td class="py-3"><strong class="text-dark fs-4">€{{ "%.2f"|format(total) }}</strong></td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PRICE BREAKDOWN -->
+            <div class="card border-0 shadow-sm mb-5">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0 text-uppercase small fw-bold text-muted"><i class="bi bi-calculator me-2"></i>{{ _('Price Breakdown') }}</h5>
+                </div>
+                <div class="card-body p-4">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted py-1 small">{{ _('Base') }} &mdash; €{{ "%.2f"|format(base_rate) }} x {{ nights }} {{ _('night') if nights == 1 else _('nights') }}</td>
+                                <td class="py-1 text-end">€{{ "%.2f"|format(base_rate * nights) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted py-1 small">{{ _('Weekend / holiday supplement') }}</td>
+                                <td class="py-1 text-end text-muted">{{ _('included') }}</td>
+                            </tr>
+                            {% if extra_guests > 0 %}
+                            <tr>
+                                <td class="text-muted py-1 small">{{ _('Extra guest(s)') }} &mdash; +€15 &times; {{ extra_guests }} {{ _('guest(s)') }} &times; {{ nights }} {{ _('nights') }}</td>
+                                <td class="py-1 text-end">+€{{ "%.2f"|format(guest_surcharge_total) }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if discount_pct > 0 %}
+                            <tr>
+                                <td class="text-muted py-1 small text-success">{{ _('Weekly discount') }} ({{ discount_pct }}%)</td>
+                                <td class="py-1 text-end text-success">&minus;{{ _('included') }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="border-top">
+                                <td class="py-2 fw-bold">{{ _('Total') }}</td>
+                                <td class="py-2 text-end fw-bold fs-4">€{{ "%.2f"|format(total) }}</td>
                             </tr>
                         </tbody>
                     </table>

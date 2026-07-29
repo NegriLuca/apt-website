@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}ROSS1000 Submissions{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="page-title mb-0"><i class="bi bi-cloud-upload me-2"></i>ROSS1000 (Regione Lazio) Submissions</h1>
+                <div>
+                    <a href="{{ url_for('routes.compliance_dashboard') }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
+                    </a>
+                </div>
+            </div>
+            <p class="text-muted mt-2">SOAP check-in reporting to GIES / ROSS1000 Lazio endpoint.
+            <code>{{ 'https://lazioturismo.ross1000.it/ws/checkinV2' }}</code></p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ _('Status') }}</label>
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('All') }}</option>
+                                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>{{ _('Accepted') }}</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ _('Pending') }}</option>
+                                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>{{ _('Rejected') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ _('Bulk Actions') }}</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary" id="btnSubmitSelected" disabled>
+                                    <i class="bi bi-send me-1"></i>{{ _('Send to ROSS1000') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="ross1000Table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">
+                                        <input type="checkbox" id="selectAll" class="form-check-input">
+                                    </th>
+                                    <th>{{ _('ID') }}</th>
+                                    <th>{{ _('Guest') }}</th>
+                                    <th>{{ _('Check-in') }}</th>
+                                    <th>{{ _('Check-out') }}</th>
+                                    <th>{{ _('Guests') }}</th>
+                                    <th>{{ _('ROSS1000 Status') }}</th>
+                                    <th>{{ _('Last Submission') }}</th>
+                                    <th>{{ _('Action') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in reservations.items %}
+                                <tr data-id="{{ r.id }}" data-status="{{ r.ross1000_status or '' }}">
+                                    <td>
+                                        <input type="checkbox" class="form-check-input rowSelect" value="{{ r.id }}">
+                                    </td>
+                                    <td><strong>#{{ r.id }}</strong></td>
+                                    <td>{{ r.guest_name }}</td>
+                                    <td>{{ r.check_in.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ r.check_out.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ r.num_guests }}</td>
+                                    <td>
+                                        {% set status = r.ross1000_status or 'none' %}
+                                        <span class="badge bg-{{ 
+                                            'success' if status == 'accepted' else
+                                            'warning' if status in ['pending', 'sent'] else
+                                            'danger' if status == 'rejected' else
+                                            'secondary' }}">
+                                            {% if status == 'accepted' %}{{ _('Accepted') }}
+                                            {% elif status in ['pending', 'sent'] %}{{ _('Pending') }}
+                                            {% elif status == 'rejected' %}{{ _('Rejected') }}
+                                            {% else %}{{ _('To be sent') }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if r.ross1000_submitted_at %}
+                                            {{ r.ross1000_submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">&mdash;</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            {% if status != 'accepted' %}
+                                            <button type="button" class="btn btn-primary btnSubmitSingle" data-id="{{ r.id }}" title="{{ _('Send to ROSS1000') }}">
+                                                <i class="bi bi-send"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if r.ross1000_error %}
+                                            <button type="button" class="btn btn-outline-danger btnError" data-error="{{ r.ross1000_error }}" title="{{ _('View error') }}">
+                                                <i class="bi bi-exclamation-circle"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">{{ _('No reservations found') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% if reservations.pages > 1 %}
+                <div class="card-footer">
+                    <nav aria-label="{{ _('Pagination') }}">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if reservations.has_prev %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.ross1000_list', page=reservations.prev_num, status=status_filter) }}">&laquo;</a></li>
+                            {% endif %}
+                            {% for p in reservations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                {% if p %}
+                                    <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.ross1000_list', page=p, status=status_filter) }}">{{ p }}</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if reservations.has_next %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.ross1000_list', page=reservations.next_num, status=status_filter) }}">&raquo;</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const rowSelects = document.querySelectorAll('.rowSelect');
+    const btnSubmitSelected = document.getElementById('btnSubmitSelected');
+
+    selectAll.addEventListener('change', function() {
+        rowSelects.forEach(cb => cb.checked = this.checked);
+        updateBulkButtons();
+    });
+
+    rowSelects.forEach(cb => {
+        cb.addEventListener('change', updateBulkButtons);
+    });
+
+    function updateBulkButtons() {
+        const selected = document.querySelectorAll('.rowSelect:checked').length;
+        btnSubmitSelected.disabled = selected === 0;
+    }
+
+    document.querySelectorAll('.btnSubmitSingle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            submitToRoss1000([this.dataset.id]);
+        });
+    });
+
+    btnSubmitSelected.addEventListener('click', function() {
+        const ids = Array.from(document.querySelectorAll('.rowSelect:checked')).map(cb => cb.value);
+        submitToRoss1000(ids);
+    });
+
+    document.querySelectorAll('.btnError').forEach(btn => {
+        btn.addEventListener('click', function() {
+            alert('Error: ' + this.dataset.error);
+        });
+    });
+
+    function submitToRoss1000(ids) {
+        if (!ids.length) return;
+        if (!confirm(`Send ${ids.length} reservation(s) to ROSS1000?`)) return;
+
+        fetch('{{ url_for("routes.ross1000_submit") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reservation_ids: ids})
+        })
+        .then(r => r.json())
+        .then(data => {
+            const ok = data.results ? data.results.filter(x => x.success).length : 0;
+            const total = data.results ? data.results.length : ids.length;
+            alert(`${ok}/${total} submitted successfully.`);
+            setTimeout(() => location.reload(), 2000);
+        })
+        .catch(e => {
+            alert('Error: ' + e.message);
+        });
+    }
+});
+</script>
+{% endblock %}

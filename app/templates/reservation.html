@@ -6,6 +6,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
 {% if apartment %}
+<style>
+    .flatpickr-disabled-checkin {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+</style>
 <div class="main-content">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
@@ -98,6 +104,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const disabledDates = {{ disabled_dates | tojson | default('[]') }};
+    const checkinBlocked = {{ checkin_blocked | tojson | default('[]') }};
     let currentBaseTotal = 0;
 
     const dateRangeEl = document.getElementById("date_range");
@@ -115,6 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const numGuestsSelect = document.getElementById("num_guests");
 
     const selectDatesWarning = `{{ _('Please select a valid check-in date range first.') }}`;
+    const dateUnavailable = `{{ _('This date is not available for check-in.') }}`;
     const couponAppliedSuccess = `{{ _('Success! Code applied.') }}`;
     const connectionWarning = `{{ _('Connection validation runtime warning.') }}`;
 
@@ -217,9 +225,28 @@ document.addEventListener("DOMContentLoaded", function() {
         disable: disabledDates,
         locale: currentLang === 'it' ? 'it' : 'default',
 
+        onDayCreate: function(dObj, dStr, fp, dayElem) {
+            const ds = dObj.toISOString().slice(0, 10);
+            if (checkinBlocked.includes(ds)) {
+                dayElem.title = '{{ _("Available for check-out only") }}';
+                dayElem.style.textDecoration = 'line-through';
+                dayElem.style.opacity = '0.5';
+            }
+        },
+
         onChange: function(selectedDates, dateStr, instance) {
-            if (selectedDates.length === 0 || selectedDates.length === 1) {
+            if (selectedDates.length === 0) {
                 resetPrice();
+                return;
+            }
+            if (selectedDates.length === 1) {
+                const checkInStr = instance.formatDate(selectedDates[0], 'Y-m-d');
+                if (checkinBlocked.includes(checkInStr)) {
+                    instance.clear();
+                    if (nightsEl) nightsEl.textContent = '0';
+                    if (priceCalculationRow) priceCalculationRow.innerHTML = '€<span id="total">0</span>';
+                    return;
+                }
                 return;
             }
 

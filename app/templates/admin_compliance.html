@@ -51,6 +51,49 @@
         </div>
     </div>
 
+    <!-- ROSS1000 Status Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-4 text-warning">{{ ross1000_pending }}</div>
+                    <div class="text-muted small">{{ _('ROSS1000 To be sent') }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-4 text-danger">{{ ross1000_rejected }}</div>
+                    <div class="text-muted small">{{ _('ROSS1000 Rejected') }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="display-4 text-success">{{ ross1000_accepted }}</div>
+                    <div class="text-muted small">{{ _('ROSS1000 Accepted') }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="text-center py-2">
+                        <a href="{{ url_for('routes.ross1000_list') }}" class="btn btn-outline-primary btn-sm">{{ _('Manage ROSS1000') }}</a>
+                        <a href="{{ url_for('routes.ross1000_logs') }}" class="btn btn-outline-secondary btn-sm mt-1">{{ _('View Logs') }}</a>
+                        <form method="POST" action="{{ url_for('routes.ross1000_test') }}" class="mt-1">
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                <i class="bi bi-plug me-1"></i>{{ _('Test Connection') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Actions -->
     <div class="row mb-4">
         <div class="col-12">

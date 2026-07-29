@@ -328,6 +328,62 @@ def sync_ross1000_property(self):
     return {'success': True, 'data': data, 'message': 'Manual submission to Ross1000 portal required'}
 
 
+@shared_task(bind=True, max_retries=3, default_retry_delay=3600)
+def submit_ross1000_daily(self):
+    """
+    Daily task: Submit today's check-ins to ROSS1000 (Regione Lazio).
+    """
+    try:
+        today = date.today()
+        logger.info(f'Starting daily ROSS1000 submission for {today}')
+
+        from app.services.ross1000 import get_ross1000_service
+
+        service = get_ross1000_service()
+        if not service.is_configured():
+            return {'success': False, 'error': 'ROSS1000 service not configured'}
+
+        reservations = Reservation.query.filter(
+            Reservation.status == 'confirmed',
+            Reservation.check_in == today,
+            Reservation.ross1000_status.in_([None, 'pending', 'rejected']),
+        ).all()
+
+        if not reservations:
+            logger.info('No reservations checking in today for ROSS1000')
+            return {'success': True, 'message': 'No check-ins today', 'count': 0}
+
+        results = {'submitted': 0, 'failed': 0, 'errors': []}
+
+        for res in reservations:
+            result = service.submit_reservation(res)
+
+            if result.get('success'):
+                results['submitted'] += 1
+                res.ross1000_status = 'accepted'
+                res.ross1000_submitted_at = datetime.utcnow()
+            else:
+                results['failed'] += 1
+                results['errors'].append(f'Reservation #{res.id}: {result.get("error", "Unknown error")}')
+                res.ross1000_status = 'rejected'
+                res.ross1000_error = result.get('error', 'Unknown error')
+
+            db.session.add(res)
+
+        db.session.commit()
+        logger.info(f'Daily ROSS1000 submission complete: {results}')
+        return results
+
+    except Exception as e:
+        logger.exception('Daily ROSS1000 submission failed')
+        self.retry(exc=e)
+
+
+def run_daily_ross1000():
+    """Run daily ROSS1000 submission synchronously (for testing/cron)"""
+    return submit_ross1000_daily()
+
+
 # Celery Beat Schedule Configuration
 CELERY_BEAT_SCHEDULE = {
     'questura-daily-submission': {

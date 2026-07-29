@@ -32,8 +32,10 @@ def reserve():
     reservations = Reservation.query.filter(Reservation.status != 'cancelled').all()
 
     disabled_dates = []
+    checkin_blocked = []
     for r in reservations:
-        current = r.check_in
+        checkin_blocked.append(r.check_in.isoformat())
+        current = r.check_in + timedelta(days=1)
         last_night = r.check_out - timedelta(days=1)
         while current <= last_night:
             disabled_dates.append(current.isoformat())
@@ -89,6 +91,7 @@ def reserve():
         form=form,
         apartment=apartment,
         disabled_dates=disabled_dates,
+        checkin_blocked=checkin_blocked,
     )
 
 
@@ -111,6 +114,11 @@ def checkout():
     base_total = pending.get('base_total', calculated_base)
     total_price = pending.get('total_price', base_total)
 
+    extra_guests = max(0, num_guests - 2)
+    guest_surcharge_per_night = extra_guests * 15.0
+    guest_surcharge_total = guest_surcharge_per_night * nights
+    discount_pct = 10 if nights >= 7 else 0
+
     stripe_pub = current_app.config.get('STRIPE_PUBLISHABLE_KEY', '')
 
     return render_template(
@@ -118,8 +126,14 @@ def checkout():
         pending=pending,
         apartment=apartment,
         nights=nights,
+        base_rate=base_rate,
         base_total=base_total,
         total=total_price,
+        num_guests=num_guests,
+        extra_guests=extra_guests,
+        guest_surcharge_per_night=guest_surcharge_per_night,
+        guest_surcharge_total=guest_surcharge_total,
+        discount_pct=discount_pct,
         stripe_publishable_key=stripe_pub,
         check_in=check_in,
         check_out=check_out,

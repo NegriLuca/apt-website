@@ -23,7 +23,12 @@
                     </div>
                     {% endif %}
 
-                    <div class="mt-4">
+                    <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
+                        {% if reservation and reservation.checkin_token %}
+                        <a href="{{ url_for('routes.guest_portal', token=reservation.checkin_token) }}" class="btn-luxury-outline py-2 px-4 text-decoration-none d-inline-block">
+                            <i class="bi bi-person me-1"></i>{{ _('Go to Guest Portal') }}
+                        </a>
+                        {% endif %}
                         <a href="{{ url_for('routes.home') }}" class="btn-luxury-outline py-2 px-4 text-decoration-none d-inline-block">
                             <i class="bi bi-house me-1"></i>{{ _('Back to Home') }}
                         </a>

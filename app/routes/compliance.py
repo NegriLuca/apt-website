@@ -1,3 +1,4 @@
+import json
 import secrets
 from datetime import date, timedelta
 
@@ -5,7 +6,7 @@ from flask import Response, abort, current_app, flash, redirect, render_template
 from flask_login import current_user, login_required
 
 from app import db
-from app.models import Apartment, ComplianceConfig, QuesturaLog, Reservation
+from app.models import Apartment, ComplianceConfig, QuesturaLog, Reservation, Ross1000Log
 from app.routes import bp
 from app.routes.helpers import get_apartment
 
@@ -53,14 +54,28 @@ def compliance_dashboard() -> Response | str:
         'questura_cert_path',
         'questura_cert_password',
         'questura_protocol_number',
+        'ross1000_username',
+        'ross1000_password',
+        'ross1000_structure_code',
     ]
     config_status = {k: bool(ComplianceConfig.get(k)) for k in config_keys}
+
+    ross1000_pending = Reservation.query.filter(
+        Reservation.ross1000_status.in_([None, 'pending']),
+        Reservation.status == 'confirmed',
+        Reservation.check_in <= today,
+    ).count()
+    ross1000_rejected = Reservation.query.filter_by(ross1000_status='rejected').count()
+    ross1000_accepted = Reservation.query.filter_by(ross1000_status='accepted').count()
 
     return render_template(
         'admin_compliance.html',
         questura_pending=questura_pending,
         questura_rejected=questura_rejected,
         questura_accepted=questura_accepted,
+        ross1000_pending=ross1000_pending,
+        ross1000_rejected=ross1000_rejected,
+        ross1000_accepted=ross1000_accepted,
         needing_data=needing_data,
         current_month_tax=current_month_tax,
         config_status=config_status,
@@ -303,6 +318,94 @@ def config_set() -> Response | str:
         flash('Key and value are required.', 'danger')
 
     return redirect(url_for('routes.compliance_config'))
+
+
+# ── ROSS1000 (Regione Lazio) ─────────────────────────────────────────────────
+
+
+@bp.route('/admin/compliance/ross1000')
+@login_required
+def ross1000_list():
+    if not current_user.is_admin:
+        abort(403)
+
+    status_filter = request.args.get('status', 'all')
+    page = request.args.get('page', 1, type=int)
+
+    query = Reservation.query.order_by(Reservation.check_in.desc())
+    if status_filter != 'all':
+        query = query.filter(Reservation.ross1000_status == status_filter)
+
+    reservations = query.paginate(page=page, per_page=25, error_out=False)
+    return render_template('admin_ross1000.html', reservations=reservations, status_filter=status_filter)
+
+
+@bp.route('/admin/compliance/ross1000/submit', methods=['POST'])
+@login_required
+def ross1000_submit():
+    if not current_user.is_admin:
+        abort(403)
+
+    data = request.get_json(silent=True) or {}
+    res_ids = data.get('reservation_ids', [])
+    res_id = request.form.get('reservation_id', type=int)
+
+    if res_id:
+        res_ids = [res_id]
+
+    if not res_ids:
+        flash('No reservations selected.', 'danger')
+        return redirect(url_for('routes.ross1000_list'))
+
+    from app.services.ross1000 import get_ross1000_service
+
+    service = get_ross1000_service()
+    results = []
+
+    for rid in res_ids:
+        res = Reservation.query.get(rid)
+        if not res:
+            results.append({'reservation_id': rid, 'success': False, 'error': 'Not found'})
+            continue
+        result = service.submit_reservation(res)
+        results.append({'reservation_id': rid, **result})
+
+    if request.is_json:
+        return {'success': all(r.get('success') for r in results), 'results': results}
+
+    success_count = sum(1 for r in results if r.get('success'))
+    flash(f'ROSS1000: {success_count}/{len(results)} submitted successfully.', 'success' if success_count else 'danger')
+    return redirect(url_for('routes.ross1000_list'))
+
+
+@bp.route('/admin/compliance/ross1000/test', methods=['POST'])
+@login_required
+def ross1000_test():
+    if not current_user.is_admin:
+        abort(403)
+
+    from app.services.ross1000 import get_ross1000_service
+
+    service = get_ross1000_service()
+    result = service.test_connection()
+
+    if result.get('success'):
+        flash('ROSS1000 connection successful!', 'success')
+    else:
+        flash(f'ROSS1000 connection failed: {result.get("error", "Unknown error")}', 'danger')
+
+    return redirect(url_for('routes.compliance_dashboard'))
+
+
+@bp.route('/admin/compliance/ross1000/logs')
+@login_required
+def ross1000_logs():
+    if not current_user.is_admin:
+        abort(403)
+
+    page = request.args.get('page', 1, type=int)
+    logs = Ross1000Log.query.order_by(Ross1000Log.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
+    return render_template('admin_ross1000_logs.html', logs=logs)
 
 
 # ── Check-in Links ───────────────────────────────────────────────────────────

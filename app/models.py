@@ -171,6 +171,12 @@ class Reservation(db.Model):
     questura_status = db.Column(db.String(20), nullable=True, comment='pending, sent, accepted, rejected')
     questura_error = db.Column(db.Text, nullable=True)
 
+    # ROSS1000 (Regione Lazio) tracking
+    ross1000_status = db.Column(db.String(20), nullable=True, comment='pending, accepted, rejected')
+    ross1000_submitted_at = db.Column(db.DateTime, nullable=True)
+    ross1000_response = db.Column(db.Text, nullable=True)
+    ross1000_error = db.Column(db.Text, nullable=True)
+
     # Self-service check-in token (for guest-facing form)
     checkin_token = db.Column(db.String(128), unique=True, index=True, nullable=True)
     checkin_completed_at = db.Column(db.DateTime, nullable=True)
@@ -223,9 +229,19 @@ class Reservation(db.Model):
         return all(required)
 
     def is_access_valid(self) -> bool:
-        """Check if access token is valid for current date (during stay period)"""
-        today = date.today()
-        return self.check_in <= today <= self.check_out
+        """Check if access token is valid during the stay period.
+        Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time)."""
+        try:
+            from zoneinfo import ZoneInfo
+            rome = ZoneInfo('Europe/Rome')
+        except ImportError:
+            from datetime import timezone, timedelta
+            rome = timezone(timedelta(hours=1), 'CET')
+
+        now = datetime.now(rome)
+        start = datetime(self.check_in.year, self.check_in.month, self.check_in.day, 13, 0, tzinfo=rome)
+        end = datetime(self.check_out.year, self.check_out.month, self.check_out.day, 13, 0, tzinfo=rome)
+        return start <= now <= end
 
     def generate_access_token(self) -> str:
         """Generate a new access token for the reservation"""
@@ -414,3 +430,20 @@ class QuesturaLog(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     reservation = db.relationship('Reservation', backref=db.backref('questura_logs', lazy='dynamic'))
+
+
+class Ross1000Log(db.Model):
+    """Audit log for all ROSS1000 (Regione Lazio) submissions"""
+
+    __tablename__ = 'ross1000_log'
+
+    id = db.Column(db.Integer, primary_key=True)
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=False, index=True)
+    action = db.Column(db.String(20), nullable=False)  # submit, retry, manual
+    request_xml = db.Column(db.Text, nullable=True)
+    response_xml = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False)  # success, error, pending
+    error_message = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    reservation = db.relationship('Reservation', backref=db.backref('ross1000_logs', lazy='dynamic'))

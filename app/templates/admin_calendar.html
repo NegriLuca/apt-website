@@ -47,34 +47,34 @@ document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        eventSources: [{
+        events: {
             url: "{{ url_for('routes.api_calendar_reservations') }}",
-            success: function(content) {
-                return content.map(function(event) {
-                    if (event.extendedProps.status === 'pending') {
-                        event.classNames = ['pending-event'];
-                    }
-                    let method = event.extendedProps.payment_method ? event.extendedProps.payment_method.toUpperCase() : 'N/A';
-                    event.title = event.title + ' (' + method + ')';
-                    return event;
-                });
+            method: 'GET',
+        },
+        eventDataTransform: function(event) {
+            var props = event.extendedProps || {};
+            if (props.status === 'pending') {
+                event.classNames = ['pending-event'];
             }
-        }],
+            var method = props.payment_method ? props.payment_method.toUpperCase() : 'N/A';
+            event.title = event.title + ' (' + method + ')';
+            return event;
+        },
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek'
         },
         eventClick: function(info) {
-            let details = info.event.extendedProps;
+            let details = info.event.extendedProps || {};
             alert(
                 "📋 {{ _('Booking Details') }}\n" +
                 "-----------------------------------\n" +
                 "{{ _('Guest:') }} " + info.event.title + "\n" +
-                "{{ _('Source:') }} " + details.source.toUpperCase() + "\n" +
+                "{{ _('Source:') }} " + (details.source || 'direct').toUpperCase() + "\n" +
                 "{{ _('Payment:') }} " + (details.payment_method || 'N/A').toUpperCase() + "\n" +
-                "{{ _('Status:') }} " + details.status.toUpperCase() + " | " + details.payment_status.toUpperCase() + "\n" +
-                "{{ _('Revenue:') }} " + details.total
+                "{{ _('Status:') }} " + (details.status || 'unknown').toUpperCase() + " | " + (details.payment_status || 'unpaid').toUpperCase() + "\n" +
+                "{{ _('Revenue:') }} " + (details.total || '€0')
             );
         }
     });

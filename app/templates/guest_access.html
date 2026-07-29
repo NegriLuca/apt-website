@@ -6,8 +6,17 @@
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
 
-            <h1 class="page-title mb-2">{{ _('Guest Access') }}</h1>
-            <p class="lead text-muted mb-4">{{ _('Valid during your stay') }}</p>
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h1 class="page-title mb-1">{{ _('Guest Access') }}</h1>
+                    <p class="lead text-muted mb-0">{{ _('Valid during your stay') }}</p>
+                </div>
+                {% if reservation.checkin_token %}
+                <a href="{{ url_for('routes.guest_portal', token=reservation.checkin_token) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Portal') }}
+                </a>
+                {% endif %}
+            </div>
 
             <!-- Reservation Summary -->
             <div class="card border-0 shadow-sm p-4 mb-4">

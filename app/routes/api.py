@@ -66,14 +66,23 @@ def api_calendar_reservations():
     reservations = Reservation.query.filter(Reservation.status != 'cancelled').all()
     events = []
     for r in reservations:
+        color = '#28a745' if r.status == 'confirmed' else '#ffc107'
         events.append(
             {
+                'id': r.id,
                 'title': f'{r.guest_name} ({r.num_guests} guests)',
                 'start': r.check_in.isoformat(),
                 'end': r.check_out.isoformat(),
-                'backgroundColor': '#28a745' if r.status == 'confirmed' else '#ffc107',
-                'borderColor': '#28a745' if r.status == 'confirmed' else '#ffc107',
+                'backgroundColor': color,
+                'borderColor': color,
                 'allDay': True,
+                'extendedProps': {
+                    'source': r.source or 'direct',
+                    'status': r.status,
+                    'payment_status': r.payment_status or 'unpaid',
+                    'payment_method': r.payment_method or 'n/a',
+                    'total': f'€{r.total_price:.2f}' if r.total_price else '€0',
+                },
             }
         )
 
@@ -133,9 +142,9 @@ def api_gate_open():
     if not res:
         return jsonify({'ok': False, 'error': 'Invalid token'}), 403
 
-    today = date.today()
-    if not (res.check_in <= today <= res.check_out):
-        return jsonify({'ok': False, 'error': 'Access not allowed outside stay dates'}), 403
+    if not res.is_access_valid():
+        reason = 'Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).'
+        return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. {reason}'}), 403
 
     apt = get_apartment()
     ok, msg = trigger_gate_open(apt)
@@ -153,9 +162,9 @@ def api_door_open():
     if not res:
         return jsonify({'ok': False, 'error': 'Invalid token'}), 403
 
-    today = date.today()
-    if not (res.check_in <= today <= res.check_out):
-        return jsonify({'ok': False, 'error': 'Access not allowed outside stay dates'}), 403
+    if not res.is_access_valid():
+        reason = 'Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).'
+        return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. {reason}'}), 403
 
     apt = get_apartment()
     ok, msg = trigger_door_unlock(apt)
@@ -209,6 +218,11 @@ def guest_self_checkin(token):
 @bp.route('/access/<token>')
 def guest_access(token):
     reservation = Reservation.query.filter_by(access_token=token).first_or_404()
+    if not reservation.is_access_valid():
+        return render_template('guest_access_denied.html',
+            reservation=reservation,
+            reason='Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time). Your current access window has ended or not yet started.',
+        ), 403
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
     door_configured = bool(apartment and apartment.nuki_enabled)
@@ -224,11 +238,9 @@ def guest_access(token):
 def guest_portal(token):
     reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
     apartment = get_apartment()
-    today = date.today()
 
     show_checkin = not (reservation.checkin_token_used and reservation.checkin_completed_at)
-    in_stay = reservation.check_in <= today <= reservation.check_out
-    show_access = bool(reservation.access_token) and in_stay
+    show_access = bool(reservation.access_token) and reservation.is_access_valid()
 
     access_token = reservation.access_token
     gate_configured = bool(apartment and apartment.shelly_enabled) if apartment else False

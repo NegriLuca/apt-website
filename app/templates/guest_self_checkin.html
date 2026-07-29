@@ -13,8 +13,15 @@
                 <a href="{{ url_for('routes.guest_portal', token=reservation.checkin_token) }}" class="btn-luxury-primary w-100 py-3 fw-bold text-center d-block text-decoration-none">{{ _('Return to Portal') }}</a>
             </div>
             {% else %}
-            <h1 class="page-title mb-2">{{ _('Online Check-in') }}</h1>
-            <p class="lead text-muted mb-4">{{ _('Complete your guest registration before arrival. Required by Italian law.') }}</p>
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h1 class="page-title mb-1">{{ _('Online Check-in') }}</h1>
+                    <p class="lead text-muted mb-0">{{ _('Complete your guest registration before arrival. Required by Italian law.') }}</p>
+                </div>
+                <a href="{{ url_for('routes.guest_portal', token=reservation.checkin_token) }}" class="btn btn-outline-secondary btn-sm ms-3">
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Portal') }}
+                </a>
+            </div>
 
             <!-- Reservation Summary -->
             <div class="card border-0 shadow-sm p-4 mb-4">

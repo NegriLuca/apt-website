@@ -50,3 +50,10 @@ class Config:
     # ── Italian Compliance Codes (CIN/CIR) ────────────────────────────────────
     CIN_CODE = os.environ.get('CIN_CODE', 'IT058091C2TXZ44TA6')
     CIR_CODE = os.environ.get('CIR_CODE', '058091-LOC-19856')
+
+    # ── ROSS1000 (Regione Lazio SOAP) ──────────────────────────────────────────
+    ROSS1000_USERNAME = os.environ.get('ROSS1000_USERNAME', '')
+    ROSS1000_PASSWORD = os.environ.get('ROSS1000_PASSWORD', '')
+    ROSS1000_STRUCTURE_CODE = os.environ.get('ROSS1000_STRUCTURE_CODE', '')
+    ROSS1000_PRODUCT = os.environ.get('ROSS1000_PRODUCT', 'CAV')
+    ROSS1000_ENDPOINT = os.environ.get('ROSS1000_ENDPOINT', 'https://lazioturismo.ross1000.it/ws/checkinV2')
