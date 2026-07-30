@@ -170,13 +170,13 @@ class Ross1000Service:
             <gies:lettidisponibili>2</gies:lettidisponibili>
         </gies:struttura>'''
 
-        return f'''<v2:movimento>
+        return f'''<movimento>
         <gies:data>{self._fmt_date(data)}</gies:data>
         {struttura_xml}
         {arrivi_xml}
         {partenze_xml}
         {prenotazioni_xml}
-    </v2:movimento>'''
+    </movimento>'''
 
     def _build_request_xml(
         self,
@@ -187,8 +187,8 @@ class Ross1000Service:
         """Build the full SOAP request XML for inviaMovimentazione."""
         body = f'''<gies:inviaMovimentazione>
         <movimentazione>
-            <v2:codice>{self._escape_xml(codice)}</v2:codice>
-            <v2:prodotto>{self._escape_xml(prodotto)}</v2:prodotto>
+            <codice>{self._escape_xml(codice)}</codice>
+            <prodotto>{self._escape_xml(prodotto)}</prodotto>
             {movimenti_xml}
         </movimentazione>
     </gies:inviaMovimentazione>'''
