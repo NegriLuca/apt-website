@@ -20,34 +20,19 @@
 
                         <h5 class="mb-3 text-primary"><i class="bi bi-gate-fill me-2"></i>{{ _('Building Gate (Shelly Mini 1 Gen4)') }}</h5>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-8">
                                 <div class="form-check form-switch mb-3">
                                     <input class="form-check-input" type="checkbox" name="shelly_enabled" id="shelly_enabled" {% if apartment.shelly_enabled %}checked{% endif %}>
                                     <label class="form-check-label fw-semibold" for="shelly_enabled">{{ _('Enable Gate Access') }}</label>
                                 </div>
                                 <label class="form-label fw-semibold">{{ _('Shelly Host / Device ID') }}</label>
-                                <input type="text" class="form-control" name="shelly_host" value="{{ apartment.shelly_host or '' }}" placeholder="192.168.1.50, shelly-gate.local or 98a31678b358">
-                                <div class="form-text">{{ _('Local IP/mDNS hostname for LAN, or the device ID when using the Shelly Cloud (SHELLY_CLOUD_SERVER/SHELLY_CLOUD_KEY env vars)') }}</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('Auth Key (Optional)') }}</label>
-                                <input type="text" class="form-control" name="shelly_auth_key" value="{{ apartment.shelly_auth_key or '' }}" placeholder="Bearer token if auth enabled">
-                                <div class="form-text">{{ _('Gen4 auth key if authentication is enabled on device') }}</div>
+                                <input type="text" class="form-control" name="shelly_host" value="{{ apartment.shelly_host or '' }}" placeholder="98a31678b358 or 192.168.1.50">
+                                <div class="form-text">{{ _('Leave blank if SHELLY_DEVICE_ID env var is set. Only needed for LAN access without the cloud env vars.') }}</div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">{{ _('Relay Channel') }}</label>
                                 <input type="number" class="form-control" name="shelly_relay_channel" value="{{ apartment.shelly_relay_channel or 0 }}" min="0" max="3">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">{{ _('Pulse Duration (seconds)') }}</label>
-                                <input type="number" class="form-control" name="shelly_pulse_duration" value="{{ apartment.shelly_pulse_duration or 3 }}" min="1" max="30">
-                                <div class="form-text">{{ _('How long to keep gate open') }}</div>
-                            </div>
-                            <div class="col-md-4 d-flex align-items-end">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="shelly_test_mode" id="shelly_test_mode">
-                                    <label class="form-check-label" for="shelly_test_mode">{{ _('Test Mode (dry run)') }}</label>
-                                </div>
+                                <div class="form-text">{{ _('0 for Shelly Mini 1 Gen4') }}</div>
                             </div>
                         </div>
 

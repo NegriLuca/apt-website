@@ -24,7 +24,6 @@ class ShellyService:
         self.host = apartment.shelly_host
         self.auth_key = apartment.shelly_auth_key
         self.channel = apartment.shelly_relay_channel or 0
-        self.pulse_duration = apartment.shelly_pulse_duration or 3
 
         # Cloud Control API config (used when SHELLY_CLOUD_SERVER + SHELLY_CLOUD_KEY are set).
         # Controlled by device ID, so it works from a cloud-hosted app and survives IP changes.
@@ -109,7 +108,7 @@ class ShellyService:
             raise SmartLockError(f'Failed to get Shelly status: {e}')
 
     def pulse_relay(self):
-        """Pulse the relay (open gate for pulse_duration seconds)"""
+        """Open the gate. Relay auto-off is handled by the device's own config."""
         if not self.is_configured():
             raise SmartLockError('Shelly not configured')
 

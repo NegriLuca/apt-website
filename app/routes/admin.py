@@ -182,9 +182,7 @@ def admin_smart_access() -> Response | str:
     if request.method == 'POST':
         apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
         apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
-        apartment.shelly_auth_key = request.form.get('shelly_auth_key', '').strip() or None
         apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
-        apartment.shelly_pulse_duration = request.form.get('shelly_pulse_duration', type=int) or 3
 
         apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
         apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
@@ -548,15 +546,16 @@ def admin_regenerate_access_token() -> Response | str:
 def admin_test_gate() -> Response | str:
     if not current_user.is_admin:
         abort(403)
-    from app.services.smart_lock import trigger_gate_open
+    from app.services.smart_lock import SmartLockError, trigger_gate_open
 
     apartment = get_apartment()
     if not apartment:
-        flash('No apartment configured.', 'danger')
-        return redirect(url_for('routes.admin_smart_access'))
-    ok, msg = trigger_gate_open(apartment)
-    flash(msg, 'success' if ok else 'danger')
-    return redirect(url_for('routes.admin_smart_access'))
+        return jsonify({'success': False, 'error': 'No apartment configured.'}), 400
+    try:
+        ok, msg = trigger_gate_open(apartment)
+    except SmartLockError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    return jsonify({'success': ok, 'message': msg if ok else 'Failed to open gate'})
 
 
 @bp.route('/admin/smart-access/test-door', methods=['POST'])
@@ -564,15 +563,16 @@ def admin_test_gate() -> Response | str:
 def admin_test_door() -> Response | str:
     if not current_user.is_admin:
         abort(403)
-    from app.services.smart_lock import trigger_door_unlock
+    from app.services.smart_lock import SmartLockError, trigger_door_unlock
 
     apartment = get_apartment()
     if not apartment:
-        flash('No apartment configured.', 'danger')
-        return redirect(url_for('routes.admin_smart_access'))
-    ok, msg = trigger_door_unlock(apartment)
-    flash(msg, 'success' if ok else 'danger')
-    return redirect(url_for('routes.admin_smart_access'))
+        return jsonify({'success': False, 'error': 'No apartment configured.'}), 400
+    try:
+        ok, msg = trigger_door_unlock(apartment)
+    except SmartLockError as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+    return jsonify({'success': ok, 'message': msg if ok else 'Failed to unlock door'})
 
 
 # ── Bulk Operations ───────────────────────────────────────────────────────────
