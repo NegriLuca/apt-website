@@ -1,13 +1,13 @@
 from datetime import date, datetime
 
-from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from app import db, limiter
 from app.models import Coupon, Reservation
 from app.routes import bp
 from app.routes.helpers import calculate_dynamic_total, get_apartment, is_available
-from app.services.smart_lock import trigger_door_unlock, trigger_gate_open
+from app.services.smart_lock import SmartLockError, get_shelly_service, get_nuki_service
 
 # ── API Endpoints ────────────────────────────────────────────────────────────
 
@@ -148,7 +148,19 @@ def api_gate_open():
         return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. {reason}'}), 403
 
     apt = get_apartment()
-    ok, msg = trigger_gate_open(apt)
+    if not apt:
+        return jsonify({'ok': False, 'error': 'No apartment configured.'}), 400
+
+    svc = get_shelly_service(apt)
+    current_app.logger.warning(
+        'gate open: cloud_mode=%s server_set=%s key_set=%s device_id=%r host=%r channel=%s',
+        svc.in_cloud_mode, bool(svc.cloud_server), bool(svc.cloud_key),
+        svc.cloud_device_id, apt.shelly_host, svc.channel,
+    )
+    try:
+        ok, msg = svc.pulse_relay()
+    except SmartLockError as e:
+        return jsonify({'ok': False, 'error': str(e)}), 400
     return jsonify({'ok': ok, 'message': msg})
 
 
@@ -168,7 +180,14 @@ def api_door_open():
         return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. {reason}'}), 403
 
     apt = get_apartment()
-    ok, msg = trigger_door_unlock(apt)
+    if not apt:
+        return jsonify({'ok': False, 'error': 'No apartment configured.'}), 400
+
+    svc = get_nuki_service(apt)
+    try:
+        ok, msg = svc.unlock()
+    except SmartLockError as e:
+        return jsonify({'ok': False, 'error': str(e)}), 400
     return jsonify({'ok': ok, 'message': msg})
 
 
