@@ -3,7 +3,7 @@ from datetime import date, datetime
 from flask import abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
-from app import db, limiter
+from app import csrf, db, limiter
 from app.models import Coupon, Reservation
 from app.routes import bp
 from app.routes.helpers import calculate_dynamic_total, get_apartment, is_available
@@ -134,6 +134,7 @@ def api_calculate_price():
 
 @bp.route('/api/access/gate/open', methods=['POST'])
 @limiter.limit('10 per minute')
+@csrf.exempt
 def api_gate_open():
     token = request.headers.get('X-Access-Token') or request.form.get('token')
     if not token:
@@ -166,6 +167,7 @@ def api_gate_open():
 
 @bp.route('/api/access/door/open', methods=['POST'])
 @limiter.limit('10 per minute')
+@csrf.exempt
 def api_door_open():
     token = request.headers.get('X-Access-Token') or request.form.get('token')
     if not token:
