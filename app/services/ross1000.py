@@ -4,6 +4,7 @@ Implements SOAP client for the GIES checkinV2 Web Service.
 """
 
 import logging
+import os
 import uuid
 from datetime import date, datetime
 from typing import Any
@@ -43,6 +44,13 @@ class Ross1000Service:
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount('http://', adapter)
         session.mount('https://', adapter)
+
+        for var in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY'):
+            proxy = os.environ.get(var) or os.environ.get(var.lower())
+            if proxy:
+                session.proxies.update({var.lower().replace('_proxy', ''): proxy})
+                break
+
         return session
 
     def _get_config(self, key: str) -> str | None:

@@ -25,9 +25,9 @@
                                     <input class="form-check-input" type="checkbox" name="shelly_enabled" id="shelly_enabled" {% if apartment.shelly_enabled %}checked{% endif %}>
                                     <label class="form-check-label fw-semibold" for="shelly_enabled">{{ _('Enable Gate Access') }}</label>
                                 </div>
-                                <label class="form-label fw-semibold">{{ _('Shelly Host / IP Address') }}</label>
-                                <input type="text" class="form-control" name="shelly_host" value="{{ apartment.shelly_host or '' }}" placeholder="192.168.1.50 or shelly-gate.local">
-                                <div class="form-text">{{ _('Local IP or mDNS hostname of the Shelly device') }}</div>
+                                <label class="form-label fw-semibold">{{ _('Shelly Host / Device ID') }}</label>
+                                <input type="text" class="form-control" name="shelly_host" value="{{ apartment.shelly_host or '' }}" placeholder="192.168.1.50, shelly-gate.local or 98a31678b358">
+                                <div class="form-text">{{ _('Local IP/mDNS hostname for LAN, or the device ID when using the Shelly Cloud (SHELLY_CLOUD_SERVER/SHELLY_CLOUD_KEY env vars)') }}</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">{{ _('Auth Key (Optional)') }}</label>

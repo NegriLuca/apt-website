@@ -3,6 +3,8 @@ Smart Lock Service for Nuki Smart Lock Ultra and Shelly Mini 1 Gen4 integration.
 Handles guest access control for apartment door and building gate.
 """
 
+import os
+
 import requests
 from flask import current_app
 
@@ -24,6 +26,50 @@ class ShellyService:
         self.channel = apartment.shelly_relay_channel or 0
         self.pulse_duration = apartment.shelly_pulse_duration or 3
 
+        # Cloud Control API config (used when SHELLY_CLOUD_SERVER + SHELLY_CLOUD_KEY are set).
+        # Controlled by device ID, so it works from a cloud-hosted app and survives IP changes.
+        self.cloud_server = (os.environ.get('SHELLY_CLOUD_SERVER') or '').strip()
+        self.cloud_key = (os.environ.get('SHELLY_CLOUD_KEY') or self.auth_key or '').strip()
+        self.cloud_device_id = os.environ.get('SHELLY_DEVICE_ID') or self.host or ''
+
+    @property
+    def in_cloud_mode(self):
+        return bool(self.cloud_server and self.cloud_key and self.cloud_device_id)
+
+    def _cloud_url(self, endpoint):
+        base = self.cloud_server
+        if not base.startswith(('http://', 'https://')):
+            base = f'https://{base}'
+        return f'{base}{endpoint}'
+
+    def _cloud_get_status(self):
+        """Get device status through the Shelly Cloud Control API (v2)."""
+        resp = requests.post(
+            self._cloud_url('/v2/devices/api/get'),
+            params={'auth_key': self.cloud_key},
+            json={'ids': [self.cloud_device_id], 'select': ['status']},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return data[0] if isinstance(data, list) and data else data
+
+    def _cloud_relay_control(self, on):
+        """Control a relay channel through the Shelly Cloud Control API (v2)."""
+        payload = {
+            'id': self.cloud_device_id,
+            'channel': self.channel,
+            'on': on,
+        }
+        resp = requests.post(
+            self._cloud_url('/v2/devices/api/set/switch'),
+            params={'auth_key': self.cloud_key},
+            json=payload,
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.json() if resp.content else {}
+
     def _get_base_url(self):
         """Get base URL for Shelly API"""
         if not self.host:
@@ -41,12 +87,18 @@ class ShellyService:
 
     def is_configured(self):
         """Check if Shelly is properly configured"""
-        return self.enabled and bool(self.host)
+        return self.enabled and (self.in_cloud_mode or bool(self.host))
 
     def get_status(self):
         """Get Shelly device status"""
         if not self.is_configured():
             raise SmartLockError('Shelly not configured')
+
+        if self.in_cloud_mode:
+            try:
+                return self._cloud_get_status()
+            except requests.RequestException as e:
+                raise SmartLockError(f'Failed to get Shelly status: {e}')
 
         url = f'{self._get_base_url()}/rpc/Shelly.GetStatus'
         try:
@@ -61,8 +113,19 @@ class ShellyService:
         if not self.is_configured():
             raise SmartLockError('Shelly not configured')
 
+        if self.in_cloud_mode:
+            # Device is configured with auto_off on the relay, so a plain "on"
+            # is enough — the Shelly closes the gate itself after auto_off_delay.
+            try:
+                result = self._cloud_relay_control(on=True)
+                current_app.logger.info(f'Shelly gate pulse triggered via cloud: {result}')
+                return True, 'Gate opened successfully'
+            except requests.RequestException as e:
+                current_app.logger.error(f'Shelly cloud pulse failed: {e}')
+                raise SmartLockError(f'Failed to pulse gate: {e}')
+
         url = f'{self._get_base_url()}/rpc/Switch.Set'
-        payload = {'id': self.channel, 'on': True, 'toggle_after': self.pulse_duration}
+        payload = {'id': self.channel, 'on': True}
 
         try:
             resp = requests.post(url, headers=self._get_headers(), json=payload, timeout=10)
@@ -79,6 +142,14 @@ class ShellyService:
         if not self.is_configured():
             raise SmartLockError('Shelly not configured')
 
+        if self.in_cloud_mode:
+            try:
+                result = self._cloud_relay_control(on=True)
+                current_app.logger.info(f'Shelly relay ON via cloud: {result}')
+                return True, 'Gate opened'
+            except requests.RequestException as e:
+                raise SmartLockError(f'Failed to open gate: {e}')
+
         url = f'{self._get_base_url()}/rpc/Switch.Set'
         payload = {'id': self.channel, 'on': True}
 
@@ -93,6 +164,14 @@ class ShellyService:
         """Turn relay OFF (close gate)"""
         if not self.is_configured():
             raise SmartLockError('Shelly not configured')
+
+        if self.in_cloud_mode:
+            try:
+                result = self._cloud_relay_control(on=False)
+                current_app.logger.info(f'Shelly relay OFF via cloud: {result}')
+                return True, 'Gate closed'
+            except requests.RequestException as e:
+                raise SmartLockError(f'Failed to close gate: {e}')
 
         url = f'{self._get_base_url()}/rpc/Switch.Set'
         payload = {'id': self.channel, 'on': False}
