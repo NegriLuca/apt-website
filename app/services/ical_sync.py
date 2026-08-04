@@ -22,6 +22,22 @@ from app.models import ICalFeed, Reservation
 log = logging.getLogger(__name__)
 
 
+def _source_variants(feed_source: str) -> set[str]:
+    """Return the DB source values that belong to one platform feed.
+
+    Feed labels are 'airbnb' / 'booking' / 'vrbo', but reservations are stored
+    under the display source (e.g. 'booking_com'), so orphan/blocked lookups
+    must match both spellings.
+    """
+    s = (feed_source or '').lower()
+    variants = {s}
+    if s == 'booking':
+        variants.add('booking_com')
+    elif s == 'booking_com':
+        variants.add('booking')
+    return variants
+
+
 # ── low-level: sync a single feed URL ────────────────────────────────────────
 
 
@@ -123,7 +139,7 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
     cancelled = 0
     if live_uids:
         orphans = Reservation.query.filter(
-            Reservation.source == feed.source,
+            Reservation.source.in_(_source_variants(feed.source)),
             Reservation.external_uid.isnot(None),
             Reservation.status == 'confirmed',
             Reservation.external_uid.notin_(live_uids),
@@ -183,7 +199,7 @@ def get_blocked_dates():
     active_feeds = ICalFeed.query.filter_by(active=True).all()
     for feed in active_feeds:
         reservations = Reservation.query.filter(
-            Reservation.source == feed.source,
+            Reservation.source.in_(_source_variants(feed.source)),
             Reservation.status == 'confirmed',
         ).all()
         for r in reservations:

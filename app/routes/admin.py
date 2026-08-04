@@ -337,6 +337,83 @@ def admin_cancel_via_token(token: str) -> Response | str:
     return redirect(url_for('routes.admin_dashboard'))
 
 
+def _is_external_reservation(res: Reservation) -> bool:
+    return res.source not in ('direct', 'stripe')
+
+
+@bp.route('/admin/reservations/<int:res_id>/edit', methods=['POST'])
+@login_required
+def admin_edit_reservation(res_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(res_id)
+    if not _is_external_reservation(res):
+        flash('Only external (Airbnb/Booking/VRBO) reservations can be edited here.', 'warning')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    try:
+        check_in = date.fromisoformat(request.form.get('check_in', ''))
+        check_out = date.fromisoformat(request.form.get('check_out', ''))
+    except ValueError:
+        flash('Invalid dates.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    num_guests = request.form.get('num_guests', type=int) or res.num_guests
+
+    if check_out <= check_in:
+        flash('Check-out must be after check-in.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+    if (check_out - check_in).days > 28:
+        flash('You can book a maximum of 28 nights.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+    if not (1 <= num_guests <= 4):
+        flash('Guests must be between 1 and 4.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    conflicts = Reservation.query.filter(
+        Reservation.status != 'cancelled',
+        Reservation.id != res_id,
+        Reservation.check_in < check_out,
+        Reservation.check_out > check_in,
+    ).count()
+    if conflicts:
+        flash('Those dates overlap another reservation.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    res.check_in = check_in
+    res.check_out = check_out
+    res.num_guests = num_guests
+    res.num_adults = num_guests
+    res.num_children = 0
+    db.session.commit()
+    admin_audit_log('edit_reservation', 'Reservation', res_id, f'{res.source} {check_in} → {check_out}')
+    flash(f'Reservation #{res_id} updated.', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
+@bp.route('/admin/reservations/<int:res_id>/delete', methods=['POST'])
+@login_required
+def admin_delete_reservation(res_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(res_id)
+    if not _is_external_reservation(res):
+        flash('Only external (Airbnb/Booking/VRBO) reservations can be deleted here.', 'warning')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    from app.models import QuesturaLog, Ross1000Log
+
+    QuesturaLog.query.filter_by(reservation_id=res_id).delete()
+    Ross1000Log.query.filter_by(reservation_id=res_id).delete()
+    db.session.delete(res)
+    db.session.commit()
+    admin_audit_log('delete_reservation', 'Reservation', res_id, f'Deleted {res.source} reservation')
+    flash(f'Reservation #{res_id} deleted.', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
 # ── Feeds ────────────────────────────────────────────────────────────────────
 
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-04 11:52+0200\n"
+"POT-Creation-Date: 2026-08-04 12:14+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es <LL@li.org>\n"
@@ -30,6 +30,7 @@ msgstr "Correo electrónico"
 #: app/forms.py:18 app/templates/admin_compliance.html:145
 #: app/templates/admin_dashboard.html:114
 #: app/templates/admin_dashboard.html:144
+#: app/templates/admin_dashboard.html:258
 #: app/templates/admin_guest_checkin.html:109
 #: app/templates/admin_questura.html:67 app/templates/admin_ross1000.html:65
 #: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
@@ -39,6 +40,7 @@ msgid "Check-in"
 msgstr "Check-in"
 
 #: app/forms.py:19 app/templates/admin_dashboard.html:145
+#: app/templates/admin_dashboard.html:262
 #: app/templates/admin_guest_checkin.html:113
 #: app/templates/admin_questura.html:68 app/templates/admin_ross1000.html:66
 #: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
@@ -87,7 +89,7 @@ msgstr "Dirección de correo electrónico"
 msgid "Message"
 msgstr "Mensaje"
 
-#: app/forms.py:61 app/templates/admin_dashboard.html:208
+#: app/forms.py:61 app/templates/admin_dashboard.html:223
 #: app/templates/contact.html:39
 msgid "Send message"
 msgstr "Enviar mensaje"
@@ -718,23 +720,62 @@ msgstr ""
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: app/templates/admin_dashboard.html:213
+#: app/templates/admin_dashboard.html:211
+msgid "Edit dates"
+msgstr "Editar fechas"
+
+#: app/templates/admin_dashboard.html:218
+msgid ""
+"Delete this external reservation? This frees the dates until the next iCal "
+"sync."
+msgstr ""
+"¿Eliminar esta reserva externa? Liberará las fechas hasta la próxima "
+"sincronización iCal."
+
+#: app/templates/admin_dashboard.html:220
+#: app/templates/admin_testimonials.html:147
+#: app/templates/admin_testimonials.html:148
+msgid "Delete"
+msgstr "Eliminar"
+
+#: app/templates/admin_dashboard.html:228
 msgid "No reservations."
 msgstr "No hay reservas."
 
-#: app/templates/admin_dashboard.html:222
+#: app/templates/admin_dashboard.html:237
 #: app/templates/admin_ical_feeds.html:2
 msgid "iCal Feeds"
 msgstr "Feeds iCal"
 
-#: app/templates/admin_dashboard.html:224
+#: app/templates/admin_dashboard.html:239
 msgid "Manage Feeds"
 msgstr "Gestionar feeds"
 
-#: app/templates/admin_dashboard.html:227
+#: app/templates/admin_dashboard.html:242
 #, fuzzy
 msgid "Sync Now"
 msgstr "Sincronizar feeds ahora"
+
+#: app/templates/admin_dashboard.html:253
+msgid "Edit external reservation"
+msgstr "Editar reserva externa"
+
+#: app/templates/admin_dashboard.html:266 app/templates/admin_ross1000.html:67
+#: app/templates/admin_tourist_tax.html:159
+#: app/templates/admin_tourist_tax.html:209 app/templates/checkout.html:50
+#: app/templates/guest_self_checkin.html:38
+msgid "Guests"
+msgstr "Huéspedes"
+
+#: app/templates/admin_dashboard.html:271 app/templates/admin_pricing.html:122
+#: app/templates/admin_ross1000_logs.html:78
+#: app/templates/admin_testimonials.html:170
+msgid "Close"
+msgstr "Cerrar"
+
+#: app/templates/admin_dashboard.html:272
+msgid "Save changes"
+msgstr "Guardar cambios"
 
 #: app/templates/admin_guest_checkin.html:2
 msgid "Guest Check-in - Questura Data"
@@ -1118,12 +1159,6 @@ msgstr "Valor fijo"
 msgid "VALUE AMOUNT"
 msgstr "IMPORTE"
 
-#: app/templates/admin_pricing.html:122
-#: app/templates/admin_ross1000_logs.html:78
-#: app/templates/admin_testimonials.html:170
-msgid "Close"
-msgstr "Cerrar"
-
 #: app/templates/admin_pricing.html:123
 msgid "Publish Code"
 msgstr "Publicar código"
@@ -1249,13 +1284,6 @@ msgstr ""
 #: app/templates/admin_ross1000.html:41 app/templates/admin_ross1000.html:107
 msgid "Send to ROSS1000"
 msgstr ""
-
-#: app/templates/admin_ross1000.html:67
-#: app/templates/admin_tourist_tax.html:159
-#: app/templates/admin_tourist_tax.html:209 app/templates/checkout.html:50
-#: app/templates/guest_self_checkin.html:38
-msgid "Guests"
-msgstr "Huéspedes"
 
 #: app/templates/admin_ross1000.html:68
 #, fuzzy
@@ -1460,11 +1488,6 @@ msgstr "Destacar"
 msgid ""
 "Are you sure you want to delete this testimonial? This cannot be undone."
 msgstr "¿Seguro que quieres eliminar este testimonio? No se puede deshacer."
-
-#: app/templates/admin_testimonials.html:147
-#: app/templates/admin_testimonials.html:148
-msgid "Delete"
-msgstr "Eliminar"
 
 #: app/templates/admin_testimonials.html:156
 msgid "No testimonials submitted yet."
@@ -3418,7 +3441,7 @@ msgid "Security Notice:"
 msgstr "Aviso de seguridad:"
 
 #: app/templates/guest_portal.html:157
-#, fuzzy, python-format
+#, fuzzy
 msgid ""
 "This access is personal and valid from 13:00 on check-in day to 13:00 on "
 "check-out day (Rome time)."

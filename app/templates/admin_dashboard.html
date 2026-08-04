@@ -205,6 +205,21 @@
                                         <button type="submit" class="btn btn-sm btn-danger">{{ _('Cancel') }}</button>
                                     </form>
                                 {% endif %}
+                                {% if r.source not in ['direct', 'stripe'] %}
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            title="{{ _('Edit dates') }}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editResModal"
+                                            data-action="{{ url_for('routes.admin_edit_reservation', res_id=r.id) }}"
+                                            data-checkin="{{ r.check_in.isoformat() }}"
+                                            data-checkout="{{ r.check_out.isoformat() }}"
+                                            data-guests="{{ r.num_guests }}">✏️</button>
+                                    <form action="{{ url_for('routes.admin_delete_reservation', res_id=r.id) }}" method="POST" onsubmit="return confirm('{{ _('Delete this external reservation? This frees the dates until the next iCal sync.') }}')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">🗑</button>
+                                    </form>
+                                {% endif %}
                                 <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('Send message') }}">💬</a>
                             </div>
                         </td>
@@ -229,4 +244,49 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editResModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="" id="editResForm" class="modal-content border-0 shadow-sm" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="modal-header">
+                <h5 class="modal-title">{{ _('Edit external reservation') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="edit_res_check_in" class="form-label fw-semibold">{{ _('Check-in') }}</label>
+                    <input type="date" class="form-control" name="check_in" id="edit_res_check_in" required>
+                </div>
+                <div class="mb-3">
+                    <label for="edit_res_check_out" class="form-label fw-semibold">{{ _('Check-out') }}</label>
+                    <input type="date" class="form-control" name="check_out" id="edit_res_check_out" required>
+                </div>
+                <div class="mb-3">
+                    <label for="edit_res_guests" class="form-label fw-semibold">{{ _('Guests') }}</label>
+                    <input type="number" class="form-control" name="num_guests" id="edit_res_guests" min="1" max="4" value="1" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Close') }}</button>
+                <button type="submit" class="btn btn-primary">{{ _('Save changes') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editModal = document.getElementById('editResModal');
+    if (!editModal) return;
+    editModal.addEventListener('show.bs.modal', function(event) {
+        const btn = event.relatedTarget;
+        if (!btn || !btn.dataset.action) return;
+        document.getElementById('editResForm').action = btn.dataset.action;
+        document.getElementById('edit_res_check_in').value = btn.dataset.checkin || '';
+        document.getElementById('edit_res_check_out').value = btn.dataset.checkout || '';
+        document.getElementById('edit_res_guests').value = btn.dataset.guests || '1';
+    });
+});
+</script>
 {% endblock %}
