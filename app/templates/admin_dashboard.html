@@ -131,13 +131,22 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Reservation Ledger') }}</h4>
+        <div id="bulk-actions" style="display: none;">
+            <form action="{{ url_for('routes.admin_bulk_delete_reservations') }}" method="POST" id="bulk-delete-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('Delete selected reservations? This cannot be undone.') }}')">{{ _('Delete Selected') }}</button>
+                <button type="button" class="btn btn-sm btn-secondary" id="bulk-cancel-btn">{{ _('Cancel Selection') }}</button>
+            </form>
+        </div>
     </div>
 
+    <form id="reservation-list-form">
     <div class="card border-0 shadow-sm mb-5">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
+                        <th><input type="checkbox" id="select-all" /></th>
                         <th>{{ _('ID') }}</th>
                         <th>{{ _('Guest') }}</th>
                         <th>{{ _('Source') }}</th>
@@ -152,6 +161,7 @@
                 <tbody>
                     {% for r in reservations %}
                     <tr>
+                        <td><input type="checkbox" name="reservation_ids" value="{{ r.id }}" class="res-checkbox" /></td>
                         <td><span class="text-muted">#{{ r.id }}</span></td>
                         <td>
                             <strong>{{ r.guest_name }}</strong>
@@ -205,6 +215,10 @@
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-danger">{{ _('Cancel') }}</button>
                                     </form>
+                                    <form action="{{ url_for('routes.admin_delete_reservation', res_id=r.id) }}" method="POST" onsubmit="return confirm('{{ _('Delete this reservation permanently? This cannot be undone.') }}')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">🗑</button>
+                                    </form>
                                 {% endif %}
                                 {% if r.source not in ['direct', 'stripe'] %}
                                     <button type="button"
@@ -226,12 +240,13 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="9" class="text-center text-muted py-4">{{ _('No reservations.') }}</td></tr>
+                    <tr><td colspan="10" class="text-center text-muted py-4">{{ _('No reservations.') }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+    </form>
 
     <hr class="my-5 opacity-25">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -279,15 +294,44 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const editModal = document.getElementById('editResModal');
-    if (!editModal) return;
-    editModal.addEventListener('show.bs.modal', function(event) {
-        const btn = event.relatedTarget;
-        if (!btn || !btn.dataset.action) return;
-        document.getElementById('editResForm').action = btn.dataset.action;
-        document.getElementById('edit_res_check_in').value = btn.dataset.checkin || '';
-        document.getElementById('edit_res_check_out').value = btn.dataset.checkout || '';
-        document.getElementById('edit_res_guests').value = btn.dataset.guests || '1';
-    });
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function(event) {
+            const btn = event.relatedTarget;
+            if (!btn || !btn.dataset.action) return;
+            document.getElementById('editResForm').action = btn.dataset.action;
+            document.getElementById('edit_res_check_in').value = btn.dataset.checkin || '';
+            document.getElementById('edit_res_check_out').value = btn.dataset.checkout || '';
+            document.getElementById('edit_res_guests').value = btn.dataset.guests || '1';
+        });
+    }
+
+    const selectAll = document.getElementById('select-all');
+    const bulkActions = document.getElementById('bulk-actions');
+    const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.res-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkActions();
+        });
+        const checkboxes = document.querySelectorAll('.res-checkbox');
+        checkboxes.forEach(cb => cb.addEventListener('change', function() {
+            const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(c => c.checked);
+            selectAll.checked = allChecked;
+            toggleBulkActions();
+        }));
+    }
+    function toggleBulkActions() {
+        const anyChecked = document.querySelectorAll('.res-checkbox:checked').length > 0;
+        if (bulkActions) bulkActions.style.display = anyChecked ? 'block' : 'none';
+    }
+    if (bulkCancelBtn) {
+        bulkCancelBtn.addEventListener('click', function() {
+            document.querySelectorAll('.res-checkbox').forEach(cb => cb.checked = false);
+            selectAll.checked = false;
+            toggleBulkActions();
+        });
+    }
 });
 </script>
 {% endblock %}

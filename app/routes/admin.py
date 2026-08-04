@@ -399,9 +399,6 @@ def admin_delete_reservation(res_id: int) -> Response | str:
         abort(403)
 
     res = Reservation.query.get_or_404(res_id)
-    if not _is_external_reservation(res):
-        flash('Only external (Airbnb/Booking/VRBO) reservations can be deleted here.', 'warning')
-        return redirect(url_for('routes.admin_dashboard'))
 
     from app.models import QuesturaLog, Ross1000Log
 
@@ -411,6 +408,32 @@ def admin_delete_reservation(res_id: int) -> Response | str:
     db.session.commit()
     admin_audit_log('delete_reservation', 'Reservation', res_id, f'Deleted {res.source} reservation')
     flash(f'Reservation #{res_id} deleted.', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
+@bp.route('/admin/reservations/bulk-delete', methods=['POST'])
+@login_required
+def admin_bulk_delete_reservations() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    from app.models import QuesturaLog, Ross1000Log
+
+    selected_ids = request.form.getlist('reservation_ids', type=int)
+    if not selected_ids:
+        flash('No reservations selected.', 'warning')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    reservations = Reservation.query.filter(Reservation.id.in_(selected_ids)).all()
+
+    for res in reservations:
+        QuesturaLog.query.filter_by(reservation_id=res.id).delete()
+        Ross1000Log.query.filter_by(reservation_id=res.id).delete()
+        db.session.delete(res)
+
+    db.session.commit()
+    admin_audit_log('bulk_delete_reservations', 'Reservation', None, f'Deleted {len(reservations)} reservations')
+    flash(f'{len(reservations)} reservation(s) deleted.', 'success')
     return redirect(url_for('routes.admin_dashboard'))
 
 

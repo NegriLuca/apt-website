@@ -15,24 +15,31 @@
                 <div class="table-responsive">
                     <table class="table mb-0">
                         <thead class="table-light">
-                            <tr>
-                                <th>{{ _('Source') }}</th>
-                                <th>{{ _('URL') }}</th>
-                                <th>{{ _('Last Sync') }}</th>
-                                <th>{{ _('Active') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for f in feeds %}
-                            <tr>
-                                <td><span class="badge bg-{{ 'danger' if f.source == 'airbnb' else 'primary' if f.source == 'booking' else 'info' }}">{{ f.source }}</span></td>
-                                <td class="small" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ f.url }}</td>
-                                <td class="small">{{ f.last_synced_at.strftime('%d/%m/%Y %H:%M') if f.last_synced_at else '—' }}</td>
-                                <td>{% if f.active %}<span class="badge bg-success">{{ _('Active') }}</span>{% else %}<span class="badge bg-secondary">{{ _('Inactive') }}</span>{% endif %}</td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="4" class="text-center text-muted py-3">{{ _('No feeds configured.') }}</td></tr>
-                            {% endfor %}
+                             <tr>
+                                 <th>{{ _('Source') }}</th>
+                                 <th>{{ _('URL') }}</th>
+                                 <th>{{ _('Last Sync') }}</th>
+                                 <th>{{ _('Active') }}</th>
+                                 <th>{{ _('Actions') }}</th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             {% for f in feeds %}
+                             <tr>
+                                 <td><span class="badge bg-{{ 'danger' if f.source == 'airbnb' else 'primary' if f.source == 'booking' else 'info' }}">{{ f.source }}</span></td>
+                                 <td class="small" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ f.url }}</td>
+                                 <td class="small">{{ f.last_synced_at.strftime('%d/%m/%Y %H:%M') if f.last_synced_at else '—' }}</td>
+                                 <td>{% if f.active %}<span class="badge bg-success">{{ _('Active') }}</span>{% else %}<span class="badge bg-secondary">{{ _('Inactive') }}</span>{% endif %}</td>
+                                 <td>
+                                     <form action="{{ url_for('routes.delete_feed', feed_id=f.id) }}" method="POST" onsubmit="return confirm('{{ _('Delete this iCal feed? This cannot be undone.') }}')">
+                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete feed') }}">🗑</button>
+                                     </form>
+                                 </td>
+                             </tr>
+                             {% else %}
+                             <tr><td colspan="5" class="text-center text-muted py-3">{{ _('No feeds configured.') }}</td></tr>
+                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
