@@ -32,6 +32,20 @@ class ReservationForm(FlaskForm):
     )
     submit: SubmitField = SubmitField(_('Proceed to payment'))
 
+    MAX_GUESTS = 4
+
+    def validate(self, extra_validators=None) -> bool:
+        """Reject bookings with more than MAX_GUESTS (adults + children)."""
+        if not super().validate(extra_validators):
+            return False
+        total = self.num_adults.data + self.num_children.data
+        if total > self.MAX_GUESTS:
+            self.num_children.errors.append(
+                f'Total guests (adults + children) cannot exceed {self.MAX_GUESTS}.'
+            )
+            return False
+        return True
+
 
 class LoginForm(FlaskForm):
     username: StringField = StringField(_('Username'), validators=[DataRequired(), Length(min=2, max=20)])

@@ -56,12 +56,19 @@
                     <div class="col-6">
                         {{ form.num_adults.label(class="form-label fw-semibold text-uppercase small") }}
                         {{ form.num_adults(class="form-select form-select-lg") }}
+                        {% for error in form.num_adults.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
                     </div>
                     <div class="col-6">
                         {{ form.num_children.label(class="form-label fw-semibold text-uppercase small") }}
                         {{ form.num_children(class="form-select form-select-lg") }}
+                        {% for error in form.num_children.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
                     </div>
                 </div>
+                <div id="guests_limit_msg" class="text-danger small mt-1 mb-3" style="display:none">{{ _('Maximum 4 guests per booking.') }}</div>
 
                 <div class="card border-0 bg-luxury-floor p-4 mb-4">
                     <label class="form-label fw-bold text-muted small text-uppercase mb-2">{{ _('Have a Promo Code?') }}</label>
@@ -129,11 +136,26 @@ document.addEventListener("DOMContentLoaded", function() {
     const priceCalculationRow = document.getElementById("price_calculation_row");
     const numAdultsSelect = document.getElementById("num_adults");
     const numChildrenSelect = document.getElementById("num_children");
+    const guestsLimitMsg = document.getElementById("guests_limit_msg");
+    const MAX_GUESTS = 4;
 
     function getTotalGuests() {
         const a = numAdultsSelect ? parseInt(numAdultsSelect.value) || 0 : 2;
         const c = numChildrenSelect ? parseInt(numChildrenSelect.value) || 0 : 0;
         return Math.max(1, a + c);
+    }
+
+    // Keep adults + children within the 4-guest limit automatically.
+    function clampGuests() {
+        if (!numAdultsSelect || !numChildrenSelect) return;
+        let a = parseInt(numAdultsSelect.value) || 1;
+        let c = parseInt(numChildrenSelect.value) || 0;
+        const clamped = a + c > MAX_GUESTS;
+        c = Math.min(c, MAX_GUESTS - a);
+        numChildrenSelect.value = c;
+        if (guestsLimitMsg) {
+            guestsLimitMsg.style.display = clamped ? "block" : "none";
+        }
     }
 
     const selectDatesWarning = `{{ _('Please select a valid check-in date range first.') }}`;
@@ -228,8 +250,13 @@ document.addEventListener("DOMContentLoaded", function() {
             });
     }
 
-    if (numAdultsSelect) numAdultsSelect.addEventListener('change', refreshPriceForGuests);
-    if (numChildrenSelect) numChildrenSelect.addEventListener('change', refreshPriceForGuests);
+    function onGuestChange() {
+        clampGuests();
+        refreshPriceForGuests();
+    }
+
+    if (numAdultsSelect) numAdultsSelect.addEventListener('change', onGuestChange);
+    if (numChildrenSelect) numChildrenSelect.addEventListener('change', onGuestChange);
 
     const currentLang = `{{ session.get('language', 'en') }}`;
     const blockedCheckin = checkinBlocked || [];

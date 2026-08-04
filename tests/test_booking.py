@@ -43,6 +43,28 @@ class TestBookingFlow:
             assert res.status == 'pending'
             assert res.payment_method == 'wire_transfer'
 
+    def test_booking_blocked_over_max_guests(self, client, app):
+        with app.app_context():
+            check_in = date.today() + timedelta(days=30)
+            check_out = check_in + timedelta(days=3)
+
+            resp = client.post(
+                '/reserve',
+                data={
+                    'guest_name': 'Too Many',
+                    'guest_email': 'many@example.com',
+                    'check_in': check_in.isoformat(),
+                    'check_out': check_out.isoformat(),
+                    'num_adults': 4,
+                    'num_children': 2,
+                },
+                follow_redirects=True,
+            )
+            assert resp.status_code == 200
+            assert b'cannot exceed 4' in resp.data
+            res = Reservation.query.filter_by(guest_email='many@example.com').first()
+            assert res is None
+
     def test_reservation_nights_calculation(self, app):
         with app.app_context():
             res = Reservation(
