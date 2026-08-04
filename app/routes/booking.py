@@ -11,6 +11,8 @@ from app.models import Coupon, Reservation
 from app.routes import bp
 from app.routes.helpers import (
     _send_confirmation_emails,
+    apply_full_payment_discount,
+    calculate_city_tax,
     calculate_dynamic_total,
     calculate_refund_percentage,
     get_apartment,
@@ -19,6 +21,7 @@ from app.routes.helpers import (
     send_payment_verified_email,
     send_pending_payment_email,
 )
+from app.services.tourist_tax import get_tax_service
 
 
 @bp.route('/reserve', methods=['GET', 'POST'])
@@ -61,7 +64,15 @@ def reserve():
             return redirect(request.url)
 
         coupon_code = request.form.get('applied_coupon_code', '').strip().upper()
-        num_guests = form.num_guests.data
+        num_adults = form.num_adults.data
+        num_children = form.num_children.data
+        num_guests = num_adults + num_children
+
+        max_guests = apartment.max_guests or 4
+        if num_guests > max_guests:
+            flash(f'Maximum {max_guests} guests allowed.', 'danger')
+            return redirect(request.url)
+
         base_total = calculate_dynamic_total(
             check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night
         )
@@ -79,7 +90,9 @@ def reserve():
             'guest_email': form.guest_email.data,
             'check_in': check_in.isoformat(),
             'check_out': check_out.isoformat(),
-            'num_guests': form.num_guests.data,
+            'num_guests': num_guests,
+            'num_adults': num_adults,
+            'num_children': num_children,
             'base_total': base_total,
             'total_price': final_total,
             'coupon_code': validated_code,
@@ -109,6 +122,8 @@ def checkout():
 
     base_rate = apartment.price_per_night if apartment else 0
     num_guests = pending.get('num_guests', 2)
+    num_adults = pending.get('num_adults', num_guests)
+    num_children = pending.get('num_children', 0)
     calculated_base = calculate_dynamic_total(check_in, check_out, num_guests=num_guests, base_rate=base_rate)
 
     base_total = pending.get('base_total', calculated_base)
@@ -118,6 +133,13 @@ def checkout():
     guest_surcharge_per_night = extra_guests * 15.0
     guest_surcharge_total = guest_surcharge_per_night * nights
     discount_pct = 10 if nights >= 7 else 0
+
+    city_tax = calculate_city_tax(check_in, check_out, num_adults, apartment)
+    city_tax_rate = get_tax_service(apartment).rate if apartment else 6.0
+    stay_cost = round(total_price - city_tax, 2)
+    full_pay_total = apply_full_payment_discount(total_price)
+    full_pay_savings = round(total_price - full_pay_total, 2)
+    deposit_total = round(total_price * 0.3, 2)
 
     stripe_pub = current_app.config.get('STRIPE_PUBLISHABLE_KEY', '')
 
@@ -129,7 +151,16 @@ def checkout():
         base_rate=base_rate,
         base_total=base_total,
         total=total_price,
+        city_tax=city_tax,
+        city_tax_rate=city_tax_rate,
+        stay_cost=stay_cost,
+        full_pay_discount_pct=3,
+        full_pay_total=full_pay_total,
+        full_pay_savings=full_pay_savings,
+        deposit_total=deposit_total,
         num_guests=num_guests,
+        num_adults=num_adults,
+        num_children=num_children,
         extra_guests=extra_guests,
         guest_surcharge_per_night=guest_surcharge_per_night,
         guest_surcharge_total=guest_surcharge_total,
@@ -159,15 +190,21 @@ def process_payment():
 
         base_rate = apartment.price_per_night if apartment else 0
         num_guests = int(pending['num_guests'])
+        num_adults = int(pending.get('num_adults', num_guests))
+        num_children = int(pending.get('num_children', 0))
         fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, num_guests=num_guests, base_rate=base_rate)
-        total_price = pending.get('total_price', fallback_total)
+        full_total = pending.get('total_price', fallback_total)
+        total_price = apply_full_payment_discount(full_total)
+        tourist_tax_amount = calculate_city_tax(check_in_dt, check_out_dt, num_adults, apartment)
 
         new_reservation = Reservation(
             guest_name=pending['guest_name'],
             guest_email=pending['guest_email'],
             check_in=check_in_dt,
             check_out=check_out_dt,
-            num_guests=int(pending['num_guests']),
+            num_guests=num_guests,
+            num_adults=num_adults,
+            num_children=num_children,
             status='pending',
             source='direct',
             total_price=total_price,
@@ -175,6 +212,7 @@ def process_payment():
             payment_status='unpaid',
             payment_method='wire_transfer',
             cancel_token=secrets.token_urlsafe(32),
+            tourist_tax_amount=tourist_tax_amount,
         )
         if not new_reservation.access_token:
             new_reservation.generate_access_token()
@@ -220,13 +258,19 @@ def create_checkout_session():
 
     base_rate = apartment.price_per_night if apartment else 0
     num_guests = int(pending['num_guests'])
+    num_adults = int(pending.get('num_adults', num_guests))
+    num_children = int(pending.get('num_children', 0))
     fallback_total = calculate_dynamic_total(check_in_dt, check_out_dt, num_guests=num_guests, base_rate=base_rate)
 
     stripe_amount = request.form.get('stripe_amount', 'full')
-    total_price = pending.get('total_price', fallback_total)
+    full_total = pending.get('total_price', fallback_total)
     is_deposit = stripe_amount == 'deposit'
     if is_deposit:
-        total_price = round(total_price * 0.3, 2)
+        amount_to_charge = round(full_total * 0.3, 2)
+        invoice_total = full_total
+    else:
+        amount_to_charge = apply_full_payment_discount(full_total)
+        invoice_total = amount_to_charge
 
     stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
     if not stripe.api_key:
@@ -238,7 +282,7 @@ def create_checkout_session():
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {'name': 'Apartment Booking'},
-                    'unit_amount': int(total_price * 100),
+                    'unit_amount': int(amount_to_charge * 100),
                 },
                 'quantity': 1,
             }
@@ -253,8 +297,10 @@ def create_checkout_session():
             'check_in': pending['check_in'],
             'check_out': pending['check_out'],
             'num_guests': str(num_guests),
-            'total_price': str(pending.get('total_price', fallback_total)),
-            'amount_paid': str(total_price),
+            'num_adults': str(num_adults),
+            'num_children': str(num_children),
+            'total_price': str(invoice_total),
+            'amount_paid': str(amount_to_charge),
             'is_deposit': str(is_deposit),
             'coupon_code': pending.get('coupon_code', ''),
         },
@@ -266,8 +312,10 @@ def create_checkout_session():
         'check_in': pending['check_in'],
         'check_out': pending['check_out'],
         'num_guests': str(num_guests),
-        'total_price': str(pending.get('total_price', fallback_total)),
-        'amount_paid': str(total_price),
+        'num_adults': str(num_adults),
+        'num_children': str(num_children),
+        'total_price': str(invoice_total),
+        'amount_paid': str(amount_to_charge),
         'is_deposit': str(is_deposit),
         'coupon_code': pending.get('coupon_code', ''),
     }
@@ -333,12 +381,23 @@ def _create_reservation_from_stripe(cs):
     except (TypeError, ValueError):
         amount_paid = total_price
 
+    num_guests = int(meta.get('num_guests', 1))
+    num_adults = int(meta.get('num_adults', num_guests))
+    num_children = int(meta.get('num_children', 0))
+
+    try:
+        tourist_tax_amount = calculate_city_tax(check_in, check_out, num_adults, get_apartment())
+    except Exception:
+        tourist_tax_amount = 0.0
+
     reservation = Reservation(
         guest_name=guest_name,
         guest_email=guest_email,
         check_in=check_in,
         check_out=check_out,
-        num_guests=int(meta.get('num_guests', 1)),
+        num_guests=num_guests,
+        num_adults=num_adults,
+        num_children=num_children,
         status='confirmed',
         source='direct',
         cancel_token=secrets.token_urlsafe(32),
@@ -348,6 +407,7 @@ def _create_reservation_from_stripe(cs):
         payment_status='deposit_paid' if is_deposit else ('paid' if data.get('payment_status') == 'paid' else 'unpaid'),
         payment_method='stripe',
         stripe_payment_intent_id=pi_id,
+        tourist_tax_amount=tourist_tax_amount,
     )
     if not reservation.access_token:
         reservation.generate_access_token()

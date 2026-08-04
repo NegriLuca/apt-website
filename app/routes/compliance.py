@@ -242,6 +242,8 @@ def tourist_tax_update_reservation(reservation_id: int) -> Response | str:
 
     if guests is not None and guests > 0:
         res.num_guests = guests
+        res.num_adults = guests
+        res.num_children = 0
 
     if tax_override is not None:
         res.tourist_tax_amount = max(0.0, tax_override)

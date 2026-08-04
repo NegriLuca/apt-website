@@ -36,7 +36,14 @@
                 <li><strong>{{ _('Check-in:') }}</strong> {{ reservation.check_in | format_date(format='medium') }}</li>
                 <li><strong>{{ _('Check-out:') }}</strong> {{ reservation.check_out | format_date(format='medium') }}</li>
                 <li><strong>{{ _('Duration:') }}</strong> {{ nights }} {{ _('night(s)') }}</li>
+                {% if reservation.num_adults %}
+                <li><strong>{{ _('Guests:') }}</strong> {{ reservation.num_adults }} {{ _('adults') }}{% if reservation.num_children %} + {{ reservation.num_children }} {{ _('children') }}{% endif %}</li>
+                {% else %}
                 <li><strong>{{ _('Guests:') }}</strong> {{ reservation.num_guests }}</li>
+                {% endif %}
+                {% if reservation.tourist_tax_amount %}
+                <li><strong>{{ _('City tax:') }}</strong> €{{ "%.2f"|format(reservation.tourist_tax_amount) }}</li>
+                {% endif %}
                 <li><strong>{{ _('Total Amount:') }}</strong> €{{ "%.2f"|format(total) }}</li>
             </ul>
         </div>

@@ -10,7 +10,7 @@ from app import db, limiter
 from app.forms import ICalFeedForm, LoginForm
 from app.models import Apartment, AuditLog, Coupon, ICalFeed, Notification, Reservation, Testimonial, User
 from app.routes import bp
-from app.routes.helpers import get_apartment
+from app.routes.helpers import create_balance_payment_session, get_apartment
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -795,31 +795,9 @@ def admin_charge_balance(res_id: int) -> Response | str:
         flash('No balance remaining.', 'info')
         return redirect(url_for('routes.admin_dashboard'))
 
-    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
-    if not stripe.api_key:
-        abort(500, 'Stripe secret key is not configured.')
-
-    try:
-        session_data = stripe.checkout.Session.create(
-            line_items=[{
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {'name': 'Balance Payment — Lotto 235 Garbatella'},
-                    'unit_amount': int(remaining * 100),
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=url_for('routes.balance_payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('routes.admin_dashboard', _external=True),
-            customer_email=res.guest_email,
-            metadata={
-                'reservation_id': str(res.id),
-                'type': 'balance_payment',
-            },
-        )
-    except stripe.error.StripeError as e:
-        current_app.logger.error('Stripe balance charge failed: %s', e)
+    session_data = create_balance_payment_session(res)
+    if not session_data:
+        current_app.logger.error('Stripe balance charge failed for reservation #%s', res.id)
         flash('Failed to create payment link. Check Stripe configuration.', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
 

@@ -52,9 +52,15 @@
                 {{ form.check_in(type="hidden", id="check_in") }}
                 {{ form.check_out(type="hidden", id="check_out") }}
 
-                <div class="mb-4">
-                    {{ form.num_guests.label(class="form-label fw-semibold text-uppercase small") }}
-                    {{ form.num_guests(class="form-select form-select-lg") }}
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        {{ form.num_adults.label(class="form-label fw-semibold text-uppercase small") }}
+                        {{ form.num_adults(class="form-select form-select-lg") }}
+                    </div>
+                    <div class="col-6">
+                        {{ form.num_children.label(class="form-label fw-semibold text-uppercase small") }}
+                        {{ form.num_children(class="form-select form-select-lg") }}
+                    </div>
                 </div>
 
                 <div class="card border-0 bg-luxury-floor p-4 mb-4">
@@ -121,7 +127,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const couponMessage = document.getElementById("coupon_message");
     const appliedCouponHiddenInput = document.getElementById("applied_coupon_code");
     const priceCalculationRow = document.getElementById("price_calculation_row");
-    const numGuestsSelect = document.getElementById("num_guests");
+    const numAdultsSelect = document.getElementById("num_adults");
+    const numChildrenSelect = document.getElementById("num_children");
+
+    function getTotalGuests() {
+        const a = numAdultsSelect ? parseInt(numAdultsSelect.value) || 0 : 2;
+        const c = numChildrenSelect ? parseInt(numChildrenSelect.value) || 0 : 0;
+        return Math.max(1, a + c);
+    }
 
     const selectDatesWarning = `{{ _('Please select a valid check-in date range first.') }}`;
     const dateUnavailable = `{{ _('This date is not available for check-in.') }}`;
@@ -185,38 +198,38 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Recalculate price when number of guests changes
-    if (numGuestsSelect) {
-        numGuestsSelect.addEventListener('change', function() {
-            if (hiddenCheckIn.value && hiddenCheckOut.value) {
-                const checkInStr = hiddenCheckIn.value;
-                const checkOutStr = hiddenCheckOut.value;
-                const numGuests = parseInt(this.value) || 2;
+    function refreshPriceForGuests() {
+        if (!(hiddenCheckIn.value && hiddenCheckOut.value)) return;
+        const checkInStr = hiddenCheckIn.value;
+        const checkOutStr = hiddenCheckOut.value;
+        const numGuests = getTotalGuests();
 
-                fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&guests=${numGuests}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.error) {
-                            console.error("Pricing Engine Fault:", data.error);
-                            return;
-                        }
+        fetch(`/api/calculate-price?check_in=${checkInStr}&check_out=${checkOutStr}&guests=${numGuests}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    console.error("Pricing Engine Fault:", data.error);
+                    return;
+                }
 
-                        currentBaseTotal = data.total;
+                currentBaseTotal = data.total;
 
-                        if (nightsEl) nightsEl.textContent = data.nights;
-                        if (priceCalculationRow) {
-                            priceCalculationRow.innerHTML = `€<span id="total">${data.total.toFixed(2)}</span>`;
-                        }
-                        // Clear any applied coupon since base total changed
-                        if (couponBox) couponBox.value = "";
-                        if (couponMessage) couponMessage.innerText = "";
-                        if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
-                    })
-                    .catch(err => {
-                        console.error("Failed to connect to backend pricing calculus stream:", err);
-                    });
-            }
-        });
+                if (nightsEl) nightsEl.textContent = data.nights;
+                if (priceCalculationRow) {
+                    priceCalculationRow.innerHTML = `€<span id="total">${data.total.toFixed(2)}</span>`;
+                }
+                // Clear any applied coupon since base total changed
+                if (couponBox) couponBox.value = "";
+                if (couponMessage) couponMessage.innerText = "";
+                if (appliedCouponHiddenInput) appliedCouponHiddenInput.value = "";
+            })
+            .catch(err => {
+                console.error("Failed to connect to backend pricing calculus stream:", err);
+            });
     }
+
+    if (numAdultsSelect) numAdultsSelect.addEventListener('change', refreshPriceForGuests);
+    if (numChildrenSelect) numChildrenSelect.addEventListener('change', refreshPriceForGuests);
 
     const currentLang = `{{ session.get('language', 'en') }}`;
     const blockedCheckin = checkinBlocked || [];
@@ -276,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 const checkInStr = instance.formatDate(checkIn, "Y-m-d");
                 const checkOutStr = instance.formatDate(checkOut, "Y-m-d");
-                const numGuests = numGuestsSelect ? parseInt(numGuestsSelect.value) || 2 : 2;
+                const numGuests = getTotalGuests();
 
                 if (hiddenCheckIn) hiddenCheckIn.value = checkInStr;
                 if (hiddenCheckOut) hiddenCheckOut.value = checkOutStr;

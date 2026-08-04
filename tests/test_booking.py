@@ -18,7 +18,8 @@ class TestBookingFlow:
                     'guest_email': 'mario@example.com',
                     'check_in': check_in.isoformat(),
                     'check_out': check_out.isoformat(),
-                    'num_guests': 2,
+                    'num_adults': 2,
+                    'num_children': 1,
                 },
                 follow_redirects=True,
             )
@@ -36,7 +37,9 @@ class TestBookingFlow:
             res = Reservation.query.filter_by(guest_email='mario@example.com').first()
             assert res is not None
             assert res.guest_name == 'Mario Rossi'
-            assert res.num_guests == 2
+            assert res.num_guests == 3
+            assert res.num_adults == 2
+            assert res.num_children == 1
             assert res.status == 'pending'
             assert res.payment_method == 'wire_transfer'
 

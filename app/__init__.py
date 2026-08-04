@@ -207,6 +207,16 @@ def _start_scheduler(app: Flask):
             else:
                 app.logger.info('iCal auto-sync: +%d / -%d', added, cancelled)
 
+    def _balance_invoice_job():
+        with app.app_context():
+            from app.routes.helpers import send_balance_invoice_reminders
+
+            result = send_balance_invoice_reminders()
+            if result.get('failed'):
+                app.logger.warning('Balance invoice reminders: sent=%s failed=%s', result.get('sent'), result.get('failed'))
+            elif result.get('sent'):
+                app.logger.info('Balance invoice reminders sent: %s', result.get('sent'))
+
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
         _sync_job,
@@ -214,6 +224,15 @@ def _start_scheduler(app: Flask):
         minutes=interval,
         id='ical_sync',
         replace_existing=True,
+    )
+    scheduler.add_job(
+        _balance_invoice_job,
+        trigger='cron',
+        hour=9,
+        minute=0,
+        id='balance_invoice_reminder',
+        replace_existing=True,
+        coalesce=True,
     )
     scheduler.start()
     app.logger.info('iCal scheduler started (every %d min)', interval)

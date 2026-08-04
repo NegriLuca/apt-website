@@ -24,6 +24,22 @@ class TestTouristTaxCalculation:
             expected = 4 * 2 * 6.00
             assert tax == expected
 
+    def test_calculate_tax_uses_num_adults(self, app):
+        with app.app_context():
+            apt = Apartment.query.first()
+            res = Reservation(
+                guest_name='Family Guest',
+                check_in=date(2026, 8, 1),
+                check_out=date(2026, 8, 5),
+                num_guests=4,
+                num_adults=2,
+                num_children=2,
+                status='confirmed',
+            )
+            service = TouristTaxService(apt)
+            tax = service.calculate_tax(res)
+            assert tax == 4 * 2 * 6.00
+
     def test_calculate_tax_with_child_exempt(self, app):
         with app.app_context():
             apt = Apartment.query.first()

@@ -2,53 +2,55 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ _('Booking Confirmation') }}</title>
+    <title>{{ _('Balance Payment Due') }}</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #dddddd; border-radius: 8px; }
         .header { background-color: #0d6efd; color: white; padding: 15px; text-align: center; border-radius: 6px 6px 0 0; }
         .details { margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 6px; }
-        .btn-cancel { display: inline-block; padding: 10px 20px; color: white !important; background-color: #dc3545; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 15px; }
+        .pay-box { background-color: #e7f3ff; border: 1px solid #b3d7ff; color: #004085; padding: 20px; border-radius: 6px; margin: 15px 0; text-align: center; }
+        .pay-box .amount { font-size: 28px; font-weight: bold; color: #0d6efd; }
+        .btn-pay { display: inline-block; padding: 14px 30px; color: white !important; background-color: #0d6efd; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 15px; font-size: 16px; }
         .footer { font-size: 12px; color: #777777; text-align: center; margin-top: 30px; }
+        .muted { color: #666666; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>{{ _('Booking Confirmed! 🎉') }}</h2>
+            <h2>{{ _('Balance Payment Due') }}</h2>
         </div>
-        
+
         <p>{{ _('Hi') }} <strong>{{ reservation.guest_name }}</strong>,</p>
-        <p>{{ _('Thank you for your booking! We are excited to host you at') }} <strong>{{ apartment.name if apartment else _('Our Cozy Apartment') }}</strong>.</p>
-        
+        <p>{{ _('Thank you for booking') }} <strong>{{ apartment.name if apartment else _('Lotto 235 Garbatella') }}</strong>.
+            {{ _('Your deposit has been received. The remaining balance for your stay is now due.') }}</p>
+
+        <div class="pay-box">
+            <div class="muted">{{ _('Remaining balance') }}</div>
+            <div class="amount">€{{ "%.2f"|format(remaining) }}</div>
+            <a href="{{ payment_url }}" class="btn-pay">{{ _('Pay Balance Now') }}</a>
+            <p class="muted" style="margin-top: 12px;">{{ _('This link redirects to Stripe for a secure payment.') }}</p>
+        </div>
+
         <div class="details">
             <h3>{{ _('Stay Details:') }}</h3>
             <ul>
                 <li><strong>{{ _('Check-in:') }}</strong> {{ reservation.check_in | format_date(format='medium') }}</li>
                 <li><strong>{{ _('Check-out:') }}</strong> {{ reservation.check_out | format_date(format='medium') }}</li>
-                <li><strong>{{ _('Duration:') }}</strong> {{ nights }} {{ _('night(s)') }}</li>
                 {% if reservation.num_adults %}
                 <li><strong>{{ _('Guests:') }}</strong> {{ reservation.num_adults }} {{ _('adults') }}{% if reservation.num_children %} + {{ reservation.num_children }} {{ _('children') }}{% endif %}</li>
                 {% else %}
                 <li><strong>{{ _('Guests:') }}</strong> {{ reservation.num_guests }}</li>
                 {% endif %}
+                <li><strong>{{ _('Total stay:') }}</strong> €{{ "%.2f"|format(reservation.total_price) }}</li>
+                <li><strong>{{ _('Deposit paid:') }}</strong> €{{ "%.2f"|format(reservation.amount_paid or 0) }}</li>
                 {% if reservation.tourist_tax_amount %}
-                <li><strong>{{ _('City tax:') }}</strong> €{{ "%.2f"|format(reservation.tourist_tax_amount) }}</li>
+                <li><strong>{{ _('City tax included:') }}</strong> €{{ "%.2f"|format(reservation.tourist_tax_amount) }}</li>
                 {% endif %}
-                <li><strong>{{ _('Total Paid:') }}</strong> €{{ "%.2f"|format(total) }}</li>
             </ul>
         </div>
 
-        <div class="payment-section">
-            <h3>{{ _('Payment Details') }}</h3>
-            <p>{{ payment_summary }}</p>
-            <p><strong>{{ _('Status:') }}</strong> {{ reservation.payment_status | capitalize }}</p>
-        </div>
-        
-        <p>{{ _('If you need to cancel or modify your stay, you can do so by clicking the link below:') }}</p>
-        <p style="text-align: center;">
-            <a href="{{ cancel_url }}" class="btn-cancel">{{ _('Cancel Reservation') }}</a>
-        </p>
+        <p class="muted">{{ _('If you have any questions, simply reply to this email.') }}</p>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin-top: 30px;">
         <div class="footer">

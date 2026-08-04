@@ -17,8 +17,18 @@ class ReservationForm(FlaskForm):
     guest_email: StringField = StringField(_('Email'), validators=[DataRequired(), Email()])
     check_in: DateField = DateField(_('Check-in'), validators=[DataRequired()])
     check_out: DateField = DateField(_('Check-out'), validators=[DataRequired()])
-    num_guests: SelectField = SelectField(
-        _('Guests'), choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4')], coerce=int, validators=[DataRequired()]
+    num_adults: SelectField = SelectField(
+        _('Adults'),
+        choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4')],
+        coerce=int,
+        default=2,
+        validators=[DataRequired()],
+    )
+    num_children: SelectField = SelectField(
+        _('Children (3-10)'),
+        choices=[(0, '0'), (1, '1'), (2, '2'), (3, '3')],
+        coerce=int,
+        default=0,
     )
     submit: SubmitField = SubmitField(_('Proceed to payment'))
 

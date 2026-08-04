@@ -62,25 +62,34 @@ class TouristTaxService:
             self.category = 'CAV'
             self.cin = None
 
+    def _taxable_guests(self, reservation: Reservation) -> int:
+        """Number of guests subject to the tax (adults; children 3-10 exempt).
+
+        Falls back to the total guest count for legacy bookings created before
+        adults/children breakdown was collected.
+        """
+        if reservation.num_adults:
+            return reservation.num_adults
+        return reservation.num_guests or 1
+
     def calculate_tax(self, reservation: Reservation, guest_ages: list[int] = None) -> float:
         """Calculate tourist tax for a reservation
 
         Args:
             reservation: The reservation
             guest_ages: List of guest ages (for exemption calculation)
-                        If None, assumes all guests are taxable
+                        If None, uses num_adults (children 3-10 exempt)
         """
         if reservation.status != 'confirmed':
             return 0.0
 
         nights = min(reservation.nights, self.MAX_TAXABLE_NIGHTS)
-        total_guests = reservation.num_guests or 1
 
         # Calculate taxable guests (exclude children under 10)
         if guest_ages:
             taxable_guests = sum(1 for age in guest_ages if age >= self.EXEMPT_AGE)
         else:
-            taxable_guests = total_guests  # Conservative: assume all taxable
+            taxable_guests = self._taxable_guests(reservation)
 
         if taxable_guests <= 0:
             return 0.0
@@ -99,7 +108,7 @@ class TouristTaxService:
             check_out=reservation.check_out,
             nights=min(reservation.nights, self.MAX_TAXABLE_NIGHTS),
             guests=reservation.num_guests,
-            taxable_guests=reservation.num_guests,  # Would need ages for accurate
+            taxable_guests=self._taxable_guests(reservation),
             rate_per_night=self.rate,
             total_tax=total_tax,
             apartment_name=self.apartment.name if self.apartment else 'Unknown',

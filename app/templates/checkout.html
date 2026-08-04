@@ -48,7 +48,7 @@
                             </tr>
                             <tr>
                                 <td class="text-muted py-2 small">{{ _('Guests') }}</td>
-                                <td class="py-2">{{ num_guests }}</td>
+                                <td class="py-2">{{ num_adults }} {{ _('adults') }}{% if num_children > 0 %}, {{ num_children }} {{ _('children') }}{% endif %}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -56,9 +56,29 @@
             </div>
 
             <!-- TOTAL -->
-            <div class="d-flex justify-content-between align-items-center border-top pt-3 mb-4">
-                <span class="fw-bold fs-4">{{ _('Total') }}</span>
-                <span class="fw-bold fs-4">€{{ "%.2f"|format(total) }}</span>
+            <div class="card border-0 bg-luxury-floor mb-4">
+                <div class="card-body py-3 px-4">
+                    <table class="table table-borderless mb-0 small">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted py-1">{{ _('Accommodation') }}</td>
+                                <td class="py-1 text-end">€{{ "%.2f"|format(stay_cost) }}</td>
+                            </tr>
+                            <tr class="text-primary">
+                                <td class="py-1">{{ _('City tax') }} <small class="text-muted">(€{{ "%.2f"|format(city_tax_rate) }}/{{ _('night') }}/{{ _('adult') }})</small></td>
+                                <td class="py-1 text-end fw-bold">€{{ "%.2f"|format(city_tax) }}</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="py-2 fw-bold fs-5">{{ _('Total') }}</td>
+                                <td class="py-2 text-end fw-bold fs-5">€{{ "%.2f"|format(total) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-success py-1">{{ _('Pay in full today and save') }} {{ full_pay_discount_pct }}%</td>
+                                <td class="text-success text-end py-1 fw-bold">€{{ "%.2f"|format(full_pay_total) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- PAYMENT FORM -->
@@ -79,11 +99,11 @@
                     <div class="mt-2 ms-4 ps-2">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="stripe_amount" id="stripe_full" value="full" checked>
-                            <label class="form-check-label small" for="stripe_full">{{ _('Pay full amount') }} (€{{ "%.2f"|format(total) }})</label>
+                            <label class="form-check-label small" for="stripe_full">{{ _('Pay full amount (-3%%)') }} (€{{ "%.2f"|format(full_pay_total) }})</label>
                         </div>
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="stripe_amount" id="stripe_deposit" value="deposit">
-                            <label class="form-check-label small" for="stripe_deposit">{{ _('Pay 30%% deposit') }} (€{{ "%.2f"|format(total * 0.3) }})</label>
+                            <label class="form-check-label small" for="stripe_deposit">{{ _('Pay 30%% deposit') }} (€{{ "%.2f"|format(deposit_total) }})</label>
                         </div>
                     </div>
                 </div>
