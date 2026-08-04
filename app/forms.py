@@ -25,7 +25,7 @@ class ReservationForm(FlaskForm):
         validators=[DataRequired()],
     )
     num_children: SelectField = SelectField(
-        _('Children (3-10)'),
+        _('Children (3-9)'),
         choices=[(0, '0'), (1, '1'), (2, '2'), (3, '3')],
         coerce=int,
         default=0,

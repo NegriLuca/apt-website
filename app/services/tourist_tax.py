@@ -63,7 +63,7 @@ class TouristTaxService:
             self.cin = None
 
     def _taxable_guests(self, reservation: Reservation) -> int:
-        """Number of guests subject to the tax (adults; children 3-10 exempt).
+        """Number of guests subject to the tax (adults; children 3-9 exempt).
 
         Falls back to the total guest count for legacy bookings created before
         adults/children breakdown was collected.
@@ -78,7 +78,7 @@ class TouristTaxService:
         Args:
             reservation: The reservation
             guest_ages: List of guest ages (for exemption calculation)
-                        If None, uses num_adults (children 3-10 exempt)
+                        If None, uses num_adults (children 3-9 exempt)
         """
         if reservation.status != 'confirmed':
             return 0.0

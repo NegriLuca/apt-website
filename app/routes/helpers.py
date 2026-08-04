@@ -90,7 +90,7 @@ def apply_full_payment_discount(total: float) -> float:
 
 
 def calculate_city_tax(check_in, check_out, num_adults=2, apartment=None) -> float:
-    """Rome city tax (€6/night/adult, max 10 taxable nights). Children 3-10 are exempt."""
+    """Rome city tax (€6/night/adult, max 10 taxable nights). Children 3-9 are exempt."""
     from app.services.tourist_tax import get_tax_service
 
     if apartment:

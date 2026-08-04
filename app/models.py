@@ -131,7 +131,7 @@ class Reservation(db.Model):
     check_out = db.Column(db.Date, nullable=False)
     num_guests = db.Column(db.Integer, nullable=False, default=1)
     num_adults = db.Column(db.Integer, nullable=True, comment='Number of adults (taxable for city tax)')
-    num_children = db.Column(db.Integer, nullable=True, default=0, comment='Number of children aged 3-10 (exempt from city tax)')
+    num_children = db.Column(db.Integer, nullable=True, default=0, comment='Number of children aged 3-9 (exempt from city tax)')
     status = db.Column(db.String(20), nullable=False, default='pending')
     source = db.Column(db.String(20), default='direct')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -34,7 +34,7 @@ def upgrade():
                 'num_children',
                 sa.Integer(),
                 nullable=True,
-                comment='Number of children aged 3-10 (exempt from city tax)',
+                comment='Number of children aged 3-9 (exempt from city tax)',
             ))
 
 
