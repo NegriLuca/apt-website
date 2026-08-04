@@ -10,7 +10,7 @@ from flask import current_app, render_template, url_for
 from app import db
 from app.models import Apartment, Reservation, Testimonial
 
-FULL_PAYMENT_DISCOUNT_PCT = 3.0
+FULL_PAYMENT_DISCOUNT_PCT = 5.0
 
 
 def get_apartment():

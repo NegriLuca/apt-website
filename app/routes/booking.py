@@ -154,7 +154,7 @@ def checkout():
         city_tax=city_tax,
         city_tax_rate=city_tax_rate,
         stay_cost=stay_cost,
-        full_pay_discount_pct=3,
+        full_pay_discount_pct=5,
         full_pay_total=full_pay_total,
         full_pay_savings=full_pay_savings,
         deposit_total=deposit_total,
