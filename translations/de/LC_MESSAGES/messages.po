@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-04 15:16+0200\n"
+"POT-Creation-Date: 2026-08-04 16:40+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: de <LL@li.org>\n"
 "Language: de\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.18.0\n"
 
 #: app/forms.py:16
@@ -29,8 +29,8 @@ msgstr "E-Mail"
 
 #: app/forms.py:18 app/templates/admin_compliance.html:145
 #: app/templates/admin_dashboard.html:114
-#: app/templates/admin_dashboard.html:144
-#: app/templates/admin_dashboard.html:259
+#: app/templates/admin_dashboard.html:149
+#: app/templates/admin_dashboard.html:271
 #: app/templates/admin_guest_checkin.html:109
 #: app/templates/admin_questura.html:67 app/templates/admin_ross1000.html:65
 #: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
@@ -39,8 +39,8 @@ msgstr "E-Mail"
 msgid "Check-in"
 msgstr "Check-in"
 
-#: app/forms.py:19 app/templates/admin_dashboard.html:145
-#: app/templates/admin_dashboard.html:263
+#: app/forms.py:19 app/templates/admin_dashboard.html:150
+#: app/templates/admin_dashboard.html:275
 #: app/templates/admin_guest_checkin.html:113
 #: app/templates/admin_questura.html:68 app/templates/admin_ross1000.html:66
 #: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
@@ -89,7 +89,7 @@ msgstr "E-Mail-Adresse"
 msgid "Message"
 msgstr "Nachricht"
 
-#: app/forms.py:61 app/templates/admin_dashboard.html:224
+#: app/forms.py:61 app/templates/admin_dashboard.html:236
 #: app/templates/contact.html:39
 msgid "Send message"
 msgstr "Nachricht senden"
@@ -103,7 +103,7 @@ msgid "iCal URL"
 msgstr "iCal-URL"
 
 #: app/forms.py:76 app/templates/admin_ical_feeds.html:22
-#: app/templates/admin_ical_feeds.html:31
+#: app/templates/admin_ical_feeds.html:32
 msgid "Active"
 msgstr "Aktiv"
 
@@ -169,7 +169,8 @@ msgstr "Zahlungsanbieter-Fehler. Bitte versuchen Sie es später erneut."
 #: app/routes/public.py:155
 msgid "Thank you for your review! It will be published after moderation."
 msgstr ""
-"Vielen Dank für Ihre Bewertung! Sie wird nach der Moderation veröffentlicht."
+"Vielen Dank für Ihre Bewertung! Sie wird nach der Moderation "
+"veröffentlicht."
 
 #: app/templates/admin_audit_log.html:2 app/templates/admin_header.html:55
 #, fuzzy
@@ -212,8 +213,7 @@ msgid "Admin"
 msgstr "Admin-Login"
 
 #: app/templates/admin_audit_log.html:43
-#: app/templates/admin_compliance.html:148
-#: app/templates/admin_questura.html:71
+#: app/templates/admin_compliance.html:148 app/templates/admin_questura.html:71
 #: app/templates/admin_questura_logs.html:28
 #: app/templates/admin_ross1000.html:70
 #: app/templates/admin_ross1000_logs.html:28
@@ -263,8 +263,7 @@ msgstr "Storniert"
 msgid "Booking Details"
 msgstr "Buchungsdetails"
 
-#: app/templates/admin_calendar.html:61
-#: app/templates/booking_confirmed.html:22
+#: app/templates/admin_calendar.html:61 app/templates/booking_confirmed.html:22
 #: app/templates/guest_access_denied.html:20
 msgid "Guest:"
 msgstr "Gast:"
@@ -383,7 +382,7 @@ msgstr ""
 
 #: app/templates/admin_compliance.html:144
 #: app/templates/admin_dashboard.html:114
-#: app/templates/admin_dashboard.html:142
+#: app/templates/admin_dashboard.html:147
 #: app/templates/admin_guest_checkin.html:117
 #: app/templates/admin_questura.html:66 app/templates/admin_ross1000.html:64
 #: app/templates/admin_testimonials.html:49
@@ -535,8 +534,8 @@ msgstr ""
 
 #: app/templates/admin_compliance_config.html:142
 msgid ""
-"ROSS1000 has no public API. This configuration is for future integrations or"
-" reference. Currently management is manual via web portal."
+"ROSS1000 has no public API. This configuration is for future integrations"
+" or reference. Currently management is manual via web portal."
 msgstr ""
 
 #: app/templates/admin_compliance_config.html:153
@@ -545,8 +544,8 @@ msgstr ""
 
 #: app/templates/admin_compliance_config.html:158
 msgid ""
-"The encryption key COMPLIANCE_ENCRYPTION_KEY must be set as an environment "
-"variable. Do not save it in the database."
+"The encryption key COMPLIANCE_ENCRYPTION_KEY must be set as an "
+"environment variable. Do not save it in the database."
 msgstr ""
 
 #: app/templates/admin_compliance_config.html:174
@@ -641,7 +640,7 @@ msgid "Upcoming Check-ins"
 msgstr "Check-in"
 
 #: app/templates/admin_dashboard.html:114
-#: app/templates/admin_dashboard.html:146
+#: app/templates/admin_dashboard.html:151
 #: app/templates/admin_tourist_tax.html:158
 #: app/templates/admin_tourist_tax.html:205 app/templates/checkout.html:46
 #: app/templates/email_admin_alert.html:72
@@ -652,7 +651,7 @@ msgid "Nights"
 msgstr "Nächte"
 
 #: app/templates/admin_dashboard.html:114
-#: app/templates/admin_dashboard.html:143
+#: app/templates/admin_dashboard.html:148
 #: app/templates/admin_ical_feeds.html:19
 #: app/templates/admin_testimonials.html:52
 msgid "Source"
@@ -662,126 +661,154 @@ msgstr "Quelle"
 msgid "Reservation Ledger"
 msgstr "Buchungsregister"
 
-#: app/templates/admin_dashboard.html:141 app/templates/admin_questura.html:65
+#: app/templates/admin_dashboard.html:135
+#, fuzzy
+msgid "Delete Selected"
+msgstr "Ausgewählte senden"
+
+#: app/templates/admin_dashboard.html:136
+#, fuzzy
+msgid "Cancel Selection"
+msgstr "Stornierung"
+
+#: app/templates/admin_dashboard.html:146 app/templates/admin_questura.html:65
 #: app/templates/admin_ross1000.html:63
 #: app/templates/admin_ross1000_logs.html:26
 #: app/templates/admin_testimonials.html:48
 msgid "ID"
 msgstr "ID"
 
-#: app/templates/admin_dashboard.html:147
+#: app/templates/admin_dashboard.html:152
 #, fuzzy
 msgid "Revenue"
 msgstr "Umsatz:"
 
-#: app/templates/admin_dashboard.html:148
+#: app/templates/admin_dashboard.html:153
 #, fuzzy
 msgid "Payment"
 msgstr "Zahlung:"
 
-#: app/templates/admin_dashboard.html:149 app/templates/admin_pricing.html:65
+#: app/templates/admin_dashboard.html:154
+#: app/templates/admin_ical_feeds.html:23 app/templates/admin_pricing.html:65
 #: app/templates/admin_testimonials.html:56
 #: app/templates/admin_tourist_tax.html:163
 msgid "Actions"
 msgstr "Aktionen"
 
-#: app/templates/admin_dashboard.html:158
+#: app/templates/admin_dashboard.html:164
 #, fuzzy
 msgid "block"
 msgstr "Zurück"
 
-#: app/templates/admin_dashboard.html:163
+#: app/templates/admin_dashboard.html:169
 #: app/templates/admin_testimonials.html:86 app/templates/apartment.html:352
 msgid "Direct"
 msgstr "Direkt"
 
-#: app/templates/admin_dashboard.html:178
+#: app/templates/admin_dashboard.html:184
 #: app/templates/admin_tourist_tax.html:162
 #: app/templates/admin_tourist_tax.html:219
 msgid "Paid"
 msgstr "Bezahlt"
 
-#: app/templates/admin_dashboard.html:180
+#: app/templates/admin_dashboard.html:186
 msgid "Deposit"
 msgstr "Anzahlung"
 
-#: app/templates/admin_dashboard.html:182
+#: app/templates/admin_dashboard.html:188
 msgid "Unpaid"
 msgstr "Unbezahlt"
 
-#: app/templates/admin_dashboard.html:184
+#: app/templates/admin_dashboard.html:190
 msgid "Refunded"
 msgstr "Erstattet"
 
-#: app/templates/admin_dashboard.html:194
+#: app/templates/admin_dashboard.html:200
 msgid "Confirm"
 msgstr "Bestätigen"
 
-#: app/templates/admin_dashboard.html:200
+#: app/templates/admin_dashboard.html:206
 msgid "Charge Remaining"
 msgstr ""
 
-#: app/templates/admin_dashboard.html:206
-#: app/templates/admin_feed_form.html:43
+#: app/templates/admin_dashboard.html:213 app/templates/admin_feed_form.html:43
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: app/templates/admin_dashboard.html:212
-msgid "Edit dates"
-msgstr "Daten bearbeiten"
-
-#: app/templates/admin_dashboard.html:219
-msgid ""
-"Delete this external reservation? This frees the dates until the next iCal "
-"sync."
+#: app/templates/admin_dashboard.html:216
+#, fuzzy
+msgid "Delete this reservation permanently? This cannot be undone."
 msgstr ""
-"Diese externe Reservierung löschen? Die Daten werden bis zur nächsten iCal-"
-"Synchronisierung freigegeben."
+"Sind Sie sicher, dass Sie dieses Testimonial löschen möchten? Dies kann "
+"nicht rückgängig gemacht werden."
 
-#: app/templates/admin_dashboard.html:221
+#: app/templates/admin_dashboard.html:218
+#: app/templates/admin_dashboard.html:233
 #: app/templates/admin_testimonials.html:147
 #: app/templates/admin_testimonials.html:148
 msgid "Delete"
 msgstr "Löschen"
 
-#: app/templates/admin_dashboard.html:229
+#: app/templates/admin_dashboard.html:224
+msgid "Edit dates"
+msgstr "Daten bearbeiten"
+
+#: app/templates/admin_dashboard.html:231
+msgid ""
+"Delete this external reservation? This frees the dates until the next "
+"iCal sync."
+msgstr ""
+"Diese externe Reservierung löschen? Die Daten werden bis zur nächsten "
+"iCal-Synchronisierung freigegeben."
+
+#: app/templates/admin_dashboard.html:241
 msgid "No reservations."
 msgstr "Keine Buchungen."
 
-#: app/templates/admin_dashboard.html:238
-#: app/templates/admin_ical_feeds.html:2
+#: app/templates/admin_dashboard.html:250 app/templates/admin_ical_feeds.html:2
 msgid "iCal Feeds"
 msgstr "iCal-Feeds"
 
-#: app/templates/admin_dashboard.html:240
+#: app/templates/admin_dashboard.html:252
 msgid "Manage Feeds"
 msgstr "Feeds verwalten"
 
-#: app/templates/admin_dashboard.html:243
+#: app/templates/admin_dashboard.html:255
 #, fuzzy
 msgid "Sync Now"
 msgstr "Feeds jetzt synchronisieren"
 
-#: app/templates/admin_dashboard.html:254
+#: app/templates/admin_dashboard.html:266
 msgid "Edit external reservation"
 msgstr "Externe Reservierung bearbeiten"
 
-#: app/templates/admin_dashboard.html:267 app/templates/admin_ross1000.html:67
+#: app/templates/admin_dashboard.html:279 app/templates/admin_ross1000.html:67
 #: app/templates/admin_tourist_tax.html:159
 #: app/templates/admin_tourist_tax.html:209 app/templates/checkout.html:50
 #: app/templates/guest_self_checkin.html:38
 msgid "Guests"
 msgstr "Gäste"
 
-#: app/templates/admin_dashboard.html:272 app/templates/admin_pricing.html:122
+#: app/templates/admin_dashboard.html:284 app/templates/admin_pricing.html:122
 #: app/templates/admin_ross1000_logs.html:78
 #: app/templates/admin_testimonials.html:170
 msgid "Close"
 msgstr "Schließen"
 
-#: app/templates/admin_dashboard.html:273
+#: app/templates/admin_dashboard.html:285
 msgid "Save changes"
 msgstr "Änderungen speichern"
+
+#: app/templates/admin_dashboard.html:339
+msgid "Please select at least one reservation."
+msgstr ""
+
+#: app/templates/admin_dashboard.html:342
+#, fuzzy
+msgid "Delete selected reservations? This cannot be undone."
+msgstr ""
+"Sind Sie sicher, dass Sie dieses Testimonial löschen möchten? Dies kann "
+"nicht rückgängig gemacht werden."
 
 #: app/templates/admin_guest_checkin.html:2
 msgid "Guest Check-in - Questura Data"
@@ -806,8 +833,8 @@ msgstr "Gesetzlich vorgeschrieben:"
 
 #: app/templates/admin_guest_checkin.html:25
 msgid ""
-"All guests must be registered with the Questura (Alloggiati Portal) within "
-"24h of check-in."
+"All guests must be registered with the Questura (Alloggiati Portal) "
+"within 24h of check-in."
 msgstr ""
 
 #: app/templates/admin_guest_checkin.html:35
@@ -1013,28 +1040,40 @@ msgstr "URL"
 msgid "Last Sync"
 msgstr ""
 
-#: app/templates/admin_ical_feeds.html:31
+#: app/templates/admin_ical_feeds.html:32
 msgid "Inactive"
 msgstr "Inaktiv"
 
 #: app/templates/admin_ical_feeds.html:34
+#, fuzzy
+msgid "Delete this iCal feed? This cannot be undone."
+msgstr ""
+"Sind Sie sicher, dass Sie dieses Testimonial löschen möchten? Dies kann "
+"nicht rückgängig gemacht werden."
+
+#: app/templates/admin_ical_feeds.html:36
+#, fuzzy
+msgid "Delete feed"
+msgstr "Löschen"
+
+#: app/templates/admin_ical_feeds.html:41
 msgid "No feeds configured."
 msgstr ""
 
-#: app/templates/admin_ical_feeds.html:43
+#: app/templates/admin_ical_feeds.html:50
 msgid "Blocked Dates (from iCal)"
 msgstr ""
 
-#: app/templates/admin_ical_feeds.html:52
+#: app/templates/admin_ical_feeds.html:59
 msgid "No blocked dates from iCal feeds."
 msgstr ""
 
-#: app/templates/admin_ical_feeds.html:60
+#: app/templates/admin_ical_feeds.html:67
 #, fuzzy
 msgid "Add Feed"
 msgstr "iCal-Feed hinzufügen"
 
-#: app/templates/admin_ical_feeds.html:76
+#: app/templates/admin_ical_feeds.html:83
 msgid "Add"
 msgstr ""
 
@@ -1076,8 +1115,8 @@ msgid ""
 "Editing this value directly adjusts what direct checkouts pay instantly "
 "across public booking fields."
 msgstr ""
-"Die Bearbeitung dieses Werts passt direkt an, was direkte Check-outs sofort "
-"in öffentlichen Buchungsfeldern bezahlen."
+"Die Bearbeitung dieses Werts passt direkt an, was direkte Check-outs "
+"sofort in öffentlichen Buchungsfeldern bezahlen."
 
 #: app/templates/admin_pricing.html:21
 msgid "Update Global Rate"
@@ -1178,8 +1217,7 @@ msgid "Questura Submissions Management"
 msgstr "Gästebewertungen verwalten"
 
 #: app/templates/admin_questura.html:29 app/templates/admin_ross1000.html:31
-#: app/templates/attractions.html:13
-#: app/templates/food_recommendations.html:12
+#: app/templates/attractions.html:13 app/templates/food_recommendations.html:12
 #: app/templates/food_recommendations.html:113
 msgid "All"
 msgstr "Alle"
@@ -1334,8 +1372,8 @@ msgstr ""
 
 #: app/templates/admin_smart_access.html:30
 msgid ""
-"Leave blank if SHELLY_DEVICE_ID env var is set. Only needed for LAN access "
-"without the cloud env vars."
+"Leave blank if SHELLY_DEVICE_ID env var is set. Only needed for LAN "
+"access without the cloud env vars."
 msgstr ""
 
 #: app/templates/admin_smart_access.html:33
@@ -1489,8 +1527,7 @@ msgid "Feature"
 msgstr "Hervorheben"
 
 #: app/templates/admin_testimonials.html:145
-msgid ""
-"Are you sure you want to delete this testimonial? This cannot be undone."
+msgid "Are you sure you want to delete this testimonial? This cannot be undone."
 msgstr ""
 "Sind Sie sicher, dass Sie dieses Testimonial löschen möchten? Dies kann "
 "nicht rückgängig gemacht werden."
@@ -1660,8 +1697,8 @@ msgstr ""
 
 #: app/templates/admin_trust_badges.html:99
 msgid ""
-"Paste the official JavaScript widget snippets from each platform. These will"
-" render on the homepage."
+"Paste the official JavaScript widget snippets from each platform. These "
+"will render on the homepage."
 msgstr ""
 
 #: app/templates/admin_trust_badges.html:107
@@ -1741,11 +1778,11 @@ msgstr ""
 #: app/templates/apartment.html:10 app/templates/base.html:47
 #: app/templates/base.html:65
 msgid ""
-"Elegant and refined apartment in the heart of Garbatella, Rome. Book your "
-"ideal stay."
+"Elegant and refined apartment in the heart of Garbatella, Rome. Book your"
+" ideal stay."
 msgstr ""
-"Elegante und raffinierte Wohnung im Herzen von Garbatella, Rom. Buchen Sie "
-"Ihren idealen Aufenthalt."
+"Elegante und raffinierte Wohnung im Herzen von Garbatella, Rom. Buchen "
+"Sie Ihren idealen Aufenthalt."
 
 #: app/templates/apartment.html:65
 msgid "Welcome to our beautiful, fully equipped rental property."
@@ -1905,11 +1942,11 @@ msgstr "Selbstständiger Check-in verfügbar"
 
 #: app/templates/apartment.html:270 app/templates/reservation.html:20
 msgid ""
-"Rates depend on your selected dates and group size. Enter your details to "
-"get an exact quote."
+"Rates depend on your selected dates and group size. Enter your details to"
+" get an exact quote."
 msgstr ""
-"Die Preise hängen von Ihren gewählten Daten und der Gruppengröße ab. Geben "
-"Sie Ihre Details für ein genaues Angebot ein."
+"Die Preise hängen von Ihren gewählten Daten und der Gruppengröße ab. "
+"Geben Sie Ihre Details für ein genaues Angebot ein."
 
 #: app/templates/apartment.html:274
 msgid "Reserve now"
@@ -1980,8 +2017,7 @@ msgstr "Original lesen"
 
 #: app/templates/apartment.html:362
 msgid "No reviews yet. Be the first to share your experience!"
-msgstr ""
-"Noch keine Bewertungen. Seien Sie der Erste, der seine Erfahrung mitteilt!"
+msgstr "Noch keine Bewertungen. Seien Sie der Erste, der seine Erfahrung mitteilt!"
 
 #: app/templates/apartment.html:370
 msgid "Leave a Review"
@@ -2005,8 +2041,8 @@ msgstr "Roms Sehenswürdigkeiten"
 
 #: app/templates/attractions.html:8
 msgid ""
-"Explore Rome through curated landmarks, walks and scenic spots — all easily "
-"reachable from your apartment."
+"Explore Rome through curated landmarks, walks and scenic spots — all "
+"easily reachable from your apartment."
 msgstr ""
 "Entdecken Sie Rom durch kuratierte Wahrzeichen, Spaziergänge und "
 "aussichtsreiche Orte — alle leicht von Ihrer Wohnung erreichbar."
@@ -2015,8 +2051,7 @@ msgstr ""
 msgid "Curated experiences around Rome"
 msgstr "Kuratierte Erlebnisse rund um Rom"
 
-#: app/templates/attractions.html:12
-#: app/templates/food_recommendations.html:11
+#: app/templates/attractions.html:12 app/templates/food_recommendations.html:11
 msgid "Filter by category"
 msgstr "Nach Kategorie filtern"
 
@@ -2032,8 +2067,7 @@ msgstr "Spaziergänge"
 msgid "Outdoor"
 msgstr "Draußen"
 
-#: app/templates/attractions.html:19
-#: app/templates/food_recommendations.html:22
+#: app/templates/attractions.html:19 app/templates/food_recommendations.html:22
 msgid "Map and listings"
 msgstr "Karte und Einträge"
 
@@ -2132,11 +2166,11 @@ msgstr ""
 
 #: app/templates/base.html:37
 msgid ""
-"Lotto 235, Garbatella, Vacation Home Rome, Garbatella Apartment, Short Term "
-"Rental Rome"
+"Lotto 235, Garbatella, Vacation Home Rome, Garbatella Apartment, Short "
+"Term Rental Rome"
 msgstr ""
-"Lotto 235, Garbatella, Ferienwohnung Rom, Wohnung Garbatella, Kurzzeitmiete "
-"Rom"
+"Lotto 235, Garbatella, Ferienwohnung Rom, Wohnung Garbatella, "
+"Kurzzeitmiete Rom"
 
 #: app/templates/base.html:46 app/templates/base.html:64
 msgid "Luxury Rental Property Rome"
@@ -2148,13 +2182,13 @@ msgstr "Lotto 235 Garbatella - Startseite"
 
 #: app/templates/base.html:84
 msgid ""
-"Elegant vacation apartment in the heart of Garbatella, Rome. Modern comfort,"
-" self check-in, fast Wi-Fi, air conditioning and strategic location near "
-"metro."
+"Elegant vacation apartment in the heart of Garbatella, Rome. Modern "
+"comfort, self check-in, fast Wi-Fi, air conditioning and strategic "
+"location near metro."
 msgstr ""
-"Elegante Ferienwohnung im Herzen der Garbatella in Rom. Moderner Komfort, "
-"Selbst-Check-in, schnelles WLAN, Klimaanlage und strategische Lage nahe der "
-"Metro."
+"Elegante Ferienwohnung im Herzen der Garbatella in Rom. Moderner Komfort,"
+" Selbst-Check-in, schnelles WLAN, Klimaanlage und strategische Lage nahe "
+"der Metro."
 
 #: app/templates/base.html:174
 msgid "Main navigation"
@@ -2288,16 +2322,16 @@ msgstr "Wir finalisieren Ihre Reservierung..."
 
 #: app/templates/booking_confirmed.html:44
 msgid ""
-"Your payment was fully secured. A confirmation email with receipt records "
-"will land in your inbox within a few moments."
+"Your payment was fully secured. A confirmation email with receipt records"
+" will land in your inbox within a few moments."
 msgstr ""
 "Ihre Zahlung wurde vollständig gesichert. Eine Bestätigungs-E-Mail mit "
 "Quittung landet in wenigen Augenblicken in Ihrem Posteingang."
 
 #: app/templates/booking_confirmed.html:51 app/templates/csrf_error.html:14
 #: app/templates/guest_access_denied.html:33
-#: app/templates/guest_checkin_done.html:15
-#: app/templates/guest_portal.html:187 app/templates/wire_transfer.html:31
+#: app/templates/guest_checkin_done.html:15 app/templates/guest_portal.html:187
+#: app/templates/wire_transfer.html:31
 msgid "Back to Home"
 msgstr "Zurück zur Startseite"
 
@@ -2417,7 +2451,8 @@ msgid ""
 "Your reservation will be held pending verification of the bank wire "
 "transfer."
 msgstr ""
-"Ihre Reservierung wird aufbewahrt, bis die Banküberweisung verifiziert ist."
+"Ihre Reservierung wird aufbewahrt, bis die Banküberweisung verifiziert "
+"ist."
 
 #: app/templates/contact.html:9
 msgid "If you have any questions, feel free to reach out."
@@ -2438,11 +2473,11 @@ msgstr "Sitzung abgelaufen. Bitte versuchen Sie es erneut."
 
 #: app/templates/csrf_error.html:13
 msgid ""
-"Your form session expired. Please go back and try again — your security is "
-"important to us."
+"Your form session expired. Please go back and try again — your security "
+"is important to us."
 msgstr ""
-"Ihre Formularsitzung ist abgelaufen. Bitte gehen Sie zurück und versuchen "
-"Sie es erneut — Ihre Sicherheit ist uns wichtig."
+"Ihre Formularsitzung ist abgelaufen. Bitte gehen Sie zurück und versuchen"
+" Sie es erneut — Ihre Sicherheit ist uns wichtig."
 
 #: app/templates/email_admin_alert.html:13
 msgid "New Booking Received"
@@ -2514,8 +2549,8 @@ msgstr "Buchung stornieren & erstatten"
 
 #: app/templates/email_admin_alert.html:87
 msgid ""
-"Warning: Clicking this immediately triggers an official transaction reversal"
-" on Stripe."
+"Warning: Clicking this immediately triggers an official transaction "
+"reversal on Stripe."
 msgstr ""
 "Warnung: Durch Klicken wird sofort eine offizielle "
 "Transaktionsrückgängigmachung bei Stripe ausgelöst."
@@ -2597,7 +2632,8 @@ msgstr ""
 
 #: app/templates/email_admin_checkin_completed.html:34
 msgid ""
-"Questura submission will be processed automatically if all data is complete."
+"Questura submission will be processed automatically if all data is "
+"complete."
 msgstr ""
 
 #: app/templates/email_admin_checkin_completed.html:38
@@ -2619,8 +2655,7 @@ msgstr "Zahlung wurde manuell durch Admin bestätigt."
 
 #: app/templates/email_admin_payment_confirmed.html:50
 msgid "Reservation status updated to Confirmed. Payment status: PAID"
-msgstr ""
-"Reservierungsstatus aktualisiert auf Bestätigt. Zahlungsstatus: BEZAHLT"
+msgstr "Reservierungsstatus aktualisiert auf Bestätigt. Zahlungsstatus: BEZAHLT"
 
 #: app/templates/email_balance_invoice.html:5
 #: app/templates/email_balance_invoice.html:21
@@ -2641,11 +2676,11 @@ msgstr "Lotto 235 Garbatella"
 
 #: app/templates/email_balance_invoice.html:26
 msgid ""
-"Your deposit has been received. The remaining balance for your stay is now "
-"due."
+"Your deposit has been received. The remaining balance for your stay is "
+"now due."
 msgstr ""
-"Ihre Anzahlung ist eingegangen. Der Restbetrag für Ihren Aufenthalt ist nun "
-"fällig."
+"Ihre Anzahlung ist eingegangen. Der Restbetrag für Ihren Aufenthalt ist "
+"nun fällig."
 
 #: app/templates/email_balance_invoice.html:29
 msgid "Remaining balance"
@@ -2715,8 +2750,8 @@ msgid ""
 "notified and will process it manually within 24 hours."
 msgstr ""
 "Es gab eine Verzögerung bei der Verarbeitung Ihrer automatischen "
-"Rückerstattung. Unser Team wurde benachrichtigt und wird sie innerhalb von "
-"24 Stunden manuell bearbeiten."
+"Rückerstattung. Unser Team wurde benachrichtigt und wird sie innerhalb "
+"von 24 Stunden manuell bearbeiten."
 
 #: app/templates/email_cancellation.html:74
 msgid "Refund Processed:"
@@ -2780,8 +2815,8 @@ msgid ""
 "If you need to cancel or modify your stay, you can do so by clicking the "
 "link below:"
 msgstr ""
-"Falls Sie Ihren Aufenthalt stornieren oder ändern möchten, können Sie dies "
-"tun, indem Sie auf den untenstehenden Link klicken:"
+"Falls Sie Ihren Aufenthalt stornieren oder ändern möchten, können Sie "
+"dies tun, indem Sie auf den untenstehenden Link klicken:"
 
 #: app/templates/email_confirmation.html:50
 #: app/templates/email_pending_payment.html:81
@@ -2807,12 +2842,12 @@ msgstr "Hallo"
 
 #: app/templates/email_guest_access.html:38
 msgid ""
-"Your stay is approaching! Use the button below to open the building gate and"
-" apartment door during your stay. This link is only valid from check-in to "
-"check-out."
+"Your stay is approaching! Use the button below to open the building gate "
+"and apartment door during your stay. This link is only valid from check-"
+"in to check-out."
 msgstr ""
-"Ihr Aufenthalt steht bevor! Nutzen Sie den Button unten, um während Ihres "
-"Aufenthalts das Gebäudetor zu öffnen und die Wohnungstür zu entriegeln. "
+"Ihr Aufenthalt steht bevor! Nutzen Sie den Button unten, um während Ihres"
+" Aufenthalts das Gebäudetor zu öffnen und die Wohnungstür zu entriegeln. "
 "Dieser Link ist nur vom Check-in bis zum Check-out gültig."
 
 #: app/templates/email_guest_access.html:47
@@ -2841,11 +2876,11 @@ msgstr "8. Sicherheit"
 
 #: app/templates/email_guest_access.html:77
 msgid ""
-"This link is personal and should not be shared. Access automatically expires"
-" on your check-out day."
+"This link is personal and should not be shared. Access automatically "
+"expires on your check-out day."
 msgstr ""
-"Dieser Link ist persönlich und sollte nicht geteilt werden. Der Zugang läuft"
-" am Check-out-Tag automatisch ab."
+"Dieser Link ist persönlich und sollte nicht geteilt werden. Der Zugang "
+"läuft am Check-out-Tag automatisch ab."
 
 #: app/templates/email_guest_access.html:84
 msgid "If the button doesn't work, copy this link:"
@@ -2874,18 +2909,18 @@ msgstr "Aktion erforderlich:"
 
 #: app/templates/email_guest_checkin.html:38
 msgid ""
-"Italian law requires all guests to be registered with the Police (Questura) "
-"within 24 hours of arrival. Please complete the online check-in before your "
-"arrival to speed up the process."
+"Italian law requires all guests to be registered with the Police "
+"(Questura) within 24 hours of arrival. Please complete the online check-"
+"in before your arrival to speed up the process."
 msgstr ""
-"Italienisches Recht verlangt die Registrierung aller Gäste bei der Polizei "
-"(Questura) innerhalb von 24 Stunden nach Ankunft. Bitte führen Sie den "
-"Online-Check-in vor Ihrer Ankunft durch, um den Prozess zu beschleunigen."
+"Italienisches Recht verlangt die Registrierung aller Gäste bei der "
+"Polizei (Questura) innerhalb von 24 Stunden nach Ankunft. Bitte führen "
+"Sie den Online-Check-in vor Ihrer Ankunft durch, um den Prozess zu "
+"beschleunigen."
 
 #: app/templates/email_guest_checkin.html:41
 msgid "Click the button below to complete your check-in online:"
-msgstr ""
-"Klicken Sie auf die Schaltfläche, um Ihren Check-in online abzuschließen:"
+msgstr "Klicken Sie auf die Schaltfläche, um Ihren Check-in online abzuschließen:"
 
 #: app/templates/email_guest_checkin.html:43
 #: app/templates/email_pending_payment.html:68
@@ -2911,11 +2946,11 @@ msgstr "Ausweistyp, -nummer und Ablaufdatum"
 
 #: app/templates/email_guest_checkin.html:55
 msgid ""
-"The link is valid until your check-in date. You can complete it anytime up "
-"to 30 days before arrival."
+"The link is valid until your check-in date. You can complete it anytime "
+"up to 30 days before arrival."
 msgstr ""
-"Der Link ist bis zu Ihrem Check-in-Datum gültig. Sie können ihn jederzeit "
-"bis zu 30 Tage vor Ankunft ausfüllen."
+"Der Link ist bis zu Ihrem Check-in-Datum gültig. Sie können ihn jederzeit"
+" bis zu 30 Tage vor Ankunft ausfüllen."
 
 #: app/templates/email_guest_checkin.html:57
 msgid "If you have any questions, feel free to contact us."
@@ -2930,8 +2965,7 @@ msgid "Booking Received — Awaiting Payment"
 msgstr "Buchung erhalten — Warte auf Zahlung"
 
 #: app/templates/email_pending_payment.html:27
-msgid ""
-"Thank you for your booking request! We have received your reservation for"
+msgid "Thank you for your booking request! We have received your reservation for"
 msgstr "Vielen Dank für Ihre Buchungsanfrage! Wir haben Ihre Reservierung für"
 
 #: app/templates/email_pending_payment.html:30
@@ -2940,11 +2974,11 @@ msgstr "Wichtig:"
 
 #: app/templates/email_pending_payment.html:30
 msgid ""
-"Your reservation is currently pending payment confirmation. To secure your "
-"dates, please complete the payment within 24 hours."
+"Your reservation is currently pending payment confirmation. To secure "
+"your dates, please complete the payment within 24 hours."
 msgstr ""
-"Ihre Reservierung wartet derzeit auf Zahlungsbestätigung. Um Ihre Daten zu "
-"sichern, schließen Sie bitte die Zahlung innerhalb von 24 Stunden ab."
+"Ihre Reservierung wartet derzeit auf Zahlungsbestätigung. Um Ihre Daten "
+"zu sichern, schließen Sie bitte die Zahlung innerhalb von 24 Stunden ab."
 
 #: app/templates/email_pending_payment.html:47
 msgid "Total Amount:"
@@ -2952,8 +2986,7 @@ msgstr "Gesamtbetrag:"
 
 #: app/templates/email_pending_payment.html:60
 #: app/templates/wire_transfer.html:27
-msgid ""
-"Please make sure to include the Payment Reference exactly as shown above."
+msgid "Please make sure to include the Payment Reference exactly as shown above."
 msgstr ""
 "Bitte stellen Sie sicher, dass Sie die Zahlungsreferenz genau wie oben "
 "angegeben angeben."
@@ -2964,8 +2997,8 @@ msgstr "Online-Check-in abschließen"
 
 #: app/templates/email_pending_payment.html:66
 msgid ""
-"Save time at arrival by completing your guest registration now. Required by "
-"Italian law for all guests."
+"Save time at arrival by completing your guest registration now. Required "
+"by Italian law for all guests."
 msgstr ""
 "Sparen Sie Zeit bei der Ankunft, indem Sie Ihre Gästeregistrierung jetzt "
 "abschließen. Für alle Gäste gesetzlich vorgeschrieben."
@@ -2976,8 +3009,8 @@ msgstr "Verfügbar 30 Tage vor Check-in. Einmaliger Link."
 
 #: app/templates/email_pending_payment.html:79
 msgid ""
-"If you need to cancel your booking request, you can do so by clicking the "
-"link below:"
+"If you need to cancel your booking request, you can do so by clicking the"
+" link below:"
 msgstr ""
 "Falls Sie Ihre Buchungsanfrage stornieren möchten, können Sie dies tun, "
 "indem Sie auf den untenstehenden Link klicken:"
@@ -2989,8 +3022,8 @@ msgstr "Häufig gestellte Fragen"
 #: app/templates/faq.html:11
 msgid "Everything you need to know for a smooth and comfortable stay."
 msgstr ""
-"Alles, was Sie für einen reibungslosen und komfortablen Aufenthalt wissen "
-"müssen."
+"Alles, was Sie für einen reibungslosen und komfortablen Aufenthalt wissen"
+" müssen."
 
 #: app/templates/faq.html:18
 msgid "Check-in & check-out"
@@ -2998,11 +3031,11 @@ msgstr "Check-in & Check-out"
 
 #: app/templates/faq.html:22
 msgid ""
-"Check-in is from 15:00 and check-out is by 11:00. We will send you all the "
-"access details shortly before your arrival."
+"Check-in is from 15:00 and check-out is by 11:00. We will send you all "
+"the access details shortly before your arrival."
 msgstr ""
-"Check-in ist ab 15:00 Uhr und Check-out bis 11:00 Uhr. Wir senden Ihnen kurz"
-" vor Ihrer Ankunft alle Zugangsdaten."
+"Check-in ist ab 15:00 Uhr und Check-out bis 11:00 Uhr. Wir senden Ihnen "
+"kurz vor Ihrer Ankunft alle Zugangsdaten."
 
 #: app/templates/faq.html:28
 msgid "How does check-in work?"
@@ -3010,11 +3043,11 @@ msgstr "Wie funktioniert der Check-in?"
 
 #: app/templates/faq.html:32
 msgid ""
-"Check-in is self-service. You will receive simple step-by-step instructions "
-"before arrival."
+"Check-in is self-service. You will receive simple step-by-step "
+"instructions before arrival."
 msgstr ""
-"Der Check-in erfolgt selbstständig. Sie erhalten vor der Anreise einfache "
-"Schritt-für-Schritt-Anweisungen."
+"Der Check-in erfolgt selbstständig. Sie erhalten vor der Anreise einfache"
+" Schritt-für-Schritt-Anweisungen."
 
 #: app/templates/faq.html:38
 msgid "Where is the apartment located?"
@@ -3022,11 +3055,11 @@ msgstr "Wo befindet sich die Wohnung?"
 
 #: app/templates/faq.html:42
 msgid ""
-"The apartment is located in the Garbatella area, one of Rome's most vibrant "
-"and authentic neighborhoods, well connected to the city center."
+"The apartment is located in the Garbatella area, one of Rome's most "
+"vibrant and authentic neighborhoods, well connected to the city center."
 msgstr ""
-"Die Wohnung befindet sich im Viertel Garbatella, einem der lebhaftesten und "
-"authentischsten Viertel Roms, gut mit dem Stadtzentrum verbunden."
+"Die Wohnung befindet sich im Viertel Garbatella, einem der lebhaftesten "
+"und authentischsten Viertel Roms, gut mit dem Stadtzentrum verbunden."
 
 #: app/templates/faq.html:48
 msgid "Is public transport nearby?"
@@ -3054,13 +3087,13 @@ msgstr "Wie komme ich vom Flughafen dorthin?"
 
 #: app/templates/faq.html:72
 msgid ""
-"From Fiumicino Airport, take the train to Ostiense station. From Ciampino "
-"Airport, take a shuttle to Termini and then Metro Line B. Taxi and private "
-"transfers are also available."
+"From Fiumicino Airport, take the train to Ostiense station. From Ciampino"
+" Airport, take a shuttle to Termini and then Metro Line B. Taxi and "
+"private transfers are also available."
 msgstr ""
 "Vom Flughafen Fiumicino nehmen Sie den Zug zum Bahnhof Ostiense. Vom "
-"Flughafen Ciampino nehmen Sie einen Shuttle zum Termini und dann die Metro-"
-"Linie B. Taxi und private Transfers sind ebenfalls verfügbar."
+"Flughafen Ciampino nehmen Sie einen Shuttle zum Termini und dann die "
+"Metro-Linie B. Taxi und private Transfers sind ebenfalls verfügbar."
 
 #: app/templates/faq.html:78
 msgid "Is parking available?"
@@ -3068,12 +3101,13 @@ msgstr "Ist Parken verfügbar?"
 
 #: app/templates/faq.html:82
 msgid ""
-"We do not have a private parking space, but free street parking is available"
-" nearby. It may require a short search, and we'll be happy to give tips."
+"We do not have a private parking space, but free street parking is "
+"available nearby. It may require a short search, and we'll be happy to "
+"give tips."
 msgstr ""
-"Wir haben keinen privaten Parkplatz, aber kostenloses Parken auf der Straße "
-"ist in der Nähe verfügbar. Es erfordert möglicherweise eine kurze Suche, und"
-" wir geben gerne Tipps."
+"Wir haben keinen privaten Parkplatz, aber kostenloses Parken auf der "
+"Straße ist in der Nähe verfügbar. Es erfordert möglicherweise eine kurze "
+"Suche, und wir geben gerne Tipps."
 
 #: app/templates/faq.html:88
 msgid "Can I leave my luggage?"
@@ -3081,8 +3115,8 @@ msgstr "Kann ich mein Gepäck lassen?"
 
 #: app/templates/faq.html:92
 msgid ""
-"Depending on availability, we may offer early check-in or luggage drop-off. "
-"Please contact us in advance."
+"Depending on availability, we may offer early check-in or luggage drop-"
+"off. Please contact us in advance."
 msgstr ""
 "Je nach Verfügbarkeit bieten wir möglicherweise frühen Check-in oder "
 "Gepäckabgabe an. Bitte kontaktieren Sie uns im Voraus."
@@ -3093,8 +3127,7 @@ msgstr "Ist WLAN verfügbar?"
 
 #: app/templates/faq.html:102
 msgid "Yes, fast and free Wi-Fi is available throughout the apartment."
-msgstr ""
-"Ja, schnelles und kostenloses WLAN ist in der gesamten Wohnung verfügbar."
+msgstr "Ja, schnelles und kostenloses WLAN ist in der gesamten Wohnung verfügbar."
 
 #: app/templates/faq.html:108
 msgid "Is there air conditioning and heating?"
@@ -3102,9 +3135,9 @@ msgstr "Gibt es Klimaanlage und Heizung?"
 
 #: app/templates/faq.html:112
 msgid ""
-"Yes, the apartment is fully equipped with both air conditioning and heating."
-msgstr ""
-"Ja, die Wohnung ist vollständig mit Klimaanlage und Heizung ausgestattet."
+"Yes, the apartment is fully equipped with both air conditioning and "
+"heating."
+msgstr "Ja, die Wohnung ist vollständig mit Klimaanlage und Heizung ausgestattet."
 
 #: app/templates/faq.html:118
 msgid "Are pets allowed?"
@@ -3112,11 +3145,11 @@ msgstr "Sind Haustiere erlaubt?"
 
 #: app/templates/faq.html:122
 msgid ""
-"We love animals, but unfortunately we cannot host pets. Thank you for your "
-"understanding."
+"We love animals, but unfortunately we cannot host pets. Thank you for "
+"your understanding."
 msgstr ""
-"Wir lieben Tiere, aber leider können wir keine Haustiere beherbergen. Vielen"
-" Dank für Ihr Verständnis."
+"Wir lieben Tiere, aber leider können wir keine Haustiere beherbergen. "
+"Vielen Dank für Ihr Verständnis."
 
 #: app/templates/faq.html:128
 msgid "Is a baby crib available?"
@@ -3136,11 +3169,11 @@ msgstr "Natürlich! Wir sind immer erreichbar und helfen gerne."
 
 #: app/templates/food_recommendations.html:8
 msgid ""
-"Discover our favorite places to eat, drink, and experience the real Rome – "
-"just a few minutes from your apartment."
+"Discover our favorite places to eat, drink, and experience the real Rome "
+"– just a few minutes from your apartment."
 msgstr ""
-"Entdecken Sie unsere Lieblingsorte zum Essen, Trinken und Erleben des echten"
-" Rom – nur wenige Minuten von Ihrer Wohnung entfernt."
+"Entdecken Sie unsere Lieblingsorte zum Essen, Trinken und Erleben des "
+"echten Rom – nur wenige Minuten von Ihrer Wohnung entfernt."
 
 #: app/templates/food_recommendations.html:9
 #: app/templates/food_recommendations.html:106
@@ -3237,8 +3270,7 @@ msgstr "Große italienische Markthalle (10 Min. zu Fuß)"
 
 #: app/templates/food_recommendations.html:143
 msgid "Perfect for aperitivo or a quick meal (3 min walk)"
-msgstr ""
-"Perfekt für einen Aperitivo oder eine schnelle Mahlzeit (3 Min. zu Fuß)"
+msgstr "Perfekt für einen Aperitivo oder eine schnelle Mahlzeit (3 Min. zu Fuß)"
 
 #: app/templates/food_recommendations.html:144
 msgid "Roman trattoria (12 min walk)"
@@ -3303,8 +3335,7 @@ msgstr "Tor öffnen"
 
 #: app/templates/guest_access.html:59
 msgid "Gate control not configured. Please contact the host."
-msgstr ""
-"Torkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
+msgstr "Torkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
 
 #: app/templates/guest_access.html:71
 msgid "Apartment Door"
@@ -3320,8 +3351,7 @@ msgstr "Tür entriegeln"
 
 #: app/templates/guest_access.html:81
 msgid "Door control not configured. Please contact the host."
-msgstr ""
-"Türkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
+msgstr "Türkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
 
 #: app/templates/guest_access.html:89
 msgid "Important"
@@ -3422,12 +3452,13 @@ msgstr "Gesetzliche Anforderung:"
 
 #: app/templates/guest_portal.html:58
 msgid ""
-"All guests must be registered with the Police (Questura) within 24 hours of "
-"arrival. Complete this before arrival to speed up the process."
+"All guests must be registered with the Police (Questura) within 24 hours "
+"of arrival. Complete this before arrival to speed up the process."
 msgstr ""
-"Italienisches Recht verlangt die Registrierung aller Gäste bei der Polizei "
-"(Questura) innerhalb von 24 Stunden nach Ankunft. Bitte führen Sie den "
-"Online-Check-in vor Ihrer Ankunft durch, um den Prozess zu beschleunigen."
+"Italienisches Recht verlangt die Registrierung aller Gäste bei der "
+"Polizei (Questura) innerhalb von 24 Stunden nach Ankunft. Bitte führen "
+"Sie den Online-Check-in vor Ihrer Ankunft durch, um den Prozess zu "
+"beschleunigen."
 
 #: app/templates/guest_portal.html:69
 msgid "Takes about 2 minutes · You'll need passport/ID for each guest"
@@ -3448,8 +3479,7 @@ msgstr "Gebäudetor öffnen"
 
 #: app/templates/guest_portal.html:116
 msgid "Gate control not configured. Contact host for access."
-msgstr ""
-"Torkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
+msgstr "Torkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
 
 #: app/templates/guest_portal.html:125
 msgid "Unlock Apartment Door"
@@ -3461,8 +3491,7 @@ msgstr "Drücken Sie zum Entriegeln der Wohnungstür."
 
 #: app/templates/guest_portal.html:138
 msgid "Door control not configured. Contact host for access."
-msgstr ""
-"Türkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
+msgstr "Türkontrolle nicht konfiguriert. Bitte kontaktieren Sie den Gastgeber."
 
 #: app/templates/guest_portal.html:145
 msgid "Smart Access Not Configured"
@@ -3494,7 +3523,8 @@ msgstr "Der Zugang ist nur während Ihres Aufenthalts gültig"
 #: app/templates/guest_portal.html:158
 msgid "Do not share this link with unauthorized persons. Access is logged."
 msgstr ""
-"Teilen Sie diesen Link nicht mit Unbefugten. Der Zugriff wird protokolliert."
+"Teilen Sie diesen Link nicht mit Unbefugten. Der Zugriff wird "
+"protokolliert."
 
 #: app/templates/guest_portal.html:163
 msgid "Open dedicated access page"
@@ -3550,14 +3580,13 @@ msgid "Return to Portal"
 msgstr "Zurück zum Portal"
 
 #: app/templates/guest_self_checkin.html:19
-msgid ""
-"Complete your guest registration before arrival. Required by Italian law."
+msgid "Complete your guest registration before arrival. Required by Italian law."
 msgstr "Questura-Gästeregistrierung (gesetzliche Anforderung)"
 
 #: app/templates/guest_self_checkin.html:52
 msgid ""
-"All guests must be registered with the Police (Questura) within 24 hours of "
-"arrival."
+"All guests must be registered with the Police (Questura) within 24 hours "
+"of arrival."
 msgstr ""
 "Alle Gäste müssen innerhalb von 24 Stunden nach Ankunft bei der Polizei "
 "(Questura) registriert werden."
@@ -3612,11 +3641,10 @@ msgid "We are opening your secure payment link on PayPal.Me."
 msgstr "Wir öffnen Ihren sicheren Zahlungslink auf PayPal.Me."
 
 #: app/templates/paypal_redirect.html:23
-msgid ""
-"If you are not redirected within a few seconds, click the button below:"
+msgid "If you are not redirected within a few seconds, click the button below:"
 msgstr ""
-"Wenn Sie nicht innerhalb weniger Sekunden weitergeleitet werden, klicken Sie"
-" auf den untenstehenden Button:"
+"Wenn Sie nicht innerhalb weniger Sekunden weitergeleitet werden, klicken "
+"Sie auf den untenstehenden Button:"
 
 #: app/templates/paypal_redirect.html:25
 msgid "Go to PayPal.Me Now"
@@ -3632,8 +3660,8 @@ msgstr "Check-in und Check-out wählen"
 
 #: app/templates/reservation.html:49
 msgid ""
-"This date can only be used for check-out. Please choose a different check-in"
-" date."
+"This date can only be used for check-out. Please choose a different "
+"check-in date."
 msgstr ""
 
 #: app/templates/reservation.html:71
@@ -3661,11 +3689,10 @@ msgid "No apartment selected"
 msgstr "Keine Wohnung ausgewählt"
 
 #: app/templates/reservation.html:109
-msgid ""
-"Please navigate back to the listings page and choose an apartment to book."
+msgid "Please navigate back to the listings page and choose an apartment to book."
 msgstr ""
-"Bitte kehren Sie zur Auflistungsseite zurück und wählen Sie eine Wohnung zum"
-" Buchen aus."
+"Bitte kehren Sie zur Auflistungsseite zurück und wählen Sie eine Wohnung "
+"zum Buchen aus."
 
 #: app/templates/reservation.html:161
 msgid "Please select a valid check-in date range first."
@@ -3693,11 +3720,11 @@ msgstr "Reservierung erhalten!"
 
 #: app/templates/wire_transfer.html:14
 msgid ""
-"Your booking is safely registered. To secure your dates, please submit the "
-"bank transfer within 24 hours."
+"Your booking is safely registered. To secure your dates, please submit "
+"the bank transfer within 24 hours."
 msgstr ""
-"Ihre Buchung ist sicher registriert. Um Ihre Daten zu sichern, überweisen "
-"Sie bitte innerhalb von 24 Stunden per Banküberweisung."
+"Ihre Buchung ist sicher registriert. Um Ihre Daten zu sichern, überweisen"
+" Sie bitte innerhalb von 24 Stunden per Banküberweisung."
 
 #: app/templates/components/trust_badges_reviews.html:6
 msgid "Trusted by Thousands of Guests"
@@ -3788,8 +3815,8 @@ msgstr "Zusammenfassung:"
 
 #: app/templates/policies/cancellation.html:11
 msgid ""
-"Free cancellation up to 14 days before check-in. After that, cancellation "
-"fees apply."
+"Free cancellation up to 14 days before check-in. After that, cancellation"
+" fees apply."
 msgstr ""
 "Kostenlose Stornierung bis 14 Tage vor Check-in. Danach fallen "
 "Stornogebühren an."
@@ -3843,8 +3870,7 @@ msgstr "Wie man storniert"
 
 #: app/templates/policies/cancellation.html:47
 msgid "Use the cancellation link in your booking confirmation email, OR"
-msgstr ""
-"Nutzen Sie den Stornierungslink in Ihrer Buchungsbestätigungs-E-Mail, ODER"
+msgstr "Nutzen Sie den Stornierungslink in Ihrer Buchungsbestätigungs-E-Mail, ODER"
 
 #: app/templates/policies/cancellation.html:48
 msgid "Contact us at"
@@ -3864,25 +3890,25 @@ msgstr "Erstattungsabwicklung"
 
 #: app/templates/policies/cancellation.html:56
 msgid ""
-"Stripe payments: Refunded to original payment method within 5-10 business "
-"days"
+"Stripe payments: Refunded to original payment method within 5-10 business"
+" days"
 msgstr ""
-"Stripe-Zahlungen: Rückerstattung auf ursprüngliche Zahlungsmethode innerhalb"
-" von 5-10 Werktagen"
+"Stripe-Zahlungen: Rückerstattung auf ursprüngliche Zahlungsmethode "
+"innerhalb von 5-10 Werktagen"
 
 #: app/templates/policies/cancellation.html:57
 msgid ""
-"Wire transfers: Refunded via bank transfer within 5 business days (provide "
-"IBAN)"
+"Wire transfers: Refunded via bank transfer within 5 business days "
+"(provide IBAN)"
 msgstr ""
-"Überweisungen: Rückerstattung per Banküberweisung innerhalb von 5 Werktagen "
-"(IBAN angeben)"
+"Überweisungen: Rückerstattung per Banküberweisung innerhalb von 5 "
+"Werktagen (IBAN angeben)"
 
 #: app/templates/policies/cancellation.html:58
 msgid "Refunds issued in EUR only; currency conversion fees not refunded"
 msgstr ""
-"Alle Rückerstattungen erfolgen in EUR. Währungsumrechnungsgebühren (falls "
-"anfallend) werden nicht erstattet."
+"Alle Rückerstattungen erfolgen in EUR. Währungsumrechnungsgebühren (falls"
+" anfallend) werden nicht erstattet."
 
 #: app/templates/policies/cancellation.html:63
 msgid "Exceptions & Special Cases"
@@ -3910,19 +3936,18 @@ msgid ""
 "assistance finding alternative."
 msgstr ""
 "Sollte die Wohnung aufgrund von Schäden/Notfällen nicht verfügbar sein, "
-"erhalten Sie eine vollständige Rückerstattung + Hilfe bei der Suche einer "
-"Alternative."
+"erhalten Sie eine vollständige Rückerstattung + Hilfe bei der Suche einer"
+" Alternative."
 
 #: app/templates/policies/cancellation.html:67
 msgid "Medical emergencies:"
 msgstr "Medizinische Notfälle:"
 
 #: app/templates/policies/cancellation.html:67
-msgid ""
-"Considered case-by-case with documentation; we recommend travel insurance."
+msgid "Considered case-by-case with documentation; we recommend travel insurance."
 msgstr ""
-"Werden von Fall zu Fall mit Dokumentation geprüft; eine Reiseversicherung "
-"wird empfohlen."
+"Werden von Fall zu Fall mit Dokumentation geprüft; eine Reiseversicherung"
+" wird empfohlen."
 
 #: app/templates/policies/cancellation.html:68
 msgid "Force majeure:"
@@ -3931,8 +3956,8 @@ msgstr "Höhere Gewalt"
 #: app/templates/policies/cancellation.html:68
 msgid "Natural disasters, pandemics, strikes - full refund or free rebooking."
 msgstr ""
-"Naturkatastrophen, Pandemien, Streiks - volle Rückerstattung oder kostenlose"
-" Umbuchung."
+"Naturkatastrophen, Pandemien, Streiks - volle Rückerstattung oder "
+"kostenlose Umbuchung."
 
 #: app/templates/policies/cancellation.html:73
 msgid "Non-Refundable Bookings"
@@ -3941,11 +3966,12 @@ msgstr "Nicht erstattungsfähige Buchungen"
 #: app/templates/policies/cancellation.html:74
 msgid ""
 "Promotional or \"Non-Refundable\" rate bookings cannot be cancelled or "
-"refunded under any circumstances. These are clearly marked during booking."
+"refunded under any circumstances. These are clearly marked during "
+"booking."
 msgstr ""
 "Buchungen mit Aktions- oder \"Nicht erstattungsfähigen\" Tarifen können "
-"unter keinen Umständen storniert oder erstattet werden. Diese werden bei der"
-" Buchung deutlich gekennzeichnet."
+"unter keinen Umständen storniert oder erstattet werden. Diese werden bei "
+"der Buchung deutlich gekennzeichnet."
 
 #: app/templates/policies/cancellation.html:78
 msgid "Rebooking Instead of Cancelling"
@@ -3957,8 +3983,8 @@ msgid ""
 "availability and rate differences. Contact us to discuss options."
 msgstr ""
 "Wir helfen Ihnen gerne dabei, das Datum zu ändern anstatt zu stornieren, "
-"vorbehaltlich Verfügbarkeit und Preisunterschieden. Kontaktieren Sie uns, um"
-" Optionen zu besprechen."
+"vorbehaltlich Verfügbarkeit und Preisunterschieden. Kontaktieren Sie uns,"
+" um Optionen zu besprechen."
 
 #: app/templates/policies/cancellation.html:86
 #: app/templates/policies/privacy.html:12 app/templates/policies/terms.html:93
@@ -3968,7 +3994,8 @@ msgstr "Via Circonvallazione Ostiense 235, 00154 Rom RM, Italien"
 #: app/templates/policies/house_rules.html:7
 msgid "Please respect these rules for a pleasant stay for everyone"
 msgstr ""
-"Bitte respektieren Sie diese Regeln für einen angenehmen Aufenthalt für alle"
+"Bitte respektieren Sie diese Regeln für einen angenehmen Aufenthalt für "
+"alle"
 
 #: app/templates/policies/house_rules.html:10
 msgid "General Conduct"
@@ -3990,8 +4017,7 @@ msgstr ""
 
 #: app/templates/policies/house_rules.html:15
 msgid "Maximum occupancy: As per booking (no extra overnight guests)"
-msgstr ""
-"Maximale Belegung: Gemäß Buchung (keine zusätzlichen Übernachtungsgäste)"
+msgstr "Maximale Belegung: Gemäß Buchung (keine zusätzlichen Übernachtungsgäste)"
 
 #: app/templates/policies/house_rules.html:20
 msgid "Smoking"
@@ -4047,8 +4073,7 @@ msgstr "bis 11:00 Uhr genau"
 
 #: app/templates/policies/house_rules.html:44
 msgid "Late check-out: €30/hr (subject to availability, request by 09:00)"
-msgstr ""
-"Später Check-out: 30 €/Std. (je nach Verfügbarkeit, Anfrage bis 09:00)"
+msgstr "Später Check-out: 30 €/Std. (je nach Verfügbarkeit, Anfrage bis 09:00)"
 
 #: app/templates/policies/house_rules.html:45
 msgid "Leave keys on counter"
@@ -4097,13 +4122,16 @@ msgid "General/Non-recyclable"
 msgstr "Allgemein/Nicht recyclingfähig"
 
 #: app/templates/policies/house_rules.html:57
+msgid "Green:"
+msgstr "Grün:"
+
+#: app/templates/policies/house_rules.html:57
 msgid "Glass: Separate bin near entrance"
 msgstr "Glas: Separater Behälter in der Nähe des Eingangs"
 
 #: app/templates/policies/house_rules.html:58
 msgid "Do NOT put waste in wrong bins - fines apply to building"
-msgstr ""
-"Müll NICHT in falsche Behälter werfen - Strafen gelten für das Gebäude"
+msgstr "Müll NICHT in falsche Behälter werfen - Strafen gelten für das Gebäude"
 
 #: app/templates/policies/house_rules.html:63
 msgid "Water & Energy Conservation"
@@ -4212,7 +4240,8 @@ msgstr "Rauchen innen: 200 € + vorzeitige Beendigung"
 #: app/templates/policies/house_rules.html:110
 msgid "Damage deposit may be charged via Stripe for significant issues"
 msgstr ""
-"Schadenskaution kann bei erheblichen Problemen über Stripe berechnet werden"
+"Schadenskaution kann bei erheblichen Problemen über Stripe berechnet "
+"werden"
 
 #: app/templates/policies/house_rules.html:116
 msgid "Questions?"
@@ -4233,8 +4262,8 @@ msgstr "2. Erfasste Daten"
 #: app/templates/policies/privacy.html:19
 msgid "We collect only data necessary for your booking and legal obligations:"
 msgstr ""
-"Wir erfassen nur Daten, die für Ihre Buchung und gesetzliche Verpflichtungen"
-" notwendig sind:"
+"Wir erfassen nur Daten, die für Ihre Buchung und gesetzliche "
+"Verpflichtungen notwendig sind:"
 
 #: app/templates/policies/privacy.html:21
 msgid "Identity: Name, email, phone number"
@@ -4414,12 +4443,12 @@ msgstr "Analytik (Google Analytics 4):"
 #: app/templates/policies/privacy.html:81
 msgid ""
 "Anonymized IP, 26-month retention. Opt-out: <a "
-"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" "
-"class=\"text-decoration-underline\">Google Opt-out</a>"
+"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" class"
+"=\"text-decoration-underline\">Google Opt-out</a>"
 msgstr ""
 "Anonymisierte IP, 26-monatige Aufbewahrung. Opt-out: <a "
-"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" "
-"class=\"text-decoration-underline\">Google Opt-out</a>"
+"href=\"https://tools.google.com/dlpage/gaoptout\" target=\"_blank\" class"
+"=\"text-decoration-underline\">Google Opt-out</a>"
 
 #: app/templates/policies/privacy.html:82
 msgid "No advertising/tracking cookies"
@@ -4490,15 +4519,14 @@ msgstr "11. Änderungen an dieser Richtlinie"
 
 #: app/templates/policies/privacy.html:114
 msgid ""
-"We may update this policy. Changes posted here with updated date. Material "
-"changes notified via email."
+"We may update this policy. Changes posted here with updated date. "
+"Material changes notified via email."
 msgstr ""
 "Wir können diese Richtlinie aktualisieren. Änderungen werden hier mit "
 "aktualisiertem Datum veröffentlicht. Wesentliche Änderungen werden per "
 "E-Mail mitgeteilt."
 
-#: app/templates/policies/privacy.html:118
-#: app/templates/policies/terms.html:89
+#: app/templates/policies/privacy.html:118 app/templates/policies/terms.html:89
 msgid "12. Contact"
 msgstr "12. Kontakt"
 
@@ -4518,9 +4546,9 @@ msgid ""
 "7-14 days. No refunds <7 days. Refunds to original payment method within "
 "5-10 business days."
 msgstr ""
-"Volle Rückerstattung bei Stornierungen >14 Tage vor Check-in. Teilerstattung"
-" 7-14 Tage. Keine Rückerstattung <7 Tage. Rückerstattung auf ursprüngliche "
-"Zahlungsmethode innerhalb von 5-10 Werktagen."
+"Volle Rückerstattung bei Stornierungen >14 Tage vor Check-in. "
+"Teilerstattung 7-14 Tage. Keine Rückerstattung <7 Tage. Rückerstattung "
+"auf ursprüngliche Zahlungsmethode innerhalb von 5-10 Werktagen."
 
 #: app/templates/policies/refund.html:15
 msgid "Eligible Refunds"
@@ -4536,8 +4564,8 @@ msgstr "Doppelte Belastungen oder Zahlungsverarbeitungsfehler"
 
 #: app/templates/policies/refund.html:19
 msgid ""
-"Property unavailable due to our fault (maintenance, double-booking, force "
-"majeure)"
+"Property unavailable due to our fault (maintenance, double-booking, force"
+" majeure)"
 msgstr ""
 "Unterkunft aufgrund unseres Verschuldens nicht verfügbar (Wartung, "
 "Doppelbuchung, höhere Gewalt)"
@@ -4562,8 +4590,7 @@ msgstr "Nicht-Erscheinen oder vorzeitige Abreise"
 
 #: app/templates/policies/refund.html:29
 msgid "Non-refundable promotional rates (clearly marked at booking)"
-msgstr ""
-"Nicht erstattungsfähige Promo-Preise (bei Buchung deutlich gekennzeichnet)"
+msgstr "Nicht erstattungsfähige Promo-Preise (bei Buchung deutlich gekennzeichnet)"
 
 #: app/templates/policies/refund.html:30
 msgid "Violation of House Rules resulting in eviction"
@@ -4618,8 +4645,8 @@ msgid ""
 "All refunds issued in EUR. Currency conversion fees (if any) are not "
 "refunded."
 msgstr ""
-"Alle Rückerstattungen erfolgen in EUR. Währungsumrechnungsgebühren (falls "
-"anfallend) werden nicht erstattet."
+"Alle Rückerstattungen erfolgen in EUR. Währungsumrechnungsgebühren (falls"
+" anfallend) werden nicht erstattet."
 
 #: app/templates/policies/refund.html:63
 msgid "How to Request a Refund"
@@ -4628,7 +4655,8 @@ msgstr "Wie man eine Rückerstattung beantragt"
 #: app/templates/policies/refund.html:65
 msgid ""
 "Contact us at <a href=\"mailto:lotto235roma@gmail.com\" class=\"text-"
-"decoration-underline\">lotto235roma@gmail.com</a> with your reservation ID"
+"decoration-underline\">lotto235roma@gmail.com</a> with your reservation "
+"ID"
 msgstr ""
 "Kontaktieren Sie uns unter <a href=\"mailto:lotto235roma@gmail.com\" "
 "class=\"text-decoration-underline\">lotto235roma@gmail.com</a> mit Ihrer "
@@ -4656,13 +4684,13 @@ msgstr "Streitige Belastungen / Rückbuchungen"
 
 #: app/templates/policies/refund.html:75
 msgid ""
-"We strongly prefer to resolve issues directly. Chargebacks delay resolution "
-"and may incur fees that we reserve the right to pass on. Please contact us "
-"first."
+"We strongly prefer to resolve issues directly. Chargebacks delay "
+"resolution and may incur fees that we reserve the right to pass on. "
+"Please contact us first."
 msgstr ""
-"Wir bevorzugen es stark, Probleme direkt zu lösen. Rückbuchungen verzögern "
-"die Lösung und können Gebühren verursachen, die wir uns vorbehalten, "
-"weiterzugeben. Bitte kontaktieren Sie uns zuerst."
+"Wir bevorzugen es stark, Probleme direkt zu lösen. Rückbuchungen "
+"verzögern die Lösung und können Gebühren verursachen, die wir uns "
+"vorbehalten, weiterzugeben. Bitte kontaktieren Sie uns zuerst."
 
 #: app/templates/policies/refund.html:79
 msgid "Partial Refunds for Service Issues"
@@ -4670,14 +4698,14 @@ msgstr "Teilerstattungen bei Serviceproblemen"
 
 #: app/templates/policies/refund.html:80
 msgid ""
-"If a significant amenity is unavailable during your stay (e.g., AC failure "
-"in summer, no hot water), contact us immediately. We will assess and offer "
-"appropriate compensation (partial refund, credit, or repair)."
+"If a significant amenity is unavailable during your stay (e.g., AC "
+"failure in summer, no hot water), contact us immediately. We will assess "
+"and offer appropriate compensation (partial refund, credit, or repair)."
 msgstr ""
-"Wenn eine wichtige Annehmlichkeit während Ihres Aufenthalts nicht verfügbar "
-"ist (z. B. Klimaanlagenausfall im Sommer, kein heißes Wasser), kontaktieren "
-"Sie uns sofort. Wir bewerten und bieten angemessene Entschädigung an "
-"(Teilerstattung, Gutschrift oder Reparatur)."
+"Wenn eine wichtige Annehmlichkeit während Ihres Aufenthalts nicht "
+"verfügbar ist (z. B. Klimaanlagenausfall im Sommer, kein heißes Wasser), "
+"kontaktieren Sie uns sofort. Wir bewerten und bieten angemessene "
+"Entschädigung an (Teilerstattung, Gutschrift oder Reparatur)."
 
 #: app/templates/policies/refund.html:84
 msgid "Force Majeure"
@@ -4688,8 +4716,8 @@ msgid ""
 "For events beyond our control (pandemics, natural disasters, government "
 "orders), we offer:"
 msgstr ""
-"Für Ereignisse außerhalb unserer Kontrolle (Pandemien, Naturkatastrophen, "
-"Regierungsanordnungen) bieten wir:"
+"Für Ereignisse außerhalb unserer Kontrolle (Pandemien, Naturkatastrophen,"
+" Regierungsanordnungen) bieten wir:"
 
 #: app/templates/policies/refund.html:87
 msgid "Full refund of all amounts paid"
@@ -4701,11 +4729,12 @@ msgstr "ODER kostenlose Umbuchung für zukünftige Daten (12 Monate gültig)"
 
 #: app/templates/policies/refund.html:93
 msgid ""
-"Questions? Contact us at <a href=\"mailto:lotto235roma@gmail.com\" "
-"class=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
+"Questions? Contact us at <a href=\"mailto:lotto235roma@gmail.com\" class"
+"=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
 msgstr ""
-"Fragen? Kontaktieren Sie uns unter <a href=\"mailto:lotto235roma@gmail.com\""
-" class=\"text-decoration-underline\">lotto235roma@gmail.com</a>"
+"Fragen? Kontaktieren Sie uns unter <a "
+"href=\"mailto:lotto235roma@gmail.com\" class=\"text-decoration-"
+"underline\">lotto235roma@gmail.com</a>"
 
 #: app/templates/policies/terms.html:10
 msgid "1. Acceptance of Terms"
@@ -4714,13 +4743,14 @@ msgstr "1. Annahme der Bedingungen"
 #: app/templates/policies/terms.html:11
 msgid ""
 "By booking a stay at Lotto 235 Garbatella, you agree to these Terms and "
-"Conditions. Please read them carefully before making a reservation. If you "
-"do not agree with any part of these terms, please do not book."
+"Conditions. Please read them carefully before making a reservation. If "
+"you do not agree with any part of these terms, please do not book."
 msgstr ""
 "Durch die Buchung eines Aufenthalts bei Lotto 235 Garbatella stimmen Sie "
-"diesen Allgemeinen Geschäftsbedingungen zu. Bitte lesen Sie diese sorgfältig"
-" durch, bevor Sie eine Reservierung vornehmen. Wenn Sie mit einem Teil "
-"dieser Bedingungen nicht einverstanden sind, buchen Sie bitte nicht."
+"diesen Allgemeinen Geschäftsbedingungen zu. Bitte lesen Sie diese "
+"sorgfältig durch, bevor Sie eine Reservierung vornehmen. Wenn Sie mit "
+"einem Teil dieser Bedingungen nicht einverstanden sind, buchen Sie bitte "
+"nicht."
 
 #: app/templates/policies/terms.html:15
 msgid "2. Booking & Payment"
@@ -4731,13 +4761,13 @@ msgid ""
 "Reservations are confirmed upon receipt of full payment or deposit as "
 "specified during booking."
 msgstr ""
-"Buchungen werden nach Eingang der vollständigen Zahlung oder Anzahlung wie "
-"bei der Buchung angegeben bestätigt."
+"Buchungen werden nach Eingang der vollständigen Zahlung oder Anzahlung "
+"wie bei der Buchung angegeben bestätigt."
 
 #: app/templates/policies/terms.html:18
 msgid ""
-"We accept payments via Stripe (Credit Card, PayPal, Klarna) and Bank Wire "
-"Transfer."
+"We accept payments via Stripe (Credit Card, PayPal, Klarna) and Bank Wire"
+" Transfer."
 msgstr ""
 "Wir akzeptieren Zahlungen per Stripe (Kreditkarte, PayPal, Klarna) und "
 "Banküberweisung."
@@ -4747,35 +4777,32 @@ msgid "All prices are in EUR and include applicable taxes (VAT)."
 msgstr "Alle Preise sind in EUR und enthalten geltende Steuern (MwSt.)."
 
 #: app/templates/policies/terms.html:20
-#, no-python-format, python-format
 msgid ""
-"Base rate €130/night. +10%% weekends and Italian public holidays. +€15/night"
-" per extra guest over 2."
+"Base rate €120/night. +10%% weekends and Italian public holidays. "
+"+€15/night per extra guest over 2."
 msgstr ""
-"Grundpreis €130/Nacht. +10%% an Wochenenden und italienischen Feiertagen. "
-"+€15/Nacht pro zusätzlichem Gast über 2."
+"Grundpreis €120/Nacht. +10%% an Wochenenden und italienischen Feiertagen."
+" +€15/Nacht pro zusätzlichem Gast über 2."
 
 #: app/templates/policies/terms.html:21
 msgid ""
 "Coupon codes must be applied at time of booking and cannot be added "
 "retroactively."
 msgstr ""
-"Gutscheincodes müssen zum Zeitpunkt der Buchung angewendet werden und können"
-" nicht nachträglich hinzugefügt werden."
+"Gutscheincodes müssen zum Zeitpunkt der Buchung angewendet werden und "
+"können nicht nachträglich hinzugefügt werden."
 
 #: app/templates/policies/terms.html:26
 msgid "3. Check-in / Check-out"
 msgstr "3. Check-in / Check-out"
 
 #: app/templates/policies/terms.html:28
-msgid ""
-"Check-in: 13:00 - 20:00 (Self check-in available after hours with key "
-"lockbox)"
-msgstr "13:00 - 20:00 (Selbst-Check-in über Schlüsselbox nach Stunden)"
+msgid "Check-in: from 15:00"
+msgstr "Check-in: ab 15:00 Uhr"
 
 #: app/templates/policies/terms.html:29
-msgid "Check-out: by 10:00"
-msgstr "Check-out:"
+msgid "Check-out: by 11:00 sharp"
+msgstr "Check-out: spätestens 11:00 Uhr"
 
 #: app/templates/policies/terms.html:30
 msgid ""
@@ -4787,7 +4814,8 @@ msgstr ""
 
 #: app/templates/policies/terms.html:31
 msgid ""
-"Please communicate your estimated arrival time at least 24 hours in advance."
+"Please communicate your estimated arrival time at least 24 hours in "
+"advance."
 msgstr ""
 "Bitte teilen Sie uns Ihre voraussichtliche Ankunftszeit mindestens 24 "
 "Stunden im Voraus mit."
@@ -4813,8 +4841,7 @@ msgid "All guests must comply with our"
 msgstr "Alle Gäste müssen unsere"
 
 #: app/templates/policies/terms.html:42
-msgid ""
-". Violation may result in immediate termination of stay without refund."
+msgid ". Violation may result in immediate termination of stay without refund."
 msgstr ""
 ". Verstöße können zur sofortigen Beendigung des Aufenthalts ohne "
 "Rückerstattung führen."
@@ -4829,7 +4856,8 @@ msgstr "Respektieren Sie die Unterkunft, die Nachbarn und die Hausordnung."
 
 #: app/templates/policies/terms.html:49
 msgid ""
-"No smoking inside the apartment (smoking permitted on balcony/terrace only)."
+"No smoking inside the apartment (smoking permitted on balcony/terrace "
+"only)."
 msgstr "Rauchen nur auf Balkon/Terrasse erlaubt"
 
 #: app/templates/policies/terms.html:50
@@ -4839,10 +4867,8 @@ msgstr ""
 "schriftliche Zustimmung"
 
 #: app/templates/policies/terms.html:51
-msgid ""
-"Maximum occupancy as stated in booking; no additional overnight guests."
-msgstr ""
-"Maximale Belegung: Gemäß Buchung (keine zusätzlichen Übernachtungsgäste)"
+msgid "Maximum occupancy as stated in booking; no additional overnight guests."
+msgstr "Maximale Belegung: Gemäß Buchung (keine zusätzlichen Übernachtungsgäste)"
 
 #: app/templates/policies/terms.html:52
 msgid "Report any damage or issues immediately."
@@ -4862,8 +4888,8 @@ msgstr "Lotto 235 Garbatella - Aufenthalt"
 
 #: app/templates/policies/terms.html:61
 msgid ""
-"Personal injury, illness, or death during your stay (except caused by our "
-"negligence)."
+"Personal injury, illness, or death during your stay (except caused by our"
+" negligence)."
 msgstr ""
 "Personen-, Krankheits- oder Todesfälle während Ihres Aufenthalts (außer "
 "durch unsere Fahrlässigkeit verursacht)."
@@ -4878,8 +4904,7 @@ msgstr "Reiseunterbrechungen, Wetterereignisse oder höhere Gewalt."
 
 #: app/templates/policies/terms.html:65
 msgid "We recommend guests obtain appropriate travel insurance."
-msgstr ""
-"Wir empfehlen Gästen, eine entsprechende Reiseversicherung abzuschließen."
+msgstr "Wir empfehlen Gästen, eine entsprechende Reiseversicherung abzuschließen."
 
 #: app/templates/policies/terms.html:69
 msgid "8. Data Protection & Privacy"
@@ -4891,11 +4916,11 @@ msgstr "Ihre persönlichen Daten werden gemäß unserer"
 
 #: app/templates/policies/terms.html:70
 msgid ""
-"and GDPR (EU Regulation 2016/679). We only collect data necessary for your "
-"booking and legal obligations."
+"and GDPR (EU Regulation 2016/679). We only collect data necessary for "
+"your booking and legal obligations."
 msgstr ""
-"Wir erfassen nur Daten, die für Ihre Buchung und gesetzliche Verpflichtungen"
-" notwendig sind:"
+"Wir erfassen nur Daten, die für Ihre Buchung und gesetzliche "
+"Verpflichtungen notwendig sind:"
 
 #: app/templates/policies/terms.html:74
 msgid "9. Force Majeure"
@@ -4908,10 +4933,10 @@ msgid ""
 "restrictions, strikes, etc.). In such cases, we will work with you to "
 "reschedule or refund per our policies."
 msgstr ""
-"Keine Partei haftet für die Nichterfüllung von Verpflichtungen aufgrund von "
-"Ereignissen, die außerhalb der zumutbaren Kontrolle liegen "
-"(Naturkatastrophen, Pandemien, behördliche Beschränkungen, Streiks usw.). In"
-" solchen Fällen arbeiten wir mit Ihnen zusammen, um gemäß unseren "
+"Keine Partei haftet für die Nichterfüllung von Verpflichtungen aufgrund "
+"von Ereignissen, die außerhalb der zumutbaren Kontrolle liegen "
+"(Naturkatastrophen, Pandemien, behördliche Beschränkungen, Streiks usw.)."
+" In solchen Fällen arbeiten wir mit Ihnen zusammen, um gemäß unseren "
 "Richtlinien umzubuchen oder zu erstatten."
 
 #: app/templates/policies/terms.html:79
@@ -4920,13 +4945,13 @@ msgstr "10. Anwendbares Recht & Streitigkeiten"
 
 #: app/templates/policies/terms.html:80
 msgid ""
-"These terms are governed by Italian law. Any disputes shall be resolved in "
-"the courts of Rome, Italy. For EU consumers, mandatory consumer protection "
-"laws of your country of residence may apply."
+"These terms are governed by Italian law. Any disputes shall be resolved "
+"in the courts of Rome, Italy. For EU consumers, mandatory consumer "
+"protection laws of your country of residence may apply."
 msgstr ""
-"Diese Bedingungen unterliegen italienischem Recht. Streitigkeiten werden vor"
-" den Gerichten von Rom, Italien, entschieden. Für EU-Verbraucher können "
-"zwingende Verbraucherschutzgesetze Ihres Wohnsitzlandes gelten."
+"Diese Bedingungen unterliegen italienischem Recht. Streitigkeiten werden "
+"vor den Gerichten von Rom, Italien, entschieden. Für EU-Verbraucher "
+"können zwingende Verbraucherschutzgesetze Ihres Wohnsitzlandes gelten."
 
 #: app/templates/policies/terms.html:84
 msgid "11. Changes to Terms"
@@ -4935,13 +4960,13 @@ msgstr "11. Änderungen der Bedingungen"
 #: app/templates/policies/terms.html:85
 msgid ""
 "We may update these terms periodically. Changes apply to new bookings; "
-"existing reservations remain under terms at time of booking. Continued use "
-"constitutes acceptance of updated terms."
+"existing reservations remain under terms at time of booking. Continued "
+"use constitutes acceptance of updated terms."
 msgstr ""
-"Wir können diese Bedingungen regelmäßig aktualisieren. Änderungen gelten für"
-" Neubuchungen; bestehende Reservierungen unterliegen den zum Zeitpunkt der "
-"Buchung geltenden Bedingungen. Die weitere Nutzung gilt als Zustimmung zu "
-"den aktualisierten Bedingungen."
+"Wir können diese Bedingungen regelmäßig aktualisieren. Änderungen gelten "
+"für Neubuchungen; bestehende Reservierungen unterliegen den zum Zeitpunkt"
+" der Buchung geltenden Bedingungen. Die weitere Nutzung gilt als "
+"Zustimmung zu den aktualisierten Bedingungen."
 
 #: app/templates/policies/terms.html:90
 msgid "For questions about these terms, contact us at:"
@@ -4952,7 +4977,8 @@ msgstr "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns unter:"
 
 #~ msgid "Sorry, those dates were just booked. Please choose again."
 #~ msgstr ""
-#~ "Entschuldigung, diese Daten wurden gerade gebucht. Bitte wählen Sie andere."
+#~ "Entschuldigung, diese Daten wurden gerade "
+#~ "gebucht. Bitte wählen Sie andere."
 
 #~ msgid "Pending Review"
 #~ msgstr "Wartet auf Prüfung"
@@ -4973,11 +4999,13 @@ msgstr "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns unter:"
 #~ msgstr "Genehmigen & Bezahlt"
 
 #~ msgid ""
-#~ "WARNING: Are you sure you want to cancel this booking and issue a full "
-#~ "Stripe refund?"
+#~ "WARNING: Are you sure you want to"
+#~ " cancel this booking and issue a "
+#~ "full Stripe refund?"
 #~ msgstr ""
-#~ "WARNUNG: Sind Sie sicher, dass Sie diese Buchung stornieren und eine volle "
-#~ "Stripe-Rückerstattung auslösen möchten?"
+#~ "WARNUNG: Sind Sie sicher, dass Sie "
+#~ "diese Buchung stornieren und eine volle"
+#~ " Stripe-Rückerstattung auslösen möchten?"
 
 #~ msgid "Cancel & Refund"
 #~ msgstr "Stornieren & Erstatten"
@@ -4998,11 +5026,13 @@ msgstr "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns unter:"
 #~ msgstr "Testimonials"
 
 #~ msgid ""
-#~ "Elegante e raffinato appartamento nel cuore della Garbatella a Roma. Prenota"
+#~ "Elegante e raffinato appartamento nel "
+#~ "cuore della Garbatella a Roma. Prenota"
 #~ " il tuo soggiorno ideale."
 #~ msgstr ""
-#~ "Elegante und raffinierte Wohnung im Herzen von Garbatella in Rom. Buchen Sie"
-#~ " Ihren idealen Aufenthalt."
+#~ "Elegante und raffinierte Wohnung im "
+#~ "Herzen von Garbatella in Rom. Buchen "
+#~ "Sie Ihren idealen Aufenthalt."
 
 #~ msgid "Camera da letto - Bedroom"
 #~ msgstr "Schlafzimmer"
@@ -5054,3 +5084,10 @@ msgstr "Bei Fragen zu diesen Bedingungen kontaktieren Sie uns unter:"
 
 #~ msgid "Lost keys: €50 (lockbox) / €150 (building key)"
 #~ msgstr "Verlorene Schlüssel: 50 € (Schlüsselbox) / 150 € (Gebäudeschlüssel)"
+
+#~ msgid ""
+#~ "Check-in: 13:00 - 20:00 (Self "
+#~ "check-in available after hours with "
+#~ "key lockbox)"
+#~ msgstr "13:00 - 20:00 (Selbst-Check-in über Schlüsselbox nach Stunden)"
+
