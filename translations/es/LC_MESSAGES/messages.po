@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-04 12:23+0200\n"
+"POT-Creation-Date: 2026-08-04 15:16+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgstr "Correo electrónico"
 #: app/forms.py:18 app/templates/admin_compliance.html:145
 #: app/templates/admin_dashboard.html:114
 #: app/templates/admin_dashboard.html:144
-#: app/templates/admin_dashboard.html:258
+#: app/templates/admin_dashboard.html:259
 #: app/templates/admin_guest_checkin.html:109
 #: app/templates/admin_questura.html:67 app/templates/admin_ross1000.html:65
 #: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
@@ -40,7 +40,7 @@ msgid "Check-in"
 msgstr "Check-in"
 
 #: app/forms.py:19 app/templates/admin_dashboard.html:145
-#: app/templates/admin_dashboard.html:262
+#: app/templates/admin_dashboard.html:263
 #: app/templates/admin_guest_checkin.html:113
 #: app/templates/admin_questura.html:68 app/templates/admin_ross1000.html:66
 #: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
@@ -89,7 +89,7 @@ msgstr "Dirección de correo electrónico"
 msgid "Message"
 msgstr "Mensaje"
 
-#: app/forms.py:61 app/templates/admin_dashboard.html:223
+#: app/forms.py:61 app/templates/admin_dashboard.html:224
 #: app/templates/contact.html:39
 msgid "Send message"
 msgstr "Enviar mensaje"
@@ -684,47 +684,52 @@ msgstr "Pago:"
 msgid "Actions"
 msgstr "Acciones"
 
-#: app/templates/admin_dashboard.html:162
+#: app/templates/admin_dashboard.html:158
+#, fuzzy
+msgid "block"
+msgstr "Atrás"
+
+#: app/templates/admin_dashboard.html:163
 #: app/templates/admin_testimonials.html:86 app/templates/apartment.html:352
 msgid "Direct"
 msgstr "Directa"
 
-#: app/templates/admin_dashboard.html:177
+#: app/templates/admin_dashboard.html:178
 #: app/templates/admin_tourist_tax.html:162
 #: app/templates/admin_tourist_tax.html:219
 msgid "Paid"
 msgstr "Pagado"
 
-#: app/templates/admin_dashboard.html:179
+#: app/templates/admin_dashboard.html:180
 msgid "Deposit"
 msgstr "Depósito"
 
-#: app/templates/admin_dashboard.html:181
+#: app/templates/admin_dashboard.html:182
 msgid "Unpaid"
 msgstr "No pagado"
 
-#: app/templates/admin_dashboard.html:183
+#: app/templates/admin_dashboard.html:184
 msgid "Refunded"
 msgstr "Reembolsado"
 
-#: app/templates/admin_dashboard.html:193
+#: app/templates/admin_dashboard.html:194
 msgid "Confirm"
 msgstr "Confirmar"
 
-#: app/templates/admin_dashboard.html:199
+#: app/templates/admin_dashboard.html:200
 msgid "Charge Remaining"
 msgstr ""
 
-#: app/templates/admin_dashboard.html:205
+#: app/templates/admin_dashboard.html:206
 #: app/templates/admin_feed_form.html:43
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: app/templates/admin_dashboard.html:211
+#: app/templates/admin_dashboard.html:212
 msgid "Edit dates"
 msgstr "Editar fechas"
 
-#: app/templates/admin_dashboard.html:218
+#: app/templates/admin_dashboard.html:219
 msgid ""
 "Delete this external reservation? This frees the dates until the next iCal "
 "sync."
@@ -732,48 +737,48 @@ msgstr ""
 "¿Eliminar esta reserva externa? Liberará las fechas hasta la próxima "
 "sincronización iCal."
 
-#: app/templates/admin_dashboard.html:220
+#: app/templates/admin_dashboard.html:221
 #: app/templates/admin_testimonials.html:147
 #: app/templates/admin_testimonials.html:148
 msgid "Delete"
 msgstr "Eliminar"
 
-#: app/templates/admin_dashboard.html:228
+#: app/templates/admin_dashboard.html:229
 msgid "No reservations."
 msgstr "No hay reservas."
 
-#: app/templates/admin_dashboard.html:237
+#: app/templates/admin_dashboard.html:238
 #: app/templates/admin_ical_feeds.html:2
 msgid "iCal Feeds"
 msgstr "Feeds iCal"
 
-#: app/templates/admin_dashboard.html:239
+#: app/templates/admin_dashboard.html:240
 msgid "Manage Feeds"
 msgstr "Gestionar feeds"
 
-#: app/templates/admin_dashboard.html:242
+#: app/templates/admin_dashboard.html:243
 #, fuzzy
 msgid "Sync Now"
 msgstr "Sincronizar feeds ahora"
 
-#: app/templates/admin_dashboard.html:253
+#: app/templates/admin_dashboard.html:254
 msgid "Edit external reservation"
 msgstr "Editar reserva externa"
 
-#: app/templates/admin_dashboard.html:266 app/templates/admin_ross1000.html:67
+#: app/templates/admin_dashboard.html:267 app/templates/admin_ross1000.html:67
 #: app/templates/admin_tourist_tax.html:159
 #: app/templates/admin_tourist_tax.html:209 app/templates/checkout.html:50
 #: app/templates/guest_self_checkin.html:38
 msgid "Guests"
 msgstr "Huéspedes"
 
-#: app/templates/admin_dashboard.html:271 app/templates/admin_pricing.html:122
+#: app/templates/admin_dashboard.html:272 app/templates/admin_pricing.html:122
 #: app/templates/admin_ross1000_logs.html:78
 #: app/templates/admin_testimonials.html:170
 msgid "Close"
 msgstr "Cerrar"
 
-#: app/templates/admin_dashboard.html:272
+#: app/templates/admin_dashboard.html:273
 msgid "Save changes"
 msgstr "Guardar cambios"
 
@@ -4020,12 +4025,12 @@ msgid "Check-in / Check-out"
 msgstr "Check-in / Check-out"
 
 #: app/templates/policies/house_rules.html:42
-msgid "13:00 - 20:00 (self check-in via lockbox after hours)"
-msgstr "13:00 - 20:00 (auto check-in vía caja fuerte fuera de horario)"
+msgid "from 15:00"
+msgstr "a partir de las 15:00"
 
 #: app/templates/policies/house_rules.html:43
-msgid "by 10:00 sharp"
-msgstr "a las 10:00 en punto"
+msgid "by 11:00 sharp"
+msgstr "a las 11:00 en punto"
 
 #: app/templates/policies/house_rules.html:44
 msgid "Late check-out: €30/hr (subject to availability, request by 09:00)"
@@ -4033,8 +4038,8 @@ msgstr ""
 "Check-out tardío: 30 €/h (sujeto a disponibilidad, solicitar antes de 09:00)"
 
 #: app/templates/policies/house_rules.html:45
-msgid "Return keys to lockbox / leave on counter"
-msgstr "Devolver llaves a la caja fuerte / dejar en la encimera"
+msgid "Leave keys on counter"
+msgstr "Dejar las llaves en la encimera"
 
 #: app/templates/policies/house_rules.html:50
 msgid "Waste & Recycling (Rome Regulations)"
@@ -4101,114 +4106,106 @@ msgstr "Apaga luces y electrodomésticos al salir"
 msgid "Reasonable water usage"
 msgstr "Uso razonable de agua"
 
-#: app/templates/policies/house_rules.html:68
-msgid "Close windows when AC/heating on"
-msgstr "Cierra ventanas con A/C o calefacción encendida"
-
-#: app/templates/policies/house_rules.html:73
+#: app/templates/policies/house_rules.html:72
 msgid "Appliances & Amenities"
 msgstr "Electrodomésticos y comodidades"
 
-#: app/templates/policies/house_rules.html:75
-msgid "Dishwasher: Run only when full"
-msgstr "Lavavajillas: Usar solo cuando esté lleno"
-
-#: app/templates/policies/house_rules.html:76
+#: app/templates/policies/house_rules.html:74
 msgid "Washing machine: Use provided detergent only"
 msgstr "Lavadora: Usa solo el detergente provisto"
 
-#: app/templates/policies/house_rules.html:77
+#: app/templates/policies/house_rules.html:75
 msgid "Oven/Stove: Clean spills immediately"
 msgstr "Horno/Cocina: Limpia derrames inmediatamente"
 
-#: app/templates/policies/house_rules.html:78
+#: app/templates/policies/house_rules.html:76
 msgid "Coffee machine: Descale if prompted"
 msgstr "Cafetera: Descalcifica si se solicita"
 
-#: app/templates/policies/house_rules.html:79
+#: app/templates/policies/house_rules.html:77
 msgid "Do not use metal utensils in non-stick pans"
 msgstr "No uses utensilios metálicos en sartenes antiadherentes"
 
-#: app/templates/policies/house_rules.html:84
+#: app/templates/policies/house_rules.html:82
 msgid "Safety & Security"
 msgstr "Seguridad"
 
-#: app/templates/policies/house_rules.html:86
+#: app/templates/policies/house_rules.html:84
 msgid "Lock door when leaving (self-locking)"
 msgstr "Cierra la puerta al salir (autocierre)"
 
-#: app/templates/policies/house_rules.html:87
+#: app/templates/policies/house_rules.html:85
 msgid "Do not prop entrance door open"
 msgstr "No dejes la puerta de entrada abierta"
 
-#: app/templates/policies/house_rules.html:88
+#: app/templates/policies/house_rules.html:86
 msgid "Report any safety issues immediately"
 msgstr "Reporta cualquier problema de seguridad inmediatamente"
 
-#: app/templates/policies/house_rules.html:89
+#: app/templates/policies/house_rules.html:87
 msgid "Emergency numbers: 112 (EU), 118 (Ambulance), 115 (Fire)"
 msgstr "Emergencias: 112 (UE), 118 (Ambulancia), 115 (Bomberos)"
 
-#: app/templates/policies/house_rules.html:90
+#: app/templates/policies/house_rules.html:88
 msgid "Fire extinguisher: Under kitchen sink"
 msgstr "Extintor: Debajo del fregadero de la cocina"
 
-#: app/templates/policies/house_rules.html:95
+#: app/templates/policies/house_rules.html:93
 msgid "Prohibited"
 msgstr "Prohibido"
 
-#: app/templates/policies/house_rules.html:97
+#: app/templates/policies/house_rules.html:95
 msgid "Illegal activities"
 msgstr "Actividades ilegales"
 
-#: app/templates/policies/house_rules.html:98
+#: app/templates/policies/house_rules.html:96
 msgid "Commercial use (filming, photoshoots without permission)"
 msgstr "Uso comercial (grabaciones, sesiones de fotos sin permiso)"
 
-#: app/templates/policies/house_rules.html:99
+#: app/templates/policies/house_rules.html:97
 msgid "Subletting or transferring reservation"
 msgstr "Subarrendar o transferir la reserva"
 
-#: app/templates/policies/house_rules.html:100
+#: app/templates/policies/house_rules.html:98
 msgid "Moving furniture without permission"
 msgstr "Mover muebles sin permiso"
 
-#: app/templates/policies/house_rules.html:101
+#: app/templates/policies/house_rules.html:99
 msgid "Pets (unless pre-approved in writing)"
 msgstr "Mascotas (salvo aprobación previa por escrito)"
 
-#: app/templates/policies/house_rules.html:106
+#: app/templates/policies/house_rules.html:104
 msgid "Damages & Fees"
 msgstr "Daños y tasas"
 
-#: app/templates/policies/house_rules.html:108
+#: app/templates/policies/house_rules.html:106
 msgid "Report any damage immediately - no penalty for accidental breakage"
 msgstr ""
 "Reporta cualquier daño inmediatamente - sin penalización por roturas "
 "accidentales"
 
-#: app/templates/policies/house_rules.html:109
-msgid "Lost keys: €50 (lockbox) / €150 (building key)"
-msgstr "Llaves perdidas: 50 € (caja fuerte) / 150 € (llave del edificio)"
+#: app/templates/policies/house_rules.html:107
+msgid "Lost keys: €150"
+msgstr "Llaves perdidas: 150 €"
 
-#: app/templates/policies/house_rules.html:110
+#: app/templates/policies/house_rules.html:108
 msgid "Excessive cleaning required: €50-150"
 msgstr "Limpieza excesiva requerida: 50-150 €"
 
-#: app/templates/policies/house_rules.html:111
+#: app/templates/policies/house_rules.html:109
 msgid "Smoking inside: €200 + early termination"
 msgstr "Fumar dentro: 200 € + terminación anticipada"
 
-#: app/templates/policies/house_rules.html:112
+#: app/templates/policies/house_rules.html:110
 msgid "Damage deposit may be charged via Stripe for significant issues"
 msgstr ""
 "Depósito por daños puede cargarse vía Stripe por problemas significativos"
 
-#: app/templates/policies/house_rules.html:118
+#: app/templates/policies/house_rules.html:116
 msgid "Questions?"
 msgstr "¿Preguntas?"
 
-#: app/templates/policies/house_rules.html:118
+#: app/templates/policies/house_rules.html:116
 msgid "Message us anytime via WhatsApp/email. We're here to help!"
 msgstr "Escríbenos 언제 via WhatsApp/email. ¡Estamos para ayudar!"
 
@@ -5022,3 +5019,18 @@ msgstr "Para preguntas sobre estos términos, contáctenos en:"
 
 #~ msgid "Test Mode (dry run)"
 #~ msgstr ""
+
+#~ msgid "13:00 - 20:00 (self check-in via lockbox after hours)"
+#~ msgstr "13:00 - 20:00 (auto check-in vía caja fuerte fuera de horario)"
+
+#~ msgid "Return keys to lockbox / leave on counter"
+#~ msgstr "Devolver llaves a la caja fuerte / dejar en la encimera"
+
+#~ msgid "Close windows when AC/heating on"
+#~ msgstr "Cierra ventanas con A/C o calefacción encendida"
+
+#~ msgid "Dishwasher: Run only when full"
+#~ msgstr "Lavavajillas: Usar solo cuando esté lleno"
+
+#~ msgid "Lost keys: €50 (lockbox) / €150 (building key)"
+#~ msgstr "Llaves perdidas: 50 € (caja fuerte) / 150 € (llave del edificio)"
