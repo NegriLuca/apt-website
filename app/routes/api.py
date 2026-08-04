@@ -18,28 +18,20 @@ def validate_coupon():
     if not code:
         return jsonify({'valid': False, 'message': 'No code provided.'})
 
-    booking_data = session.get('booking_data')
-    if not booking_data:
-        return jsonify({'valid': False, 'message': 'No active booking session.'})
+    subtotal = request.args.get('subtotal', type=float)
+    if subtotal is None or subtotal <= 0:
+        return jsonify({'valid': False, 'message': 'Please select a date range first.'})
 
     coupon = Coupon.query.filter_by(code=code, active=True).first()
     if not coupon:
         return jsonify({'valid': False, 'message': 'Invalid or expired coupon code.'})
 
-    check_in = date.fromisoformat(booking_data['check_in'])
-    check_out = date.fromisoformat(booking_data['check_out'])
-    num_guests = booking_data['num_guests']
-    apartment = get_apartment()
-    base_price = calculate_dynamic_total(
-        check_in, check_out, num_guests=num_guests, base_rate=apartment.price_per_night if apartment else 130.0
-    )
-
     if coupon.discount_type == 'percentage':
-        discount_amount = round(base_price * coupon.discount_value / 100, 2)
-        new_total = round(base_price - discount_amount, 2)
+        discount_amount = round(subtotal * coupon.discount_value / 100, 2)
+        new_total = round(subtotal - discount_amount, 2)
     elif coupon.discount_type == 'fixed':
-        discount_amount = coupon.discount_value
-        new_total = max(0, base_price - discount_amount)
+        discount_amount = min(subtotal, coupon.discount_value)
+        new_total = max(0, subtotal - coupon.discount_value)
     else:
         return jsonify({'valid': False, 'message': 'Unknown discount type.'})
 
@@ -50,7 +42,7 @@ def validate_coupon():
             'discount_type': coupon.discount_type,
             'discount_value': coupon.discount_value,
             'discount_amount': discount_amount,
-            'original_price': base_price,
+            'original_price': subtotal,
             'new_total': new_total,
             'message': f'Coupon applied! You saved €{discount_amount:.2f}',
         }
