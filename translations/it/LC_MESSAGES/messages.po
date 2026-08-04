@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-04 12:14+0200\n"
+"POT-Creation-Date: 2026-08-04 12:23+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: it <LL@li.org>\n"
@@ -1173,7 +1173,7 @@ msgstr "Gestione recensioni ospiti"
 #: app/templates/admin_questura.html:29 app/templates/admin_ross1000.html:31
 #: app/templates/attractions.html:13
 #: app/templates/food_recommendations.html:12
-#: app/templates/food_recommendations.html:111
+#: app/templates/food_recommendations.html:113
 msgid "All"
 msgstr "Tutte"
 
@@ -2026,7 +2026,7 @@ msgid "Outdoor"
 msgstr "Aria aperta"
 
 #: app/templates/attractions.html:19
-#: app/templates/food_recommendations.html:21
+#: app/templates/food_recommendations.html:22
 msgid "Map and listings"
 msgstr "Mappa ed elenco"
 
@@ -2035,7 +2035,7 @@ msgid "Interactive map of Rome attractions"
 msgstr "Mappa interattiva delle attrazioni di Roma"
 
 #: app/templates/attractions.html:100
-#: app/templates/food_recommendations.html:103
+#: app/templates/food_recommendations.html:104
 msgid "Your BnB"
 msgstr "Il tuo B&B"
 
@@ -3139,7 +3139,7 @@ msgstr ""
 "a pochi minuti dal tuo appartamento."
 
 #: app/templates/food_recommendations.html:9
-#: app/templates/food_recommendations.html:105
+#: app/templates/food_recommendations.html:106
 msgid "Selected for you local picks near Garbatella"
 msgstr "Selezione di luoghi locali vicino a Garbatella"
 
@@ -3160,88 +3160,116 @@ msgid "Cafés"
 msgstr "Caffè"
 
 #: app/templates/food_recommendations.html:17
+msgid "Gelato"
+msgstr "Gelato"
+
+#: app/templates/food_recommendations.html:18
 msgid "Drinks"
 msgstr "Bevande"
 
-#: app/templates/food_recommendations.html:18
+#: app/templates/food_recommendations.html:19
 msgid "Restaurants"
 msgstr "Ristoranti"
 
-#: app/templates/food_recommendations.html:25
+#: app/templates/food_recommendations.html:26
 msgid "Interactive map of food recommendations"
 msgstr "Mappa interattiva dei consigli gastronomici"
 
-#: app/templates/food_recommendations.html:104
+#: app/templates/food_recommendations.html:105
 msgid "📍 Open in Maps"
 msgstr "📍 Apri in Maps"
 
-#: app/templates/food_recommendations.html:106
+#: app/templates/food_recommendations.html:107
 msgid "🍝 Restaurants"
 msgstr "🍝 Ristoranti"
 
-#: app/templates/food_recommendations.html:107
+#: app/templates/food_recommendations.html:108
 msgid "🍝 Trattorie"
 msgstr "🍝 Trattorie"
 
-#: app/templates/food_recommendations.html:108
+#: app/templates/food_recommendations.html:109
 msgid "🍕 Pizza"
 msgstr "🍕 Pizza"
 
-#: app/templates/food_recommendations.html:109
+#: app/templates/food_recommendations.html:110
 msgid "☕ Cafés"
 msgstr "☕ Caffè"
 
-#: app/templates/food_recommendations.html:110
+#: app/templates/food_recommendations.html:111
 msgid "🍸 Drinks"
 msgstr "🍸 Bevande"
 
 #: app/templates/food_recommendations.html:112
+msgid "🍨 Gelato"
+msgstr "🍨 Gelato"
+
+#: app/templates/food_recommendations.html:114
 msgid "Selected for you"
 msgstr "Selezionato per te"
 
-#: app/templates/food_recommendations.html:134
+#: app/templates/food_recommendations.html:137
 msgid "Modern trattoria (8 min walk)"
 msgstr "Trattoria moderna (8 min a piedi)"
 
-#: app/templates/food_recommendations.html:135
+#: app/templates/food_recommendations.html:138
 msgid "Cozy Roman cuisine (4 min walk)"
 msgstr "Accogliente cucina romana (4 min a piedi)"
 
-#: app/templates/food_recommendations.html:136
+#: app/templates/food_recommendations.html:139
 msgid "Authentic Roman dishes (5 min walk)"
 msgstr "Piatti romani autentici (5 min a piedi)"
 
-#: app/templates/food_recommendations.html:137
+#: app/templates/food_recommendations.html:140
 msgid "Informal Roman restaurant (10 min walk)"
 msgstr "Ristorante romano informale (10 min a piedi)"
 
-#: app/templates/food_recommendations.html:138
+#: app/templates/food_recommendations.html:141
 msgid "Very authentic Roman trattoria (15 min walk)"
 msgstr "Trattoria romana molto autentica (15 min a piedi)"
 
-#: app/templates/food_recommendations.html:139
+#: app/templates/food_recommendations.html:142
 msgid "Large Italian food hall (10 min walk)"
 msgstr "Grande mercato gastronomico italiano (10 min a piedi)"
 
-#: app/templates/food_recommendations.html:140
+#: app/templates/food_recommendations.html:143
+msgid "Perfect for aperitivo or a quick meal (3 min walk)"
+msgstr "Perfetto per un aperitivo o un pasto veloce (3 min a piedi)"
+
+#: app/templates/food_recommendations.html:144
+msgid "Roman trattoria (12 min walk)"
+msgstr "Trattoria romana (12 min a piedi)"
+
+#: app/templates/food_recommendations.html:145
 msgid "Casual pizza (13 min walk)"
 msgstr "Pizza informale (13 min a piedi)"
 
-#: app/templates/food_recommendations.html:141
+#: app/templates/food_recommendations.html:146
 msgid "Popular local pizzeria (15 min walk)"
 msgstr "Pizzeria locale molto frequentata (15 min a piedi)"
 
-#: app/templates/food_recommendations.html:142
+#: app/templates/food_recommendations.html:147
 msgid "Modern pastry shop (1 min walk)"
 msgstr "Pasticceria moderna (1 min a piedi)"
 
-#: app/templates/food_recommendations.html:143
+#: app/templates/food_recommendations.html:148
+msgid "Authentic italian gelato (2 min walk)"
+msgstr "Gelato italiano autentico (2 min a piedi)"
+
+#: app/templates/food_recommendations.html:149
 msgid "Perfect for a quick drink (2 min walk)"
 msgstr "Perfetto per un drink veloce (2 min a piedi)"
 
-#: app/templates/food_recommendations.html:144
+#: app/templates/food_recommendations.html:150
 msgid "Stylish cocktail bar (2 min walk)"
 msgstr "Elegante cocktail bar (2 min a piedi)"
+
+#: app/templates/food_recommendations.html:151
+msgid "Cozy wine bar and restaurant (12 min walk)"
+msgstr "Accogliente wine bar e ristorante (12 min a piedi)"
+
+#: app/templates/food_recommendations.html:152
+msgid "Neighborhood natural wine bar (14 min walk)"
+msgstr "Wine bar naturale di quartiere (14 min a piedi)"
 
 #: app/templates/guest_access.html:2 app/templates/guest_access.html:11
 msgid "Guest Access"

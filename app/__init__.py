@@ -217,6 +217,14 @@ def _start_scheduler(app: Flask):
             elif result.get('sent'):
                 app.logger.info('Balance invoice reminders sent: %s', result.get('sent'))
 
+    def _cleanup_external_job():
+        with app.app_context():
+            from app.services.ical_sync import cleanup_past_external_reservations
+
+            deleted = cleanup_past_external_reservations()
+            if deleted:
+                app.logger.info('Cleaned up %d past external reservation(s)', deleted)
+
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
         _sync_job,
@@ -231,6 +239,15 @@ def _start_scheduler(app: Flask):
         hour=9,
         minute=0,
         id='balance_invoice_reminder',
+        replace_existing=True,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        _cleanup_external_job,
+        trigger='cron',
+        hour=4,
+        minute=30,
+        id='cleanup_external_reservations',
         replace_existing=True,
         coalesce=True,
     )

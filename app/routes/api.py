@@ -66,12 +66,17 @@ def api_calendar_reservations():
     reservations = Reservation.query.filter(Reservation.status != 'cancelled').all()
     events = []
     for r in reservations:
-        color = '#28a745' if r.status == 'confirmed' else '#ffc107'
-        method_label = (r.payment_method or 'n/a').upper()
+        if r.is_block:
+            color = '#6c757d'
+            title = f'{r.guest_name} ({r.source}, block)'
+        else:
+            color = '#28a745' if r.status == 'confirmed' else '#ffc107'
+            method_label = (r.payment_method or 'n/a').upper()
+            title = f'{r.guest_name} ({r.num_guests} guests, {method_label})'
         events.append(
             {
                 'id': r.id,
-                'title': f'{r.guest_name} ({r.num_guests} guests, {method_label})',
+                'title': title,
                 'start': r.check_in.isoformat(),
                 'end': r.check_out.isoformat(),
                 'backgroundColor': color,

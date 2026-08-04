@@ -134,6 +134,7 @@ class Reservation(db.Model):
     num_children = db.Column(db.Integer, nullable=True, default=0, comment='Number of children aged 3-9 (exempt from city tax)')
     status = db.Column(db.String(20), nullable=False, default='pending')
     source = db.Column(db.String(20), default='direct')
+    is_block = db.Column(db.Boolean, nullable=False, default=False, comment='True when imported from iCal as a calendar block (not a real reservation)')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     cancel_token = db.Column(db.String(128), unique=True, index=True)
     external_uid = db.Column(db.String(128), unique=True, index=True)

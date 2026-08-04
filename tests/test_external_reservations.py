@@ -149,6 +149,7 @@ class TestIcalOrphanCleanup:
                     b'BEGIN:VCALENDAR\n'
                     b'BEGIN:VEVENT\n'
                     b'UID:NEW-UID\n'
+                    b'SUMMARY:Reservation Reserved - HMNEW1234\n'
                     b'DTSTART:20270101\n'
                     b'DTEND:20270103\n'
                     b'END:VEVENT\n'
@@ -165,3 +166,131 @@ class TestIcalOrphanCleanup:
             assert orphan.status == 'cancelled'
             assert cancelled == 1
             assert added == 1
+
+
+class TestIcalClassification:
+    """Distinguish real reservations from calendar blocks via the SUMMARY text."""
+
+    def test_classify_event(self, app):
+        from app.services.ical_sync import _classify_event
+
+        with app.app_context():
+            is_block, name = _classify_event('Reservation Reserved - HM1234567890')
+            assert is_block is False
+            assert name == 'External Guest'
+
+            is_block, name = _classify_event('Blocked')
+            assert is_block is True
+            assert name == 'Blocked'
+
+            is_block, _ = _classify_event('Not available')
+            assert is_block is True
+
+    def test_sync_classifies_and_skips_past(self, app):
+        from app.services.ical_sync import sync_feed
+
+        with app.app_context():
+            feed = ICalFeed(source='airbnb', url='https://example.com/feed.ics', active=True)
+            db.session.add(feed)
+            db.session.commit()
+
+            class FakeResponse:
+                content = (
+                    b'BEGIN:VCALENDAR\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:RES-1\n'
+                    b'SUMMARY:Reservation Reserved - HM1234567890\n'
+                    b'DTSTART:20270201\n'
+                    b'DTEND:20270203\n'
+                    b'END:VEVENT\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:BLOCK-1\n'
+                    b'SUMMARY:Blocked\n'
+                    b'DTSTART:20270301\n'
+                    b'DTEND:20270302\n'
+                    b'END:VEVENT\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:NA-1\n'
+                    b'SUMMARY:Airbnb (Not available)\n'
+                    b'DTSTART:20270305\n'
+                    b'DTEND:20270306\n'
+                    b'END:VEVENT\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:PAST-1\n'
+                    b'SUMMARY:Reservation Reserved - HM0000000000\n'
+                    b'DTSTART:20200101\n'
+                    b'DTEND:20200103\n'
+                    b'END:VEVENT\n'
+                    b'END:VCALENDAR\n'
+                )
+
+                def raise_for_status(self):
+                    return None
+
+            with patch('app.services.ical_sync.requests.get', return_value=FakeResponse()):
+                added, cancelled = sync_feed(feed)
+
+            assert added == 1  # only the real reservation; blocks + past skipped
+            res = Reservation.query.filter_by(external_uid='RES-1').first()
+            block = Reservation.query.filter_by(external_uid='BLOCK-1').first()
+            na = Reservation.query.filter_by(external_uid='NA-1').first()
+            past = Reservation.query.filter_by(external_uid='PAST-1').first()
+            assert res is not None and res.is_block is False
+            assert 'HM1234567890' in res.guest_name
+            assert block is None
+            assert na is None
+            assert past is None
+
+    def test_reservation_recognised_via_description(self, app):
+        from app.services.ical_sync import _classify_event
+
+        with app.app_context():
+            desc = (
+                'Reserved\n12 – 16 settembre 2026\n'
+                'Reservation URL: https://www.airbnb.com/hosting/reservations/details/HMWPZHY9AA\n'
+                'Phone Number (Last 4 Digits): 3551\nAirbnb'
+            )
+            is_block, name = _classify_event('Airbnb', desc)
+            assert is_block is False
+            assert name == 'External Guest'
+
+
+class TestPastExternalCleanup:
+    """Daily job removes only KNOWN blocks, never real reservations."""
+
+    def test_cleanup_deletes_only_past_blocks(self, app):
+        from app.services.ical_sync import cleanup_past_external_reservations
+
+        with app.app_context():
+            past_block = _make_reservation(
+                source='booking_com',
+                external_uid='PAST-BLOCK',
+                is_block=True,
+                check_in=date.today() - timedelta(days=3),
+                check_out=date.today() - timedelta(days=1),
+            )
+            past_res = _make_reservation(
+                source='airbnb',
+                external_uid='PAST-RES',
+                is_block=False,
+                check_in=date.today() - timedelta(days=3),
+                check_out=date.today() - timedelta(days=1),
+            )
+            future_block = _make_reservation(
+                source='airbnb',
+                external_uid='FUT-BLOCK',
+                is_block=True,
+            )
+            past_direct = _make_reservation(
+                source='direct',
+                check_in=date.today() - timedelta(days=3),
+                check_out=date.today() - timedelta(days=1),
+            )
+
+            count = cleanup_past_external_reservations()
+
+            assert count == 1
+            assert Reservation.query.get(past_block.id) is None
+            assert Reservation.query.get(past_res.id) is not None
+            assert Reservation.query.get(future_block.id) is not None
+            assert Reservation.query.get(past_direct.id) is not None

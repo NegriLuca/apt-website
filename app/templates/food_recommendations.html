@@ -14,6 +14,7 @@
         <button class="filter btn-luxury-outline btn-sm" data-type="pasta">🍝 {{ _('Trattorie') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="pizza">🍕 {{ _('Pizza') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="coffee">☕ {{ _('Cafés') }}</button>
+        <button class="filter btn-luxury-outline btn-sm" data-type="gelato">🍨 {{ _('Gelato') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="drinks">🍸 {{ _('Drinks') }}</button>
         <button class="filter btn-luxury-outline btn-sm" data-type="restaurant">🍴 {{ _('Restaurants') }}</button>
     </div>
@@ -108,6 +109,7 @@
         pizza: {{ _('🍕 Pizza') | tojson }},
         cafes: {{ _('☕ Cafés') | tojson }},
         drinks: {{ _('🍸 Drinks') | tojson }},
+        gelato: {{ _('🍨 Gelato') | tojson }},
         all: {{ _('All') | tojson }},
         curated: {{ _('Selected for you') | tojson }},
     };
@@ -124,6 +126,7 @@
         pasta: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍝</div>" }),
         pizza: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍕</div>" }),
         coffee: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>☕</div>" }),
+        gelato: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍨</div>" }),
         drinks: L.divIcon({ className: "emoji-icon", html: "<div class='pin'>🍸</div>" }),
         home: L.divIcon({ className: "emoji-home", html: "<div class='pin-home'>🏠</div>" })
     };
@@ -137,15 +140,15 @@
         { name: "Tanto pe' Magna", category: t.restaurants, type: "pasta", desc: {{ _('Informal Roman restaurant (10 min walk)') | tojson }}, coords: [41.8613652,12.4911645], url: "https://maps.app.goo.gl/mfww4D1RxmgoXZUEA" },
         { name: "Ar Grottino der Traslocatore ⭐", category: t.restaurants, type: "pasta", desc: {{ _('Very authentic Roman trattoria (15 min walk)') | tojson }}, coords: [41.8604954,12.4846997], url: "https://maps.app.goo.gl/DmitSWJfEZwQZ9Ww9" },
         { name: "Eataly Roma", category: t.restaurants, type: "restaurant", desc: {{ _('Large Italian food hall (10 min walk)') | tojson }}, coords: [41.8711959,12.4817421], url: "https://maps.app.goo.gl/TgY3UYhoL91Qwuya9" },
+        { name: "Tiella e panzerotti", category: t.restaurants, type: "pasta", desc: {{ _('Perfect for aperitivo or a quick meal (3 min walk)') | tojson }}, coords: [41.8676862,12.4929704], url: "https://maps.app.goo.gl/284RZCHEwxam6Xa9A" },
+        { name: "Cotto e magnato", category: t.restaurants, type: "pasta", desc: {{ _('Roman trattoria (12 min walk)') | tojson }}, coords: [41.8657524,12.4984524], url: "https://maps.app.goo.gl/v45T1DVxNTkBWaph7" },
         { name: "Panonto", category: t.pizza, type: "pizza", desc: {{ _('Casual pizza (13 min walk)') | tojson }}, coords: [41.8624022,12.4849386], url: "https://maps.app.goo.gl/gg2xmbsXN7nKT3Bc8" },
         { name: "Donna Cira", category: t.pizza, type: "pizza", desc: {{ _('Popular local pizzeria (15 min walk)') | tojson }}, coords: [41.8720865,12.4809422], url: "https://maps.app.goo.gl/UTNc3xuPK6hXfA6e6" },
         { name: "Nero Vaniglia ⭐", category: t.cafes, type: "coffee", desc: {{ _('Modern pastry shop (1 min walk)') | tojson }}, coords: [41.8674526,12.4899657], url: "https://maps.app.goo.gl/DKDodvhsHYczV8hx6" },
+        { name: "Il Pellicano ⭐", category: t.gelato, type: "gelato", desc: {{ _('Authentic italian gelato (2 min walk)') | tojson }}, coords: [41.8670547,12.4878692], url: "https://maps.app.goo.gl/PWab6JzvYCmq4M49A" },
         { name: "Biffi ⭐", category: t.drinks, type: "drinks", desc: {{ _('Perfect for a quick drink (2 min walk)') | tojson }}, coords: [41.8667445,12.4898635], url: "https://maps.app.goo.gl/gTZCXr1YvEHNr5pp7" },
         { name: "Bauhaus Rome", category: t.drinks, type: "drinks", desc: {{ _('Stylish cocktail bar (2 min walk)') | tojson }}, coords: [41.8663237,12.4880734], url: "https://maps.app.goo.gl/jFGVwpifDd1gsZ2t6" },
-        { name: "Tiella e panzerotti", category: t.restaurants, type: "pasta", desc: {{ _('Perfect for aperitivo or a quick meal (3 min walk)') | tojson }}, coords: [41.8676862,12.4929704], url: "https://maps.app.goo.gl/284RZCHEwxam6Xa9A" },
-        { name: "Cotto e magnato", category: t.restaurants, type: "pasta", desc: {{ _('Roman trattoria (12 min walk)') | tojson }}, coords: [41.8657524,12.4984524], url: "https://maps.app.goo.gl/v45T1DVxNTkBWaph7" },
         { name: "Anni e Bicchieri", category: t.drinks, type: "drinks", desc: {{ _('Cozy wine bar and restaurant (12 min walk)') | tojson }}, coords: [41.864947,12.4859655], url: "https://maps.app.goo.gl/ArvukgSGjZe3wDKb8" },
-        { name: "Il Pellicano ⭐", category: t.cafes, type: "coffee", desc: {{ _('Authentic italian gelato (2 min walk)') | tojson }}, coords: [41.8670547,12.4878692], url: "https://maps.app.goo.gl/PWab6JzvYCmq4M49A" },
         { name: "La Mescita", category: t.drinks, type: "drinks", desc: {{ _('Neighborhood natural wine bar (14 min walk)') | tojson }}, coords: [41.8651472,12.4853359], url: "https://maps.app.goo.gl/aUGke39E5aCWZwCr6" }
     ];
 

@@ -155,6 +155,7 @@
                         <td><span class="text-muted">#{{ r.id }}</span></td>
                         <td>
                             <strong>{{ r.guest_name }}</strong>
+                            {% if r.is_block %}<span class="badge bg-secondary ms-1">{{ _('block') }}</span>{% endif %}
                             {% if r.guest_email %}<br><small class="text-muted">{{ r.guest_email }}</small>{% endif %}
                         </td>
                         <td>

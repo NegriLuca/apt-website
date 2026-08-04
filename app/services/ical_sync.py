@@ -11,7 +11,7 @@ Two-way logic:
 
 import logging
 import re
-from datetime import datetime
+from datetime import date, datetime
 
 import requests
 from icalendar import Calendar
@@ -20,6 +20,26 @@ from app import db
 from app.models import ICalFeed, Reservation
 
 log = logging.getLogger(__name__)
+
+# DB `source` values that represent OTA-imported (non-direct) reservations/blocks
+EXTERNAL_SOURCES = {'airbnb', 'booking', 'booking_com', 'vrbo'}
+
+
+def _classify_event(summary_text: str, description_text: str = '') -> tuple[bool, str]:
+    """Return (is_block, guest_name) based on the iCal SUMMARY/DESCRIPTION text.
+
+    iCal feeds only carry dates + a short label. Real Airbnb bookings contain a
+    'Reservation'/'Reserved' marker or an HM-style code (also found in the
+    reservation URL); 'Not available' / 'Blocked' entries are just calendar
+    closures and should never be imported. Heuristic — not 100% reliable across
+    platforms.
+    """
+    combined = f'{summary_text or ""} {description_text or ""}'.lower()
+    if 'not available' in combined or 'blocked' in combined:
+        return True, 'Blocked'
+    if re.search(r'hm[a-z0-9]+', combined) or 'reservation' in combined or 'reserved' in combined:
+        return False, 'External Guest'
+    return True, 'Blocked'
 
 
 def _source_variants(feed_source: str) -> set[str]:
@@ -74,6 +94,10 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         if end <= start:
             continue
 
+        # Skip events that already ended — past nights are cleaned up daily
+        if end < date.today():
+            continue
+
         # If a UID exists, track it to prevent deletion downstream
         if uid:
             live_uids.add(uid)
@@ -95,6 +119,7 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
 
         # ── SMART TEXT PARSING ──
         summary_text = str(component.get('summary', 'External Booking'))
+        description_text = str(component.get('description') or '')
 
         # Determine a cleaner platform channel string based on the URL or title texts
         display_source = feed.source.lower()
@@ -103,17 +128,22 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         elif 'booking.com' in feed.url.lower() or 'booking' in summary_text.lower():
             display_source = 'booking_com'
 
+        # Skip calendar closures ("Not available", "Blocked", prep buffers, …) —
+        # they are NOT real bookings and should not block the calendar.
+        is_block, _ = _classify_event(summary_text, description_text)
+        if is_block:
+            log.info('iCal sync [%s]: skipping block %s (%s → %s)', display_source, uid, start, end)
+            continue
+
         # Attempt to extract platform codes if explicitly present in titles
         # Example: Airbnb strings look like "Reservation Reserved - HMXXXXXXXX"
         booking_code = ''
-        if 'hm' in summary_text.lower():
-            match = re.search(r'HM[A-Z0-9]+', summary_text, re.IGNORECASE)
-            if match:
-                booking_code = f' ({match.group(0)})'
-
+        match = re.search(r'HM[A-Z0-9]+', f'{summary_text} {description_text}', re.IGNORECASE)
+        if match:
+            booking_code = f' ({match.group(0)})'
         clean_guest_name = f'External Guest{booking_code}'
 
-        # If it doesn't exist anywhere, it's a completely new booking block!
+        # If it doesn't exist anywhere, it's a completely new booking!
         to_add.append(
             Reservation(
                 guest_name=clean_guest_name,
@@ -124,6 +154,7 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
                 status='confirmed',
                 source=display_source,
                 external_uid=uid if uid else None,
+                is_block=False,
                 # Standardized parameters matching your database updates
                 total_price=0.0,
                 payment_status='n/a',
@@ -208,3 +239,30 @@ def get_blocked_dates():
                 blocked.add(current.isoformat())
                 current += __import__('datetime').timedelta(days=1)
     return sorted(blocked)
+
+
+def cleanup_past_external_reservations() -> int:
+    """Hard-delete only KNOWN calendar blocks (is_block) that ended before today.
+
+    Real OTA reservations are never auto-deleted — they keep their record.
+    Blocks that are no longer imported (and any legacy ones) are removed to
+    avoid clutter. Runs daily via APScheduler. Returns the number deleted.
+    """
+    from app.models import QuesturaLog, Ross1000Log
+
+    cutoff = date.today()
+    stale_blocks = Reservation.query.filter(
+        Reservation.source.in_(EXTERNAL_SOURCES),
+        Reservation.is_block.is_(True),
+        Reservation.check_out < cutoff,
+    ).all()
+
+    for r in stale_blocks:
+        QuesturaLog.query.filter_by(reservation_id=r.id).delete()
+        Ross1000Log.query.filter_by(reservation_id=r.id).delete()
+        db.session.delete(r)
+        log.info('cleanup: deleting past %s block #%s (%s → %s)', r.source, r.id, r.check_in, r.check_out)
+
+    if stale_blocks:
+        db.session.commit()
+    return len(stale_blocks)
