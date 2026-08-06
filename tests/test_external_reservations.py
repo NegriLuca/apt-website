@@ -230,16 +230,91 @@ class TestIcalClassification:
             with patch('app.services.ical_sync.requests.get', return_value=FakeResponse()):
                 added, cancelled = sync_feed(feed)
 
-            assert added == 3  # 1 real reservation + 2 blocks; past event skipped
+            assert added == 1  # only the real reservation; closures + past skipped
             res = Reservation.query.filter_by(external_uid='RES-1').first()
             block = Reservation.query.filter_by(external_uid='BLOCK-1').first()
             na = Reservation.query.filter_by(external_uid='NA-1').first()
             past = Reservation.query.filter_by(external_uid='PAST-1').first()
             assert res is not None and res.is_block is False
             assert 'HM1234567890' in res.guest_name
-            assert block is not None and block.is_block is True
-            assert na is not None and na.is_block is True
+            assert block is None
+            assert na is None
             assert past is None
+
+    def test_sync_booking_closed_not_available_is_real_reservation(self, app):
+        """Booking.com marks real bookings as 'CLOSED - Not available' — import them."""
+        from app.services.ical_sync import sync_feed
+
+        with app.app_context():
+            feed = ICalFeed(source='booking', url='https://example.com/feed.ics', active=True)
+            db.session.add(feed)
+            db.session.commit()
+
+            class FakeResponse:
+                content = (
+                    b'BEGIN:VCALENDAR\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:BOOKING-REAL-1\n'
+                    b'SUMMARY:CLOSED - Not available\n'
+                    b'DESCRIPTION:CLOSED - Not available\\n24 \\xe2\\x80\\x93 26 ottobre 2026\\nBooking\\nNon disponibile\n'
+                    b'DTSTART:20261024\n'
+                    b'DTEND:20261027\n'
+                    b'END:VEVENT\n'
+                    b'END:VCALENDAR\n'
+                )
+
+                def raise_for_status(self):
+                    return None
+
+            with patch('app.services.ical_sync.requests.get', return_value=FakeResponse()):
+                added, cancelled = sync_feed(feed)
+
+            assert added == 1
+            res = Reservation.query.filter_by(external_uid='BOOKING-REAL-1').first()
+            assert res is not None
+            assert res.is_block is False
+            assert res.source == 'booking_com'
+
+    def test_sync_repairs_legacy_block_booking(self, app):
+        """A pre-existing Booking.com row wrongly tagged is_block=True gets repaired on re-sync."""
+        from app.services.ical_sync import sync_feed
+
+        with app.app_context():
+            feed = ICalFeed(source='booking', url='https://example.com/feed.ics', active=True)
+            db.session.add(feed)
+            _make_reservation(
+                source='booking_com',
+                external_uid='BOOKING-REAL-1',
+                is_block=True,
+                check_in=date(2026, 10, 24),
+                check_out=date(2026, 10, 27),
+            )
+            db.session.commit()
+
+            class FakeResponse:
+                content = (
+                    b'BEGIN:VCALENDAR\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:BOOKING-REAL-1\n'
+                    b'SUMMARY:CLOSED - Not available\n'
+                    b'DESCRIPTION:CLOSED - Not available\\n24 \\xe2\\x80\\x93 26 ottobre 2026\\nBooking\\nNon disponibile\n'
+                    b'DTSTART:20261024\n'
+                    b'DTEND:20261027\n'
+                    b'END:VEVENT\n'
+                    b'END:VCALENDAR\n'
+                )
+
+                def raise_for_status(self):
+                    return None
+
+            with patch('app.services.ical_sync.requests.get', return_value=FakeResponse()):
+                added, cancelled = sync_feed(feed)
+
+            assert added == 0  # already exists, just repaired
+            res = Reservation.query.filter_by(external_uid='BOOKING-REAL-1').first()
+            assert res is not None
+            assert res.is_block is False
+            assert res.source == 'booking_com'
 
     def test_reservation_recognised_via_description(self, app):
         from app.services.ical_sync import _classify_event
@@ -253,6 +328,72 @@ class TestIcalClassification:
             is_block, name = _classify_event('Airbnb', desc)
             assert is_block is False
             assert name == 'External Guest'
+
+
+class TestGuestMessageKeypadAutoGen:
+    """Opening the guest-message page auto-generates a Nuki keypad code."""
+
+    def test_auto_generates_code_when_configured(self, app, client):
+        from tests.conftest import login_admin
+
+        from app.models import Apartment
+
+        with app.app_context():
+            apt = Apartment.query.first()
+            apt.nuki_enabled = True
+            apt.nuki_smartlock_id = '22806585863'
+            apt.nuki_web_token = 'test-token'
+            db.session.commit()
+
+            res = _make_reservation(source='direct')
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        class FakeNuki:
+            def __init__(self, apt):
+                pass
+
+            def is_configured(self):
+                return True
+
+            def create_keypad_code(self, name, start_utc, end_utc):
+                return '123456'
+
+            def find_keypad_auth_id(self, code, attempts=6):
+                return 'auth-1'
+
+        with patch('app.services.smart_lock.get_nuki_service', return_value=FakeNuki(None)):
+            resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['keypad_status'] == 'created'
+        assert data['keypad_code'] == '123456'
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.keypad_code == '123456'
+            assert res.keypad_auth_id == 'auth-1'
+
+    def test_skips_when_not_configured(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='direct')
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['keypad_status'] == 'not_configured'
+        assert data['keypad_code'] is None
 
 
 class TestPastExternalCleanup:

@@ -28,17 +28,25 @@ EXTERNAL_SOURCES = {'airbnb', 'booking', 'booking_com', 'vrbo'}
 def _classify_event(summary_text: str, description_text: str = '') -> tuple[bool, str]:
     """Return (is_block, guest_name) based on the iCal SUMMARY/DESCRIPTION text.
 
-    iCal feeds only carry dates + a short label. Real Airbnb bookings contain a
-    'Reservation'/'Reserved' marker or an HM-style code (also found in the
-    reservation URL); 'Not available' / 'Blocked' entries are just calendar
-    closures and should never be imported. Heuristic — not 100% reliable across
-    platforms.
+    iCal feeds only carry dates + a short label. Real bookings are recognised
+    by an HM-style code, or a 'Reservation'/'Reserved' marker, or the
+    Booking.com signature 'CLOSED - Not available' that also mentions 'Booking'
+    / 'Non disponibile' in its text. Genuine calendar closures ('Blocked',
+    plain 'Not available' from Airbnb, prep buffers, …) are marked as blocks
+    and must never be imported as reservations. Heuristic — not 100% reliable
+    across platforms.
     """
     combined = f'{summary_text or ""} {description_text or ""}'.lower()
-    if 'not available' in combined or 'blocked' in combined:
-        return True, 'Blocked'
+    # Real booking markers (Airbnb HM code, Reservation/Reserved wording…)
     if re.search(r'hm[a-z0-9]+', combined) or 'reservation' in combined or 'reserved' in combined:
         return False, 'External Guest'
+    # Booking.com labels its real reservations "CLOSED - Not available" and
+    # usually appends "Booking" / "Non disponibile" to the event text.
+    if 'closed' in f'{summary_text or ""}'.lower() and ('booking' in combined or 'non disponibile' in combined):
+        return False, 'External Guest'
+    # Genuine calendar closures — skip these entirely.
+    if 'not available' in combined or 'blocked' in combined:
+        return True, 'Blocked'
     return True, 'Blocked'
 
 
@@ -118,6 +126,22 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         if uid:
             live_uids.add(uid)
 
+        # ── SMART TEXT PARSING ──
+        summary_text = str(component.get('summary', 'External Booking'))
+        description_text = str(component.get('description') or '')
+
+        # Determine a cleaner platform channel string based on the feed source
+        display_source = _display_source(feed.source, feed.url, summary_text)
+
+        # Genuine calendar closures ("Blocked", plain "Not available" from
+        # Airbnb, prep buffers, …) are skipped — never imported into the
+        # calendar. Booking.com's "CLOSED - Not available" real bookings are
+        # classified as reservations (is_block=False) by _classify_event.
+        is_block, _block_name = _classify_event(summary_text, description_text)
+        if is_block:
+            log.info('iCal sync [%s]: skipping closure %s (%s → %s)', display_source, uid, start, end)
+            continue
+
         # ── DUP CHECK 1: Query by unique iCal UID string ──────────────────────
         existing_by_uid = None
         if uid:
@@ -126,41 +150,19 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         # ── DUP CHECK 2: Fallback query by exact dates (For existing rows/manual blocks) ──
         existing_by_date = Reservation.query.filter_by(check_in=start, check_out=end, status='confirmed').first()
 
-        # If it matches either check, skip it entirely (No-Op)
+        # If it matches either check, skip it entirely (No-Op) — but repair any
+        # legacy row that was previously tagged as a calendar block. The old
+        # classifier marked Booking.com's "CLOSED - Not available" real
+        # reservations as blocks; re-syncing now flips those to reservations.
         if existing_by_uid or existing_by_date:
+            existing = existing_by_uid or existing_by_date
             # If the row exists but lacks a UID, update it in place so it's tracked correctly next time
             if existing_by_date and not existing_by_date.external_uid and uid:
                 existing_by_date.external_uid = uid
-            continue
-
-        # ── SMART TEXT PARSING ──
-        summary_text = str(component.get('summary', 'External Booking'))
-        description_text = str(component.get('description') or '')
-
-        # Determine a cleaner platform channel string based on the feed source
-        display_source = _display_source(feed.source, feed.url, summary_text)
-
-        # Calendar closures ("Not available", "Blocked", "CLOSED - Not available", …)
-        # are imported as calendar blocks (is_block=True) so they block the dates.
-        is_block, block_name = _classify_event(summary_text, description_text)
-        if is_block:
-            to_add.append(
-                Reservation(
-                    guest_name=block_name,
-                    guest_email=None,
-                    check_in=start,
-                    check_out=end,
-                    num_guests=1,
-                    status='confirmed',
-                    source=display_source,
-                    external_uid=uid if uid else None,
-                    is_block=True,
-                    total_price=0.0,
-                    payment_status='n/a',
-                    payment_method='automatic',
-                )
-            )
-            log.info('iCal sync [%s]: adding block %s (%s → %s)', display_source, uid, start, end)
+            if existing.is_block:
+                existing.is_block = False
+                existing.source = display_source
+                log.info('iCal sync [%s]: repaired legacy block #%s → real reservation (%s → %s)', display_source, existing.id, start, end)
             continue
 
         # Attempt to extract platform codes if explicitly present in titles

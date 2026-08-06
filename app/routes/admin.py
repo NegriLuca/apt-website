@@ -874,6 +874,29 @@ def admin_guest_message(reservation_id: int) -> Response | str:
         res.access_token = secrets.token_urlsafe(32)
     db.session.commit()
 
+    # Auto-generate a Nuki keypad code for the guest's stay window when
+    # opening the guest-message page, if one doesn't exist yet.
+    keypad_status = 'existing' if res.keypad_code else 'skipped'
+    if not res.keypad_code:
+        from app.services.smart_lock import SmartLockError, get_nuki_service
+
+        try:
+            svc = get_nuki_service(apt) if apt else None
+            if svc and svc.is_configured():
+                start_utc, end_utc = access_window_utc(res)
+                name = f'Res{res.id} {res.guest_name}'.strip()[:20]
+                code = svc.create_keypad_code(name, start_utc, end_utc)
+                res.keypad_code = code
+                res.keypad_created_at = datetime.utcnow()
+                res.keypad_auth_id = svc.find_keypad_auth_id(code)
+                db.session.commit()
+                keypad_status = 'created'
+                if not res.keypad_auth_id:
+                    keypad_status = 'created_pending_auth'
+            else:
+                keypad_status = 'not_configured'
+        except SmartLockError as e:
+            keypad_status = f'error: {e}'
     checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
     access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
     portal_url = url_for('routes.guest_portal', token=res.checkin_token, _external=True)
@@ -899,6 +922,8 @@ def admin_guest_message(reservation_id: int) -> Response | str:
                 'whatsapp': whatsapp_message,
                 'airbnb': airbnb_message,
             },
+            'keypad_status': keypad_status,
+            'keypad_code': res.keypad_code,
         }
     )
 
