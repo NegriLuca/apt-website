@@ -909,23 +909,96 @@ def admin_guest_message(reservation_id: int) -> Response | str:
 
     airbnb_message = f"""Hi {res.guest_name},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}\n\n\U0001f4f1 *All-in-one Portal*:\n{portal_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
 
-    return jsonify(
-        {
-            'success': True,
-            'reservation_id': res.id,
-            'guest_name': res.guest_name,
-            'checkin_url': checkin_url,
-            'access_url': access_url,
-            'portal_url': portal_url,
-            'templates': {
-                'standard': checkin_message,
-                'whatsapp': whatsapp_message,
-                'airbnb': airbnb_message,
-            },
-            'keypad_status': keypad_status,
-            'keypad_code': res.keypad_code,
-        }
+    food_url = url_for('routes.food_recommendations', _external=True)
+    attractions_url = url_for('routes.attractions', _external=True)
+    house_rules_url = url_for('routes.house_rules', _external=True)
+
+    guest_label = res.guest_name or f'Reservation #{res.id}'
+    message_it = f"""Ciao {guest_label} (prenotazione #{res.id}),
+
+Benvenuto/a a {apt_name}! Grazie per aver scelto il nostro appartamento.
+
+\U0001f6cd Soggiorno: dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')} ({res.nights} notti)
+\U0001f465 Ospiti: {res.num_guests}
+
+\U0001f4cb CHECK-IN ONLINE (obbligatorio per legge):
+{checkin_url}
+
+\U0001f6aa APRI CANCELLO E PORTA (durante il soggiorno):
+{access_url}{keypad_block}
+
+\U0001f4f1 PORTA UNICO (check-in + accessi):
+{portal_url}
+
+\U0001f371 CIBO E BEVANDE — i nostri consigli:
+{food_url}
+
+\U0001f3d9 ATTRATTIVE — cosa vedere a Roma:
+{attractions_url}
+
+\U0001f4dc REGOLE DELLA CASA:
+{house_rules_url}
+
+A presto,
+{apt_name}"""
+
+    message_en = f"""Hi {guest_label} (Reservation #{res.id}),
+
+Welcome to {apt_name}! Thank you for choosing our apartment.
+
+\U0001f6cd Stay: from {res.check_in.strftime('%b %d, %Y')} to {res.check_out.strftime('%b %d, %Y')} ({res.nights} nights)
+\U0001f465 Guests: {res.num_guests}
+
+\U0001f4cb ONLINE CHECK-IN (required by Italian law):
+{checkin_url}
+
+\U0001f6aa OPEN GATE & DOOR (during your stay):
+{access_url}{keypad_block}
+
+\U0001f4f1 ALL-IN-ONE PORTAL (check-in + access):
+{portal_url}
+
+\U0001f371 FOOD & DRINKS — our recommendations:
+{food_url}
+
+\U0001f3d9 ATTRACTIONS — what to see in Rome:
+{attractions_url}
+
+\U0001f4dc HOUSE RULES:
+{house_rules_url}
+
+See you soon,
+{apt_name}"""
+
+    return render_template(
+        'admin_guest_message.html',
+        reservation=res,
+        message_it=message_it,
+        message_en=message_en,
+        keypad_status=keypad_status,
     )
+
+
+@bp.route('/admin/communication/guest-message/<int:reservation_id>/update', methods=['POST'])
+@login_required
+def admin_guest_message_update(reservation_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(reservation_id)
+    guest_name = request.form.get('guest_name', '').strip()
+    num_guests = request.form.get('num_guests', type=int)
+
+    if guest_name:
+        res.guest_name = guest_name
+    if num_guests and 1 <= num_guests <= 4:
+        res.num_guests = num_guests
+        res.num_adults = num_guests
+        res.num_children = 0
+    db.session.commit()
+    admin_audit_log('edit_reservation', 'Reservation', res.id, 'Updated guest message details')
+    flash('Reservation details updated.', 'success')
+    return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
 
 
 # ── Notifications ─────────────────────────────────────────────────────────────

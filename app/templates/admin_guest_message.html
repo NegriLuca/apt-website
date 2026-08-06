@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Guest Message') }} — #{{ reservation.id }}{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">{{ _('Guest Message') }} — #{{ reservation.id }}</h4>
+        <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-sm btn-outline-secondary">{{ _('Back') }}</a>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header"><h5 class="mb-0">{{ _('Reservation details') }}</h5></div>
+                <div class="card-body">
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <div class="text-muted text-uppercase">{{ _('Guest') }}</div>
+                            <div class="fw-bold">{{ reservation.guest_name }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted text-uppercase">{{ _('Source') }}</div>
+                            <div class="fw-bold">{{ reservation.source or 'direct' }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted text-uppercase">{{ _('Check-in') }}</div>
+                            <div class="fw-bold">{{ reservation.check_in.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted text-uppercase">{{ _('Check-out') }}</div>
+                            <div class="fw-bold">{{ reservation.check_out.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted text-uppercase">{{ _('Nights') }}</div>
+                            <div class="fw-bold">{{ reservation.nights }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-muted text-uppercase">{{ _('Keypad code') }}</div>
+                            <div class="fw-bold">{{ reservation.keypad_code or '—' }}</div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <form method="POST" action="{{ url_for('routes.admin_guest_message_update', reservation_id=reservation.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">{{ _('Guest name (editable)') }}</label>
+                            <input type="text" class="form-control" name="guest_name" value="{{ reservation.guest_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">{{ _('Number of guests') }}</label>
+                            <input type="number" class="form-control" name="num_guests" min="1" max="4" value="{{ reservation.num_guests }}" required>
+                            <div class="form-text">{{ _('Used in the online check-in — make sure it is correct.') }}</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">{{ _('Save') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ _('Message') }} — {{ _('Italian') }}</h5>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-it" type="button">📋 {{ _('Copy') }}</button>
+                </div>
+                <div class="card-body">
+                    <textarea id="msg-it" class="form-control font-monospace" rows="14">{{ message_it }}</textarea>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ _('Message') }} — {{ _('English') }}</h5>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-en" type="button">📋 {{ _('Copy') }}</button>
+                </div>
+                <div class="card-body">
+                    <textarea id="msg-en" class="form-control font-monospace" rows="14">{{ message_en }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var ta = document.getElementById(btn.getAttribute('data-target'));
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        navigator.clipboard.writeText(ta.value).then(function () {
+            var original = btn.textContent;
+            btn.textContent = '✅ ' + '{{ _('Copied') }}';
+            setTimeout(function () { btn.textContent = original; }, 1500);
+        });
+    });
+});
+</script>
+{% endblock %}

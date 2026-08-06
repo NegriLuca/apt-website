@@ -484,9 +484,7 @@ class TestGuestMessageKeypadAutoGen:
             resp = client.get(f'/admin/communication/guest-message/{rid}')
 
         assert resp.status_code == 200
-        data = resp.get_json()
-        assert data['keypad_status'] == 'created'
-        assert data['keypad_code'] == '123456'
+        assert b'123456' in resp.data  # keypad code rendered in the page
         with app.app_context():
             res = db.session.get(Reservation, rid)
             assert res.keypad_code == '123456'
@@ -506,9 +504,55 @@ class TestGuestMessageKeypadAutoGen:
         resp = client.get(f'/admin/communication/guest-message/{rid}')
 
         assert resp.status_code == 200
-        data = resp.get_json()
-        assert data['keypad_status'] == 'not_configured'
-        assert data['keypad_code'] is None
+        assert b'Reservation #' in resp.data
+        assert b'Reservation details' in resp.data
+
+    def test_message_uses_reservation_code_and_links(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com', external_uid='BOOKING-REAL-9')
+            res.guest_name = 'Mario Rossi'
+            res.num_guests = 3
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert f'prenotazione #{rid}' in html
+        assert 'food_recommendations' in html
+        assert '/attractions' in html
+        assert '/house-rules' in html
+        assert 'Ospiti: 3' in html
+
+    def test_update_guest_details(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.post(
+            f'/admin/communication/guest-message/{rid}/update',
+            data={'guest_name': 'Giulia Bianchi', 'num_guests': 2},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.guest_name == 'Giulia Bianchi'
+            assert res.num_guests == 2
+            assert res.num_adults == 2
 
 
 class TestPastExternalCleanup:
