@@ -82,6 +82,22 @@ with app.app_context():
         db.session.commit()
         print("✅ Default apartment successfully seeded!")
 
+    # ── SYNC NUKI CONFIG FROM ENV VARS ──
+    # Overrides the Smart Access page settings on every startup when set.
+    nuki_id = os.environ.get('NUKI_SMARTLOCK_ID', '').strip()
+    nuki_token = os.environ.get('NUKI_WEB_TOKEN', '').strip()
+    if nuki_id or nuki_token:
+        print("🔑 Syncing Nuki smart lock config from env vars...")
+        if default_apartment is None:
+            default_apartment = Apartment.query.first()
+        default_apartment.nuki_smartlock_id = nuki_id or default_apartment.nuki_smartlock_id
+        default_apartment.nuki_web_token = nuki_token or default_apartment.nuki_web_token
+        default_apartment.nuki_web_base_url = os.environ.get('NUKI_WEB_BASE_URL', '').strip() or default_apartment.nuki_web_base_url or 'https://api.nuki.io'
+        default_apartment.nuki_unlock_action = os.environ.get('NUKI_UNLOCK_ACTION', '').strip() or 'unlatch'
+        default_apartment.nuki_enabled = bool(nuki_id and nuki_token)
+        db.session.commit()
+        print(f"✅ Nuki config synced (enabled={default_apartment.nuki_enabled}, action={default_apartment.nuki_unlock_action}).")
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=False)
