@@ -198,6 +198,10 @@ class NukiService:
         """Check if Nuki is properly configured"""
         return self.enabled and bool(self.smartlock_id) and bool(self.token)
 
+    # Nuki Web API lock actions (generic /action endpoint).
+    # 1 = unlock (turn cylinder), 2 = lock, 3 = unlatch (unlock + open door).
+    ACTION_CODES = {'unlock': 1, 'lock': 2, 'unlatch': 3}
+
     def _get_headers(self):
         """Get headers for Nuki Web API"""
         return {
@@ -205,6 +209,28 @@ class NukiService:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+
+    def _post_action(self, action_code):
+        """Send a generic lock action via POST /smartlock/{id}/action.
+
+        The dedicated /action/unlock and /action/unlatch routes don't exist in
+        the Web API; unlatching must go through the generic endpoint.
+        """
+        url = f'{self.base_url}/smartlock/{self.smartlock_id}/action'
+        payload = {'action': action_code}
+        try:
+            resp = requests.post(url, headers=self._get_headers(), json=payload, timeout=15)
+            resp.raise_for_status()
+            return resp
+        except requests.RequestException as e:
+            current_app.logger.error(f'Nuki action {action_code} failed: {e}')
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_detail = e.response.json()
+                    raise SmartLockError(f'Nuki error: {error_detail}')
+                except (ValueError, TypeError):
+                    pass
+            raise SmartLockError(f'Failed to send action {action_code}: {e}')
 
     def get_status(self):
         """Get Nuki Smart Lock status"""
@@ -224,42 +250,19 @@ class NukiService:
         if not self.is_configured():
             raise SmartLockError('Nuki not configured')
 
-        url = f'{self.base_url}/smartlock/{self.smartlock_id}/action/{self.action}'
-        payload = {}
-
-        try:
-            resp = requests.post(url, headers=self._get_headers(), json=payload, timeout=15)
-            resp.raise_for_status()
-            result = resp.json()
-            current_app.logger.info(f'Nuki {self.action} triggered: {result}')
-            return True, f'Door {self.action}ed successfully'
-        except requests.RequestException as e:
-            current_app.logger.error(f'Nuki {self.action} failed: {e}')
-            if hasattr(e, 'response') and e.response is not None:
-                try:
-                    error_detail = e.response.json()
-                    raise SmartLockError(f'Nuki error: {error_detail}')
-                except:
-                    pass
-            raise SmartLockError(f'Failed to {self.action} door: {e}')
+        action_code = self.ACTION_CODES.get(self.action, 1)
+        resp = self._post_action(action_code)
+        current_app.logger.info(f'Nuki {self.action} triggered (action={action_code}): {resp.status_code}')
+        return True, f'Door {self.action}ed successfully'
 
     def lock(self):
         """Lock the door"""
         if not self.is_configured():
             raise SmartLockError('Nuki not configured')
 
-        url = f'{self.base_url}/smartlock/{self.smartlock_id}/action/lock'
-        payload = {}
-
-        try:
-            resp = requests.post(url, headers=self._get_headers(), json=payload, timeout=15)
-            resp.raise_for_status()
-            result = resp.json()
-            current_app.logger.info(f'Nuki lock triggered: {result}')
-            return True, 'Door locked successfully'
-        except requests.RequestException as e:
-            current_app.logger.error(f'Nuki lock failed: {e}')
-            raise SmartLockError(f'Failed to lock door: {e}')
+        resp = self._post_action(self.ACTION_CODES['lock'])
+        current_app.logger.info(f'Nuki lock triggered (action=2): {resp.status_code}')
+        return True, 'Door locked successfully'
 
 
 def get_shelly_service(apartment):
