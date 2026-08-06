@@ -82,6 +82,40 @@ def _display_source(feed_source: str, url: str = '', summary: str = '') -> str:
     return s
 
 
+_PLATFORM_LABELS = {
+    'airbnb': 'Airbnb',
+    'booking': 'Booking',
+    'booking_com': 'Booking',
+    'vrbo': 'VRBO',
+}
+
+
+def _guest_display_name(source: str, summary_text: str, description_text: str, uid: str) -> str:
+    """Build a readable guest name for an OTA reservation.
+
+    Uses the platform label plus an identifier: the HM code when present
+    (Airbnb), otherwise a short fragment of the feed UID. Falls back to a
+    generic 'External Guest' if nothing usable is found.
+    """
+    label = _PLATFORM_LABELS.get(source, (source or 'External').title())
+
+    match = re.search(r'HM[A-Z0-9]+', f'{summary_text or ""} {description_text or ""}', re.IGNORECASE)
+    if match:
+        return f'{label} Guest ({match.group(0).upper()})'
+
+    # Fall back to the UID — trim URL prefixes and long hashes to the last chunk
+    uid_frag = ''
+    if uid:
+        frag = uid.rstrip('/').split('/')[-1].split(':')[-1]
+        if frag and frag.lower() != 'vevent':
+            uid_frag = frag[:24]
+
+    if uid_frag:
+        return f'{label} Guest ({uid_frag})'
+
+    return f'{label} Guest'
+
+
 # ── low-level: sync a single feed URL ────────────────────────────────────────
 
 
@@ -166,13 +200,9 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
                 log.info('iCal sync [%s]: repaired legacy block #%s → real reservation (%s → %s)', display_source, existing.id, start, end)
             continue
 
-        # Attempt to extract platform codes if explicitly present in titles
-        # Example: Airbnb strings look like "Reservation Reserved - HMXXXXXXXX"
-        booking_code = ''
-        match = re.search(r'HM[A-Z0-9]+', f'{summary_text} {description_text}', re.IGNORECASE)
-        if match:
-            booking_code = f' ({match.group(0)})'
-        clean_guest_name = f'External Guest{booking_code}'
+        # Build a readable guest name from the platform + HM code (Airbnb) or
+        # the feed UID fragment.
+        clean_guest_name = _guest_display_name(display_source, summary_text, description_text, uid)
 
         # If it doesn't exist anywhere, it's a completely new booking!
         to_add.append(

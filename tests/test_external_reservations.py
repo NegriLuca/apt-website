@@ -307,6 +307,16 @@ class TestIcalClassification:
             assert res is not None
             assert res.is_block is False
             assert res.source == 'booking_com'
+            assert 'BOOKING-REAL-2' in res.guest_name
+
+    def test_guest_name_from_uid_fragment(self, app):
+        """Booking reservations get a readable name derived from the UID."""
+        from app.services.ical_sync import _guest_display_name
+
+        assert _guest_display_name('booking_com', 'Not available', '', 'https://secure.booking.com/feed/8F3K2L') == 'Booking Guest (8F3K2L)'
+        assert _guest_display_name('airbnb', 'Reservation Reserved - HM1234567890', '', 'whatever') == 'Airbnb Guest (HM1234567890)'
+        assert _guest_display_name('airbnb', 'Airbnb', 'hmABC12345 in description', 'ignored') == 'Airbnb Guest (HMABC12345)'
+        assert _guest_display_name('vrbo', 'X', '', '') == 'VRBO Guest'
 
     def test_sync_repairs_legacy_block_booking(self, app):
         """A pre-existing Booking.com row wrongly tagged is_block=True gets repaired on re-sync."""
