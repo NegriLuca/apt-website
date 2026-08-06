@@ -10,7 +10,7 @@ from app import db, limiter
 from app.forms import ICalFeedForm, LoginForm
 from app.models import Apartment, AuditLog, Coupon, ICalFeed, Notification, Reservation, Testimonial, User
 from app.routes import bp
-from app.routes.helpers import create_balance_payment_session, get_apartment
+from app.routes.helpers import create_balance_payment_session, create_tourist_tax_payment_session, get_apartment
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -899,24 +899,31 @@ def admin_guest_message(reservation_id: int) -> Response | str:
             keypad_status = f'error: {e}'
     checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
     access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
-    portal_url = url_for('routes.guest_portal', token=res.checkin_token, _external=True)
 
     apt_name = apt.name if apt else 'Lotto 235 Garbatella'
     keypad_block = f"\n\U0001f511 *Codice di accesso keypad*: {res.keypad_code}\n" if res.keypad_code else ""
-    checkin_message = f"""Ciao {res.guest_name},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}\n\nOppure usa il portale unico per tutto:\n{portal_url}\n\nA presto!\n{apt_name}"""
 
-    whatsapp_message = f"""Ciao {res.guest_name}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}\n\n\U0001f4f1 *Portale unico* (check-in + accessi):\n{portal_url}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
+    # Reservation code for the greeting — prefer the platform code embedded in
+    # the dashboard name (e.g. "Airbnb Guest (HMB4R8NMCZ)" → "HMB4R8NMCZ"),
+    # then the feed UID, then the internal id.
+    import re as _re
 
-    airbnb_message = f"""Hi {res.guest_name},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}\n\n\U0001f4f1 *All-in-one Portal*:\n{portal_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
+    _code_match = _re.search(r'\(([^)]+)\)', res.guest_name or '')
+    reservation_code = _code_match.group(1) if _code_match else (res.external_uid or f'#{res.id}')
+
+    checkin_message = f"""Ciao {reservation_code},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}\n\nA presto!\n{apt_name}"""
+
+    whatsapp_message = f"""Ciao {reservation_code}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
+
+    airbnb_message = f"""Hi {reservation_code},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
 
     food_url = url_for('routes.food_recommendations', _external=True)
     attractions_url = url_for('routes.attractions', _external=True)
     house_rules_url = url_for('routes.house_rules', _external=True)
 
-    guest_label = res.guest_name or f'Reservation #{res.id}'
-    message_it = f"""Ciao {guest_label} (prenotazione #{res.id}),
+    message_it = f"""Benvenuto a {apt_name} ({reservation_code}),
 
-Benvenuto/a a {apt_name}! Grazie per aver scelto il nostro appartamento.
+Grazie per aver scelto il nostro appartamento.
 
 \U0001f6cd Soggiorno: dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')} ({res.nights} notti)
 \U0001f465 Ospiti: {res.num_guests}
@@ -927,13 +934,10 @@ Benvenuto/a a {apt_name}! Grazie per aver scelto il nostro appartamento.
 \U0001f6aa APRI CANCELLO E PORTA (durante il soggiorno):
 {access_url}{keypad_block}
 
-\U0001f4f1 PORTA UNICO (check-in + accessi):
-{portal_url}
-
 \U0001f371 CIBO E BEVANDE — i nostri consigli:
 {food_url}
 
-\U0001f3d9 ATTRATTIVE — cosa vedere a Roma:
+\U0001f3d9 ATTRAZIONI — cosa vedere a Roma:
 {attractions_url}
 
 \U0001f4dc REGOLE DELLA CASA:
@@ -942,9 +946,9 @@ Benvenuto/a a {apt_name}! Grazie per aver scelto il nostro appartamento.
 A presto,
 {apt_name}"""
 
-    message_en = f"""Hi {guest_label} (Reservation #{res.id}),
+    message_en = f"""Welcome to {apt_name} ({reservation_code}),
 
-Welcome to {apt_name}! Thank you for choosing our apartment.
+Thank you for choosing our apartment.
 
 \U0001f6cd Stay: from {res.check_in.strftime('%b %d, %Y')} to {res.check_out.strftime('%b %d, %Y')} ({res.nights} nights)
 \U0001f465 Guests: {res.num_guests}
@@ -954,9 +958,6 @@ Welcome to {apt_name}! Thank you for choosing our apartment.
 
 \U0001f6aa OPEN GATE & DOOR (during your stay):
 {access_url}{keypad_block}
-
-\U0001f4f1 ALL-IN-ONE PORTAL (check-in + access):
-{portal_url}
 
 \U0001f371 FOOD & DRINKS — our recommendations:
 {food_url}
@@ -970,13 +971,98 @@ Welcome to {apt_name}! Thank you for choosing our apartment.
 See you soon,
 {apt_name}"""
 
+    # City tax — recompute the expected amount on each page load so it stays
+    # accurate if dates/adults change. Uses the same rules as the tax service:
+    # €rate per adult per night, max 10 taxable nights.
+    from app.services.tourist_tax import TouristTaxService
+
+    tax_service = TouristTaxService(apt)
+    tax_amount = tax_service.calculate_tax(res) if apt else 0.0
+
     return render_template(
         'admin_guest_message.html',
         reservation=res,
         message_it=message_it,
         message_en=message_en,
         keypad_status=keypad_status,
+        tax_amount=tax_amount,
     )
+
+
+@bp.route('/admin/communication/guest-message/<int:reservation_id>/pay-tax', methods=['POST'])
+@login_required
+def admin_pay_tax(reservation_id: int) -> Response | str:
+    """Create a Stripe checkout link to collect the city tax for a reservation."""
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(reservation_id)
+    session_data = create_tourist_tax_payment_session(res)
+    if not session_data:
+        current_app.logger.error('Stripe city-tax charge failed for reservation #%s', res.id)
+        flash('Failed to create the payment link. Check Stripe configuration or tax amount.', 'danger')
+        return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+
+    admin_audit_log('city_tax_payment', 'Reservation', res.id, f'Created city tax payment link for €{res.tourist_tax_amount or 0:.2f}')
+    return redirect(session_data.url)
+
+
+@bp.route('/admin/communication/guest-message/<int:reservation_id>/tax-cash', methods=['POST'])
+@login_required
+def admin_tax_cash(reservation_id: int) -> Response | str:
+    """Mark the city tax as paid in cash (no Stripe involved)."""
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(reservation_id)
+    res.tourist_tax_paid = True
+    db.session.commit()
+    admin_audit_log('city_tax_cash', 'Reservation', res.id, 'Marked city tax as paid in cash')
+    flash('City tax marked as paid (cash).', 'success')
+    return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+
+
+@bp.route('/admin/communication/guest-message/<int:reservation_id>/tax-unpaid', methods=['POST'])
+@login_required
+def admin_tax_unpaid(reservation_id: int) -> Response | str:
+    """Undo a mistaken city-tax payment (cash or card)."""
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(reservation_id)
+    res.tourist_tax_paid = False
+    db.session.commit()
+    admin_audit_log('city_tax_unpaid', 'Reservation', res.id, 'Marked city tax as unpaid')
+    flash('City tax marked as unpaid.', 'success')
+    return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+
+
+@bp.route('/payment/tourist-tax-success')
+def tourist_tax_payment_success() -> Response | str:
+    """Landing page after a Stripe city-tax checkout completes."""
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return redirect(url_for('routes.home'))
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+    try:
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+    except stripe.error.StripeError:
+        flash('Payment verification failed.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    meta = checkout_session.get('metadata') or {}
+    if meta.get('type') != 'tourist_tax':
+        return redirect(url_for('routes.home'))
+
+    res_id = int(meta.get('reservation_id', 0))
+    res = Reservation.query.get(res_id)
+    if res:
+        res.tourist_tax_paid = True
+        db.session.commit()
+
+    flash('City tax payment received. Thank you!', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
 
 
 @bp.route('/admin/communication/guest-message/<int:reservation_id>/update', methods=['POST'])

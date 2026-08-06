@@ -504,15 +504,14 @@ class TestGuestMessageKeypadAutoGen:
         resp = client.get(f'/admin/communication/guest-message/{rid}')
 
         assert resp.status_code == 200
-        assert b'Reservation #' in resp.data
         assert b'Reservation details' in resp.data
 
     def test_message_uses_reservation_code_and_links(self, app, client):
         from tests.conftest import login_admin
 
         with app.app_context():
-            res = _make_reservation(source='booking_com', external_uid='BOOKING-REAL-9')
-            res.guest_name = 'Mario Rossi'
+            res = _make_reservation(source='airbnb', external_uid='AIRBNB-UID-1')
+            res.guest_name = 'Airbnb Guest (HMB4R8NMCZ)'
             res.num_guests = 3
             db.session.add(res)
             db.session.commit()
@@ -524,11 +523,20 @@ class TestGuestMessageKeypadAutoGen:
 
         assert resp.status_code == 200
         html = resp.data.decode()
-        assert f'prenotazione #{rid}' in html
+        # Greeting uses the reservation code, not the full dashboard name
+        assert 'Benvenuto a' in html
+        assert 'HMB4R8NMCZ' in html
         assert 'food_recommendations' in html
         assert '/attractions' in html
         assert '/house-rules' in html
         assert 'Ospiti: 3' in html
+        assert 'ATTRAZIONI' in html
+        assert 'portal' not in html.lower()
+        # The message textareas must not contain the full dashboard name
+        msg_start = html.index('id="msg-it"')
+        msg_end = html.index('id="msg-en"')
+        it_area = html[msg_start:msg_end]
+        assert 'Airbnb Guest' not in it_area
 
     def test_update_guest_details(self, app, client):
         from tests.conftest import login_admin
@@ -553,6 +561,112 @@ class TestGuestMessageKeypadAutoGen:
             assert res.guest_name == 'Giulia Bianchi'
             assert res.num_guests == 2
             assert res.num_adults == 2
+
+
+class TestGuestMessageCityTax:
+    """The guest-message page can collect city tax via Stripe or mark it cash."""
+
+    def test_page_shows_tax_amount_and_unpaid(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)  # 3 nights
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert 'City Tax' in html
+        assert '36.00' in html  # 3 nights x 2 adults x €6
+        assert 'Unpaid' in html
+        assert 'Mark as paid in cash' in html
+
+    def test_mark_tax_cash(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.post(
+            f'/admin/communication/guest-message/{rid}/tax-cash',
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.tourist_tax_paid is True
+
+    def test_mark_tax_unpaid_toggle(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.tourist_tax_paid = True
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.post(
+            f'/admin/communication/guest-message/{rid}/tax-unpaid',
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.tourist_tax_paid is False
+
+    def test_pay_tax_creates_stripe_session(self, app, client):
+        from unittest.mock import MagicMock
+
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.tourist_tax_amount = 36.0
+            res.num_adults = 2
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        fake_session = MagicMock()
+        fake_session.url = 'https://checkout.stripe.com/c/test'
+
+        with patch('app.routes.admin.create_tourist_tax_payment_session', return_value=fake_session) as mock_create:
+            resp = client.post(f'/admin/communication/guest-message/{rid}/pay-tax')
+
+        mock_create.assert_called_once()
+        assert resp.status_code == 302
+        assert 'checkout.stripe.com/c/test' in resp.location
+
+    def test_create_tourist_tax_session_zero_returns_none(self, app):
+        from app.routes.helpers import create_tourist_tax_payment_session
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.tourist_tax_amount = 0.0
+            db.session.add(res)
+            db.session.commit()
+            assert create_tourist_tax_payment_session(res) is None
 
 
 class TestPastExternalCleanup:

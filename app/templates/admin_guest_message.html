@@ -55,6 +55,38 @@
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm">{{ _('Save') }}</button>
                     </form>
+
+                    <hr>
+
+                    <h6 class="fw-bold mb-3"><i class="bi bi-cash-coin me-1"></i>{{ _('City Tax') }}</h6>
+                    <div class="mb-2">
+                        <span class="text-muted small">{{ _('Expected (€6/adult/night, max 10 nights)') }}:</span>
+                        <strong>€{{ '%.2f'|format(tax_amount) }}</strong>
+                        {% if reservation.tourist_tax_paid %}
+                            <span class="badge bg-success">{{ _('Paid') }}</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">{{ _('Unpaid') }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        <form method="POST" action="{{ url_for('routes.admin_pay_tax', reservation_id=reservation.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100" {% if tax_amount <= 0 %}disabled{% endif %}>
+                                💳 {{ _('Create Stripe payment link') }}
+                            </button>
+                        </form>
+                        {% if not reservation.tourist_tax_paid %}
+                        <form method="POST" action="{{ url_for('routes.admin_tax_cash', reservation_id=reservation.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-success w-100">💵 {{ _('Mark as paid in cash') }}</button>
+                        </form>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('routes.admin_tax_unpaid', reservation_id=reservation.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100">{{ _('Mark as unpaid') }}</button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

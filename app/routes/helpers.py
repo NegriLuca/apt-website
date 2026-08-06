@@ -286,6 +286,47 @@ def send_cancellation_emails(reservation, refund_failed_warning=False, refund_pe
         return False
 
 
+def create_tourist_tax_payment_session(reservation):
+    """Create a Stripe checkout Session to collect the city tax (tassa di soggiorno).
+
+    Calculates the tax amount for the reservation and returns the Session, or
+    None if the amount is zero / Stripe is not configured.
+    """
+    tax_amount = round(float(reservation.tourist_tax_amount or 0.0), 2)
+    if tax_amount <= 0:
+        return None
+
+    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+    if not stripe.api_key:
+        return None
+
+    try:
+        return stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'eur',
+                        'product_data': {'name': 'City Tax (Tassa di Soggiorno) — Lotto 235 Garbatella'},
+                        'unit_amount': int(tax_amount * 100),
+                    },
+                    'quantity': 1,
+                }
+            ],
+            mode='payment',
+            success_url=url_for('routes.tourist_tax_payment_success', _external=True)
+            + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('routes.home', _external=True),
+            customer_email=reservation.guest_email,
+            metadata={
+                'reservation_id': str(reservation.id),
+                'type': 'tourist_tax',
+            },
+        )
+    except Exception as exc:
+        current_app.logger.error('Failed to create tourist tax session for reservation #%s: %s', reservation.id, exc)
+        return None
+
+
 def create_balance_payment_session(reservation):
     """Create a Stripe checkout Session to collect a reservation's outstanding balance."""
     remaining = round((reservation.total_price - (reservation.amount_paid or 0.0)), 2)

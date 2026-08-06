@@ -440,7 +440,14 @@ def stripe_webhook():
     if event['type'] == 'checkout.session.completed':
         session_obj = event['data']['object']
         meta = session_obj.get('metadata') or {}
-        if meta.get('type') == 'balance_payment':
+        if meta.get('type') == 'tourist_tax':
+            res_id = int(meta.get('reservation_id', 0))
+            res = db.session.get(Reservation, res_id)
+            if res:
+                res.tourist_tax_paid = True
+                db.session.commit()
+                current_app.logger.info('City tax marked paid via webhook for reservation #%s', res_id)
+        elif meta.get('type') == 'balance_payment':
             res_id = int(meta.get('reservation_id', 0))
             res = db.session.get(Reservation, res_id)
             if res and res.payment_status == 'deposit_paid':
