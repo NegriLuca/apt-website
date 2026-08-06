@@ -230,15 +230,15 @@ class TestIcalClassification:
             with patch('app.services.ical_sync.requests.get', return_value=FakeResponse()):
                 added, cancelled = sync_feed(feed)
 
-            assert added == 1  # only the real reservation; blocks + past skipped
+            assert added == 3  # 1 real reservation + 2 blocks; past event skipped
             res = Reservation.query.filter_by(external_uid='RES-1').first()
             block = Reservation.query.filter_by(external_uid='BLOCK-1').first()
             na = Reservation.query.filter_by(external_uid='NA-1').first()
             past = Reservation.query.filter_by(external_uid='PAST-1').first()
             assert res is not None and res.is_block is False
             assert 'HM1234567890' in res.guest_name
-            assert block is None
-            assert na is None
+            assert block is not None and block.is_block is True
+            assert na is not None and na.is_block is True
             assert past is None
 
     def test_reservation_recognised_via_description(self, app):

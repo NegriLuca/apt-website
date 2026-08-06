@@ -58,6 +58,22 @@ def _source_variants(feed_source: str) -> set[str]:
     return variants
 
 
+def _display_source(feed_source: str, url: str = '', summary: str = '') -> str:
+    """Return the canonical DB source for a feed event.
+
+    Prefers the feed's configured source; falls back to URL/summary text hints
+    so 'booking' feeds are always stored as 'booking_com' for consistency.
+    """
+    s = (feed_source or '').lower()
+    if s in {'airbnb', 'booking', 'booking_com', 'vrbo'}:
+        return 'booking_com' if s == 'booking' else s
+    if 'airbnb' in url.lower() or 'airbnb' in summary.lower():
+        return 'airbnb'
+    if 'booking.com' in url.lower() or 'booking' in summary.lower():
+        return 'booking_com'
+    return s
+
+
 # ── low-level: sync a single feed URL ────────────────────────────────────────
 
 
@@ -121,18 +137,30 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         summary_text = str(component.get('summary', 'External Booking'))
         description_text = str(component.get('description') or '')
 
-        # Determine a cleaner platform channel string based on the URL or title texts
-        display_source = feed.source.lower()
-        if 'airbnb' in feed.url.lower() or 'airbnb' in summary_text.lower():
-            display_source = 'airbnb'
-        elif 'booking.com' in feed.url.lower() or 'booking' in summary_text.lower():
-            display_source = 'booking_com'
+        # Determine a cleaner platform channel string based on the feed source
+        display_source = _display_source(feed.source, feed.url, summary_text)
 
-        # Skip calendar closures ("Not available", "Blocked", prep buffers, …) —
-        # they are NOT real bookings and should not block the calendar.
-        is_block, _ = _classify_event(summary_text, description_text)
+        # Calendar closures ("Not available", "Blocked", "CLOSED - Not available", …)
+        # are imported as calendar blocks (is_block=True) so they block the dates.
+        is_block, block_name = _classify_event(summary_text, description_text)
         if is_block:
-            log.info('iCal sync [%s]: skipping block %s (%s → %s)', display_source, uid, start, end)
+            to_add.append(
+                Reservation(
+                    guest_name=block_name,
+                    guest_email=None,
+                    check_in=start,
+                    check_out=end,
+                    num_guests=1,
+                    status='confirmed',
+                    source=display_source,
+                    external_uid=uid if uid else None,
+                    is_block=True,
+                    total_price=0.0,
+                    payment_status='n/a',
+                    payment_method='automatic',
+                )
+            )
+            log.info('iCal sync [%s]: adding block %s (%s → %s)', display_source, uid, start, end)
             continue
 
         # Attempt to extract platform codes if explicitly present in titles
