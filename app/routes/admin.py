@@ -903,25 +903,47 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     apt_name = apt.name if apt else 'Lotto 235 Garbatella'
     keypad_block = f"\n\U0001f511 *Codice di accesso keypad*: {res.keypad_code}\n" if res.keypad_code else ""
 
-    # Reservation code for the greeting — prefer the platform code embedded in
-    # the dashboard name (e.g. "Airbnb Guest (HMB4R8NMCZ)" → "HMB4R8NMCZ"),
-    # then the feed UID, then the internal id.
+    from app.services.tourist_tax import TouristTaxService
+
+    tax_service = TouristTaxService(apt)
+    tax_amount = tax_service.calculate_tax(res) if apt else 0.0
+    tax_link = url_for('routes.guest_tax_link', token=res.checkin_token, _external=True)
+    if tax_amount > 0 and not res.tourist_tax_paid:
+        tax_block = f"""
+\U0001f4b3 *Tassa di soggiorno* (€{tax_amount:.2f}) — pagala online:
+{tax_link}"""
+        tax_block_en = f"""
+\U0001f4b3 *City Tax* (€{tax_amount:.2f}) — pay it online:
+{tax_link}"""
+    else:
+        tax_block = ""
+        tax_block_en = ""
+
+    # Greeting label: if the guest name has been edited to a real name, use it;
+    # otherwise fall back to the platform code embedded in the auto-generated
+    # dashboard name (e.g. "Airbnb Guest (HMB4R8NMCZ)" → "HMB4R8NMCZ").
     import re as _re
 
-    _code_match = _re.search(r'\(([^)]+)\)', res.guest_name or '')
-    reservation_code = _code_match.group(1) if _code_match else (res.external_uid or f'#{res.id}')
+    _name = (res.guest_name or '').strip()
+    _auto = _re.fullmatch(r'(?:Airbnb|Booking|VRBO) Guest \(([^)]+)\)', _name)
+    if _auto:
+        guest_label = _auto.group(1)
+    elif _name:
+        guest_label = _name
+    else:
+        guest_label = res.external_uid or f'#{res.id}'
 
-    checkin_message = f"""Ciao {reservation_code},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}\n\nA presto!\n{apt_name}"""
+    checkin_message = f"""Ciao {guest_label},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}{tax_block}\n\nA presto!\n{apt_name}"""
 
-    whatsapp_message = f"""Ciao {reservation_code}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
+    whatsapp_message = f"""Ciao {guest_label}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}{tax_block}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
 
-    airbnb_message = f"""Hi {reservation_code},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
+    airbnb_message = f"""Hi {guest_label},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}{tax_block_en}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
 
     food_url = url_for('routes.food_recommendations', _external=True)
     attractions_url = url_for('routes.attractions', _external=True)
     house_rules_url = url_for('routes.house_rules', _external=True)
 
-    message_it = f"""Benvenuto a {apt_name} ({reservation_code}),
+    message_it = f"""Benvenuto a {apt_name} ({guest_label}),
 
 Grazie per aver scelto il nostro appartamento.
 
@@ -932,7 +954,7 @@ Grazie per aver scelto il nostro appartamento.
 {checkin_url}
 
 \U0001f6aa APRI CANCELLO E PORTA (durante il soggiorno):
-{access_url}{keypad_block}
+{access_url}{keypad_block}{tax_block}
 
 \U0001f371 CIBO E BEVANDE — i nostri consigli:
 {food_url}
@@ -946,7 +968,7 @@ Grazie per aver scelto il nostro appartamento.
 A presto,
 {apt_name}"""
 
-    message_en = f"""Welcome to {apt_name} ({reservation_code}),
+    message_en = f"""Welcome to {apt_name} ({guest_label}),
 
 Thank you for choosing our apartment.
 
@@ -957,7 +979,7 @@ Thank you for choosing our apartment.
 {checkin_url}
 
 \U0001f6aa OPEN GATE & DOOR (during your stay):
-{access_url}{keypad_block}
+{access_url}{keypad_block}{tax_block_en}
 
 \U0001f371 FOOD & DRINKS — our recommendations:
 {food_url}
@@ -970,14 +992,6 @@ Thank you for choosing our apartment.
 
 See you soon,
 {apt_name}"""
-
-    # City tax — recompute the expected amount on each page load so it stays
-    # accurate if dates/adults change. Uses the same rules as the tax service:
-    # €rate per adult per night, max 10 taxable nights.
-    from app.services.tourist_tax import TouristTaxService
-
-    tax_service = TouristTaxService(apt)
-    tax_amount = tax_service.calculate_tax(res) if apt else 0.0
 
     return render_template(
         'admin_guest_message.html',
@@ -997,13 +1011,25 @@ def admin_pay_tax(reservation_id: int) -> Response | str:
         abort(403)
 
     res = Reservation.query.get_or_404(reservation_id)
+    apt = get_apartment()
+
+    # Compute the tax amount from the current reservation data so the link
+    # always reflects the right number of guests/dates (the stored amount may
+    # be stale or unset).
+    from app.services.tourist_tax import TouristTaxService
+
+    tax_service = TouristTaxService(apt)
+    tax_amount = tax_service.calculate_tax(res) if apt else 0.0
+    res.tourist_tax_amount = tax_amount
+    db.session.commit()
+
     session_data = create_tourist_tax_payment_session(res)
     if not session_data:
         current_app.logger.error('Stripe city-tax charge failed for reservation #%s', res.id)
         flash('Failed to create the payment link. Check Stripe configuration or tax amount.', 'danger')
         return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
 
-    admin_audit_log('city_tax_payment', 'Reservation', res.id, f'Created city tax payment link for €{res.tourist_tax_amount or 0:.2f}')
+    admin_audit_log('city_tax_payment', 'Reservation', res.id, f'Created city tax payment link for €{tax_amount:.2f}')
     return redirect(session_data.url)
 
 

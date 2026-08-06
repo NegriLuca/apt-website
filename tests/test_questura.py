@@ -77,6 +77,81 @@ class TestQuesturaModel:
             )
             assert res.guest_full_name == 'Mario Rossi'
 
+    def test_submit_reservation_builds_main_and_companions(self, app):
+        from unittest.mock import patch
+
+        from app.services.questura import get_questura_service
+
+        with app.app_context():
+            res = Reservation(
+                guest_name='Main Guest',
+                guest_email='main@test.com',
+                check_in=date.today(),
+                check_out=date.today() + timedelta(days=1),
+                num_guests=2,
+                guest_surname='Rossi',
+                guest_first_name='Mario',
+                guest_birth_date=date(1990, 1, 1),
+                guest_birth_place='Roma',
+                guest_nationality='ITA',
+                guest_document_type='passport',
+                guest_document_number='AB123456',
+                guest_document_expiry=date(2030, 1, 1),
+                guest_document_country='ITA',
+                guest_gender='M',
+                companions=[
+                    {
+                        'surname': 'Bianchi',
+                        'first_name': 'Anna',
+                        'birth_date': '1992-05-05',
+                        'birth_place': 'Milano',
+                        'nationality': 'ITA',
+                        'document_type': 'id_card',
+                        'document_number': 'CD654321',
+                        'document_expiry': '2031-05-05',
+                        'document_country': 'ITA',
+                        'gender': 'F',
+                    }
+                ],
+            )
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+            svc = get_questura_service(test_mode=True)
+
+            with patch.object(svc, 'is_configured', return_value=True):
+                result = svc.submit_reservation(res)
+
+            assert result['success'] is True
+            # 2 guests submitted: main + companion
+            with app.app_context():
+                log = QuesturaLog.query.filter_by(reservation_id=rid, action='submit').first()
+                assert log is not None
+                xml = log.request_xml
+                assert xml.count('Rossi') >= 1
+                assert xml.count('Bianchi') >= 1
+
+    def test_submit_reservation_requires_guest_data(self, app):
+        from app.services.questura import get_questura_service
+
+        with app.app_context():
+            res = Reservation(
+                guest_name='No Data Guest',
+                guest_email='nodata@test.com',
+                check_in=date.today(),
+                check_out=date.today() + timedelta(days=1),
+                num_guests=1,
+            )
+            db.session.add(res)
+            db.session.commit()
+
+            svc = get_questura_service(test_mode=True)
+            result = svc.submit_reservation(res)
+
+            assert result['success'] is False
+            assert result.get('requires_guest_data') is True
+
     def test_questura_log_creation(self, app):
         with app.app_context():
             res = Reservation(

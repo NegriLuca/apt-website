@@ -306,15 +306,72 @@ class QuesturaService:
             db.session.commit()
 
     def submit_reservation(self, reservation: Reservation) -> dict[str, Any]:
-        """Submit all guests for a reservation"""
-        # Convert reservation to QuesturaGuest
-        # This requires the guest data to be collected at check-in
-        # For now, return info that manual entry is needed
-        return {
-            'success': False,
-            'error': 'Guest data collection required. Use guest check-in form.',
-            'requires_guest_data': True,
-        }
+        """Submit all guests (main + companions) for a reservation"""
+        from datetime import date as _date
+
+        guests = []
+
+        def _build(surname, first_name, birth_date, birth_place, nationality,
+                   document_type, document_number, document_expiry, document_country, gender):
+            if not (surname and first_name and birth_date):
+                return None
+            return QuesturaGuest(
+                surname=surname,
+                first_name=first_name,
+                birth_date=birth_date if isinstance(birth_date, _date) else _date.fromisoformat(birth_date),
+                birth_place=birth_place or '',
+                birth_country=nationality or '',
+                nationality=nationality or '',
+                document_type=document_type or 'altro',
+                document_number=document_number or '',
+                document_expiry=document_expiry if isinstance(document_expiry, _date) else (_date.fromisoformat(document_expiry) if document_expiry else _date.today()),
+                document_country=document_country or 'ITA',
+                gender=gender or 'M',
+                check_in=reservation.check_in,
+                check_out=reservation.check_out,
+                reservation_id=reservation.id,
+                guest_email=reservation.guest_email,
+            )
+
+        main = _build(
+            reservation.guest_surname,
+            reservation.guest_first_name,
+            reservation.guest_birth_date,
+            reservation.guest_birth_place,
+            reservation.guest_nationality,
+            reservation.guest_document_type,
+            reservation.guest_document_number,
+            reservation.guest_document_expiry,
+            reservation.guest_document_country,
+            reservation.guest_gender,
+        )
+        if main:
+            guests.append(main)
+
+        for comp in reservation.companions or []:
+            guest = _build(
+                comp.get('surname'),
+                comp.get('first_name'),
+                comp.get('birth_date'),
+                comp.get('birth_place'),
+                comp.get('nationality'),
+                comp.get('document_type'),
+                comp.get('document_number'),
+                comp.get('document_expiry'),
+                comp.get('document_country'),
+                comp.get('gender'),
+            )
+            if guest:
+                guests.append(guest)
+
+        if not guests:
+            return {
+                'success': False,
+                'error': 'Guest data collection required. Use guest check-in form.',
+                'requires_guest_data': True,
+            }
+
+        return self.submit_guests(guests)
 
 
 def get_questura_service(test_mode: bool = False) -> QuesturaService:

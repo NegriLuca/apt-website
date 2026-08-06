@@ -163,6 +163,7 @@ class Reservation(db.Model):
     guest_document_expiry = db.Column(db.Date, nullable=True)
     guest_document_country = db.Column(db.String(3), nullable=True, comment='ISO 3166-1 alpha-3')
     guest_gender = db.Column(db.String(1), nullable=True, comment='M/F')
+    companions = db.Column(db.JSON, nullable=True, comment='List of additional guest dicts (surname, first_name, birth_date, birth_place, nationality, gender, document_type, document_number, document_expiry, document_country)')
 
     # Guest self-service check-in
     checkin_token = db.Column(db.String(128), unique=True, index=True, nullable=True)

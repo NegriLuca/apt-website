@@ -562,6 +562,212 @@ class TestGuestMessageKeypadAutoGen:
             assert res.num_guests == 2
             assert res.num_adults == 2
 
+    def test_message_uses_edited_name_instead_of_code(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='airbnb', external_uid='AIRBNB-UID-1')
+            res.guest_name = 'Giulia Bianchi'
+            res.num_guests = 2
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        msg_start = html.index('id="msg-it"')
+        msg_end = html.index('id="msg-en"')
+        it_area = html[msg_start:msg_end]
+        assert 'Giulia Bianchi' in it_area
+        assert 'Guest (' not in it_area
+        assert 'Benvenuto a' in it_area
+
+    def test_message_falls_back_to_code_for_auto_name(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='airbnb', external_uid='AIRBNB-UID-1')
+            res.guest_name = 'Booking Guest (BOOK1)'
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        msg_start = html.index('id="msg-it"')
+        msg_end = html.index('id="msg-en"')
+        it_area = html[msg_start:msg_end]
+        assert 'BOOK1' in it_area
+        assert 'Booking Guest' not in it_area
+
+
+class TestGuestSelfCheckinCompanions:
+    """The online check-in form collects data for all guests per num_guests."""
+
+    def test_checkin_form_renders_blocks_for_num_guests(self, app, client):
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 3
+            res.checkin_token = 'tok-checkin-form'
+            db.session.add(res)
+            db.session.commit()
+            token = res.checkin_token
+
+        resp = client.get(f'/checkin/{token}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert html.count('name="guest_0_surname"') == 1
+        assert html.count('name="guest_1_surname"') == 1
+        assert html.count('name="guest_2_surname"') == 1
+        assert html.count('name="guest_3_surname"') == 0
+
+    def test_checkin_submit_stores_main_and_companions(self, app, client):
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 3
+            res.checkin_token = 'tok-checkin-submit'
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+            token = res.checkin_token
+
+        form = {
+            'guest_0_surname': 'Rossi',
+            'guest_0_first_name': 'Mario',
+            'guest_0_birth_date': '1985-04-12',
+            'guest_0_birth_place': 'Rome',
+            'guest_0_nationality': 'Italian',
+            'guest_0_gender': 'M',
+            'guest_0_document_type': 'passport',
+            'guest_0_document_number': 'AA123',
+            'guest_0_document_expiry': '2030-01-01',
+            'guest_0_document_country': 'ITA',
+            'guest_1_surname': 'Bianchi',
+            'guest_1_first_name': 'Anna',
+            'guest_1_birth_date': '1990-06-20',
+            'guest_1_birth_place': 'Milan',
+            'guest_1_nationality': 'Italian',
+            'guest_1_gender': 'F',
+            'guest_1_document_type': 'id_card',
+            'guest_1_document_number': 'BB456',
+            'guest_1_document_expiry': '2031-01-01',
+            'guest_1_document_country': 'ITA',
+            'guest_2_surname': 'Rossi',
+            'guest_2_first_name': 'Luca',
+            'guest_2_birth_date': '2012-09-01',
+            'guest_2_birth_place': 'Rome',
+            'guest_2_nationality': 'Italian',
+            'guest_2_gender': 'M',
+            'guest_2_document_type': 'passport',
+            'guest_2_document_number': 'CC789',
+            'guest_2_document_expiry': '2032-01-01',
+            'guest_2_document_country': 'ITA',
+        }
+
+        resp = client.post(f'/checkin/{token}', data=form, follow_redirects=True)
+
+        assert resp.status_code == 200
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.guest_surname == 'Rossi'
+            assert res.guest_first_name == 'Mario'
+            assert res.guest_document_number == 'AA123'
+            assert res.checkin_completed_at is not None
+            assert res.checkin_token_used is True
+            assert len(res.companions) == 2
+            assert res.companions[0]['surname'] == 'Bianchi'
+            assert res.companions[0]['first_name'] == 'Anna'
+            assert res.companions[0]['birth_date'] == '1990-06-20'
+            assert res.companions[1]['first_name'] == 'Luca'
+
+
+class TestCheckinCityTax:
+    """The check-in page offers a city tax payment link."""
+
+    def test_checkin_page_shows_tax_when_unpaid(self, app, client):
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            res.checkin_token = 'tok-checkin-tax-page'
+            db.session.add(res)
+            db.session.commit()
+            token = res.checkin_token
+
+        resp = client.get(f'/checkin/{token}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert 'City Tax' in html
+        assert '36.00' in html  # 3 nights x 2 adults x €6
+        assert 'Pay City Tax Online' in html
+
+    def test_checkin_tax_link_creates_session(self, app, client):
+        from unittest.mock import MagicMock
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            res.checkin_token = 'tok-checkin-tax-link'
+            db.session.add(res)
+            db.session.commit()
+            token = res.checkin_token
+
+        fake_session = MagicMock()
+        fake_session.url = 'https://checkout.stripe.com/c/guest-tax'
+
+        with patch('app.routes.helpers.create_tourist_tax_payment_session', return_value=fake_session) as mock_create:
+            resp = client.get(f'/checkin/{token}/tax-link')
+
+        mock_create.assert_called_once()
+        assert resp.status_code == 302
+        assert 'checkout.stripe.com/c/guest-tax' in resp.location
+
+    def test_admin_pay_tax_recomputes_amount_from_guests(self, app, client):
+        from unittest.mock import MagicMock
+
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            res.tourist_tax_amount = None  # never set → old bug produced a failure
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        fake_session = MagicMock()
+        fake_session.url = 'https://checkout.stripe.com/c/recomputed'
+
+        with patch('app.routes.admin.create_tourist_tax_payment_session', return_value=fake_session) as mock_create:
+            resp = client.post(f'/admin/communication/guest-message/{rid}/pay-tax')
+
+        mock_create.assert_called_once()
+        assert resp.status_code == 302
+        assert 'checkout.stripe.com/c/recomputed' in resp.location
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.tourist_tax_amount == 36.0
+
 
 class TestGuestMessageCityTax:
     """The guest-message page can collect city tax via Stripe or mark it cash."""

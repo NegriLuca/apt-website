@@ -201,28 +201,60 @@ def guest_self_checkin(token):
         return render_template('guest_self_checkin.html', reservation=reservation, already_completed=True)
 
     if request.method == 'POST':
-        reservation.guest_surname = request.form.get('surname', '').strip()
-        reservation.guest_first_name = request.form.get('first_name', '').strip()
-        birth_date_str = request.form.get('birth_date', '').strip()
-        if birth_date_str:
+        def _guest_data(prefix: str):
+            birth_date_str = request.form.get(f'{prefix}birth_date', '').strip()
+            doc_expiry_str = request.form.get(f'{prefix}document_expiry', '').strip()
             try:
-                reservation.guest_birth_date = date.fromisoformat(birth_date_str)
+                birth_date = date.fromisoformat(birth_date_str) if birth_date_str else None
             except ValueError:
+                return None
+            try:
+                doc_expiry = date.fromisoformat(doc_expiry_str) if doc_expiry_str else None
+            except ValueError:
+                return None
+            return {
+                'surname': request.form.get(f'{prefix}surname', '').strip(),
+                'first_name': request.form.get(f'{prefix}first_name', '').strip(),
+                'birth_date': birth_date,
+                'birth_place': request.form.get(f'{prefix}birth_place', '').strip(),
+                'nationality': request.form.get(f'{prefix}nationality', '').strip(),
+                'gender': request.form.get(f'{prefix}gender', '').strip(),
+                'document_type': request.form.get(f'{prefix}document_type', '').strip(),
+                'document_number': request.form.get(f'{prefix}document_number', '').strip(),
+                'document_expiry': doc_expiry,
+                'document_country': request.form.get(f'{prefix}document_country', '').strip(),
+            }
+
+        main = _guest_data('guest_0_')
+        if main is None:
+            flash('Invalid birth date format.', 'danger')
+            return render_template('guest_self_checkin.html', reservation=reservation)
+        if main.get('document_expiry') is None:
+            flash('Invalid document expiry date.', 'danger')
+            return render_template('guest_self_checkin.html', reservation=reservation)
+
+        reservation.guest_surname = main['surname']
+        reservation.guest_first_name = main['first_name']
+        reservation.guest_birth_date = main['birth_date']
+        reservation.guest_birth_place = main['birth_place']
+        reservation.guest_nationality = main['nationality']
+        reservation.guest_document_type = main['document_type']
+        reservation.guest_document_number = main['document_number']
+        reservation.guest_document_expiry = main['document_expiry']
+        reservation.guest_document_country = main['document_country']
+        reservation.guest_gender = main['gender']
+
+        companions = []
+        for g in range(1, reservation.num_guests):
+            data = _guest_data(f'guest_{g}_')
+            if data is None:
                 flash('Invalid birth date format.', 'danger')
                 return render_template('guest_self_checkin.html', reservation=reservation)
-        reservation.guest_birth_place = request.form.get('birth_place', '').strip()
-        reservation.guest_nationality = request.form.get('nationality', '').strip()
-        reservation.guest_document_type = request.form.get('document_type', '').strip()
-        reservation.guest_document_number = request.form.get('document_number', '').strip()
-        doc_expiry_str = request.form.get('document_expiry', '').strip()
-        if doc_expiry_str:
-            try:
-                reservation.guest_document_expiry = date.fromisoformat(doc_expiry_str)
-            except ValueError:
+            if data.get('document_expiry') is None:
                 flash('Invalid document expiry date.', 'danger')
                 return render_template('guest_self_checkin.html', reservation=reservation)
-        reservation.guest_document_country = request.form.get('document_country', '').strip()
-        reservation.guest_gender = request.form.get('gender', '').strip()
+            companions.append({k: (v.isoformat() if hasattr(v, 'isoformat') else v) for k, v in data.items()})
+        reservation.companions = companions or None
 
         reservation.checkin_completed_at = datetime.utcnow()
         reservation.checkin_token_used = True
@@ -231,7 +263,46 @@ def guest_self_checkin(token):
         flash('Check-in completed successfully!', 'success')
         return redirect(url_for('routes.guest_portal', token=reservation.checkin_token))
 
-    return render_template('guest_self_checkin.html', reservation=reservation)
+    tax_amount = 0.0
+    if reservation.status == 'confirmed':
+        apartment = get_apartment()
+        if apartment:
+            from app.services.tourist_tax import TouristTaxService
+            tax_amount = TouristTaxService(apartment).calculate_tax(reservation)
+    return render_template('guest_self_checkin.html', reservation=reservation, tax_amount=tax_amount)
+
+
+@bp.route('/checkin/<token>/pay-tax', methods=['POST'])
+def guest_pay_tax(token):
+    reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
+    return _guest_pay_tax(reservation)
+
+
+@bp.route('/checkin/<token>/tax-link')
+def guest_tax_link(token):
+    """GET link (for embedding in messages) that creates the Stripe session."""
+    reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
+    return _guest_pay_tax(reservation)
+
+
+def _guest_pay_tax(reservation):
+    apartment = get_apartment()
+    if not apartment:
+        flash('City tax payment is not available right now.', 'danger')
+        return redirect(url_for('routes.guest_self_checkin', token=reservation.checkin_token))
+
+    from app.services.tourist_tax import TouristTaxService
+    from app.routes.helpers import create_tourist_tax_payment_session
+
+    tax_service = TouristTaxService(apartment)
+    reservation.tourist_tax_amount = tax_service.calculate_tax(reservation)
+    db.session.commit()
+
+    session_data = create_tourist_tax_payment_session(reservation)
+    if not session_data:
+        flash('Failed to create the payment link. Check Stripe configuration or tax amount.', 'danger')
+        return redirect(url_for('routes.guest_self_checkin', token=reservation.checkin_token))
+    return redirect(session_data.url)
 
 
 @bp.route('/access/<token>')

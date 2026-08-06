@@ -53,65 +53,119 @@
                 </div>
             </div>
 
+            {% if tax_amount > 0 and not reservation.tourist_tax_paid %}
+            <!-- City Tax -->
+            <div class="card border-0 shadow-sm p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1"><i class="bi bi-cash-coin me-2"></i>{{ _('City Tax') }}</h5>
+                        <p class="text-muted small mb-0">{{ _('Required by the municipality of Rome.') }}</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="fs-4 fw-bold text-primary">€{{ '%.2f'|format(tax_amount) }}</div>
+                        <span class="text-muted small">€6/{{ _('adult') }}/{{ _('night') }}, {{ _('max 10 nights') }}</span>
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('routes.guest_pay_tax', token=reservation.checkin_token) }}" class="mt-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">
+                        <i class="bi bi-credit-card me-2"></i>{{ _('Pay City Tax Online') }}
+                    </button>
+                </form>
+            </div>
+            {% elif reservation.tourist_tax_paid %}
+            <div class="alert alert-success d-flex align-items-start mb-4 border-0">
+                <i class="bi bi-check-circle-fill me-3 fs-4 mt-1"></i>
+                <div>
+                    <strong>{{ _('City tax paid.') }}</strong>
+                </div>
+            </div>
+            {% endif %}
+
             <form method="POST" class="card border-0 shadow-sm p-4 p-md-5" novalidate>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-                <h5 class="fw-bold mb-4"><i class="bi bi-person-badge me-2"></i>{{ _('Main Guest') }}</h5>
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Surname') }}</label>
-                        <input type="text" class="form-control form-control-lg" name="surname" required value="{{ reservation.guest_surname or '' }}">
+                {% set companions = reservation.companions or [] %}
+                {% for g in range(reservation.num_guests) %}
+                {% set is_main = (g == 0) %}
+                {% if is_main %}
+                {% set c = {
+                    'surname': reservation.guest_surname or '',
+                    'first_name': reservation.guest_first_name or '',
+                    'birth_date': reservation.guest_birth_date.strftime('%Y-%m-%d') if reservation.guest_birth_date else '',
+                    'birth_place': reservation.guest_birth_place or '',
+                    'nationality': reservation.guest_nationality or '',
+                    'gender': reservation.guest_gender or '',
+                    'document_type': reservation.guest_document_type or '',
+                    'document_number': reservation.guest_document_number or '',
+                    'document_expiry': reservation.guest_document_expiry.strftime('%Y-%m-%d') if reservation.guest_document_expiry else '',
+                    'document_country': reservation.guest_document_country or 'ITA',
+                } %}
+                {% else %}
+                {% set c = companions[g - 1] if (g - 1 < companions|length) else {} %}
+                {% endif %}
+                <div class="guest-block mb-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-person-badge me-2"></i>
+                        {{ _('Main Guest') if is_main else _('Guest %(n)d', n=g + 1) }}
+                    </h5>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Surname') }}</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_surname" required value="{{ c.get('surname', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('First Name') }}</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_first_name" required value="{{ c.get('first_name', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Date of Birth') }}</label>
+                            <input type="date" class="form-control form-control-lg" name="guest_{{ g }}_birth_date" required value="{{ c.get('birth_date', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Place of Birth') }}</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_birth_place" required value="{{ c.get('birth_place', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Nationality') }}</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_nationality" required value="{{ c.get('nationality', '') }}" placeholder="{{ _('e.g. Italian, French') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Gender') }}</label>
+                            <select class="form-select form-select-lg" name="guest_{{ g }}_gender" required>
+                                <option value="">{{ _('Select') }}</option>
+                                <option value="M" {% if c.get('gender') == 'M' %}selected{% endif %}>{{ _('Male') }}</option>
+                                <option value="F" {% if c.get('gender') == 'F' %}selected{% endif %}>{{ _('Female') }}</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('First Name') }}</label>
-                        <input type="text" class="form-control form-control-lg" name="first_name" required value="{{ reservation.guest_first_name or '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Date of Birth') }}</label>
-                        <input type="date" class="form-control form-control-lg" name="birth_date" required value="{{ reservation.guest_birth_date.strftime('%Y-%m-%d') if reservation.guest_birth_date else '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Place of Birth') }}</label>
-                        <input type="text" class="form-control form-control-lg" name="birth_place" required value="{{ reservation.guest_birth_place or '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Nationality') }}</label>
-                        <input type="text" class="form-control form-control-lg" name="nationality" required value="{{ reservation.guest_nationality or '' }}" placeholder="{{ _('e.g. Italian, French') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Gender') }}</label>
-                        <select class="form-select form-select-lg" name="gender" required>
-                            <option value="">{{ _('Select') }}</option>
-                            <option value="M" {% if reservation.guest_gender == 'M' %}selected{% endif %}>{{ _('Male') }}</option>
-                            <option value="F" {% if reservation.guest_gender == 'F' %}selected{% endif %}>{{ _('Female') }}</option>
-                        </select>
-                    </div>
-                </div>
 
-                <h5 class="fw-bold mb-4"><i class="bi bi-card-text me-2"></i>{{ _('Identity Document') }}</h5>
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Document Type') }}</label>
-                        <select class="form-select form-select-lg" name="document_type" required>
-                            <option value="">{{ _('Select') }}</option>
-                            <option value="passport" {% if reservation.guest_document_type == 'passport' %}selected{% endif %}>{{ _('Passport') }}</option>
-                            <option value="id_card" {% if reservation.guest_document_type == 'id_card' %}selected{% endif %}>{{ _('Identity Card') }}</option>
-                            <option value="driving_license" {% if reservation.guest_document_type == 'driving_license' %}selected{% endif %}>{{ _('Driving License') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Document Number') }}</label>
-                        <input type="text" class="form-control form-control-lg" name="document_number" required value="{{ reservation.guest_document_number or '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Expiry Date') }}</label>
-                        <input type="date" class="form-control form-control-lg" name="document_expiry" required value="{{ reservation.guest_document_expiry.strftime('%Y-%m-%d') if reservation.guest_document_expiry else '' }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold text-uppercase small">{{ _('Issuing Country') }}</label>
-                        <input type="text" class="form-control form-control-lg" name="document_country" required maxlength="3" value="{{ reservation.guest_document_country or 'ITA' }}" placeholder="ITA">
+                    <h6 class="fw-bold mb-3 text-uppercase small text-muted"><i class="bi bi-card-text me-2"></i>{{ _('Identity Document') }}</h6>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Document Type') }}</label>
+                            <select class="form-select form-select-lg" name="guest_{{ g }}_document_type" required>
+                                <option value="">{{ _('Select') }}</option>
+                                <option value="passport" {% if c.get('document_type') == 'passport' %}selected{% endif %}>{{ _('Passport') }}</option>
+                                <option value="id_card" {% if c.get('document_type') == 'id_card' %}selected{% endif %}>{{ _('Identity Card') }}</option>
+                                <option value="driving_license" {% if c.get('document_type') == 'driving_license' %}selected{% endif %}>{{ _('Driving License') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Document Number') }}</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_document_number" required value="{{ c.get('document_number', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Expiry Date') }}</label>
+                            <input type="date" class="form-control form-control-lg" name="guest_{{ g }}_document_expiry" required value="{{ c.get('document_expiry', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-uppercase small">{{ _('Issuing Country') }}</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_document_country" required maxlength="3" value="{{ c.get('document_country', 'ITA') }}" placeholder="ITA">
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
 
                 <div class="d-grid">
                     <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">
