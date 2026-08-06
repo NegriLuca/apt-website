@@ -234,6 +234,21 @@
                                     </form>
                                 {% endif %}
                                 <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('Send message') }}">💬</a>
+                                {% if apartment.nuki_enabled %}
+                                    {% if r.keypad_code %}
+                                    <form action="{{ url_for('routes.admin_revoke_keypad_code') }}" method="POST" onsubmit="return confirm('{{ _('Revoke this keypad code?') }}')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="reservation_id" value="{{ r.id }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Keypad code') }} {{ r.keypad_code }}">🔢</button>
+                                    </form>
+                                    {% else %}
+                                    <form action="{{ url_for('routes.admin_generate_keypad_code') }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="reservation_id" value="{{ r.id }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ _('Generate keypad code') }}">🔢</button>
+                                    </form>
+                                    {% endif %}
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

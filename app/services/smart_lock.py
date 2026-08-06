@@ -245,6 +245,98 @@ class NukiService:
         except requests.RequestException as e:
             raise SmartLockError(f'Failed to get Nuki status: {e}')
 
+    def _get_auths(self):
+        """List all authorizations (incl. keypad codes) for the smart lock."""
+        url = f'{self.base_url}/smartlock/{self.smartlock_id}/auth'
+        try:
+            resp = requests.get(url, headers=self._get_headers(), timeout=10)
+            resp.raise_for_status()
+            return resp.json() if isinstance(resp.json(), list) else []
+        except requests.RequestException as e:
+            raise SmartLockError(f'Failed to list Nuki authorizations: {e}')
+
+    @staticmethod
+    def _generate_keypad_code(existing_codes):
+        """Generate a 6-digit code: no 0, must not start with '12', unique on device."""
+        import secrets
+
+        while True:
+            code = ''.join(secrets.choice('123456789') for _ in range(6))
+            if code.startswith('12'):
+                continue
+            if code not in existing_codes:
+                return code
+
+    def create_keypad_code(self, name, allowed_from, allowed_until):
+        """Create a temporary Nuki Keypad 2 PIN.
+
+        allowed_from / allowed_until must be timezone-aware UTC datetimes.
+        Returns the generated 6-digit code (as str).
+        """
+        if not self.is_configured():
+            raise SmartLockError('Nuki not configured')
+
+        existing = {
+            str(auth['code'])
+            for auth in self._get_auths()
+            if auth.get('type') == 13 and auth.get('code')
+        }
+        code = self._generate_keypad_code(existing)
+
+        payload = {
+            'name': (name or 'Guest')[:20],
+            'type': 13,
+            'code': int(code),
+            'smartlockIds': [int(self.smartlock_id)],
+            'allowedFromDate': allowed_from.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+            'allowedUntilDate': allowed_until.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+            'allowedWeekDays': 127,
+            'allowedFromTime': 0,
+            'allowedUntilTime': 0,
+        }
+        url = f'{self.base_url}/smartlock/auth'
+        try:
+            resp = requests.put(url, headers=self._get_headers(), json=payload, timeout=15)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            current_app.logger.error(f'Nuki create keypad code failed: {e}')
+            raise SmartLockError(f'Failed to create keypad code: {e}')
+
+        current_app.logger.info(f'Nuki keypad code created for {name}')
+        return code
+
+    def find_keypad_auth_id(self, code, attempts=6):
+        """Return the Nuki auth 'id' for a given keypad code, or None.
+
+        Keypad auths are created asynchronously on the device, so we poll
+        a few times before giving up.
+        """
+        import time
+
+        for _ in range(attempts):
+            try:
+                for auth in self._get_auths():
+                    if auth.get('type') == 13 and str(auth.get('code')) == str(code):
+                        return auth.get('id')
+            except SmartLockError:
+                pass
+            time.sleep(3)
+        return None
+
+    def revoke_keypad_code(self, auth_id):
+        """Delete a keypad code authorization from the smart lock."""
+        if not self.is_configured():
+            raise SmartLockError('Nuki not configured')
+        url = f'{self.base_url}/smartlock/{self.smartlock_id}/auth/{auth_id}'
+        try:
+            resp = requests.delete(url, headers=self._get_headers(), timeout=15)
+            resp.raise_for_status()
+            current_app.logger.info(f'Nuki keypad code {auth_id} revoked')
+            return True
+        except requests.RequestException as e:
+            current_app.logger.error(f'Nuki revoke keypad code failed: {e}')
+            raise SmartLockError(f'Failed to revoke keypad code: {e}')
+
     def unlock(self):
         """Unlock the door (or unlatch based on configuration)"""
         if not self.is_configured():

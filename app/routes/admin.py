@@ -1,6 +1,6 @@
 import json
 import secrets
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timezone, timedelta
 
 from flask import Response, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -638,6 +638,99 @@ def admin_regenerate_access_token() -> Response | str:
     return redirect(url_for('routes.admin_dashboard'))
 
 
+def _rome_zone():
+    try:
+        from zoneinfo import ZoneInfo
+
+        return ZoneInfo('Europe/Rome')
+    except Exception:
+        from datetime import timezone, timedelta
+
+        m = date.today().month
+        return timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
+
+
+def access_window_utc(reservation):
+    """Return (start, end) UTC datetimes matching the smart access window:
+    13:00 on check-in day to 13:00 on check-out day (Rome time)."""
+    from datetime import datetime as _dt
+
+    tz = _rome_zone()
+    start = _dt(reservation.check_in.year, reservation.check_in.month, reservation.check_in.day, 13, 0, tzinfo=tz)
+    end = _dt(reservation.check_out.year, reservation.check_out.month, reservation.check_out.day, 13, 0, tzinfo=tz)
+    return start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+
+
+@bp.route('/admin/access/generate-keypad-code', methods=['POST'])
+@login_required
+def admin_generate_keypad_code() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    res = Reservation.query.get_or_404(request.form.get('reservation_id', type=int))
+
+    from app.services.smart_lock import SmartLockError, get_nuki_service
+
+    apt = get_apartment()
+    if not apt:
+        flash('No apartment configured.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    svc = get_nuki_service(apt)
+    if not svc.is_configured():
+        flash('Nuki door not configured. Set NUKI_SMARTLOCK_ID / NUKI_WEB_TOKEN or the Smart Access page.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    try:
+        start_utc, end_utc = access_window_utc(res)
+        name = f'Res{res.id} {res.guest_name}'.strip()[:20]
+        code = svc.create_keypad_code(name, start_utc, end_utc)
+        res.keypad_code = code
+        res.keypad_created_at = datetime.utcnow()
+        res.keypad_auth_id = svc.find_keypad_auth_id(code)
+        db.session.commit()
+        flash(
+            f'Keypad code {code} created for {res.guest_name}. '
+            f'Valid from {res.check_in.strftime("%d/%m/%Y")} 13:00 to {res.check_out.strftime("%d/%m/%Y")} 13:00 (Rome).',
+            'success',
+        )
+        if not res.keypad_auth_id:
+            flash('Note: the code was accepted but not yet confirmed on the Nuki device. It will be revocable once it syncs.', 'warning')
+    except SmartLockError as e:
+        flash(f'Failed to create keypad code: {e}', 'danger')
+
+    return redirect(url_for('routes.admin_dashboard'))
+
+
+@bp.route('/admin/access/revoke-keypad-code', methods=['POST'])
+@login_required
+def admin_revoke_keypad_code() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    res = Reservation.query.get_or_404(request.form.get('reservation_id', type=int))
+
+    from app.services.smart_lock import SmartLockError, get_nuki_service
+
+    apt = get_apartment()
+    if not apt:
+        flash('No apartment configured.', 'danger')
+        return redirect(url_for('routes.admin_dashboard'))
+
+    auth_id = res.keypad_auth_id
+    if auth_id:
+        try:
+            svc = get_nuki_service(apt)
+            svc.revoke_keypad_code(auth_id)
+        except SmartLockError as e:
+            flash(f'Failed to revoke keypad code on Nuki: {e}', 'danger')
+
+    res.keypad_code = None
+    res.keypad_auth_id = None
+    res.keypad_created_at = None
+    db.session.commit()
+    flash(f'Keypad code revoked for {res.guest_name}.', 'success')
+    return redirect(url_for('routes.admin_dashboard'))
+
+
 # ── Smart Lock Tests ────────────────────────────────────────────────────────
 
 
@@ -786,11 +879,12 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     portal_url = url_for('routes.guest_portal', token=res.checkin_token, _external=True)
 
     apt_name = apt.name if apt else 'Lotto 235 Garbatella'
-    checkin_message = f"""Ciao {res.guest_name},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}\n\nOppure usa il portale unico per tutto:\n{portal_url}\n\nA presto!\n{apt_name}"""
+    keypad_block = f"\n\U0001f511 *Codice di accesso keypad*: {res.keypad_code}\n" if res.keypad_code else ""
+    checkin_message = f"""Ciao {res.guest_name},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}\n\nOppure usa il portale unico per tutto:\n{portal_url}\n\nA presto!\n{apt_name}"""
 
-    whatsapp_message = f"""Ciao {res.guest_name}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}\n\n\U0001f4f1 *Portale unico* (check-in + accessi):\n{portal_url}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
+    whatsapp_message = f"""Ciao {res.guest_name}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}\n\n\U0001f4f1 *Portale unico* (check-in + accessi):\n{portal_url}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
 
-    airbnb_message = f"""Hi {res.guest_name},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}\n\n\U0001f4f1 *All-in-one Portal*:\n{portal_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
+    airbnb_message = f"""Hi {res.guest_name},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}\n\n\U0001f4f1 *All-in-one Portal*:\n{portal_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
 
     return jsonify(
         {

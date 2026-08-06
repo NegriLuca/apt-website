@@ -185,6 +185,11 @@ class Reservation(db.Model):
     access_token = db.Column(db.String(128), unique=True, index=True, nullable=True)
     access_token_created = db.Column(db.DateTime, nullable=True)
 
+    # Nuki Keypad 2 temporary code (valid same window as smart access)
+    keypad_code = db.Column(db.String(6), nullable=True)
+    keypad_auth_id = db.Column(db.String(64), nullable=True)
+    keypad_created_at = db.Column(db.DateTime, nullable=True)
+
     # Tourist tax
     tourist_tax_amount = db.Column(db.Float, nullable=True, default=0.0)
     tourist_tax_paid = db.Column(db.Boolean, default=False)

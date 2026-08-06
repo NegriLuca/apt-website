@@ -69,6 +69,23 @@
                                 </tr>
                             </table>
                             
+                            <!-- Keypad Code -->
+                            {% if reservation.keypad_code %}
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #e9ecef; border-radius: 12px; overflow: hidden; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                                        <p style="margin: 0; font-size: 14px; font-weight: 600; color: #212529;">{{ _('Door Keypad Code') }}</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 20px; text-align: center;">
+                                        <div style="font-size: 42px; font-weight: 700; color: #667eea; letter-spacing: 6px; margin-bottom: 8px;">{{ reservation.keypad_code }}</div>
+                                        <p style="margin: 0; font-size: 14px; color: #495057;">{{ _('Enter this code on the keypad next to the door. Valid during your stay.') }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
                             <!-- Security Notice -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                                 <tr>
