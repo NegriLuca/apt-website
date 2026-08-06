@@ -330,6 +330,78 @@ class TestIcalClassification:
             assert name == 'External Guest'
 
 
+class TestExpiredKeypadRevocation:
+    """Scheduled job revokes Nuki keypad codes once the stay has ended."""
+
+    def test_revokes_expired_and_keeps_active(self, app):
+        from unittest.mock import Mock
+
+        from app.models import Apartment
+        from app.services.smart_lock import revoke_expired_keypad_codes
+
+        with app.app_context():
+            apt = Apartment.query.first()
+            apt.nuki_enabled = True
+            apt.nuki_smartlock_id = '22806585863'
+            apt.nuki_web_token = 'test-token'
+            db.session.commit()
+
+            expired = _make_reservation(
+                source='direct',
+                check_in=date.today() - timedelta(days=5),
+                check_out=date.today() - timedelta(days=1),
+            )
+            expired.keypad_code = '111222'
+            expired.keypad_auth_id = 'auth-expired'
+            active = _make_reservation(
+                source='direct',
+                check_in=date.today() + timedelta(days=1),
+                check_out=date.today() + timedelta(days=4),
+            )
+            active.keypad_code = '333444'
+            active.keypad_auth_id = 'auth-active'
+            db.session.commit()
+
+            class FakeNuki:
+                def __init__(self, apt):
+                    pass
+
+                def is_configured(self):
+                    return True
+
+                def revoke_keypad_code(self, auth_id):
+                    assert auth_id == 'auth-expired'
+
+            with patch('app.services.smart_lock.get_nuki_service', return_value=FakeNuki(None)):
+                revoked = revoke_expired_keypad_codes(apt)
+
+            assert revoked == 1
+            assert db.session.get(Reservation, expired.id).keypad_code is None
+            assert db.session.get(Reservation, expired.id).keypad_auth_id is None
+            assert db.session.get(Reservation, active.id).keypad_code == '333444'
+
+    def test_skips_without_configured_nuki(self, app):
+        from app.models import Apartment
+        from app.services.smart_lock import revoke_expired_keypad_codes
+
+        with app.app_context():
+            apt = Apartment.query.first()
+            apt.nuki_enabled = False
+            db.session.commit()
+
+            res = _make_reservation(
+                source='direct',
+                check_in=date.today() - timedelta(days=5),
+                check_out=date.today() - timedelta(days=1),
+            )
+            res.keypad_code = '555666'
+            res.keypad_auth_id = 'auth-past'
+            db.session.commit()
+
+            assert revoke_expired_keypad_codes(apt) == 0
+            assert db.session.get(Reservation, res.id).keypad_code == '555666'
+
+
 class TestGuestMessageKeypadAutoGen:
     """Opening the guest-message page auto-generates a Nuki keypad code."""
 
@@ -404,8 +476,15 @@ class TestPastExternalCleanup:
 
         with app.app_context():
             past_block = _make_reservation(
-                source='booking_com',
+                source='airbnb',
                 external_uid='PAST-BLOCK',
+                is_block=True,
+                check_in=date.today() - timedelta(days=3),
+                check_out=date.today() - timedelta(days=1),
+            )
+            past_booking = _make_reservation(
+                source='booking_com',
+                external_uid='PAST-BOOKING',
                 is_block=True,
                 check_in=date.today() - timedelta(days=3),
                 check_out=date.today() - timedelta(days=1),
@@ -430,8 +509,10 @@ class TestPastExternalCleanup:
 
             count = cleanup_past_external_reservations()
 
-            assert count == 1
+            assert count == 2
             assert Reservation.query.get(past_block.id) is None
+            assert Reservation.query.get(past_booking.id) is not None
+            assert Reservation.query.get(past_booking.id).is_block is False
             assert Reservation.query.get(past_res.id) is not None
             assert Reservation.query.get(future_block.id) is not None
             assert Reservation.query.get(past_direct.id) is not None

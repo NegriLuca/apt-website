@@ -367,6 +367,50 @@ def get_nuki_service(apartment):
     return NukiService(apartment)
 
 
+def revoke_expired_keypad_codes(apartment):
+    """Revoke Nuki keypad codes for reservations whose stay has ended.
+
+    Only codes with a confirmed keypad_auth_id are revoked; rows without one
+    (created but not yet synced) are left alone and retried next run. Returns
+    the number of codes revoked.
+    """
+    from datetime import date
+
+    from app import db
+    from app.models import Reservation
+
+    if not apartment or not apartment.nuki_enabled:
+        return 0
+
+    svc = get_nuki_service(apartment)
+    if not svc.is_configured():
+        return 0
+
+    today = date.today()
+    expired = Reservation.query.filter(
+        Reservation.keypad_code.isnot(None),
+        Reservation.keypad_auth_id.isnot(None),
+        Reservation.check_out <= today,
+    ).all()
+
+    revoked = 0
+    for res in expired:
+        try:
+            svc.revoke_keypad_code(res.keypad_auth_id)
+        except SmartLockError:
+            current_app.logger.warning('Nuki keypad revoke failed for reservation #%s (code %s), retrying later', res.id, res.keypad_code)
+            continue
+        res.keypad_code = None
+        res.keypad_auth_id = None
+        res.keypad_created_at = None
+        revoked += 1
+
+    if revoked:
+        db.session.commit()
+        current_app.logger.info('Revoked %d expired Nuki keypad code(s)', revoked)
+    return revoked
+
+
 def trigger_gate_open(apartment):
     """Convenience function to pulse the gate relay"""
     service = get_shelly_service(apartment)

@@ -225,6 +225,15 @@ def _start_scheduler(app: Flask):
             if deleted:
                 app.logger.info('Cleaned up %d past external reservation(s)', deleted)
 
+    def _revoke_keypad_job():
+        with app.app_context():
+            from app.routes.helpers import get_apartment
+            from app.services.smart_lock import revoke_expired_keypad_codes
+
+            revoked = revoke_expired_keypad_codes(get_apartment())
+            if revoked:
+                app.logger.info('Revoked %d expired Nuki keypad code(s)', revoked)
+
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
         _sync_job,
@@ -248,6 +257,15 @@ def _start_scheduler(app: Flask):
         hour=4,
         minute=30,
         id='cleanup_external_reservations',
+        replace_existing=True,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        _revoke_keypad_job,
+        trigger='cron',
+        hour=12,
+        minute=0,
+        id='revoke_expired_keypad_codes',
         replace_existing=True,
         coalesce=True,
     )

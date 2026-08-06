@@ -272,11 +272,14 @@ def get_blocked_dates():
 
 
 def cleanup_past_external_reservations() -> int:
-    """Hard-delete only KNOWN calendar blocks (is_block) that ended before today.
+    """Hard-delete only KNOWN calendar blocks that ended before today.
 
-    Real OTA reservations are never auto-deleted — they keep their record.
-    Blocks that are no longer imported (and any legacy ones) are removed to
-    avoid clutter. Runs daily via APScheduler. Returns the number deleted.
+    Booking.com rows are never deleted here: their 'CLOSED - Not available'
+    events are real reservations, so any legacy Booking row tagged is_block
+    (from the old classifier) is repaired to a real reservation instead.
+    Genuine blocks (Airbnb/VRBO 'Blocked', 'Not available') that are no longer
+    imported — and any legacy ones — are removed to avoid clutter. Runs daily
+    via APScheduler. Returns the number of rows cleaned up.
     """
     from app.models import QuesturaLog, Ross1000Log
 
@@ -287,12 +290,20 @@ def cleanup_past_external_reservations() -> int:
         Reservation.check_out < cutoff,
     ).all()
 
+    cleaned = 0
     for r in stale_blocks:
+        # Booking.com reservations are real — repair the tag, never delete.
+        if r.source in {'booking', 'booking_com'}:
+            r.is_block = False
+            log.info('cleanup: repaired past %s block #%s → real reservation (%s → %s)', r.source, r.id, r.check_in, r.check_out)
+            cleaned += 1
+            continue
         QuesturaLog.query.filter_by(reservation_id=r.id).delete()
         Ross1000Log.query.filter_by(reservation_id=r.id).delete()
         db.session.delete(r)
         log.info('cleanup: deleting past %s block #%s (%s → %s)', r.source, r.id, r.check_in, r.check_out)
+        cleaned += 1
 
-    if stale_blocks:
+    if cleaned:
         db.session.commit()
-    return len(stale_blocks)
+    return cleaned
