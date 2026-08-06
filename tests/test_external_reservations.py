@@ -275,6 +275,39 @@ class TestIcalClassification:
             assert res.is_block is False
             assert res.source == 'booking_com'
 
+    def test_sync_booking_plain_not_available_is_real_reservation(self, app):
+        """Booking exports only booked dates, so even a bare 'Not available' event is a reservation."""
+        from app.services.ical_sync import sync_feed
+
+        with app.app_context():
+            feed = ICalFeed(source='booking', url='https://example.com/feed.ics', active=True)
+            db.session.add(feed)
+            db.session.commit()
+
+            class FakeResponse:
+                content = (
+                    b'BEGIN:VCALENDAR\n'
+                    b'BEGIN:VEVENT\n'
+                    b'UID:BOOKING-REAL-2\n'
+                    b'SUMMARY:Not available\n'
+                    b'DTSTART:20261201\n'
+                    b'DTEND:20261204\n'
+                    b'END:VEVENT\n'
+                    b'END:VCALENDAR\n'
+                )
+
+                def raise_for_status(self):
+                    return None
+
+            with patch('app.services.ical_sync.requests.get', return_value=FakeResponse()):
+                added, cancelled = sync_feed(feed)
+
+            assert added == 1
+            res = Reservation.query.filter_by(external_uid='BOOKING-REAL-2').first()
+            assert res is not None
+            assert res.is_block is False
+            assert res.source == 'booking_com'
+
     def test_sync_repairs_legacy_block_booking(self, app):
         """A pre-existing Booking.com row wrongly tagged is_block=True gets repaired on re-sync."""
         from app.services.ical_sync import sync_feed

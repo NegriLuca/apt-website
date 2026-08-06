@@ -28,13 +28,13 @@ EXTERNAL_SOURCES = {'airbnb', 'booking', 'booking_com', 'vrbo'}
 def _classify_event(summary_text: str, description_text: str = '') -> tuple[bool, str]:
     """Return (is_block, guest_name) based on the iCal SUMMARY/DESCRIPTION text.
 
-    iCal feeds only carry dates + a short label. Real bookings are recognised
-    by an HM-style code, or a 'Reservation'/'Reserved' marker, or the
-    Booking.com signature 'CLOSED - Not available' that also mentions 'Booking'
-    / 'Non disponibile' in its text. Genuine calendar closures ('Blocked',
-    plain 'Not available' from Airbnb, prep buffers, …) are marked as blocks
-    and must never be imported as reservations. Heuristic — not 100% reliable
-    across platforms.
+    Used only for non-Booking feeds (Airbnb, VRBO): iCal feeds carry dates + a
+    short label, and real bookings are recognised by an HM-style code, or a
+    'Reservation'/'Reserved' marker. Genuine calendar closures ('Blocked',
+    plain 'Not available', prep buffers, …) are marked as blocks and must never
+    be imported as reservations. Booking.com feeds never reach this function —
+    they export only booked dates, so every event is a real reservation.
+    Heuristic — not 100% reliable across platforms.
     """
     combined = f'{summary_text or ""} {description_text or ""}'.lower()
     # Real booking markers (Airbnb HM code, Reservation/Reserved wording…)
@@ -133,11 +133,12 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
         # Determine a cleaner platform channel string based on the feed source
         display_source = _display_source(feed.source, feed.url, summary_text)
 
-        # Genuine calendar closures ("Blocked", plain "Not available" from
-        # Airbnb, prep buffers, …) are skipped — never imported into the
-        # calendar. Booking.com's "CLOSED - Not available" real bookings are
-        # classified as reservations (is_block=False) by _classify_event.
-        is_block, _block_name = _classify_event(summary_text, description_text)
+        # Booking.com exports only booked dates, so every event in a Booking
+        # feed is a real reservation — never a block. Other platforms (Airbnb,
+        # VRBO) still carry genuine calendar closures ("Blocked", "Not
+        # available", prep buffers, …) which are skipped entirely.
+        feed_is_booking = (feed.source or '').lower() in {'booking', 'booking_com'}
+        is_block = False if feed_is_booking else _classify_event(summary_text, description_text)[0]
         if is_block:
             log.info('iCal sync [%s]: skipping closure %s (%s → %s)', display_source, uid, start, end)
             continue
@@ -274,12 +275,13 @@ def get_blocked_dates():
 def cleanup_past_external_reservations() -> int:
     """Hard-delete only KNOWN calendar blocks that ended before today.
 
-    Booking.com rows are never deleted here: their 'CLOSED - Not available'
-    events are real reservations, so any legacy Booking row tagged is_block
-    (from the old classifier) is repaired to a real reservation instead.
-    Genuine blocks (Airbnb/VRBO 'Blocked', 'Not available') that are no longer
-    imported — and any legacy ones — are removed to avoid clutter. Runs daily
-    via APScheduler. Returns the number of rows cleaned up.
+    Booking.com rows are never blocks or deleted: the platform exports only
+    booked dates, so every Booking row is a real reservation. Any legacy
+    Booking row tagged is_block (from the old classifier) is repaired to a real
+    reservation instead. Genuine blocks (Airbnb/VRBO 'Blocked', 'Not
+    available') that are no longer imported — and any legacy ones — are removed
+    to avoid clutter. Runs daily via APScheduler. Returns the number of rows
+    cleaned up.
     """
     from app.models import QuesturaLog, Ross1000Log
 
