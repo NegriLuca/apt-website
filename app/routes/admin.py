@@ -1,3 +1,4 @@
+import calendar
 import json
 import secrets
 from datetime import date, datetime, timezone, timedelta
@@ -61,6 +62,39 @@ def logout() -> Response | str:
 # ── Admin Dashboard ──────────────────────────────────────────────────────────
 
 
+def _add_months(d: date, months: int) -> date:
+    """Return the date `months` months after `d`, clamping the day to the target month."""
+    total = d.month - 1 + months
+    year = d.year + total // 12
+    month = total % 12 + 1
+    day = min(d.day, calendar.monthrange(year, month)[1])
+    return date(year, month, day)
+
+
+def _occupancy_rate(reservations, window_start: date, window_end: date) -> float:
+    """Occupancy rate = % of nights in [window_start, window_end) covered by a booking.
+
+    Only the portion of each stay that falls inside the window counts, so stays
+    starting before/after the window (or spanning its edges) don't skew the
+    number. Cancelled reservations are ignored.
+    """
+    total_nights = (window_end - window_start).days
+
+    occupied = set()
+    for r in reservations:
+        if r.status != 'confirmed':
+            continue
+        overlap_start = max(r.check_in, window_start)
+        overlap_end = min(r.check_out, window_end)
+        if overlap_end > overlap_start:
+            day = overlap_start
+            while day < overlap_end:
+                occupied.add(day)
+                day += timedelta(days=1)
+
+    return round(len(occupied) / total_nights * 100, 1) if total_nights else 0
+
+
 @bp.route('/admin')
 @login_required
 def admin_dashboard() -> Response | str:
@@ -70,6 +104,7 @@ def admin_dashboard() -> Response | str:
     today = date.today()
     month_start = today.replace(day=1)
     year_start = today.replace(month=1, day=1)
+    occupancy_end = _add_months(today, 3)
 
     reservations = Reservation.query.order_by(Reservation.check_in.desc()).all()
 
@@ -99,9 +134,7 @@ def admin_dashboard() -> Response | str:
         Reservation.check_in <= today,
     ).count()
 
-    occupancy_days = sum(r.nights for r in monthly_confirmed)
-    month_days = (today.replace(month=today.month % 12 + 1, day=1) - timedelta(days=1)).day if today.month < 12 else 31
-    occupancy_rate = round((occupancy_days / month_days) * 100, 1) if month_days else 0
+    occupancy_rate = _occupancy_rate(reservations, today, occupancy_end)
 
     dashboard_data = {
         'total': len(reservations),
