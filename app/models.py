@@ -66,6 +66,11 @@ class Apartment(db.Model):
     )
     whatsapp_default_message = db.Column(db.Text, nullable=True, comment='Default pre-filled message for WhatsApp')
 
+    # Guest communication
+    guest_city_tax_enabled = db.Column(
+        db.Boolean, default=False, comment='Show the city tax Stripe payment option to guests in check-in/messages'
+    )
+
     # Trust Badges & Reviews
     # Review Platforms
     booking_review_score = db.Column(db.Float, nullable=True, comment='Booking.com review score (0-10)')

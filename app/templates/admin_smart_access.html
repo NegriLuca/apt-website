@@ -1,103 +1,71 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Smart Access & WhatsApp') }}{% endblock %}
+{% block title %}{{ _('Smart Access') }}{% endblock %}
 
 {% block content %}
 <div class="container">
     {% include 'admin_header.html' %}
 
-    <div class="row g-4 mb-5">
-        <!-- Shelly Gate Configuration -->
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-key-fill me-2"></i>{{ _('Smart Access Configuration') }}</span>
-                    <span class="badge bg-light text-dark">{{ _('Gate: Shelly Mini 1 Gen4 | Door: Nuki Smart Lock Ultra') }}</span>
-                </div>
-                <div class="card-body py-4">
-                    <form method="POST" novalidate>
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">{{ _('Smart Access Control') }}</h4>
+        <a href="{{ url_for('routes.admin_trust_badges') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-gear me-1"></i>{{ _('Configure in Settings') }}
+        </a>
+    </div>
 
-                        <h5 class="mb-3 text-primary"><i class="bi bi-gate-fill me-2"></i>{{ _('Building Gate (Shelly Mini 1 Gen4)') }}</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-8">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" name="shelly_enabled" id="shelly_enabled" {% if apartment.shelly_enabled %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="shelly_enabled">{{ _('Enable Gate Access') }}</label>
-                                </div>
-                                <label class="form-label fw-semibold">{{ _('Shelly Host / Device ID') }}</label>
-                                <input type="text" class="form-control" name="shelly_host" value="{{ apartment.shelly_host or '' }}" placeholder="98a31678b358 or 192.168.1.50">
-                                <div class="form-text">{{ _('Leave blank if SHELLY_DEVICE_ID env var is set. Only needed for LAN access without the cloud env vars.') }}</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">{{ _('Relay Channel') }}</label>
-                                <input type="number" class="form-control" name="shelly_relay_channel" value="{{ apartment.shelly_relay_channel or 0 }}" min="0" max="3">
-                                <div class="form-text">{{ _('0 for Shelly Mini 1 Gen4') }}</div>
-                            </div>
-                        </div>
-
-                        <h5 class="mb-3 text-success"><i class="bi bi-door-open-fill me-2"></i>{{ _('Apartment Door (Nuki Smart Lock Ultra)') }}</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" name="nuki_enabled" id="nuki_enabled" {% if apartment.nuki_enabled %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="nuki_enabled">{{ _('Enable Door Access') }}</label>
-                                </div>
-                                <label class="form-label fw-semibold">{{ _('Smart Lock ID (Decimal)') }}</label>
-                                <input type="text" class="form-control" name="nuki_smartlock_id" value="{{ apartment.nuki_smartlock_id or '' }}" placeholder="123456789">
-                                <div class="form-text">{{ _('Get from Nuki Web API: GET /smartlock') }}</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('Web API Token') }}</label>
-                                <input type="password" class="form-control" name="nuki_web_token" value="{{ apartment.nuki_web_token or '' }}" placeholder="Bearer token from Nuki Web">
-                                <div class="form-text">{{ _('Generate at web.nuki.io → API') }}</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('API Base URL') }}</label>
-                                <input type="text" class="form-control" name="nuki_web_base_url" value="{{ apartment.nuki_web_base_url or 'https://api.nuki.io' }}" placeholder="https://api.nuki.io">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('Unlock Action') }}</label>
-                                <select class="form-select" name="nuki_unlock_action">
-                                    <option value="unlock" {% if apartment.nuki_unlock_action == 'unlock' %}selected{% endif %}>{{ _('Unlock (turn cylinder)') }}</option>
-                                    <option value="unlatch" {% if apartment.nuki_unlock_action == 'unlatch' %}selected{% endif %}>{{ _('Unlatch (open door)') }}</option>
-                                </select>
-                                <div class="form-text">{{ _('Unlatch opens the door; unlock just turns the cylinder') }}</div>
-                            </div>
-                        </div>
-
-                        <h5 class="mb-3 text-info"><i class="bi bi-whatsapp me-2"></i>{{ _('WhatsApp Contact Button') }}</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" name="whatsapp_enabled" id="whatsapp_enabled" {% if apartment.whatsapp_number %}checked{% endif %}>
-                                    <label class="form-check-label fw-semibold" for="whatsapp_enabled">{{ _('Enable WhatsApp Float Button') }}</label>
-                                </div>
-                                <label class="form-label fw-semibold">{{ _('WhatsApp Number') }}</label>
-                                <input type="text" class="form-control" name="whatsapp_number" value="{{ apartment.whatsapp_number or '' }}" placeholder="+39 3XX XXXXXXX or 393XXXXXXXXX">
-                                <div class="form-text">{{ _('International format without + or spaces. Example: 393000000000') }}</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">{{ _('Default Message (optional)') }}</label>
-                                <textarea class="form-control" name="whatsapp_default_message" rows="3" placeholder="{{ _('Ciao, vorrei informazioni per prenotare...') }}">{{ apartment.whatsapp_default_message or '' }}</textarea>
-                                <div class="form-text">{{ _('Pre-filled message when user clicks the button') }}</div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <div class="d-flex gap-3">
-                            <button type="submit" class="btn btn-primary fw-bold px-4 py-2">{{ _('Save Smart Access & WhatsApp Config') }}</button>
-                            <button type="button" class="btn btn-outline-primary fw-bold px-4 py-2" {% if not apartment.shelly_enabled %}disabled{% endif %} onclick="testGate()">
-                                <i class="bi bi-gate me-1"></i>{{ _('Test Gate') }}
-                            </button>
-                            <button type="button" class="btn btn-outline-success fw-bold px-4 py-2" {% if not apartment.nuki_enabled %}disabled{% endif %} onclick="testDoor()">
-                                <i class="bi bi-door-open me-1"></i>{{ _('Test Door') }}
-                            </button>
-                        </div>
-                    </form>
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-building fs-1 {% if gate_configured %}text-primary{% else %}text-muted{% endif %}"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ _('Building Gate') }}</h5>
+                    <p class="text-muted small mb-2">{{ _('Press to open the building gate (Shelly).') }}</p>
+                    <div class="mb-4">
+                        {% if gate_configured %}
+                        <span class="badge bg-success">{{ _('Enabled') }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ _('Disabled') }}</span>
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-primary w-100 py-3 fw-bold" id="gateBtn" {% if not gate_configured %}disabled{% endif %} onclick="testGate()">
+                        <i class="bi bi-unlock-fill me-2"></i><span id="gateBtnText">{{ _('Open Gate') }}</span>
+                    </button>
+                    <div id="gateStatus" class="mt-3"></div>
                 </div>
             </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-door-open fs-1 {% if door_configured %}text-success{% else %}text-muted{% endif %}"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ _('Apartment Door') }}</h5>
+                    <p class="text-muted small mb-2">{{ _('Press to unlock the apartment door (Nuki).') }}</p>
+                    <div class="mb-4">
+                        {% if door_configured %}
+                        <span class="badge bg-success">{{ _('Enabled') }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ _('Disabled') }}</span>
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-success w-100 py-3 fw-bold" id="doorBtn" {% if not door_configured %}disabled{% endif %} onclick="testDoor()">
+                        <i class="bi bi-door-open me-2"></i><span id="doorBtnText">{{ _('Unlock Door') }}</span>
+                    </button>
+                    <div id="doorStatus" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-secondary d-flex align-items-start border-0">
+        <i class="bi bi-info-circle me-3 fs-4 mt-1"></i>
+        <div class="small">
+            <strong>{{ _('Where are the settings?') }}</strong>
+            {{ _('The gate/door enable toggles, device credentials and the WhatsApp contact button configuration now live in the Settings page.') }}
         </div>
     </div>
 </div>
@@ -105,67 +73,53 @@
 
 {% block scripts %}
 <script>
+function setLoading(btnId, textId, loading) {
+    const btn = document.getElementById(btnId);
+    const text = document.getElementById(textId);
+    if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>{{ _('Processing...') }}';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-unlock-fill me-2"></i><span id="' + textId + '">{{ _('Try Again') }}</span>';
+    }
+}
+
+function showStatus(elementId, message, type) {
+    const el = document.getElementById(elementId);
+    const colors = { success: 'success', error: 'danger', loading: 'info', info: 'info' };
+    const icons = { success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', loading: 'bi-arrow-clockwise', info: 'bi-info-circle-fill' };
+    el.innerHTML = `<div class="alert alert-${colors[type] || 'info'} py-2 small mb-0" role="alert">
+        <i class="bi ${icons[type] || icons.info} me-2"></i>${message}
+    </div>`;
+}
+
+async function callApi(endpoint, btnId, textId, statusId, loadingMsg) {
+    setLoading(btnId, textId, true);
+    showStatus(statusId, loadingMsg, 'loading');
+    try {
+        const r = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        });
+        const data = await r.json();
+        if (data.success) showStatus(statusId, data.message, 'success');
+        else showStatus(statusId, data.error || '{{ _('Failed') }}', 'error');
+    } catch (err) {
+        showStatus(statusId, err.message || '{{ _('Connection error') }}', 'error');
+    }
+    setLoading(btnId, textId, false);
+}
+
 function testGate() {
-    const btn = event.target.closest('button');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
-    fetch('{{ url_for("routes.admin_test_gate") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token() }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) showToast('success', 'Gate Test', data.message);
-        else showToast('danger', 'Gate Test Failed', data.error);
-    })
-    .catch(err => showToast('danger', 'Error', err.message))
-    .finally(() => { btn.disabled = false; btn.innerHTML = originalText; });
+    callApi('{{ url_for("routes.admin_test_gate") }}', 'gateBtn', 'gateBtnText', 'gateStatus', '{{ _('Opening gate...') }}');
 }
 
 function testDoor() {
-    const btn = event.target.closest('button');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
-    fetch('{{ url_for("routes.admin_test_door") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token() }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) showToast('success', 'Door Test', data.message);
-        else showToast('danger', 'Door Test Failed', data.error);
-    })
-    .catch(err => showToast('danger', 'Error', err.message))
-    .finally(() => { btn.disabled = false; btn.innerHTML = originalText; });
-}
-
-function showToast(type, title, message) {
-    const container = document.getElementById('toastContainer') || createToastContainer();
-    const toastEl = document.createElement('div');
-    toastEl.className = 'toast align-items-center text-white bg-' + type + ' border-0';
-    toastEl.setAttribute('role', 'alert');
-    toastEl.innerHTML = '<div class="d-flex"><div class="toast-body"><strong>' + title + '</strong>: ' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
-    container.appendChild(toastEl);
-    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-    toast.show();
-    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
-}
-
-function createToastContainer() {
-    const c = document.createElement('div');
-    c.id = 'toastContainer';
-    c.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-    c.style.zIndex = '9999';
-    document.body.appendChild(c);
-    return c;
+    callApi('{{ url_for("routes.admin_test_door") }}', 'doorBtn', 'doorBtnText', 'doorStatus', '{{ _('Unlocking door...') }}');
 }
 </script>
 {% endblock %}

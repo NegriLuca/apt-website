@@ -68,6 +68,11 @@
                             <span class="badge bg-warning text-dark">{{ _('Unpaid') }}</span>
                         {% endif %}
                     </div>
+                    {% if not city_tax_enabled %}
+                    <div class="form-text mb-2">
+                        <i class="bi bi-info-circle me-1"></i>{{ _('The Stripe payment link is only included in the message when "Show city tax payment to guests" is enabled in Settings.') }}
+                    </div>
+                    {% endif %}
                     <div class="d-grid gap-2">
                         <form method="POST" action="{{ url_for('routes.admin_pay_tax', reservation_id=reservation.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

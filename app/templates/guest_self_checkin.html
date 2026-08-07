@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            {% if tax_amount > 0 and not reservation.tourist_tax_paid %}
+            {% if city_tax_enabled and tax_amount > 0 and not reservation.tourist_tax_paid %}
             <!-- City Tax -->
             <div class="card border-0 shadow-sm p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center">
@@ -73,7 +73,7 @@
                     </button>
                 </form>
             </div>
-            {% elif reservation.tourist_tax_paid %}
+            {% elif city_tax_enabled and reservation.tourist_tax_paid %}
             <div class="alert alert-success d-flex align-items-start mb-4 border-0">
                 <i class="bi bi-check-circle-fill me-3 fs-4 mt-1"></i>
                 <div>

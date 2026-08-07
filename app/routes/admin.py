@@ -167,7 +167,7 @@ def admin_pricing() -> Response | str:
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
 
 
-@bp.route('/admin/smart-access', methods=['GET', 'POST'])
+@bp.route('/admin/smart-access')
 @login_required
 def admin_smart_access() -> Response | str:
     if not current_user.is_admin:
@@ -179,26 +179,14 @@ def admin_smart_access() -> Response | str:
         db.session.add(apartment)
         db.session.commit()
 
-    if request.method == 'POST':
-        apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
-        apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
-        apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
-
-        apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
-        apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
-        apartment.nuki_web_token = request.form.get('nuki_web_token', '').strip() or None
-        apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'
-        apartment.nuki_unlock_action = request.form.get('nuki_unlock_action', 'unlock')
-
-        apartment.whatsapp_number = request.form.get('whatsapp_number', '').strip() or None
-        apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
-
-        db.session.commit()
-        admin_audit_log('update_smart_access', 'Apartment', apartment.id)
-        flash('Smart access settings updated successfully!', 'success')
-        return redirect(url_for('routes.admin_smart_access'))
-
-    return render_template('admin_smart_access.html', apartment=apartment)
+    gate_configured = bool(apartment.shelly_enabled)
+    door_configured = bool(apartment.nuki_enabled)
+    return render_template(
+        'admin_smart_access.html',
+        apartment=apartment,
+        gate_configured=gate_configured,
+        door_configured=door_configured,
+    )
 
 
 @bp.route('/admin/trust-badges', methods=['GET', 'POST'])
@@ -237,6 +225,21 @@ def admin_trust_badges() -> Response | str:
         apartment.airbnb_widget_js = request.form.get('airbnb_widget_js', '').strip() or None
         apartment.google_widget_js = request.form.get('google_widget_js', '').strip() or None
         apartment.trustpilot_widget_js = request.form.get('trustpilot_widget_js', '').strip() or None
+
+        apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
+        apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
+        apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
+
+        apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
+        apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
+        apartment.nuki_web_token = request.form.get('nuki_web_token', '').strip() or None
+        apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'
+        apartment.nuki_unlock_action = request.form.get('nuki_unlock_action', 'unlock')
+
+        apartment.whatsapp_number = request.form.get('whatsapp_number', '').strip() or None
+        apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
+
+        apartment.guest_city_tax_enabled = bool(request.form.get('guest_city_tax_enabled'))
 
         db.session.commit()
         admin_audit_log('update_trust_badges', 'Apartment', apartment.id)
@@ -908,7 +911,8 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     tax_service = TouristTaxService(apt)
     tax_amount = tax_service.calculate_tax(res) if apt else 0.0
     tax_link = url_for('routes.guest_tax_link', token=res.checkin_token, _external=True)
-    if tax_amount > 0 and not res.tourist_tax_paid:
+    city_tax_enabled = bool(apt and apt.guest_city_tax_enabled)
+    if city_tax_enabled and tax_amount > 0 and not res.tourist_tax_paid:
         tax_block = f"""
 \U0001f4b3 *Tassa di soggiorno* (€{tax_amount:.2f}) — pagala online:
 {tax_link}"""
@@ -1000,6 +1004,7 @@ See you soon,
         message_en=message_en,
         keypad_status=keypad_status,
         tax_amount=tax_amount,
+        city_tax_enabled=city_tax_enabled,
     )
 
 

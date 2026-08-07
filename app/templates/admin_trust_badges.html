@@ -171,6 +171,94 @@
 
                         <hr class="my-4">
 
+                        <!-- Smart Access -->
+                        <h5 class="mb-3 text-primary"><i class="bi bi-key me-2"></i>{{ _('Smart Access') }}</h5>
+                        <p class="text-muted small mb-4">{{ _('Enable the guest gate/door buttons and configure the devices.') }}</p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white py-2"><i class="bi bi-gate me-1"></i> {{ _('Building Gate (Shelly)') }}</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" name="shelly_enabled" id="shelly_enabled" {% if apartment.shelly_enabled %}checked{% endif %}>
+                                            <label class="form-check-label fw-semibold" for="shelly_enabled">{{ _('Enable Gate Access') }}</label>
+                                        </div>
+                                        <label class="form-label small fw-bold">{{ _('Shelly Host / Device ID (advanced)') }}</label>
+                                        <input type="text" class="form-control form-control-sm" name="shelly_host" value="{{ apartment.shelly_host or '' }}" placeholder="98a31678b358 or 192.168.1.50">
+                                        <label class="form-label small fw-bold mt-2">{{ _('Relay Channel') }}</label>
+                                        <input type="number" class="form-control form-control-sm" name="shelly_relay_channel" value="{{ apartment.shelly_relay_channel or 0 }}" min="0" max="3">
+                                        <div class="form-text">{{ _('Leave blank if SHELLY_DEVICE_ID env var is set.') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-success text-white py-2"><i class="bi bi-door-open me-1"></i> {{ _('Apartment Door (Nuki)') }}</div>
+                                    <div class="card-body">
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" name="nuki_enabled" id="nuki_enabled" {% if apartment.nuki_enabled %}checked{% endif %}>
+                                            <label class="form-check-label fw-semibold" for="nuki_enabled">{{ _('Enable Door Access') }}</label>
+                                        </div>
+                                        <label class="form-label small fw-bold">{{ _('Smart Lock ID (Decimal)') }}</label>
+                                        <input type="text" class="form-control form-control-sm" name="nuki_smartlock_id" value="{{ apartment.nuki_smartlock_id or '' }}" placeholder="123456789">
+                                        <label class="form-label small fw-bold mt-2">{{ _('Web API Token') }}</label>
+                                        <input type="password" class="form-control form-control-sm" name="nuki_web_token" value="{{ apartment.nuki_web_token or '' }}" placeholder="Bearer token from Nuki Web">
+                                        <div class="row mt-2 g-2">
+                                            <div class="col-7">
+                                                <label class="form-label small fw-bold">{{ _('API Base URL') }}</label>
+                                                <input type="text" class="form-control form-control-sm" name="nuki_web_base_url" value="{{ apartment.nuki_web_base_url or 'https://api.nuki.io' }}" placeholder="https://api.nuki.io">
+                                            </div>
+                                            <div class="col-5">
+                                                <label class="form-label small fw-bold">{{ _('Unlock Action') }}</label>
+                                                <select class="form-select form-select-sm" name="nuki_unlock_action">
+                                                    <option value="unlock" {% if apartment.nuki_unlock_action == 'unlock' %}selected{% endif %}>{{ _('Unlock') }}</option>
+                                                    <option value="unlatch" {% if apartment.nuki_unlock_action == 'unlatch' %}selected{% endif %}>{{ _('Unlatch') }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- WhatsApp -->
+                        <h5 class="mb-3 text-info"><i class="bi bi-whatsapp me-2"></i>{{ _('WhatsApp Contact Button') }}</h5>
+                        <p class="text-muted small mb-4">{{ _('Floating WhatsApp button shown to visitors. Leave the number empty to hide it.') }}</p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('WhatsApp Number') }}</label>
+                                <input type="text" class="form-control" name="whatsapp_number" value="{{ apartment.whatsapp_number or '' }}" placeholder="393XXXXXXXXX">
+                                <div class="form-text">{{ _('International format without + or spaces. Example: 393000000000') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Default Message (optional)') }}</label>
+                                <textarea class="form-control" name="whatsapp_default_message" rows="3" placeholder="{{ _('Ciao, vorrei informazioni per prenotare...') }}">{{ apartment.whatsapp_default_message or '' }}</textarea>
+                                <div class="form-text">{{ _('Pre-filled message when user clicks the button') }}</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Guest Communication -->
+                        <h5 class="mb-3 text-secondary"><i class="bi bi-chat-dots me-2"></i>{{ _('Guest Communication') }}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input form-check-input-lg" type="checkbox" name="guest_city_tax_enabled" id="guest_city_tax_enabled" {% if apartment.guest_city_tax_enabled %}checked{% endif %}>
+                                            <label class="form-check-label fw-semibold" for="guest_city_tax_enabled">{{ _('Show city tax payment to guests') }}</label>
+                                        </div>
+                                        <div class="form-text">{{ _('When enabled, the "Pay City Tax Online" Stripe link appears on the guest check-in page, in the guest portal and inside the welcome messages.') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
                         <!-- Display Settings -->
                         <h5 class="mb-3 text-secondary"><i class="bi bi-eye me-2"></i>{{ _('Display Settings') }}</h5>
                         <div class="row g-3 mb-4">

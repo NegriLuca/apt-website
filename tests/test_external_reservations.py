@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from unittest.mock import patch
 
 from app import db
-from app.models import ICalFeed, Reservation
+from app.models import Apartment, ICalFeed, Reservation
 
 
 def _make_reservation(**kwargs):
@@ -695,6 +695,10 @@ class TestCheckinCityTax:
 
     def test_checkin_page_shows_tax_when_unpaid(self, app, client):
         with app.app_context():
+            apt = Apartment.query.first()
+            apt.guest_city_tax_enabled = True
+            db.session.commit()
+
             res = _make_reservation(source='booking_com')
             res.num_guests = 2
             res.num_adults = 2
@@ -713,10 +717,32 @@ class TestCheckinCityTax:
         assert '36.00' in html  # 3 nights x 2 adults x €6
         assert 'Pay City Tax Online' in html
 
+    def test_checkin_page_hides_tax_when_toggle_off(self, app, client):
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            res.checkin_token = 'tok-checkin-tax-hidden'
+            db.session.add(res)
+            db.session.commit()
+            token = res.checkin_token
+
+        resp = client.get(f'/checkin/{token}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert 'Pay City Tax Online' not in html
+
     def test_checkin_tax_link_creates_session(self, app, client):
         from unittest.mock import MagicMock
 
         with app.app_context():
+            apt = Apartment.query.first()
+            apt.guest_city_tax_enabled = True
+            db.session.commit()
+
             res = _make_reservation(source='booking_com')
             res.num_guests = 2
             res.num_adults = 2
@@ -816,6 +842,53 @@ class TestGuestMessageCityTax:
         with app.app_context():
             res = db.session.get(Reservation, rid)
             assert res.tourist_tax_paid is True
+
+    def test_message_includes_tax_link_when_enabled(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            apt = Apartment.query.first()
+            apt.guest_city_tax_enabled = True
+            db.session.commit()
+
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert 'Tassa di soggiorno' in html
+        assert 'tax-link' in html
+
+    def test_message_omits_tax_link_when_disabled(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+
+        login_admin(client)
+
+        resp = client.get(f'/admin/communication/guest-message/{rid}')
+
+        assert resp.status_code == 200
+        html = resp.data.decode()
+        assert 'Tassa di soggiorno' not in html
 
     def test_mark_tax_unpaid_toggle(self, app, client):
         from tests.conftest import login_admin
