@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /checkin/
+Disallow: /portal/
+Disallow: /access/
+Disallow: /api/
+Disallow: /login

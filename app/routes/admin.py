@@ -239,8 +239,6 @@ def admin_trust_badges() -> Response | str:
         apartment.whatsapp_number = request.form.get('whatsapp_number', '').strip() or None
         apartment.whatsapp_default_message = request.form.get('whatsapp_default_message', '').strip() or None
 
-        apartment.guest_city_tax_enabled = bool(request.form.get('guest_city_tax_enabled'))
-
         db.session.commit()
         admin_audit_log('update_trust_badges', 'Apartment', apartment.id)
         flash(_('Trust Badges & Widgets settings saved!'), 'success')
@@ -911,7 +909,7 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     tax_service = TouristTaxService(apt)
     tax_amount = tax_service.calculate_tax(res) if apt else 0.0
     tax_link = url_for('routes.guest_tax_link', token=res.checkin_token, _external=True)
-    city_tax_enabled = bool(apt and apt.guest_city_tax_enabled)
+    city_tax_enabled = bool(res.guest_city_tax_enabled)
     if city_tax_enabled and tax_amount > 0 and not res.tourist_tax_paid:
         tax_block = f"""
 \U0001f4b3 *Tassa di soggiorno* (€{tax_amount:.2f}) — pagala online:
@@ -1105,6 +1103,7 @@ def admin_guest_message_update(reservation_id: int) -> Response | str:
     res = Reservation.query.get_or_404(reservation_id)
     guest_name = request.form.get('guest_name', '').strip()
     num_guests = request.form.get('num_guests', type=int)
+    guest_city_tax_enabled = request.form.get('guest_city_tax_enabled') == 'on'
 
     if guest_name:
         res.guest_name = guest_name
@@ -1112,6 +1111,7 @@ def admin_guest_message_update(reservation_id: int) -> Response | str:
         res.num_guests = num_guests
         res.num_adults = num_guests
         res.num_children = 0
+    res.guest_city_tax_enabled = guest_city_tax_enabled
     db.session.commit()
     admin_audit_log('edit_reservation', 'Reservation', res.id, 'Updated guest message details')
     flash('Reservation details updated.', 'success')

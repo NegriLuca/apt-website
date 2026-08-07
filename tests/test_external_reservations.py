@@ -695,16 +695,13 @@ class TestCheckinCityTax:
 
     def test_checkin_page_shows_tax_when_unpaid(self, app, client):
         with app.app_context():
-            apt = Apartment.query.first()
-            apt.guest_city_tax_enabled = True
-            db.session.commit()
-
             res = _make_reservation(source='booking_com')
             res.num_guests = 2
             res.num_adults = 2
             res.check_in = date.today() + timedelta(days=5)
             res.check_out = date.today() + timedelta(days=8)
             res.checkin_token = 'tok-checkin-tax-page'
+            res.guest_city_tax_enabled = True
             db.session.add(res)
             db.session.commit()
             token = res.checkin_token
@@ -739,16 +736,13 @@ class TestCheckinCityTax:
         from unittest.mock import MagicMock
 
         with app.app_context():
-            apt = Apartment.query.first()
-            apt.guest_city_tax_enabled = True
-            db.session.commit()
-
             res = _make_reservation(source='booking_com')
             res.num_guests = 2
             res.num_adults = 2
             res.check_in = date.today() + timedelta(days=5)
             res.check_out = date.today() + timedelta(days=8)
             res.checkin_token = 'tok-checkin-tax-link'
+            res.guest_city_tax_enabled = True
             db.session.add(res)
             db.session.commit()
             token = res.checkin_token
@@ -847,15 +841,12 @@ class TestGuestMessageCityTax:
         from tests.conftest import login_admin
 
         with app.app_context():
-            apt = Apartment.query.first()
-            apt.guest_city_tax_enabled = True
-            db.session.commit()
-
             res = _make_reservation(source='booking_com')
             res.num_guests = 2
             res.num_adults = 2
             res.check_in = date.today() + timedelta(days=5)
             res.check_out = date.today() + timedelta(days=8)
+            res.guest_city_tax_enabled = True
             db.session.add(res)
             db.session.commit()
             rid = res.id
@@ -946,6 +937,52 @@ class TestGuestMessageCityTax:
             db.session.add(res)
             db.session.commit()
             assert create_tourist_tax_payment_session(res) is None
+
+    def test_guest_message_update_toggles_city_tax_per_reservation(self, app, client):
+        from tests.conftest import login_admin
+
+        with app.app_context():
+            res = _make_reservation(source='booking_com')
+            res.num_guests = 2
+            res.num_adults = 2
+            res.check_in = date.today() + timedelta(days=5)
+            res.check_out = date.today() + timedelta(days=8)
+            res.checkin_token = 'tok-toggle-tax'
+            res.guest_city_tax_enabled = False
+            db.session.add(res)
+            db.session.commit()
+            rid = res.id
+            token = res.checkin_token
+
+        login_admin(client)
+
+        resp = client.post(
+            f'/admin/communication/guest-message/{rid}/update',
+            data={'guest_name': 'New Name', 'num_guests': 2, 'guest_city_tax_enabled': 'on'},
+            follow_redirects=True,
+        )
+
+        assert resp.status_code == 200
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.guest_city_tax_enabled is True
+            assert res.guest_name == 'New Name'
+
+        html = client.get(f'/checkin/{token}').data.decode()
+        assert 'Pay City Tax Online' in html
+
+        # Turn it back off for this reservation
+        resp = client.post(
+            f'/admin/communication/guest-message/{rid}/update',
+            data={'guest_name': 'New Name', 'num_guests': 2},
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        with app.app_context():
+            res = db.session.get(Reservation, rid)
+            assert res.guest_city_tax_enabled is False
+        html = client.get(f'/checkin/{token}').data.decode()
+        assert 'Pay City Tax Online' not in html
 
 
 class TestPastExternalCleanup:

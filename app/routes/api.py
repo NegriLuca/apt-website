@@ -264,14 +264,12 @@ def guest_self_checkin(token):
         return redirect(url_for('routes.guest_portal', token=reservation.checkin_token))
 
     tax_amount = 0.0
-    city_tax_enabled = False
-    if reservation.status == 'confirmed':
+    city_tax_enabled = bool(reservation.guest_city_tax_enabled)
+    if reservation.status == 'confirmed' and city_tax_enabled:
         apartment = get_apartment()
         if apartment:
-            city_tax_enabled = bool(apartment.guest_city_tax_enabled)
-            if city_tax_enabled:
-                from app.services.tourist_tax import TouristTaxService
-                tax_amount = TouristTaxService(apartment).calculate_tax(reservation)
+            from app.services.tourist_tax import TouristTaxService
+            tax_amount = TouristTaxService(apartment).calculate_tax(reservation)
     return render_template(
         'guest_self_checkin.html',
         reservation=reservation,
@@ -299,8 +297,8 @@ def _guest_pay_tax(reservation):
         flash('City tax payment is not available right now.', 'danger')
         return redirect(url_for('routes.guest_self_checkin', token=reservation.checkin_token))
 
-    if not apartment.guest_city_tax_enabled:
-        flash('Online city tax payment is not enabled for this property.', 'info')
+    if not reservation.guest_city_tax_enabled:
+        flash('Online city tax payment is not enabled for this reservation.', 'info')
         return redirect(url_for('routes.guest_self_checkin', token=reservation.checkin_token))
 
     from app.services.tourist_tax import TouristTaxService
@@ -352,7 +350,7 @@ def guest_portal(token):
 
     from app.services.tourist_tax import TouristTaxService
 
-    city_tax_enabled = bool(apartment and apartment.guest_city_tax_enabled) if apartment else False
+    city_tax_enabled = bool(reservation.guest_city_tax_enabled)
     tax_amount = 0.0
     if city_tax_enabled and reservation.status == 'confirmed':
         tax_amount = TouristTaxService(apartment).calculate_tax(reservation)

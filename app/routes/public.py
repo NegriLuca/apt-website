@@ -201,3 +201,16 @@ def sitemap() -> Response | str:
     </urlset>"""
 
     return Response(xml_content, mimetype='text/xml')
+
+
+@bp.route('/robots.txt')
+def robots() -> Response:
+    content = """User-agent: *
+Disallow: /admin/
+Disallow: /checkin/
+Disallow: /portal/
+Disallow: /access/
+Disallow: /api/
+Disallow: /login
+"""
+    return Response(content, mimetype='text/plain')

@@ -241,24 +241,6 @@
 
                         <hr class="my-4">
 
-                        <!-- Guest Communication -->
-                        <h5 class="mb-3 text-secondary"><i class="bi bi-chat-dots me-2"></i>{{ _('Guest Communication') }}</h5>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input form-check-input-lg" type="checkbox" name="guest_city_tax_enabled" id="guest_city_tax_enabled" {% if apartment.guest_city_tax_enabled %}checked{% endif %}>
-                                            <label class="form-check-label fw-semibold" for="guest_city_tax_enabled">{{ _('Show city tax payment to guests') }}</label>
-                                        </div>
-                                        <div class="form-text">{{ _('When enabled, the "Pay City Tax Online" Stripe link appears on the guest check-in page, in the guest portal and inside the welcome messages.') }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-
                         <!-- Display Settings -->
                         <h5 class="mb-3 text-secondary"><i class="bi bi-eye me-2"></i>{{ _('Display Settings') }}</h5>
                         <div class="row g-3 mb-4">

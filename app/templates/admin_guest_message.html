@@ -53,6 +53,11 @@
                             <input type="number" class="form-control" name="num_guests" min="1" max="4" value="{{ reservation.num_guests }}" required>
                             <div class="form-text">{{ _('Used in the online check-in — make sure it is correct.') }}</div>
                         </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" name="guest_city_tax_enabled" id="guest_city_tax_enabled" {% if reservation.guest_city_tax_enabled %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="guest_city_tax_enabled">{{ _('Show city tax payment to this guest') }}</label>
+                            <div class="form-text">{{ _('When enabled, the "Pay City Tax Online" Stripe link appears in the guest check-in page and in the messages for this reservation.') }}</div>
+                        </div>
                         <button type="submit" class="btn btn-primary btn-sm">{{ _('Save') }}</button>
                     </form>
 
@@ -70,7 +75,7 @@
                     </div>
                     {% if not city_tax_enabled %}
                     <div class="form-text mb-2">
-                        <i class="bi bi-info-circle me-1"></i>{{ _('The Stripe payment link is only included in the message when "Show city tax payment to guests" is enabled in Settings.') }}
+                        <i class="bi bi-info-circle me-1"></i>{{ _('The Stripe payment link is only included in the message when "Show city tax payment to this guest" is enabled above.') }}
                     </div>
                     {% endif %}
                     <div class="d-grid gap-2">

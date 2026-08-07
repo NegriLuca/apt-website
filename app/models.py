@@ -66,11 +66,6 @@ class Apartment(db.Model):
     )
     whatsapp_default_message = db.Column(db.Text, nullable=True, comment='Default pre-filled message for WhatsApp')
 
-    # Guest communication
-    guest_city_tax_enabled = db.Column(
-        db.Boolean, default=False, comment='Show the city tax Stripe payment option to guests in check-in/messages'
-    )
-
     # Trust Badges & Reviews
     # Review Platforms
     booking_review_score = db.Column(db.Float, nullable=True, comment='Booking.com review score (0-10)')
@@ -200,6 +195,11 @@ class Reservation(db.Model):
     tourist_tax_amount = db.Column(db.Float, nullable=True, default=0.0)
     tourist_tax_paid = db.Column(db.Boolean, default=False)
     tourist_tax_excluded = db.Column(db.Boolean, default=False, comment='Exclude from tourist tax reports')
+
+    # Guest communication
+    guest_city_tax_enabled = db.Column(
+        db.Boolean, default=False, comment='Show the city tax Stripe payment option to this guest in check-in/messages'
+    )
 
     __table_args__ = (
         db.CheckConstraint('check_out > check_in', name='ck_dates_valid'),

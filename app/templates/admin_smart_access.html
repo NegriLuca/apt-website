@@ -6,66 +6,70 @@
 <div class="container">
     {% include 'admin_header.html' %}
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">{{ _('Smart Access Control') }}</h4>
-        <a href="{{ url_for('routes.admin_trust_badges') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-gear me-1"></i>{{ _('Configure in Settings') }}
-        </a>
-    </div>
+    <div class="main-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4 p-md-5 text-center">
-                    <div class="mb-3">
-                        <i class="bi bi-building fs-1 {% if gate_configured %}text-primary{% else %}text-muted{% endif %}"></i>
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="page-title mb-1">{{ _('Smart Access Control') }}</h1>
+                        <p class="lead text-muted mb-0">{{ _('Open the building gate and the apartment door') }}</p>
                     </div>
-                    <h5 class="fw-bold mb-1">{{ _('Building Gate') }}</h5>
-                    <p class="text-muted small mb-2">{{ _('Press to open the building gate (Shelly).') }}</p>
-                    <div class="mb-4">
+                    <a href="{{ url_for('routes.admin_trust_badges') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-gear me-1"></i>{{ _('Configure in Settings') }}
+                    </a>
+                </div>
+
+                <!-- Gate Control -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-building fs-1 {% if gate_configured %}text-accent{% else %}text-muted{% endif %}"></i>
+                        </div>
+                        <h5 class="fw-bold mb-1">{{ _('Building Gate') }}</h5>
+                        <p class="text-muted small mb-3">{{ _('Press to open the building gate.') }}</p>
                         {% if gate_configured %}
-                        <span class="badge bg-success">{{ _('Enabled') }}</span>
+                        <span class="badge mb-3" style="background: var(--color-accent); color: #fff;">{{ _('Enabled') }}</span>
                         {% else %}
-                        <span class="badge bg-secondary">{{ _('Disabled') }}</span>
+                        <span class="badge bg-secondary mb-3">{{ _('Disabled') }}</span>
                         {% endif %}
+                        <button type="button" class="btn-luxury-primary w-100 py-3 fw-bold" id="gateBtn" {% if not gate_configured %}disabled{% endif %} onclick="testGate()">
+                            <i class="bi bi-unlock-fill me-2"></i><span id="gateBtnText">{{ _('Open Gate') }}</span>
+                        </button>
+                        <div id="gateStatus" class="mt-3"></div>
                     </div>
-                    <button type="button" class="btn btn-primary w-100 py-3 fw-bold" id="gateBtn" {% if not gate_configured %}disabled{% endif %} onclick="testGate()">
-                        <i class="bi bi-unlock-fill me-2"></i><span id="gateBtnText">{{ _('Open Gate') }}</span>
-                    </button>
-                    <div id="gateStatus" class="mt-3"></div>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4 p-md-5 text-center">
-                    <div class="mb-3">
-                        <i class="bi bi-door-open fs-1 {% if door_configured %}text-success{% else %}text-muted{% endif %}"></i>
-                    </div>
-                    <h5 class="fw-bold mb-1">{{ _('Apartment Door') }}</h5>
-                    <p class="text-muted small mb-2">{{ _('Press to unlock the apartment door (Nuki).') }}</p>
-                    <div class="mb-4">
+                <!-- Door Control -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-door-open fs-1 {% if door_configured %}text-accent{% else %}text-muted{% endif %}"></i>
+                        </div>
+                        <h5 class="fw-bold mb-1">{{ _('Apartment Door') }}</h5>
+                        <p class="text-muted small mb-3">{{ _('Press to unlock the apartment door.') }}</p>
                         {% if door_configured %}
-                        <span class="badge bg-success">{{ _('Enabled') }}</span>
+                        <span class="badge mb-3" style="background: var(--color-accent); color: #fff;">{{ _('Enabled') }}</span>
                         {% else %}
-                        <span class="badge bg-secondary">{{ _('Disabled') }}</span>
+                        <span class="badge bg-secondary mb-3">{{ _('Disabled') }}</span>
                         {% endif %}
+                        <button type="button" class="btn-luxury-primary w-100 py-3 fw-bold" id="doorBtn" {% if not door_configured %}disabled{% endif %} onclick="testDoor()">
+                            <i class="bi bi-door-open me-2"></i><span id="doorBtnText">{{ _('Unlock Door') }}</span>
+                        </button>
+                        <div id="doorStatus" class="mt-3"></div>
                     </div>
-                    <button type="button" class="btn btn-success w-100 py-3 fw-bold" id="doorBtn" {% if not door_configured %}disabled{% endif %} onclick="testDoor()">
-                        <i class="bi bi-door-open me-2"></i><span id="doorBtnText">{{ _('Unlock Door') }}</span>
-                    </button>
-                    <div id="doorStatus" class="mt-3"></div>
+                </div>
+
+                <!-- Important -->
+                <div class="card border-0 bg-dark p-4">
+                    <h6 class="fw-bold mb-3 text-white"><i class="bi bi-info-circle me-2"></i>{{ _('Smart Access') }}</h6>
+                    <ul class="small text-white-50 mb-0" style="color: rgba(255,255,255,0.7) !important;">
+                        <li class="mb-1">{{ _('Enable the gate/door and set device credentials from the Settings page.') }}</li>
+                        <li class="mb-1">{{ _('Guests open the gate and door from their personal access page during their stay.') }}</li>
+                        <li>{{ _('The WhatsApp contact button is configured in Settings too.') }}</li>
+                    </ul>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="alert alert-secondary d-flex align-items-start border-0">
-        <i class="bi bi-info-circle me-3 fs-4 mt-1"></i>
-        <div class="small">
-            <strong>{{ _('Where are the settings?') }}</strong>
-            {{ _('The gate/door enable toggles, device credentials and the WhatsApp contact button configuration now live in the Settings page.') }}
         </div>
     </div>
 </div>
