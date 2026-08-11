@@ -199,6 +199,11 @@
                                             <input class="form-check-input" type="checkbox" name="nuki_enabled" id="nuki_enabled" {% if apartment.nuki_enabled %}checked{% endif %}>
                                             <label class="form-check-label fw-semibold" for="nuki_enabled">{{ _('Enable Door Access') }}</label>
                                         </div>
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" name="nuki_show_door_button" id="nuki_show_door_button" {% if apartment.nuki_show_door_button != False %}checked{% endif %}>
+                                            <label class="form-check-label" for="nuki_show_door_button">{{ _('Show door button to guests') }}</label>
+                                            <div class="form-text">{{ _('If disabled, guests only see the keypad code.') }}</div>
+                                        </div>
                                         <label class="form-label small fw-bold">{{ _('Smart Lock ID (Decimal)') }}</label>
                                         <input type="text" class="form-control form-control-sm" name="nuki_smartlock_id" value="{{ apartment.nuki_smartlock_id or '' }}" placeholder="123456789">
                                         <label class="form-label small fw-bold mt-2">{{ _('Web API Token') }}</label>

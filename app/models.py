@@ -55,6 +55,7 @@ class Apartment(db.Model):
 
     # Nuki Smart Lock Ultra (Apartment Door)
     nuki_enabled = db.Column(db.Boolean, default=False)
+    nuki_show_door_button = db.Column(db.Boolean, default=True, comment='Show the door button on the guest page (else guests use the keypad only)')
     nuki_smartlock_id = db.Column(db.String(50), nullable=True, comment='Nuki Smart Lock ID (decimal)')
     nuki_web_token = db.Column(db.String(200), nullable=True, comment='Nuki Web API token (Bearer)')
     nuki_web_base_url = db.Column(db.String(100), default='https://api.nuki.io', comment='Nuki Web API base URL')

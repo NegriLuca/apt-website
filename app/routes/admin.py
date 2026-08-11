@@ -231,6 +231,7 @@ def admin_smart_access_preview() -> Response | str:
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
     door_configured = bool(apartment and apartment.nuki_enabled)
+    show_door_button = door_configured and (apartment.nuki_show_door_button is not False)
 
     from app.services.wifi_qr import wifi_qr_data_uri
 
@@ -251,6 +252,7 @@ def admin_smart_access_preview() -> Response | str:
         apartment=apartment,
         gate_configured=gate_configured,
         door_configured=door_configured,
+        show_door_button=show_door_button,
         wifi_qr=wifi_qr,
         preview=True,
     )
@@ -374,6 +376,7 @@ def admin_trust_badges() -> Response | str:
         apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
 
         apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
+        apartment.nuki_show_door_button = 'nuki_show_door_button' in request.form
         apartment.nuki_smartlock_id = request.form.get('nuki_smartlock_id', '').strip() or None
         apartment.nuki_web_token = request.form.get('nuki_web_token', '').strip() or None
         apartment.nuki_web_base_url = request.form.get('nuki_web_base_url', '').strip() or 'https://api.nuki.io'

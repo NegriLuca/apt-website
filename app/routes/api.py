@@ -326,6 +326,7 @@ def guest_access(token):
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
     door_configured = bool(apartment and apartment.nuki_enabled)
+    show_door_button = door_configured and (apartment.nuki_show_door_button is not False)
 
     from app.services.wifi_qr import wifi_qr_data_uri
 
@@ -335,6 +336,7 @@ def guest_access(token):
         apartment=apartment,
         gate_configured=gate_configured,
         door_configured=door_configured,
+        show_door_button=show_door_button,
         wifi_qr=wifi_qr,
     )
 
@@ -352,6 +354,7 @@ def guest_portal(token):
     access_token = reservation.access_token
     gate_configured = bool(apartment and apartment.shelly_enabled) if apartment else False
     door_configured = bool(apartment and apartment.nuki_enabled) if apartment else False
+    show_door_button = door_configured and (apartment.nuki_show_door_button is not False)
 
     from app.services.tourist_tax import TouristTaxService
 
@@ -371,6 +374,7 @@ def guest_portal(token):
         access_token=access_token,
         gate_configured=gate_configured,
         door_configured=door_configured,
+        show_door_button=show_door_button,
         access_preview=False,
         today=today,
         city_tax_enabled=city_tax_enabled,

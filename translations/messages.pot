@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-11 12:28+0200\n"
+"POT-Creation-Date: 2026-08-11 13:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -142,15 +142,15 @@ msgstr ""
 msgid "Submit Review"
 msgstr ""
 
-#: app/routes/admin.py:279
+#: app/routes/admin.py:281
 msgid "Guest Wi-Fi settings saved!"
 msgstr ""
 
-#: app/routes/admin.py:329
+#: app/routes/admin.py:331
 msgid "Configure the guest Wi-Fi before printing."
 msgstr ""
 
-#: app/routes/admin.py:387
+#: app/routes/admin.py:390
 msgid "Trust Badges & Widgets settings saved!"
 msgstr ""
 
@@ -1443,11 +1443,13 @@ msgstr ""
 msgid "Open Gate"
 msgstr ""
 
-#: app/templates/admin_smart_access.html:54 app/templates/guest_access.html:79
+#: app/templates/admin_smart_access.html:54 app/templates/guest_access.html:80
+#: app/templates/guest_access.html:94
 msgid "Apartment Door"
 msgstr ""
 
-#: app/templates/admin_smart_access.html:55 app/templates/guest_access.html:80
+#: app/templates/admin_smart_access.html:55 app/templates/guest_access.html:81
+#: app/templates/guest_access.html:95
 msgid "Press to unlock the apartment door."
 msgstr ""
 
@@ -1469,31 +1471,31 @@ msgstr ""
 msgid "The WhatsApp contact button is configured in Settings too."
 msgstr ""
 
-#: app/templates/admin_smart_access.html:90 app/templates/guest_access.html:148
+#: app/templates/admin_smart_access.html:90 app/templates/guest_access.html:157
 msgid "Processing..."
 msgstr ""
 
-#: app/templates/admin_smart_access.html:93 app/templates/guest_access.html:151
+#: app/templates/admin_smart_access.html:93 app/templates/guest_access.html:160
 msgid "Try Again"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:119
-#: app/templates/guest_access.html:170 app/templates/guest_access.html:182
+#: app/templates/guest_access.html:179 app/templates/guest_access.html:191
 msgid "Failed"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:121
-#: app/templates/guest_access.html:171 app/templates/guest_access.html:183
+#: app/templates/guest_access.html:180 app/templates/guest_access.html:192
 msgid "Connection error"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:127
-#: app/templates/guest_access.html:166
+#: app/templates/guest_access.html:175
 msgid "Opening gate..."
 msgstr ""
 
 #: app/templates/admin_smart_access.html:131
-#: app/templates/guest_access.html:178
+#: app/templates/guest_access.html:187
 msgid "Unlocking door..."
 msgstr ""
 
@@ -1795,85 +1797,93 @@ msgstr ""
 msgid "Enable Door Access"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:202
+#: app/templates/admin_trust_badges.html:204
+msgid "Show door button to guests"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:205
+msgid "If disabled, guests only see the keypad code."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:207
 msgid "Smart Lock ID (Decimal)"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:204
+#: app/templates/admin_trust_badges.html:209
 msgid "Web API Token"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:208
+#: app/templates/admin_trust_badges.html:213
 msgid "API Base URL"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:212
+#: app/templates/admin_trust_badges.html:217
 msgid "Unlock Action"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:214
+#: app/templates/admin_trust_badges.html:219
 msgid "Unlock"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:215
+#: app/templates/admin_trust_badges.html:220
 msgid "Unlatch"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:227
+#: app/templates/admin_trust_badges.html:232
 msgid "WhatsApp Contact Button"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:228
+#: app/templates/admin_trust_badges.html:233
 msgid ""
 "Floating WhatsApp button shown to visitors. Leave the number empty to "
 "hide it."
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:231
+#: app/templates/admin_trust_badges.html:236
 msgid "WhatsApp Number"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:233
+#: app/templates/admin_trust_badges.html:238
 msgid "International format without + or spaces. Example: 393000000000"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:236
+#: app/templates/admin_trust_badges.html:241
 msgid "Default Message (optional)"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:237
+#: app/templates/admin_trust_badges.html:242
 msgid "Ciao, vorrei informazioni per prenotare..."
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:238
+#: app/templates/admin_trust_badges.html:243
 msgid "Pre-filled message when user clicks the button"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:245
+#: app/templates/admin_trust_badges.html:250
 msgid "Display Settings"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:250
+#: app/templates/admin_trust_badges.html:255
 msgid "Show review badges in footer"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:256
+#: app/templates/admin_trust_badges.html:261
 msgid "Show review badges on homepage"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:262
+#: app/templates/admin_trust_badges.html:267
 msgid "Show review badges on booking page"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:268
+#: app/templates/admin_trust_badges.html:273
 msgid "Show payment badges in footer"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:274
+#: app/templates/admin_trust_badges.html:279
 msgid "Show payment badges on checkout page"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:281
+#: app/templates/admin_trust_badges.html:286
 msgid "Save Trust Badges & Widgets Config"
 msgstr ""
 
@@ -3027,7 +3037,7 @@ msgstr ""
 msgid "Access works only during your stay dates"
 msgstr ""
 
-#: app/templates/email_guest_access.html:77 app/templates/guest_access.html:102
+#: app/templates/email_guest_access.html:77 app/templates/guest_access.html:111
 #: app/templates/guest_portal.html:158
 msgid "Door Keypad Code"
 msgstr ""
@@ -3462,43 +3472,43 @@ msgstr ""
 msgid "Gate control not configured. Please contact the host."
 msgstr ""
 
-#: app/templates/guest_access.html:89
+#: app/templates/guest_access.html:98
 msgid "Door control not configured. Please contact the host."
 msgstr ""
 
-#: app/templates/guest_access.html:103
+#: app/templates/guest_access.html:112
 msgid "Enter this code on the keypad next to the door."
 msgstr ""
 
-#: app/templates/guest_access.html:106
+#: app/templates/guest_access.html:115
 msgid "Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time)"
 msgstr ""
 
-#: app/templates/guest_access.html:117
+#: app/templates/guest_access.html:126
 msgid "Important"
 msgstr ""
 
-#: app/templates/guest_access.html:119
+#: app/templates/guest_access.html:128
 msgid "Access is only valid during your stay dates"
 msgstr ""
 
-#: app/templates/guest_access.html:120
+#: app/templates/guest_access.html:129
 msgid "Do not share this link with anyone outside your booking"
 msgstr ""
 
-#: app/templates/guest_access.html:121
+#: app/templates/guest_access.html:130
 msgid "If the gate/door does not respond, contact the host"
 msgstr ""
 
-#: app/templates/guest_access.html:122
+#: app/templates/guest_access.html:131
 msgid "Access expires automatically on check-out day"
 msgstr ""
 
-#: app/templates/guest_access.html:169
+#: app/templates/guest_access.html:178
 msgid "Gate opened"
 msgstr ""
 
-#: app/templates/guest_access.html:181
+#: app/templates/guest_access.html:190
 msgid "Door unlocked"
 msgstr ""
 

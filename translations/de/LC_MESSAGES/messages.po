@@ -1876,6 +1876,14 @@ msgstr "Wohnungstür"
 msgid "Enable Door Access"
 msgstr "Türzugang aktivieren"
 
+#: app/templates/admin_trust_badges.html:201
+msgid "Show door button to guests"
+msgstr "Tür-Button Gästen anzeigen"
+
+#: app/templates/admin_trust_badges.html:202
+msgid "If disabled, guests only see the keypad code."
+msgstr "Wenn deaktiviert, sehen Gäste nur den Code des Tastaturfelds."
+
 #: app/templates/admin_trust_badges.html:202
 msgid "Smart Lock ID (Decimal)"
 msgstr ""

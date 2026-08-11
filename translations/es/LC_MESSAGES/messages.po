@@ -1867,6 +1867,14 @@ msgstr "Puerta del apartamento"
 msgid "Enable Door Access"
 msgstr "Activar acceso a puerta"
 
+#: app/templates/admin_trust_badges.html:201
+msgid "Show door button to guests"
+msgstr "Mostrar botón de puerta a los huéspedes"
+
+#: app/templates/admin_trust_badges.html:202
+msgid "If disabled, guests only see the keypad code."
+msgstr "Si está desactivado, los huéspedes solo ven el código del teclado."
+
 #: app/templates/admin_trust_badges.html:202
 msgid "Smart Lock ID (Decimal)"
 msgstr ""
