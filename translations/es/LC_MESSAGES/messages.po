@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-04 16:40+0200\n"
+"POT-Creation-Date: 2026-08-11 12:28+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -30,22 +30,24 @@ msgstr "Correo electrónico"
 #: app/forms.py:18 app/templates/admin_compliance.html:145
 #: app/templates/admin_dashboard.html:114
 #: app/templates/admin_dashboard.html:149
-#: app/templates/admin_dashboard.html:271
+#: app/templates/admin_dashboard.html:286
 #: app/templates/admin_guest_checkin.html:109
+#: app/templates/admin_guest_message.html:26
 #: app/templates/admin_questura.html:67 app/templates/admin_ross1000.html:65
 #: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
-#: app/templates/guest_access.html:25 app/templates/guest_portal.html:19
-#: app/templates/guest_self_checkin.html:30
+#: app/templates/guest_access.html:33 app/templates/guest_portal.html:20
+#: app/templates/guest_self_checkin.html:31
 msgid "Check-in"
 msgstr "Check-in"
 
 #: app/forms.py:19 app/templates/admin_dashboard.html:150
-#: app/templates/admin_dashboard.html:275
+#: app/templates/admin_dashboard.html:290
 #: app/templates/admin_guest_checkin.html:113
+#: app/templates/admin_guest_message.html:30
 #: app/templates/admin_questura.html:68 app/templates/admin_ross1000.html:66
 #: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
-#: app/templates/guest_access.html:29 app/templates/guest_portal.html:23
-#: app/templates/guest_self_checkin.html:34
+#: app/templates/guest_access.html:37 app/templates/guest_portal.html:24
+#: app/templates/guest_self_checkin.html:35
 msgid "Check-out"
 msgstr "Check-out"
 
@@ -66,6 +68,9 @@ msgid "Username"
 msgstr "Nombre de usuario"
 
 #: app/forms.py:52 app/templates/admin_compliance_config.html:46
+#: app/templates/admin_wifi.html:42 app/templates/admin_wifi.html:97
+#: app/templates/admin_wifi_print.html:52
+#: app/templates/components/wifi_card.html:36
 msgid "Password"
 msgstr "Contraseña"
 
@@ -85,7 +90,8 @@ msgstr "Tu nombre"
 msgid "Email address"
 msgstr "Dirección de correo electrónico"
 
-#: app/forms.py:60
+#: app/forms.py:60 app/templates/admin_guest_message.html:107
+#: app/templates/admin_guest_message.html:117
 msgid "Message"
 msgstr "Mensaje"
 
@@ -107,7 +113,8 @@ msgstr "URL iCal"
 msgid "Active"
 msgstr "Activo"
 
-#: app/forms.py:77 app/templates/admin_tourist_tax.html:221
+#: app/forms.py:77 app/templates/admin_guest_message.html:61
+#: app/templates/admin_tourist_tax.html:221
 msgid "Save"
 msgstr "Guardar"
 
@@ -136,7 +143,16 @@ msgstr "Fecha de estancia (opcional)"
 msgid "Submit Review"
 msgstr "Enviar reseña"
 
-#: app/routes/admin.py:243
+#: app/routes/admin.py:279
+msgid "Guest Wi-Fi settings saved!"
+msgstr ""
+
+#: app/routes/admin.py:329
+#, fuzzy
+msgid "Configure the guest Wi-Fi before printing."
+msgstr "Confirmar y obtener instrucciones de transferencia"
+
+#: app/routes/admin.py:387
 msgid "Trust Badges & Widgets settings saved!"
 msgstr ""
 
@@ -170,7 +186,7 @@ msgstr "Error del proveedor de pagos. Por favor, inténtalo más tarde."
 msgid "Thank you for your review! It will be published after moderation."
 msgstr "¡Gracias por tu reseña! Se publicará tras la moderación."
 
-#: app/templates/admin_audit_log.html:2 app/templates/admin_header.html:55
+#: app/templates/admin_audit_log.html:2 app/templates/admin_header.html:61
 #, fuzzy
 msgid "Audit Log"
 msgstr "Acceso admin"
@@ -262,7 +278,7 @@ msgid "Booking Details"
 msgstr "Detalles de la reserva"
 
 #: app/templates/admin_calendar.html:61 app/templates/booking_confirmed.html:22
-#: app/templates/guest_access_denied.html:20
+#: app/templates/guest_access_denied.html:21
 msgid "Guest:"
 msgstr "Huésped:"
 
@@ -382,10 +398,11 @@ msgstr ""
 #: app/templates/admin_dashboard.html:114
 #: app/templates/admin_dashboard.html:147
 #: app/templates/admin_guest_checkin.html:117
+#: app/templates/admin_guest_message.html:18
 #: app/templates/admin_questura.html:66 app/templates/admin_ross1000.html:64
 #: app/templates/admin_testimonials.html:49
 #: app/templates/admin_tourist_tax.html:155 app/templates/checkout.html:30
-#: app/templates/guest_access.html:33 app/templates/guest_portal.html:27
+#: app/templates/guest_access.html:41 app/templates/guest_portal.html:28
 msgid "Guest"
 msgstr "Huésped"
 
@@ -581,7 +598,7 @@ msgid "Yearly Revenue"
 msgstr "Ingresos totales"
 
 #: app/templates/admin_dashboard.html:22
-msgid "Occupancy"
+msgid "Occupancy (3 months)"
 msgstr ""
 
 #: app/templates/admin_dashboard.html:28
@@ -639,6 +656,7 @@ msgstr "Check-in"
 
 #: app/templates/admin_dashboard.html:114
 #: app/templates/admin_dashboard.html:151
+#: app/templates/admin_guest_message.html:34
 #: app/templates/admin_tourist_tax.html:158
 #: app/templates/admin_tourist_tax.html:205 app/templates/checkout.html:46
 #: app/templates/email_admin_alert.html:72
@@ -650,6 +668,7 @@ msgstr "Noches"
 
 #: app/templates/admin_dashboard.html:114
 #: app/templates/admin_dashboard.html:148
+#: app/templates/admin_guest_message.html:22
 #: app/templates/admin_ical_feeds.html:19
 #: app/templates/admin_testimonials.html:52
 msgid "Source"
@@ -704,6 +723,7 @@ msgid "Direct"
 msgstr "Directa"
 
 #: app/templates/admin_dashboard.html:184
+#: app/templates/admin_guest_message.html:71
 #: app/templates/admin_tourist_tax.html:162
 #: app/templates/admin_tourist_tax.html:219
 msgid "Paid"
@@ -714,6 +734,7 @@ msgid "Deposit"
 msgstr "Depósito"
 
 #: app/templates/admin_dashboard.html:188
+#: app/templates/admin_guest_message.html:73
 msgid "Unpaid"
 msgstr "No pagado"
 
@@ -757,49 +778,64 @@ msgstr ""
 "¿Eliminar esta reserva externa? Liberará las fechas hasta la próxima "
 "sincronización iCal."
 
-#: app/templates/admin_dashboard.html:241
+#: app/templates/admin_dashboard.html:239
+msgid "Revoke this keypad code?"
+msgstr ""
+
+#: app/templates/admin_dashboard.html:242
+#: app/templates/admin_guest_message.html:38
+#, fuzzy
+msgid "Keypad code"
+msgstr "Crear código"
+
+#: app/templates/admin_dashboard.html:248
+#, fuzzy
+msgid "Generate keypad code"
+msgstr "Generar nuevo cupón"
+
+#: app/templates/admin_dashboard.html:256
 msgid "No reservations."
 msgstr "No hay reservas."
 
-#: app/templates/admin_dashboard.html:250 app/templates/admin_ical_feeds.html:2
+#: app/templates/admin_dashboard.html:265 app/templates/admin_ical_feeds.html:2
 msgid "iCal Feeds"
 msgstr "Feeds iCal"
 
-#: app/templates/admin_dashboard.html:252
+#: app/templates/admin_dashboard.html:267
 msgid "Manage Feeds"
 msgstr "Gestionar feeds"
 
-#: app/templates/admin_dashboard.html:255
+#: app/templates/admin_dashboard.html:270
 #, fuzzy
 msgid "Sync Now"
 msgstr "Sincronizar feeds ahora"
 
-#: app/templates/admin_dashboard.html:266
+#: app/templates/admin_dashboard.html:281
 msgid "Edit external reservation"
 msgstr "Editar reserva externa"
 
-#: app/templates/admin_dashboard.html:279 app/templates/admin_ross1000.html:67
+#: app/templates/admin_dashboard.html:294 app/templates/admin_ross1000.html:67
 #: app/templates/admin_tourist_tax.html:159
 #: app/templates/admin_tourist_tax.html:209 app/templates/checkout.html:50
-#: app/templates/guest_self_checkin.html:38
+#: app/templates/guest_self_checkin.html:39
 msgid "Guests"
 msgstr "Huéspedes"
 
-#: app/templates/admin_dashboard.html:284 app/templates/admin_pricing.html:122
+#: app/templates/admin_dashboard.html:299 app/templates/admin_pricing.html:122
 #: app/templates/admin_ross1000_logs.html:78
 #: app/templates/admin_testimonials.html:170
 msgid "Close"
 msgstr "Cerrar"
 
-#: app/templates/admin_dashboard.html:285
+#: app/templates/admin_dashboard.html:300
 msgid "Save changes"
 msgstr "Guardar cambios"
 
-#: app/templates/admin_dashboard.html:339
+#: app/templates/admin_dashboard.html:354
 msgid "Please select at least one reservation."
 msgstr ""
 
-#: app/templates/admin_dashboard.html:342
+#: app/templates/admin_dashboard.html:357
 #, fuzzy
 msgid "Delete selected reservations? This cannot be undone."
 msgstr "¿Seguro que quieres eliminar este testimonio? No se puede deshacer."
@@ -821,7 +857,7 @@ msgid "Incomplete"
 msgstr ""
 
 #: app/templates/admin_guest_checkin.html:25
-#: app/templates/guest_self_checkin.html:52
+#: app/templates/guest_self_checkin.html:53
 msgid "Required by law:"
 msgstr "Requerido por ley:"
 
@@ -832,22 +868,21 @@ msgid ""
 msgstr ""
 
 #: app/templates/admin_guest_checkin.html:35
-#, fuzzy
 msgid "Main Guest Identity"
 msgstr "Detalles del huésped"
 
 #: app/templates/admin_guest_checkin.html:38
-#: app/templates/guest_self_checkin.html:62
+#: app/templates/guest_self_checkin.html:115
 msgid "Surname"
 msgstr "Apellido"
 
 #: app/templates/admin_guest_checkin.html:43
-#: app/templates/guest_self_checkin.html:66
+#: app/templates/guest_self_checkin.html:119
 msgid "First Name"
 msgstr "Nombre"
 
 #: app/templates/admin_guest_checkin.html:48
-#: app/templates/guest_self_checkin.html:70
+#: app/templates/guest_self_checkin.html:123
 msgid "Date of Birth"
 msgstr "Fecha de nacimiento"
 
@@ -857,55 +892,55 @@ msgstr ""
 
 #: app/templates/admin_guest_checkin.html:58
 #: app/templates/email_guest_checkin.html:50
-#: app/templates/guest_self_checkin.html:78
+#: app/templates/guest_self_checkin.html:131
 msgid "Nationality"
 msgstr "Nacionalidad"
 
 #: app/templates/admin_guest_checkin.html:64
 #: app/templates/email_guest_checkin.html:52
-#: app/templates/guest_self_checkin.html:82
+#: app/templates/guest_self_checkin.html:135
 msgid "Gender"
 msgstr "Sexo"
 
 #: app/templates/admin_guest_checkin.html:66
 #: app/templates/admin_guest_checkin.html:79
-#: app/templates/guest_self_checkin.html:84
-#: app/templates/guest_self_checkin.html:96
+#: app/templates/guest_self_checkin.html:137
+#: app/templates/guest_self_checkin.html:149
 msgid "Select"
 msgstr "Seleccionar"
 
 #: app/templates/admin_guest_checkin.html:67
-#: app/templates/guest_self_checkin.html:85
+#: app/templates/guest_self_checkin.html:138
 msgid "Male"
 msgstr "Masculino"
 
 #: app/templates/admin_guest_checkin.html:68
-#: app/templates/guest_self_checkin.html:86
+#: app/templates/guest_self_checkin.html:139
 msgid "Female"
 msgstr "Femenino"
 
 #: app/templates/admin_guest_checkin.html:74
-#: app/templates/guest_self_checkin.html:91
+#: app/templates/guest_self_checkin.html:144
 msgid "Identity Document"
 msgstr "Documento de identidad"
 
 #: app/templates/admin_guest_checkin.html:77
-#: app/templates/guest_self_checkin.html:94
+#: app/templates/guest_self_checkin.html:147
 msgid "Document Type"
 msgstr "Tipo de documento"
 
 #: app/templates/admin_guest_checkin.html:80
-#: app/templates/guest_self_checkin.html:97
+#: app/templates/guest_self_checkin.html:150
 msgid "Passport"
 msgstr "Pasaporte"
 
 #: app/templates/admin_guest_checkin.html:81
-#: app/templates/guest_self_checkin.html:98
+#: app/templates/guest_self_checkin.html:151
 msgid "Identity Card"
 msgstr "Tarjeta de crédito"
 
 #: app/templates/admin_guest_checkin.html:82
-#: app/templates/guest_self_checkin.html:99
+#: app/templates/guest_self_checkin.html:152
 msgid "Driving License"
 msgstr "Permiso de conducir"
 
@@ -914,12 +949,12 @@ msgid "Other"
 msgstr "Otro"
 
 #: app/templates/admin_guest_checkin.html:87
-#: app/templates/guest_self_checkin.html:103
+#: app/templates/guest_self_checkin.html:156
 msgid "Document Number"
 msgstr "Número de documento"
 
 #: app/templates/admin_guest_checkin.html:92
-#: app/templates/guest_self_checkin.html:107
+#: app/templates/guest_self_checkin.html:160
 msgid "Expiry Date"
 msgstr "Fecha de caducidad"
 
@@ -930,7 +965,7 @@ msgstr ""
 #: app/templates/admin_guest_checkin.html:106
 #: app/templates/booking_confirmed.html:20
 #: app/templates/email_cancellation.html:34
-#: app/templates/guest_access_denied.html:19
+#: app/templates/guest_access_denied.html:20
 msgid "Reservation Details"
 msgstr "Detalles de la reserva"
 
@@ -976,6 +1011,88 @@ msgstr ""
 msgid "Submission started! Task ID:"
 msgstr ""
 
+#: app/templates/admin_guest_message.html:2
+#: app/templates/admin_guest_message.html:7
+msgid "Guest Message"
+msgstr "Enviar mensaje"
+
+#: app/templates/admin_guest_message.html:8
+#: app/templates/admin_ical_feeds.html:8
+msgid "Back"
+msgstr "Atrás"
+
+#: app/templates/admin_guest_message.html:14
+msgid "Reservation details"
+msgstr "Detalles de la reserva"
+
+#: app/templates/admin_guest_message.html:48
+msgid "Guest name (editable)"
+msgstr ""
+
+#: app/templates/admin_guest_message.html:52
+#, fuzzy
+msgid "Number of guests"
+msgstr "Huéspedes"
+
+#: app/templates/admin_guest_message.html:54
+msgid "Used in the online check-in — make sure it is correct."
+msgstr ""
+
+#: app/templates/admin_guest_message.html:58
+msgid "Show city tax payment to this guest"
+msgstr ""
+
+#: app/templates/admin_guest_message.html:59
+msgid ""
+"When enabled, the \"Pay City Tax Online\" Stripe link appears in the "
+"guest check-in page and in the messages for this reservation."
+msgstr ""
+
+#: app/templates/admin_guest_message.html:66
+#: app/templates/guest_portal.html:191 app/templates/guest_self_checkin.html:62
+msgid "City Tax"
+msgstr "Tasa turística"
+
+#: app/templates/admin_guest_message.html:68
+msgid "Expected (€6/adult/night, max 10 nights)"
+msgstr ""
+
+#: app/templates/admin_guest_message.html:78
+msgid ""
+"The Stripe payment link is only included in the message when \"Show city "
+"tax payment to this guest\" is enabled above."
+msgstr ""
+
+#: app/templates/admin_guest_message.html:85
+msgid "Create Stripe payment link"
+msgstr ""
+
+#: app/templates/admin_guest_message.html:91
+msgid "Mark as paid in cash"
+msgstr ""
+
+#: app/templates/admin_guest_message.html:96
+#, fuzzy
+msgid "Mark as unpaid"
+msgstr "Marcar como destacado"
+
+#: app/templates/admin_guest_message.html:107 app/templates/base.html:190
+msgid "Italian"
+msgstr "Italiano"
+
+#: app/templates/admin_guest_message.html:108
+#: app/templates/admin_guest_message.html:118
+msgid "Copy"
+msgstr ""
+
+#: app/templates/admin_guest_message.html:117 app/templates/base.html:191
+msgid "English"
+msgstr "Inglés"
+
+#: app/templates/admin_guest_message.html:136
+msgid "Copied"
+msgstr "Confirmada"
+
 #: app/templates/admin_header.html:12
 msgid "Dashboard"
 msgstr "Panel"
@@ -1003,24 +1120,25 @@ msgstr ""
 
 #: app/templates/admin_header.html:49
 #, fuzzy
+msgid "Wi-Fi"
+msgstr "Wi-Fi gratis"
+
+#: app/templates/admin_header.html:55
+#, fuzzy
 msgid "iCal"
 msgstr "URL iCal"
 
-#: app/templates/admin_header.html:61
+#: app/templates/admin_header.html:67
 msgid "Settings"
 msgstr "Configuración"
 
-#: app/templates/admin_header.html:67
+#: app/templates/admin_header.html:73
 msgid "Pricing"
 msgstr "Precios"
 
 #: app/templates/admin_ical_feeds.html:7
 msgid "iCal Sync & Blocked Dates"
 msgstr ""
-
-#: app/templates/admin_ical_feeds.html:8
-msgid "Back"
-msgstr "Atrás"
 
 #: app/templates/admin_ical_feeds.html:14
 msgid "Connected Feeds"
@@ -1284,8 +1402,8 @@ msgstr ""
 
 #: app/templates/admin_questura_logs.html:27
 #: app/templates/admin_ross1000_logs.html:27
-#: app/templates/email_guest_access.html:30 app/templates/guest_access.html:37
-#: app/templates/guest_portal.html:31 app/templates/guest_self_checkin.html:42
+#: app/templates/email_guest_access.html:30 app/templates/guest_access.html:45
+#: app/templates/guest_portal.html:32 app/templates/guest_self_checkin.html:43
 msgid "Reservation"
 msgstr "Reserva"
 
@@ -1340,127 +1458,103 @@ msgid "Created"
 msgstr "Creado"
 
 #: app/templates/admin_smart_access.html:3
-msgid "Smart Access & WhatsApp"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:14
-msgid "Smart Access Configuration"
-msgstr ""
+#: app/templates/admin_smart_access.html:70
+#: app/templates/admin_trust_badges.html:175
+msgid "Smart Access"
+msgstr "Acceso Smart"
 
 #: app/templates/admin_smart_access.html:15
-msgid "Gate: Shelly Mini 1 Gen4 | Door: Nuki Smart Lock Ultra"
-msgstr ""
+msgid "Smart Access Control"
+msgstr "Control de Acceso Smart"
 
-#: app/templates/admin_smart_access.html:21
-msgid "Building Gate (Shelly Mini 1 Gen4)"
-msgstr ""
+#: app/templates/admin_smart_access.html:16
+msgid "Open the building gate and the apartment door"
+msgstr "Abrir la puerta del edificio y la puerta del apartamento"
 
-#: app/templates/admin_smart_access.html:26
-msgid "Enable Gate Access"
-msgstr "Activar acceso a puerta"
+#: app/templates/admin_smart_access.html:20
+msgid "Preview Guest View"
+msgstr "Vista previa de invitado"
 
-#: app/templates/admin_smart_access.html:28
-msgid "Shelly Host / Device ID"
-msgstr ""
+#: app/templates/admin_smart_access.html:23
+msgid "Configure in Settings"
+msgstr "Configurar en Ajustes"
 
-#: app/templates/admin_smart_access.html:30
-msgid ""
-"Leave blank if SHELLY_DEVICE_ID env var is set. Only needed for LAN "
-"access without the cloud env vars."
-msgstr ""
+#: app/templates/admin_smart_access.html:34 app/templates/guest_access.html:57
+msgid "Building Gate"
+msgstr "Puerta de entrada"
 
-#: app/templates/admin_smart_access.html:33
-#, fuzzy
-msgid "Relay Channel"
-msgstr "Canal de origen"
+#: app/templates/admin_smart_access.html:35 app/templates/guest_access.html:58
+#: app/templates/guest_portal.html:110
+msgid "Press to open the building gate."
+msgstr "Presione para abrir la puerta de entrada."
 
-#: app/templates/admin_smart_access.html:35
-msgid "0 for Shelly Mini 1 Gen4"
-msgstr ""
+#: app/templates/admin_smart_access.html:37
+#: app/templates/admin_smart_access.html:57
+msgid "Enabled"
+msgstr "Femenino"
 
 #: app/templates/admin_smart_access.html:39
-msgid "Apartment Door (Nuki Smart Lock Ultra)"
+#: app/templates/admin_smart_access.html:59
+msgid "Disabled"
 msgstr ""
 
-#: app/templates/admin_smart_access.html:44
-msgid "Enable Door Access"
-msgstr "Activar acceso a puerta"
+#: app/templates/admin_smart_access.html:42 app/templates/guest_access.html:61
+msgid "Open Gate"
+msgstr "Abrir puerta"
 
-#: app/templates/admin_smart_access.html:46
-msgid "Smart Lock ID (Decimal)"
+#: app/templates/admin_smart_access.html:54 app/templates/guest_access.html:79
+msgid "Apartment Door"
+msgstr "Puerta del apartamento"
+
+#: app/templates/admin_smart_access.html:55 app/templates/guest_access.html:80
+msgid "Press to unlock the apartment door."
+msgstr "Presione para desbloquear la puerta del apartamento."
+
+#: app/templates/admin_smart_access.html:62 app/templates/guest_access.html:83
+msgid "Unlock Door"
+msgstr "Desbloquear puerta"
+
+#: app/templates/admin_smart_access.html:72
+msgid "Enable the gate/door and set device credentials from the Settings page."
 msgstr ""
 
-#: app/templates/admin_smart_access.html:48
-msgid "Get from Nuki Web API: GET /smartlock"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:51
-msgid "Web API Token"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:53
-msgid "Generate at web.nuki.io → API"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:56
-msgid "API Base URL"
-msgstr "URL base de API"
-
-#: app/templates/admin_smart_access.html:60
-msgid "Unlock Action"
-msgstr "Acción de desbloqueo"
-
-#: app/templates/admin_smart_access.html:62
-msgid "Unlock (turn cylinder)"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:63
-msgid "Unlatch (open door)"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:65
-msgid "Unlatch opens the door; unlock just turns the cylinder"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:69
-msgid "WhatsApp Contact Button"
+#: app/templates/admin_smart_access.html:73
+msgid ""
+"Guests open the gate and door from their personal access page during "
+"their stay."
 msgstr ""
 
 #: app/templates/admin_smart_access.html:74
-msgid "Enable WhatsApp Float Button"
+msgid "The WhatsApp contact button is configured in Settings too."
 msgstr ""
 
-#: app/templates/admin_smart_access.html:76
-msgid "WhatsApp Number"
-msgstr ""
+#: app/templates/admin_smart_access.html:90 app/templates/guest_access.html:148
+msgid "Processing..."
+msgstr "Procesando..."
 
-#: app/templates/admin_smart_access.html:78
-msgid "International format without + or spaces. Example: 393000000000"
-msgstr ""
+#: app/templates/admin_smart_access.html:93 app/templates/guest_access.html:151
+msgid "Try Again"
+msgstr "Intentar de nuevo"
 
-#: app/templates/admin_smart_access.html:81
-msgid "Default Message (optional)"
-msgstr "Mensaje predeterminado (opcional)"
+#: app/templates/admin_smart_access.html:119
+#: app/templates/guest_access.html:170 app/templates/guest_access.html:182
+msgid "Failed"
+msgstr "Falló"
 
-#: app/templates/admin_smart_access.html:82
-msgid "Ciao, vorrei informazioni per prenotare..."
-msgstr ""
+#: app/templates/admin_smart_access.html:121
+#: app/templates/guest_access.html:171 app/templates/guest_access.html:183
+msgid "Connection error"
+msgstr "Error de conexión"
 
-#: app/templates/admin_smart_access.html:83
-msgid "Pre-filled message when user clicks the button"
-msgstr ""
+#: app/templates/admin_smart_access.html:127
+#: app/templates/guest_access.html:166
+msgid "Opening gate..."
+msgstr "Abriendo puerta..."
 
-#: app/templates/admin_smart_access.html:90
-msgid "Save Smart Access & WhatsApp Config"
-msgstr ""
-
-#: app/templates/admin_smart_access.html:92
-msgid "Test Gate"
-msgstr "Probar puerta"
-
-#: app/templates/admin_smart_access.html:95
-msgid "Test Door"
-msgstr "Probar puerta"
+#: app/templates/admin_smart_access.html:131
+#: app/templates/guest_access.html:178
+msgid "Unlocking door..."
+msgstr "Desbloqueando puerta..."
 
 #: app/templates/admin_testimonials.html:3
 msgid "Manage Testimonials"
@@ -1738,36 +1832,224 @@ msgstr ""
 msgid "Certified Secure"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:175
-msgid "Display Settings"
+#: app/templates/admin_trust_badges.html:176
+msgid "Enable the guest gate/door buttons and configure the devices."
 msgstr ""
 
 #: app/templates/admin_trust_badges.html:180
-msgid "Show review badges in footer"
-msgstr ""
+#, fuzzy
+msgid "Building Gate (Shelly)"
+msgstr "Puerta de entrada"
+
+#: app/templates/admin_trust_badges.html:184
+msgid "Enable Gate Access"
+msgstr "Activar acceso a puerta"
 
 #: app/templates/admin_trust_badges.html:186
-msgid "Show review badges on homepage"
+msgid "Shelly Host / Device ID (advanced)"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:192
-msgid "Show review badges on booking page"
+#: app/templates/admin_trust_badges.html:188
+#, fuzzy
+msgid "Relay Channel"
+msgstr "Canal de origen"
+
+#: app/templates/admin_trust_badges.html:190
+msgid "Leave blank if SHELLY_DEVICE_ID env var is set."
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:198
-msgid "Show payment badges in footer"
+#: app/templates/admin_trust_badges.html:196
+#, fuzzy
+msgid "Apartment Door (Nuki)"
+msgstr "Puerta del apartamento"
+
+#: app/templates/admin_trust_badges.html:200
+msgid "Enable Door Access"
+msgstr "Activar acceso a puerta"
+
+#: app/templates/admin_trust_badges.html:202
+msgid "Smart Lock ID (Decimal)"
 msgstr ""
 
 #: app/templates/admin_trust_badges.html:204
+msgid "Web API Token"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:208
+msgid "API Base URL"
+msgstr "URL base de API"
+
+#: app/templates/admin_trust_badges.html:212
+msgid "Unlock Action"
+msgstr "Acción de desbloqueo"
+
+#: app/templates/admin_trust_badges.html:214
+msgid "Unlock"
+msgstr "Atrás"
+
+#: app/templates/admin_trust_badges.html:215
+msgid "Unlatch"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:227
+msgid "WhatsApp Contact Button"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:228
+msgid ""
+"Floating WhatsApp button shown to visitors. Leave the number empty to "
+"hide it."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:231
+msgid "WhatsApp Number"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:233
+msgid "International format without + or spaces. Example: 393000000000"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:236
+msgid "Default Message (optional)"
+msgstr "Mensaje predeterminado (opcional)"
+
+#: app/templates/admin_trust_badges.html:237
+msgid "Ciao, vorrei informazioni per prenotare..."
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:238
+msgid "Pre-filled message when user clicks the button"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:245
+msgid "Display Settings"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:250
+msgid "Show review badges in footer"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:256
+msgid "Show review badges on homepage"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:262
+msgid "Show review badges on booking page"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:268
+msgid "Show payment badges in footer"
+msgstr ""
+
+#: app/templates/admin_trust_badges.html:274
 msgid "Show payment badges on checkout page"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:211
+#: app/templates/admin_trust_badges.html:281
 msgid "Save Trust Badges & Widgets Config"
 msgstr ""
 
-#: app/templates/apartment.html:10 app/templates/base.html:47
-#: app/templates/base.html:65
+#: app/templates/admin_wifi.html:3 app/templates/admin_wifi.html:15
+#: app/templates/admin_wifi.html:113 app/templates/admin_wifi_print.html:6
+#: app/templates/admin_wifi_print.html:46
+#: app/templates/components/wifi_card.html:8
+msgid "Guest Wi-Fi"
+msgstr "Wi-Fi gratis"
+
+#: app/templates/admin_wifi.html:16
+msgid "Network name, password and scan-to-connect QR for your guests"
+msgstr ""
+
+#: app/templates/admin_wifi.html:21
+msgid "Download PNG"
+msgstr ""
+
+#: app/templates/admin_wifi.html:24
+msgid "Printable Card"
+msgstr ""
+
+#: app/templates/admin_wifi.html:35
+msgid "Network Name (SSID)"
+msgstr ""
+
+#: app/templates/admin_wifi.html:38
+msgid "e.g. Lotto235 Guest"
+msgstr ""
+
+#: app/templates/admin_wifi.html:46
+msgid "Leave empty for an open network"
+msgstr ""
+
+#: app/templates/admin_wifi.html:51
+msgid "Used for the QR code. Not shown on the guest portal."
+msgstr "Se usa para el código QR. No se muestra en el portal de invitados."
+
+#: app/templates/admin_wifi.html:56
+msgid "Security"
+msgstr "Seguridad"
+
+#: app/templates/admin_wifi.html:58
+msgid "Open (no password)"
+msgstr "Abierta (sin contraseña)"
+
+#: app/templates/admin_wifi.html:64
+msgid "Band / Label (optional)"
+msgstr "Banda / Etiqueta (opcional)"
+
+#: app/templates/admin_wifi.html:67
+msgid "e.g. 2.4GHz & 5GHz"
+msgstr ""
+
+#: app/templates/admin_wifi.html:74
+msgid "Hidden network (SSID not broadcast)"
+msgstr ""
+
+#: app/templates/admin_wifi.html:78
+msgid "Save Wi-Fi Settings"
+msgstr ""
+
+#: app/templates/admin_wifi.html:87
+msgid "Scan-to-Connect QR"
+msgstr ""
+
+#: app/templates/admin_wifi.html:88
+msgid "Guests scan this with their phone camera to join instantly."
+msgstr ""
+
+#: app/templates/admin_wifi.html:90 app/templates/admin_wifi_print.html:48
+#: app/templates/components/wifi_card.html:13
+msgid "Wi-Fi QR code"
+msgstr ""
+
+#: app/templates/admin_wifi.html:94 app/templates/admin_wifi_print.html:49
+#: app/templates/components/wifi_card.html:32
+msgid "Network"
+msgstr ""
+
+#: app/templates/admin_wifi.html:103
+msgid "Download QR"
+msgstr "Descargar QR"
+
+#: app/templates/admin_wifi.html:106
+msgid "Print Card"
+msgstr "Imprimir tarjeta"
+
+#: app/templates/admin_wifi.html:115
+msgid "Save the network name (SSID) to generate the QR code."
+msgstr ""
+
+#: app/templates/admin_wifi.html:116
+msgid ""
+"The QR and credentials also appear on every guest portal and access page "
+"during a stay."
+msgstr ""
+
+#: app/templates/admin_wifi_print.html:47
+msgid "Scan to connect"
+msgstr "Términos y condiciones"
+
+#: app/templates/apartment.html:10 app/templates/base.html:49
+#: app/templates/base.html:67
 msgid ""
 "Elegant and refined apartment in the heart of Garbatella, Rome. Book your"
 " ideal stay."
@@ -2164,15 +2446,15 @@ msgstr ""
 "Lotto 235, Garbatella, Casa Vacacional Roma, Apartamento Garbatella, "
 "Alquiler Corto Roma"
 
-#: app/templates/base.html:46 app/templates/base.html:64
+#: app/templates/base.html:48 app/templates/base.html:66
 msgid "Luxury Rental Property Rome"
 msgstr "Propiedad de alquiler de lujo Roma"
 
-#: app/templates/base.html:51 app/templates/base.html:67
+#: app/templates/base.html:53 app/templates/base.html:69
 msgid "Lotto 235 Garbatella - Living Room"
 msgstr "Lotto 235 Garbatella - Inicio"
 
-#: app/templates/base.html:84
+#: app/templates/base.html:86
 msgid ""
 "Elegant vacation apartment in the heart of Garbatella, Rome. Modern "
 "comfort, self check-in, fast Wi-Fi, air conditioning and strategic "
@@ -2182,92 +2464,84 @@ msgstr ""
 "Comodidad moderna, auto check-in, Wi-Fi rápido, aire acondicionado y "
 "ubicación estratégica cerca del metro."
 
-#: app/templates/base.html:174
+#: app/templates/base.html:176
 msgid "Main navigation"
 msgstr "Navegación principal"
 
-#: app/templates/base.html:176
+#: app/templates/base.html:178
 msgid "Lotto 235 Garbatella - Home"
 msgstr "Lotto 235 Garbatella - Inicio"
 
-#: app/templates/base.html:183
+#: app/templates/base.html:185
 msgid "Select language"
 msgstr "Seleccionar idioma"
 
-#: app/templates/base.html:188
-msgid "Italian"
-msgstr "Italiano"
-
-#: app/templates/base.html:189
-msgid "English"
-msgstr "Inglés"
-
-#: app/templates/base.html:190
+#: app/templates/base.html:192
 msgid "French"
 msgstr "Francés"
 
-#: app/templates/base.html:191
+#: app/templates/base.html:193
 msgid "German"
 msgstr "Alemán"
 
-#: app/templates/base.html:192
+#: app/templates/base.html:194
 msgid "Spanish"
 msgstr "Español"
 
-#: app/templates/base.html:197
+#: app/templates/base.html:199
 msgid "Toggle navigation"
 msgstr "Alternar navegación"
 
-#: app/templates/base.html:203 app/templates/reservation.html:3
+#: app/templates/base.html:205 app/templates/reservation.html:3
 #: app/templates/reservation.html:19
 msgid "Reserve"
 msgstr "Reservar"
 
-#: app/templates/base.html:204 app/templates/food_recommendations.html:3
+#: app/templates/base.html:206 app/templates/food_recommendations.html:3
 #: app/templates/food_recommendations.html:7
 msgid "Food & Drinks"
 msgstr "Comida y bebida"
 
-#: app/templates/base.html:205
+#: app/templates/base.html:207
 msgid "Attractions"
 msgstr "Atracciones"
 
-#: app/templates/base.html:206 app/templates/base.html:254
+#: app/templates/base.html:208 app/templates/base.html:256
 #: app/templates/faq.html:3
 msgid "FAQ"
 msgstr "Preguntas frecuentes"
 
-#: app/templates/base.html:207 app/templates/base.html:253
+#: app/templates/base.html:209 app/templates/base.html:255
 #: app/templates/contact.html:2 app/templates/contact.html:8
 #: app/templates/policies/cancellation.html:83
 msgid "Contact"
 msgstr "Contacto"
 
-#: app/templates/base.html:249
+#: app/templates/base.html:251
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
 
-#: app/templates/base.html:255 app/templates/checkout.html:133
+#: app/templates/base.html:257 app/templates/checkout.html:133
 #: app/templates/policies/privacy.html:2 app/templates/policies/privacy.html:6
 #: app/templates/policies/terms.html:70 app/templates/reservation.html:98
 msgid "Privacy Policy"
 msgstr "Política de privacidad"
 
-#: app/templates/base.html:256
+#: app/templates/base.html:258
 msgid "Terms"
 msgstr "Términos"
 
-#: app/templates/base.html:257
+#: app/templates/base.html:259
 msgid "Cancellation"
 msgstr "Cancelación"
 
-#: app/templates/base.html:258 app/templates/checkout.html:131
+#: app/templates/base.html:260 app/templates/checkout.html:131
 #: app/templates/policies/refund.html:2 app/templates/policies/refund.html:6
 #: app/templates/policies/terms.html:37
 msgid "Refund Policy"
 msgstr "Política de reembolso"
 
-#: app/templates/base.html:259 app/templates/policies/house_rules.html:2
+#: app/templates/base.html:261 app/templates/policies/house_rules.html:2
 #: app/templates/policies/house_rules.html:6
 #: app/templates/policies/terms.html:42
 msgid "House Rules"
@@ -2321,8 +2595,8 @@ msgstr ""
 "recibos llegará a tu bandeja de entrada en unos momentos."
 
 #: app/templates/booking_confirmed.html:51 app/templates/csrf_error.html:14
-#: app/templates/guest_access_denied.html:33
-#: app/templates/guest_checkin_done.html:15 app/templates/guest_portal.html:187
+#: app/templates/guest_access_denied.html:34
+#: app/templates/guest_checkin_done.html:15 app/templates/guest_portal.html:233
 #: app/templates/wire_transfer.html:31
 msgid "Back to Home"
 msgstr "Volver al inicio"
@@ -2379,11 +2653,13 @@ msgstr "Alojamiento"
 msgid "City tax"
 msgstr "Tasa turística"
 
-#: app/templates/checkout.html:68
+#: app/templates/checkout.html:68 app/templates/guest_portal.html:196
+#: app/templates/guest_self_checkin.html:67
 msgid "night"
 msgstr "noche"
 
-#: app/templates/checkout.html:68
+#: app/templates/checkout.html:68 app/templates/guest_portal.html:196
+#: app/templates/guest_self_checkin.html:67
 msgid "adult"
 msgstr "adulto"
 
@@ -2629,7 +2905,6 @@ msgid ""
 msgstr ""
 
 #: app/templates/email_admin_checkin_completed.html:38
-#, fuzzy
 msgid "Automated notification via your booking engine."
 msgstr "Notificación automática vía tu motor de Railway App."
 
@@ -2822,7 +3097,7 @@ msgstr "Su enlace de acceso"
 msgid "Your Stay"
 msgstr "Tu estancia"
 
-#: app/templates/email_guest_access.html:30 app/templates/guest_portal.html:36
+#: app/templates/email_guest_access.html:30 app/templates/guest_portal.html:37
 msgid "nights"
 msgstr "noches"
 
@@ -2860,11 +3135,20 @@ msgstr "Desbloquear la puerta del apartamento (Nuki Smart Lock Ultra)"
 msgid "Access works only during your stay dates"
 msgstr "El acceso solo es válido durante su estancia"
 
-#: app/templates/email_guest_access.html:76
+#: app/templates/email_guest_access.html:77 app/templates/guest_access.html:102
+#: app/templates/guest_portal.html:158
+msgid "Door Keypad Code"
+msgstr ""
+
+#: app/templates/email_guest_access.html:83
+msgid "Enter this code on the keypad next to the door. Valid during your stay."
+msgstr ""
+
+#: app/templates/email_guest_access.html:93
 msgid "Security Notice"
 msgstr "8. Seguridad"
 
-#: app/templates/email_guest_access.html:77
+#: app/templates/email_guest_access.html:94
 msgid ""
 "This link is personal and should not be shared. Access automatically "
 "expires on your check-out day."
@@ -2872,11 +3156,11 @@ msgstr ""
 "Este enlace es personal y no debe compartirse. El acceso caduca "
 "automáticamente el día de su check-out."
 
-#: app/templates/email_guest_access.html:84
+#: app/templates/email_guest_access.html:101
 msgid "If the button doesn't work, copy this link:"
 msgstr "Si el botón no funciona, copie este enlace:"
 
-#: app/templates/email_guest_access.html:93
+#: app/templates/email_guest_access.html:110
 msgid "Need help? Contact us."
 msgstr "¿Necesitas ayuda? Contáctanos."
 
@@ -2913,7 +3197,7 @@ msgstr "Haga clic en el botón de abajo para completar su check-in online:"
 
 #: app/templates/email_guest_checkin.html:43
 #: app/templates/email_pending_payment.html:68
-#: app/templates/guest_portal.html:64
+#: app/templates/guest_portal.html:65
 msgid "Complete Check-in Now"
 msgstr "Completar el check-in ahora"
 
@@ -3296,100 +3580,68 @@ msgstr "Acogedor bar de vinos y restaurante (12 min a pie)"
 msgid "Neighborhood natural wine bar (14 min walk)"
 msgstr "Bar de vinos naturales de barrio (14 min a pie)"
 
-#: app/templates/guest_access.html:2 app/templates/guest_access.html:11
+#: app/templates/guest_access.html:2 app/templates/guest_access.html:19
 msgid "Guest Access"
 msgstr "Acceso de huéspedes"
 
-#: app/templates/guest_access.html:12 app/templates/guest_portal.html:88
+#: app/templates/guest_access.html:13
+msgid "Admin preview"
+msgstr "Vista previa de administrador"
+
+#: app/templates/guest_access.html:13
+msgid "this is what guests see on their Smart Access page during their stay. Buttons are disabled."
+msgstr "Esto es lo que ven los huéspedes en su página de Smart Access durante su estancia. Los botones están desactivados."
+
+#: app/templates/guest_access.html:20 app/templates/guest_portal.html:89
 msgid "Valid during your stay"
 msgstr "Válido durante su estancia"
 
-#: app/templates/guest_access.html:16 app/templates/guest_self_checkin.html:22
+#: app/templates/guest_access.html:24 app/templates/guest_self_checkin.html:23
 #, fuzzy
 msgid "Back to Portal"
 msgstr "Volver al inicio"
 
-#: app/templates/guest_access.html:49
-msgid "Building Gate"
-msgstr "Puerta de entrada"
-
-#: app/templates/guest_access.html:50 app/templates/guest_portal.html:109
-msgid "Press to open the building gate."
-msgstr "Presione para abrir la puerta de entrada."
-
-#: app/templates/guest_access.html:53
-msgid "Open Gate"
-msgstr "Abrir puerta"
-
-#: app/templates/guest_access.html:59
+#: app/templates/guest_access.html:67
 msgid "Gate control not configured. Please contact the host."
 msgstr "Control de puerta no configurado. Por favor, contacte al anfitrión."
 
-#: app/templates/guest_access.html:71
-msgid "Apartment Door"
-msgstr "Puerta del apartamento"
-
-#: app/templates/guest_access.html:72
-msgid "Press to unlock the apartment door."
-msgstr "Presione para desbloquear la puerta del apartamento."
-
-#: app/templates/guest_access.html:75
-msgid "Unlock Door"
-msgstr "Desbloquear puerta"
-
-#: app/templates/guest_access.html:81
+#: app/templates/guest_access.html:89
 msgid "Door control not configured. Please contact the host."
 msgstr "Control de puerta no configurado. Por favor, contacte al anfitrión."
 
-#: app/templates/guest_access.html:89
+#: app/templates/guest_access.html:103
+msgid "Enter this code on the keypad next to the door."
+msgstr "Introduzca este código en el teclado junto a la puerta."
+
+#: app/templates/guest_access.html:106
+msgid "Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time)"
+msgstr "Válido desde las 13:00 del día de llegada hasta las 13:00 del día de salida (hora de Roma)"
+
+#: app/templates/guest_access.html:117
 msgid "Important"
 msgstr "Importante:"
 
-#: app/templates/guest_access.html:91
+#: app/templates/guest_access.html:119
 msgid "Access is only valid during your stay dates"
 msgstr "El acceso solo es válido durante las fechas de su estancia"
 
-#: app/templates/guest_access.html:92
+#: app/templates/guest_access.html:120
 msgid "Do not share this link with anyone outside your booking"
 msgstr "No comparta este enlace con personas ajenas a su reserva"
 
-#: app/templates/guest_access.html:93
+#: app/templates/guest_access.html:121
 msgid "If the gate/door does not respond, contact the host"
 msgstr "Si la puerta no responde, contacte al anfitrión"
 
-#: app/templates/guest_access.html:94
+#: app/templates/guest_access.html:122
 msgid "Access expires automatically on check-out day"
 msgstr "El acceso caduca automáticamente el día del check-out"
 
-#: app/templates/guest_access.html:119
-msgid "Processing..."
-msgstr "Procesando..."
-
-#: app/templates/guest_access.html:122
-msgid "Try Again"
-msgstr "Intentar de nuevo"
-
-#: app/templates/guest_access.html:136
-msgid "Opening gate..."
-msgstr "Abriendo puerta..."
-
-#: app/templates/guest_access.html:139
+#: app/templates/guest_access.html:169
 msgid "Gate opened"
 msgstr "Puerta abierta"
 
-#: app/templates/guest_access.html:140 app/templates/guest_access.html:151
-msgid "Failed"
-msgstr "Falló"
-
-#: app/templates/guest_access.html:141 app/templates/guest_access.html:152
-msgid "Connection error"
-msgstr "Error de conexión"
-
-#: app/templates/guest_access.html:147
-msgid "Unlocking door..."
-msgstr "Desbloqueando puerta..."
-
-#: app/templates/guest_access.html:150
+#: app/templates/guest_access.html:181
 msgid "Door unlocked"
 msgstr "Puerta desbloqueada"
 
@@ -3397,19 +3649,19 @@ msgstr "Puerta desbloqueada"
 msgid "Access Denied"
 msgstr "Acceso denegado"
 
-#: app/templates/guest_access_denied.html:11
+#: app/templates/guest_access_denied.html:12
 msgid "Access Not Available"
 msgstr "Acceso no disponible"
 
-#: app/templates/guest_access_denied.html:21
+#: app/templates/guest_access_denied.html:22
 msgid "Stay:"
 msgstr "Estancia:"
 
-#: app/templates/guest_access_denied.html:22
+#: app/templates/guest_access_denied.html:23
 msgid "Reservation:"
 msgstr "Reserva:"
 
-#: app/templates/guest_access_denied.html:29
+#: app/templates/guest_access_denied.html:30
 #, fuzzy
 msgid "Go to Guest Portal"
 msgstr "Portal del huésped"
@@ -3422,23 +3674,23 @@ msgstr "Check-in / Check-out"
 msgid "Check-in Completed!"
 msgstr "Check-in / Check-out"
 
-#: app/templates/guest_portal.html:2 app/templates/guest_portal.html:11
+#: app/templates/guest_portal.html:2 app/templates/guest_portal.html:12
 msgid "Guest Portal"
 msgstr "Portal del huésped"
 
-#: app/templates/guest_portal.html:49 app/templates/guest_self_checkin.html:18
+#: app/templates/guest_portal.html:50 app/templates/guest_self_checkin.html:19
 msgid "Online Check-in"
 msgstr "Check-in"
 
-#: app/templates/guest_portal.html:50
+#: app/templates/guest_portal.html:51
 msgid "Required by Italian law - Questura registration"
 msgstr "Obligatorio por ley italiana - registro Questura"
 
-#: app/templates/guest_portal.html:57
+#: app/templates/guest_portal.html:58
 msgid "Legal Requirement:"
 msgstr "Requisito legal:"
 
-#: app/templates/guest_portal.html:58
+#: app/templates/guest_portal.html:59
 msgid ""
 "All guests must be registered with the Police (Questura) within 24 hours "
 "of arrival. Complete this before arrival to speed up the process."
@@ -3447,44 +3699,44 @@ msgstr ""
 "Policía (Questura) dentro de las 24 horas posteriores a la llegada. "
 "Complete el check-in online antes de su llegada para agilizar el proceso."
 
-#: app/templates/guest_portal.html:69
+#: app/templates/guest_portal.html:70
 msgid "Takes about 2 minutes · You'll need passport/ID for each guest"
 msgstr "Tarda unos 2 minutos · Necesitarás pasaporte/DNI para cada huésped"
 
-#: app/templates/guest_portal.html:85
+#: app/templates/guest_portal.html:86
 msgid "Gate & Door Access"
 msgstr "Acceso a puerta y portal"
 
-#: app/templates/guest_portal.html:90
+#: app/templates/guest_portal.html:91
 #, python-format
 msgid "Available during your stay (%(checkin)s - %(checkout)s)"
 msgstr "Disponible durante su estancia (%(checkin)s - %(checkout)s)"
 
-#: app/templates/guest_portal.html:103
+#: app/templates/guest_portal.html:104
 msgid "Open Building Gate"
 msgstr "Abrir portal"
 
-#: app/templates/guest_portal.html:116
+#: app/templates/guest_portal.html:117
 msgid "Gate control not configured. Contact host for access."
 msgstr "Control de puerta no configurado. Por favor, contacte al anfitrión."
 
-#: app/templates/guest_portal.html:125
+#: app/templates/guest_portal.html:126
 msgid "Unlock Apartment Door"
 msgstr "Desbloquear puerta"
 
-#: app/templates/guest_portal.html:131
+#: app/templates/guest_portal.html:132
 msgid "Press to unlatch the apartment door."
 msgstr "Presione para desbloquear la puerta del apartamento."
 
-#: app/templates/guest_portal.html:138
+#: app/templates/guest_portal.html:139
 msgid "Door control not configured. Contact host for access."
 msgstr "Control de puerta no configurado. Por favor, contacte al anfitrión."
 
-#: app/templates/guest_portal.html:145
+#: app/templates/guest_portal.html:146
 msgid "Smart Access Not Configured"
 msgstr "Acceso inteligente no configurado"
 
-#: app/templates/guest_portal.html:146
+#: app/templates/guest_portal.html:147
 msgid ""
 "The host has not yet configured the gate/door automation. Please contact "
 "them for access instructions."
@@ -3492,61 +3744,84 @@ msgstr ""
 "El anfitrión aún no ha configurado la automatización de puerta/portal. "
 "Contáctelo para instrucciones de acceso."
 
-#: app/templates/guest_portal.html:148 app/templates/guest_portal.html:198
+#: app/templates/guest_portal.html:149 app/templates/guest_portal.html:244
 msgid "Contact Host"
 msgstr "Contactar al anfitrión"
 
-#: app/templates/guest_portal.html:156
+#: app/templates/guest_portal.html:160
+msgid "Enter on the keypad next to the door. Valid during your stay."
+msgstr ""
+
+#: app/templates/guest_portal.html:168
 msgid "Security Notice:"
 msgstr "Aviso de seguridad:"
 
-#: app/templates/guest_portal.html:157
+#: app/templates/guest_portal.html:169
 #, fuzzy
 msgid ""
 "This access is personal and valid from 13:00 on check-in day to 13:00 on "
 "check-out day (Rome time)."
 msgstr "El acceso solo es válido durante las fechas de su estancia"
 
-#: app/templates/guest_portal.html:158
+#: app/templates/guest_portal.html:170
 msgid "Do not share this link with unauthorized persons. Access is logged."
 msgstr ""
 "No comparta este enlace con personas no autorizadas. El acceso queda "
 "registrado."
 
-#: app/templates/guest_portal.html:163
+#: app/templates/guest_portal.html:175
 msgid "Open dedicated access page"
 msgstr ""
 
-#: app/templates/guest_portal.html:175
+#: app/templates/guest_portal.html:192 app/templates/guest_self_checkin.html:63
+msgid "Required by the municipality of Rome."
+msgstr ""
+
+#: app/templates/guest_portal.html:196 app/templates/guest_self_checkin.html:67
+#, fuzzy
+msgid "max 10 nights"
+msgstr "Noches totales"
+
+#: app/templates/guest_portal.html:202 app/templates/guest_self_checkin.html:73
+#, fuzzy
+msgid "Pay City Tax Online"
+msgstr "Tasa turística incluida:"
+
+#: app/templates/guest_portal.html:211 app/templates/guest_self_checkin.html:81
+#, fuzzy
+msgid "City tax paid."
+msgstr "Tasa turística"
+
+#: app/templates/guest_portal.html:221
 msgid "All Set!"
 msgstr "¡Todo listo!"
 
-#: app/templates/guest_portal.html:178
+#: app/templates/guest_portal.html:224
 #, python-format
 msgid "Check-in completed on %(date)s"
 msgstr "Check-in completado el %(date)s"
 
-#: app/templates/guest_portal.html:181
+#: app/templates/guest_portal.html:227
 msgid "Your stay has ended. Thank you for choosing us!"
 msgstr "Su estancia ha terminado. ¡Gracias por elegirnos!"
 
-#: app/templates/guest_portal.html:183
+#: app/templates/guest_portal.html:229
 msgid "Gate and door access will be available from check-in day."
 msgstr "El acceso a puerta y portal estará disponible desde el día de llegada."
 
-#: app/templates/guest_portal.html:196
+#: app/templates/guest_portal.html:242
 msgid "Need help?"
 msgstr "¿Necesita ayuda?"
 
-#: app/templates/guest_portal.html:240
+#: app/templates/guest_portal.html:286
 msgid "Success!"
 msgstr "¡Éxito!"
 
-#: app/templates/guest_portal.html:244
+#: app/templates/guest_portal.html:290
 msgid "Error occurred"
 msgstr "Ocurrió un error"
 
-#: app/templates/guest_portal.html:248
+#: app/templates/guest_portal.html:294
 msgid "Connection error. Please try again."
 msgstr "Error de conexión. Intente de nuevo."
 
@@ -3554,23 +3829,23 @@ msgstr "Error de conexión. Intente de nuevo."
 msgid "Check-in Online"
 msgstr "Check-in"
 
-#: app/templates/guest_self_checkin.html:11
+#: app/templates/guest_self_checkin.html:12
 msgid "Check-in Already Completed"
 msgstr "Check-in ya completado"
 
-#: app/templates/guest_self_checkin.html:12
+#: app/templates/guest_self_checkin.html:13
 msgid "You have already submitted your details."
 msgstr "Ya ha enviado sus datos."
 
-#: app/templates/guest_self_checkin.html:13
+#: app/templates/guest_self_checkin.html:14
 msgid "Return to Portal"
 msgstr "Volver al portal"
 
-#: app/templates/guest_self_checkin.html:19
+#: app/templates/guest_self_checkin.html:20
 msgid "Complete your guest registration before arrival. Required by Italian law."
 msgstr "Registro de huéspedes Questura (requisito legal)"
 
-#: app/templates/guest_self_checkin.html:52
+#: app/templates/guest_self_checkin.html:53
 msgid ""
 "All guests must be registered with the Police (Questura) within 24 hours "
 "of arrival."
@@ -3578,23 +3853,28 @@ msgstr ""
 "Todos los huéspedes deben registrarse en la comisaría (Questura) dentro "
 "de las 24 horas posteriores a la llegada."
 
-#: app/templates/guest_self_checkin.html:59
+#: app/templates/guest_self_checkin.html:111
 msgid "Main Guest"
 msgstr "Huésped"
 
-#: app/templates/guest_self_checkin.html:74
+#: app/templates/guest_self_checkin.html:111
+#, fuzzy, python-format
+msgid "Guest %(n)d"
+msgstr "Detalles del huésped"
+
+#: app/templates/guest_self_checkin.html:127
 msgid "Place of Birth"
 msgstr "Lugar de nacimiento"
 
-#: app/templates/guest_self_checkin.html:79
+#: app/templates/guest_self_checkin.html:132
 msgid "e.g. Italian, French"
 msgstr "ej. Italiana, Francesa"
 
-#: app/templates/guest_self_checkin.html:111
+#: app/templates/guest_self_checkin.html:164
 msgid "Issuing Country"
 msgstr "País de emisión"
 
-#: app/templates/guest_self_checkin.html:118
+#: app/templates/guest_self_checkin.html:173
 msgid "Complete Check-in"
 msgstr "Check-in"
 
@@ -3782,6 +4062,41 @@ msgstr "Contáctenos en WhatsApp"
 #: app/templates/components/whatsapp_button.html:10
 msgid "Chat on WhatsApp"
 msgstr "Chatea en WhatsApp"
+
+#: app/templates/components/wifi_card.html:9
+msgid "Free for guests — scan the QR or enter the details below."
+msgstr ""
+
+#: app/templates/components/wifi_card.html:21
+#, fuzzy
+msgid "Tap to Connect Now"
+msgstr "Términos y condiciones"
+
+#: app/templates/components/wifi_card.html:24
+msgid ""
+"Nearby? Tap above to connect automatically. If nothing happens, scan the "
+"QR or ask the host."
+msgstr ""
+
+#: app/templates/components/wifi_card.html:39
+msgid "Show password"
+msgstr "Contraseña"
+
+#: app/templates/components/wifi_card.html:79
+msgid ""
+"Tip: tap a network and enter the password shown below, or scan the QR "
+"with your camera."
+msgstr ""
+
+#: app/templates/components/wifi_card.html:82
+msgid ""
+"Tip: select the network and enter the password below, or scan the QR with"
+" your camera."
+msgstr ""
+
+#: app/templates/components/wifi_card.html:84
+msgid "Scan the QR with your phone camera to connect."
+msgstr ""
 
 #: app/templates/includes/whatsapp_button.html:10
 msgid "WhatsApp"
@@ -3992,12 +4307,12 @@ msgid "Quiet hours: 22:00 - 08:00 (building regulation)"
 msgstr "Horas de silencio: 22:00 - 08:00 (normativa del edificio)"
 
 #: app/templates/policies/house_rules.html:14
-msgid "No parties, events, or gatherings without prior written consent"
-msgstr "Sin fiestas, eventos o reuniones sin consentimiento previo por escrito"
+msgid "No parties, events, or gatherings without prior consent"
+msgstr "Sin fiestas, eventos o reuniones sin consentimiento previo"
 
 #: app/templates/policies/house_rules.html:15
-msgid "Maximum occupancy: As per booking (no extra overnight guests)"
-msgstr "Ocupación máxima: Según reserva (sin huéspedes extra pernoctando)"
+msgid "Maximum occupancy as per booking"
+msgstr "Ocupación máxima según reserva"
 
 #: app/templates/policies/house_rules.html:20
 msgid "Smoking"
@@ -4008,228 +4323,208 @@ msgid "Strictly NO smoking inside the apartment"
 msgstr "ESTRICTAMENTE PROHIBIDO fumar dentro del apartamento"
 
 #: app/templates/policies/house_rules.html:23
-msgid "Smoking permitted on balcony/terrace only"
-msgstr "Fumar permitido solo en balcón/terraza"
-
-#: app/templates/policies/house_rules.html:24
-msgid "Please use ashtray provided"
-msgstr "Por favor, usa el cenicero provisto"
-
-#: app/templates/policies/house_rules.html:25
 msgid "Violation: €200 cleaning fee + possible early termination"
 msgstr "Incumplimiento: 200 € tasa de limpieza + posible terminación anticipada"
 
-#: app/templates/policies/house_rules.html:30
+#: app/templates/policies/house_rules.html:28
 msgid "Guests & Visitors"
 msgstr "Huéspedes y visitantes"
 
-#: app/templates/policies/house_rules.html:32
+#: app/templates/policies/house_rules.html:30
 msgid "Only registered guests may stay overnight"
 msgstr "Solo huéspedes registrados pueden pernoctar"
 
-#: app/templates/policies/house_rules.html:33
-msgid "Day visitors allowed until 22:00 (notify us in advance)"
-msgstr "Visitas diurnas permitidas hasta las 22:00 (avísanos con antelación)"
+#: app/templates/policies/house_rules.html:31
+msgid "Day visitors allowed until 22:00 (notify host in advance)"
+msgstr ""
+"Visitas diurnas permitidas hasta las 22:00 (avisar al anfitrión con "
+"antelación)"
 
-#: app/templates/policies/house_rules.html:34
-msgid "No unregistered overnight guests"
-msgstr "Sin huéspedes no registrados pernoctando"
-
-#: app/templates/policies/house_rules.html:35
+#: app/templates/policies/house_rules.html:32
 msgid "Keys/access codes not to be shared with non-guests"
 msgstr "Llaves/códigos de acceso no se deben compartir con no huéspedes"
 
-#: app/templates/policies/house_rules.html:40
+#: app/templates/policies/house_rules.html:37
 msgid "Check-in / Check-out"
 msgstr "Check-in / Check-out"
 
-#: app/templates/policies/house_rules.html:42
+#: app/templates/policies/house_rules.html:39
 msgid "from 15:00"
 msgstr "a partir de las 15:00"
 
-#: app/templates/policies/house_rules.html:43
+#: app/templates/policies/house_rules.html:40
 msgid "by 11:00 sharp"
 msgstr "a las 11:00 en punto"
 
-#: app/templates/policies/house_rules.html:44
-msgid "Late check-out: €30/hr (subject to availability, request by 09:00)"
-msgstr ""
-"Check-out tardío: 30 €/h (sujeto a disponibilidad, solicitar antes de "
-"09:00)"
+#: app/templates/policies/house_rules.html:41
+msgid "Late check-out: upon request (subject to availability)"
+msgstr "Salida tardía: bajo petición (sujeto a disponibilidad)"
 
-#: app/templates/policies/house_rules.html:45
-msgid "Leave keys on counter"
-msgstr "Dejar las llaves en la encimera"
+#: app/templates/policies/house_rules.html:42
+msgid "Leave keys on kitchen counter upon departure"
+msgstr "Dejar las llaves en la encimera de la cocina al salir"
 
-#: app/templates/policies/house_rules.html:50
+#: app/templates/policies/house_rules.html:47
 msgid "Waste & Recycling (Rome Regulations)"
 msgstr "Residuos y reciclaje (Normativa de Roma)"
 
-#: app/templates/policies/house_rules.html:51
+#: app/templates/policies/house_rules.html:48
 msgid "Rome has strict waste separation. Please use the bins provided:"
 msgstr ""
 "Roma tiene separación estricta de residuos. Usa los contenedores "
 "provistos:"
 
-#: app/templates/policies/house_rules.html:53
+#: app/templates/policies/house_rules.html:50
 msgid "Blue:"
 msgstr "Azul:"
 
-#: app/templates/policies/house_rules.html:53
+#: app/templates/policies/house_rules.html:50
 msgid "Paper & Cardboard"
 msgstr "Papel y cartón"
 
-#: app/templates/policies/house_rules.html:54
+#: app/templates/policies/house_rules.html:51
 msgid "Yellow:"
 msgstr "Amarillo:"
 
-#: app/templates/policies/house_rules.html:54
+#: app/templates/policies/house_rules.html:51
 msgid "Plastic & Metal"
 msgstr "Plástico y metal"
 
-#: app/templates/policies/house_rules.html:55
+#: app/templates/policies/house_rules.html:52
 msgid "Brown:"
 msgstr "Marrón:"
 
-#: app/templates/policies/house_rules.html:55
+#: app/templates/policies/house_rules.html:52
 msgid "Organic/Food Waste"
 msgstr "Orgánico/Residuos de comida"
 
-#: app/templates/policies/house_rules.html:56
-msgid "Grey/Black:"
-msgstr "Gris/Negro:"
+#: app/templates/policies/house_rules.html:53
+msgid "Black:"
+msgstr "Negro:"
 
-#: app/templates/policies/house_rules.html:56
+#: app/templates/policies/house_rules.html:53
 msgid "General/Non-recyclable"
 msgstr "General/No reciclable"
 
-#: app/templates/policies/house_rules.html:57
+#: app/templates/policies/house_rules.html:54
 msgid "Green:"
 msgstr "Verde:"
 
-#: app/templates/policies/house_rules.html:57
+#: app/templates/policies/house_rules.html:54
 msgid "Glass: Separate bin near entrance"
 msgstr "Vidrio: Contenedor separado cerca de la entrada"
 
-#: app/templates/policies/house_rules.html:58
-msgid "Do NOT put waste in wrong bins - fines apply to building"
-msgstr "NO pongas residuos en contenedores equivocados - multas al edificio"
-
-#: app/templates/policies/house_rules.html:63
+#: app/templates/policies/house_rules.html:59
 msgid "Water & Energy Conservation"
 msgstr "Conservación de agua y energía"
 
-#: app/templates/policies/house_rules.html:65
+#: app/templates/policies/house_rules.html:61
 msgid "Turn off AC/heating when windows open"
 msgstr "Apaga A/C y calefacción con ventanas abiertas"
 
-#: app/templates/policies/house_rules.html:66
+#: app/templates/policies/house_rules.html:62
 msgid "Turn off lights & appliances when leaving"
 msgstr "Apaga luces y electrodomésticos al salir"
 
-#: app/templates/policies/house_rules.html:67
+#: app/templates/policies/house_rules.html:63
 msgid "Reasonable water usage"
 msgstr "Uso razonable de agua"
 
-#: app/templates/policies/house_rules.html:72
+#: app/templates/policies/house_rules.html:68
 msgid "Appliances & Amenities"
 msgstr "Electrodomésticos y comodidades"
 
-#: app/templates/policies/house_rules.html:74
+#: app/templates/policies/house_rules.html:70
 msgid "Washing machine: Use provided detergent only"
 msgstr "Lavadora: Usa solo el detergente provisto"
 
-#: app/templates/policies/house_rules.html:75
+#: app/templates/policies/house_rules.html:71
 msgid "Oven/Stove: Clean spills immediately"
 msgstr "Horno/Cocina: Limpia derrames inmediatamente"
 
-#: app/templates/policies/house_rules.html:76
+#: app/templates/policies/house_rules.html:72
 msgid "Coffee machine: Descale if prompted"
 msgstr "Cafetera: Descalcifica si se solicita"
 
-#: app/templates/policies/house_rules.html:77
+#: app/templates/policies/house_rules.html:73
 msgid "Do not use metal utensils in non-stick pans"
 msgstr "No uses utensilios metálicos en sartenes antiadherentes"
 
-#: app/templates/policies/house_rules.html:82
+#: app/templates/policies/house_rules.html:78
 msgid "Safety & Security"
 msgstr "Seguridad"
 
-#: app/templates/policies/house_rules.html:84
-msgid "Lock door when leaving (self-locking)"
-msgstr "Cierra la puerta al salir (autocierre)"
+#: app/templates/policies/house_rules.html:80
+msgid "Lock door when leaving (turn key completely)"
+msgstr "Cierra con llave al salir (girar la llave completamente)"
 
-#: app/templates/policies/house_rules.html:85
+#: app/templates/policies/house_rules.html:81
 msgid "Do not prop entrance door open"
 msgstr "No dejes la puerta de entrada abierta"
 
-#: app/templates/policies/house_rules.html:86
+#: app/templates/policies/house_rules.html:82
 msgid "Report any safety issues immediately"
 msgstr "Reporta cualquier problema de seguridad inmediatamente"
 
-#: app/templates/policies/house_rules.html:87
+#: app/templates/policies/house_rules.html:83
 msgid "Emergency numbers: 112 (EU), 118 (Ambulance), 115 (Fire)"
 msgstr "Emergencias: 112 (UE), 118 (Ambulancia), 115 (Bomberos)"
 
-#: app/templates/policies/house_rules.html:88
-msgid "Fire extinguisher: Under kitchen sink"
-msgstr "Extintor: Debajo del fregadero de la cocina"
+#: app/templates/policies/house_rules.html:84
+msgid "Fire extinguisher located near entrance door"
+msgstr "Extintor situado cerca de la puerta de entrada"
 
-#: app/templates/policies/house_rules.html:93
+#: app/templates/policies/house_rules.html:89
 msgid "Prohibited"
 msgstr "Prohibido"
 
-#: app/templates/policies/house_rules.html:95
+#: app/templates/policies/house_rules.html:91
 msgid "Illegal activities"
 msgstr "Actividades ilegales"
 
-#: app/templates/policies/house_rules.html:96
+#: app/templates/policies/house_rules.html:92
 msgid "Commercial use (filming, photoshoots without permission)"
 msgstr "Uso comercial (grabaciones, sesiones de fotos sin permiso)"
 
-#: app/templates/policies/house_rules.html:97
+#: app/templates/policies/house_rules.html:93
 msgid "Subletting or transferring reservation"
 msgstr "Subarrendar o transferir la reserva"
 
-#: app/templates/policies/house_rules.html:98
+#: app/templates/policies/house_rules.html:94
 msgid "Moving furniture without permission"
 msgstr "Mover muebles sin permiso"
 
-#: app/templates/policies/house_rules.html:99
+#: app/templates/policies/house_rules.html:95
 msgid "Pets (unless pre-approved in writing)"
 msgstr "Mascotas (salvo aprobación previa por escrito)"
 
-#: app/templates/policies/house_rules.html:104
+#: app/templates/policies/house_rules.html:100
 msgid "Damages & Fees"
 msgstr "Daños y tasas"
 
-#: app/templates/policies/house_rules.html:106
+#: app/templates/policies/house_rules.html:102
 msgid "Report any damage immediately - no penalty for accidental breakage"
 msgstr ""
 "Reporta cualquier daño inmediatamente - sin penalización por roturas "
 "accidentales"
 
-#: app/templates/policies/house_rules.html:107
+#: app/templates/policies/house_rules.html:103
 msgid "Lost keys: €150"
 msgstr "Llaves perdidas: 150 €"
 
-#: app/templates/policies/house_rules.html:108
+#: app/templates/policies/house_rules.html:104
 msgid "Excessive cleaning required: €50-150"
 msgstr "Limpieza excesiva requerida: 50-150 €"
 
-#: app/templates/policies/house_rules.html:109
+#: app/templates/policies/house_rules.html:105
 msgid "Smoking inside: €200 + early termination"
 msgstr "Fumar dentro: 200 € + terminación anticipada"
 
-#: app/templates/policies/house_rules.html:110
-msgid "Damage deposit may be charged via Stripe for significant issues"
-msgstr "Depósito por daños puede cargarse vía Stripe por problemas significativos"
-
-#: app/templates/policies/house_rules.html:116
+#: app/templates/policies/house_rules.html:111
 msgid "Questions?"
 msgstr "¿Preguntas?"
 
-#: app/templates/policies/house_rules.html:116
+#: app/templates/policies/house_rules.html:111
 msgid "Message us anytime via WhatsApp/email. We're here to help!"
 msgstr "Escríbenos 언제 via WhatsApp/email. ¡Estamos para ayudar!"
 
@@ -4747,6 +5042,7 @@ msgid "All prices are in EUR and include applicable taxes (VAT)."
 msgstr "Todos los precios están en EUR e incluyen los impuestos aplicables (IVA)."
 
 #: app/templates/policies/terms.html:20
+#, python-format
 msgid ""
 "Base rate €120/night. +10%% weekends and Italian public holidays. "
 "+€15/night per extra guest over 2."
@@ -5055,4 +5351,84 @@ msgstr "Para preguntas sobre estos términos, contáctenos en:"
 #~ "check-in available after hours with "
 #~ "key lockbox)"
 #~ msgstr "13:00 - 20:00 (auto check-in vía caja fuerte fuera de horario)"
+
+#~ msgid "Occupancy"
+#~ msgstr ""
+
+#~ msgid "Smart Access & WhatsApp"
+#~ msgstr ""
+
+#~ msgid "Smart Access Configuration"
+#~ msgstr ""
+
+#~ msgid "Gate: Shelly Mini 1 Gen4 | Door: Nuki Smart Lock Ultra"
+#~ msgstr ""
+
+#~ msgid "Building Gate (Shelly Mini 1 Gen4)"
+#~ msgstr ""
+
+#~ msgid "Shelly Host / Device ID"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Leave blank if SHELLY_DEVICE_ID env var"
+#~ " is set. Only needed for LAN "
+#~ "access without the cloud env vars."
+#~ msgstr ""
+
+#~ msgid "0 for Shelly Mini 1 Gen4"
+#~ msgstr ""
+
+#~ msgid "Apartment Door (Nuki Smart Lock Ultra)"
+#~ msgstr ""
+
+#~ msgid "Get from Nuki Web API: GET /smartlock"
+#~ msgstr ""
+
+#~ msgid "Generate at web.nuki.io → API"
+#~ msgstr ""
+
+#~ msgid "Unlock (turn cylinder)"
+#~ msgstr ""
+
+#~ msgid "Unlatch (open door)"
+#~ msgstr ""
+
+#~ msgid "Unlatch opens the door; unlock just turns the cylinder"
+#~ msgstr ""
+
+#~ msgid "Enable WhatsApp Float Button"
+#~ msgstr ""
+
+#~ msgid "Save Smart Access & WhatsApp Config"
+#~ msgstr ""
+
+#~ msgid "Test Gate"
+#~ msgstr "Probar puerta"
+
+#~ msgid "Test Door"
+#~ msgstr "Probar puerta"
+
+#~ msgid "Maximum occupancy: As per booking (no extra overnight guests)"
+#~ msgstr "Ocupación máxima: Según reserva (sin huéspedes extra pernoctando)"
+
+#~ msgid "Smoking permitted on balcony/terrace only"
+#~ msgstr "Fumar permitido solo en balcón/terraza"
+
+#~ msgid "Please use ashtray provided"
+#~ msgstr "Por favor, usa el cenicero provisto"
+
+#~ msgid "No unregistered overnight guests"
+#~ msgstr "Sin huéspedes no registrados pernoctando"
+
+#~ msgid "Grey/Black:"
+#~ msgstr "Gris/Negro:"
+
+#~ msgid "Do NOT put waste in wrong bins - fines apply to building"
+#~ msgstr "NO pongas residuos en contenedores equivocados - multas al edificio"
+
+#~ msgid "Damage deposit may be charged via Stripe for significant issues"
+#~ msgstr ""
+#~ "Depósito por daños puede cargarse vía"
+#~ " Stripe por problemas significativos"
 

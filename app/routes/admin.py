@@ -222,6 +222,40 @@ def admin_smart_access() -> Response | str:
     )
 
 
+@bp.route('/admin/smart-access/preview')
+@login_required
+def admin_smart_access_preview() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = get_apartment()
+    gate_configured = bool(apartment and apartment.shelly_enabled)
+    door_configured = bool(apartment and apartment.nuki_enabled)
+
+    from app.services.wifi_qr import wifi_qr_data_uri
+
+    wifi_qr = wifi_qr_data_uri(apartment)
+
+    sample = Reservation(
+        id=9999,
+        guest_name='Sample Guest',
+        check_in=date.today(),
+        check_out=date.today() + timedelta(days=3),
+        keypad_code='123456' if door_configured else None,
+        checkin_token='preview',
+        access_token='preview',
+    )
+    return render_template(
+        'guest_access.html',
+        reservation=sample,
+        apartment=apartment,
+        gate_configured=gate_configured,
+        door_configured=door_configured,
+        wifi_qr=wifi_qr,
+        preview=True,
+    )
+
+
 @bp.route('/admin/wifi', methods=['GET', 'POST'])
 @login_required
 def admin_wifi() -> Response | str:
