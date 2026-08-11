@@ -1,0 +1,90 @@
+{% if apartment and apartment.wifi_configured %}
+<!-- Guest Wi-Fi Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4 p-md-5 text-center">
+        <div class="mb-3">
+            <i class="bi bi-wifi fs-1 text-muted"></i>
+        </div>
+        <h5 class="fw-bold mb-1">{{ _('Guest Wi-Fi') }}</h5>
+        <p class="text-muted small mb-4">{{ _('Free for guests — scan the QR or enter the details below.') }}</p>
+
+        <div class="mb-4 d-flex justify-content-center">
+            {% if wifi_qr %}
+            <img src="{{ wifi_qr }}" alt="{{ _('Wi-Fi QR code') }}" class="img-fluid rounded border"
+                 style="max-width: 220px;">
+            {% endif %}
+        </div>
+
+        {% set wifi_uri = apartment.wifi_connect_uri() %}
+        {% if wifi_uri %}
+        <button type="button" class="btn-luxury-primary w-100 py-3 fw-bold mb-4" data-wifi-uri="{{ wifi_uri }}" onclick="connectWifi(this)">
+            <i class="bi bi-plug me-2"></i>{{ _('Tap to Connect Now') }}
+        </button>
+        <div class="small text-muted mb-3" id="wifiConnectHint">
+            {{ _('Nearby? Tap above to connect automatically. If nothing happens, scan the QR or ask the host.') }}
+        </div>
+        {% endif %}
+
+        {% if apartment.wifi_band %}
+        <div class="text-muted small mb-2">{{ apartment.wifi_band }}</div>
+        {% endif %}
+
+        <div class="text-uppercase small text-muted fw-semibold">{{ _('Network') }}</div>
+        <div class="fw-bold fs-4 mb-3">{{ apartment.wifi_ssid }}</div>
+
+        {% if apartment.wifi_password %}
+        <div class="text-uppercase small text-muted fw-semibold">{{ _('Password') }}</div>
+        <div class="fw-bold fs-5 position-relative d-inline-block">
+            <span data-password="{{ apartment.wifi_password }}">{{ '••••••••' }}</span>
+            <a href="#" class="ms-2 text-muted" onclick="toggleWifiPassword(event)" aria-label="{{ _('Show password') }}">
+                <i class="bi bi-eye" id="wifiPasswordIcon"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleWifiPassword(e) {
+    e.preventDefault();
+    const span = e.currentTarget.closest('div').querySelector('[data-password]');
+    const icon = e.currentTarget.querySelector('i');
+    if (span.dataset.shown === '1') {
+        span.dataset.shown = '0';
+        span.textContent = '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
+        icon.className = 'bi bi-eye';
+    } else {
+        span.dataset.shown = '1';
+        span.textContent = span.dataset.password;
+        icon.className = 'bi bi-eye-slash';
+    }
+}
+
+function connectWifi(btn) {
+    const uri = btn.getAttribute('data-wifi-uri');
+    const hint = document.getElementById('wifiConnectHint');
+    let triggered = false;
+    const onBlur = function () {
+        triggered = true; // app switched away = the OS handled it
+    };
+    window.addEventListener('blur', onBlur, { once: true });
+    window.location.href = uri;
+    setTimeout(function () {
+        window.removeEventListener('blur', onBlur);
+        if (!triggered) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            if (isIOS) {
+                window.location.href = 'App-Prefs:root=WIFI';
+                if (hint) hint.textContent = "{{ _('Tip: tap a network and enter the password shown below, or scan the QR with your camera.') }}";
+            } else if (isAndroid) {
+                window.location.href = 'intent:#Intent;action=android.settings.WIFI_SETTINGS;end';
+                if (hint) hint.textContent = "{{ _('Tip: select the network and enter the password below, or scan the QR with your camera.') }}";
+            } else {
+                if (hint) hint.textContent = "{{ _('Scan the QR with your phone camera to connect.') }}";
+            }
+        }
+    }, 600);
+}
+</script>
+{% endif %}

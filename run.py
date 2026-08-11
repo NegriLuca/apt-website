@@ -1,9 +1,11 @@
 import os
 import subprocess
-from app import create_app, db
-from app.models import User, Apartment, Reservation
 import time  # Importiamo time per la pausa di attesa
+
 from sqlalchemy.exc import OperationalError
+
+from app import create_app, db
+from app.models import Apartment, User
 
 # ── AUTO-COMPILE BABEL TRANSLATIONS ──
 # This builds your binary .mo files directly inside the Railway container on startup
@@ -48,18 +50,18 @@ with app.app_context():
 
     # ── AUTO-CREATE & SYNC ADMIN FROM .ENV ──
     env_password = os.environ.get('ADMIN_PASSWORD')
-    
+
     if env_password:
         admin_user = User.query.filter_by(username='admin').first()
-        
+
         if not admin_user:
             print("👤 Admin user not found. Creating a fresh admin account...")
             admin_user = User(
                 username='admin',
-                is_admin=True 
+                is_admin=True
             )
             db.session.add(admin_user)
-        
+
         admin_user.is_admin = True
         admin_user.set_password(env_password)
         db.session.commit()
@@ -97,6 +99,12 @@ with app.app_context():
         default_apartment.nuki_enabled = bool(nuki_id and nuki_token)
         db.session.commit()
         print(f"✅ Nuki config synced (enabled={default_apartment.nuki_enabled}, action={default_apartment.nuki_unlock_action}).")
+
+    # ── SYNC WIFI CONFIG FROM ENV VARS ──
+    # Overrides the Wi-Fi settings page on every startup when set.
+    from app.services.wifi_qr import sync_wifi_from_env
+
+    sync_wifi_from_env()
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))

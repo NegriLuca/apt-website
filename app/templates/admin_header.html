@@ -44,6 +44,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_wifi' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_wifi') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-wifi me-1"></i> {{ _('Wi-Fi') }}
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_ical_feeds' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
                    href="{{ url_for('routes.admin_ical_feeds') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
                     <i class="bi bi-calendar-event me-1"></i> {{ _('iCal') }}

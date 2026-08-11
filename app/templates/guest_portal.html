@@ -179,6 +179,9 @@
             </div>
             {% endif %}
 
+            <!-- Guest Wi-Fi -->
+            {% include 'components/wifi_card.html' %}
+
             <!-- City Tax -->
             {% if city_tax_enabled and tax_amount > 0 and not reservation.tourist_tax_paid %}
             <div class="card border-0 shadow-sm mb-4">

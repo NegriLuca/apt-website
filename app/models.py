@@ -120,6 +120,48 @@ class Apartment(db.Model):
     google_widget_js = db.Column(db.Text, nullable=True, comment='Google Reviews widget embed JS')
     trustpilot_widget_js = db.Column(db.Text, nullable=True, comment='Trustpilot widget embed JS')
 
+    # Guest Wi-Fi
+    wifi_ssid = db.Column(db.String(100), nullable=True, comment='Guest Wi-Fi network name (SSID)')
+    wifi_password = db.Column(db.String(100), nullable=True, comment='Guest Wi-Fi password')
+    wifi_security = db.Column(db.String(20), nullable=True, default='WPA', comment='WPA, WEP or nopass')
+    wifi_band = db.Column(db.String(50), nullable=True, comment='Band label shown on the card (e.g. 2.4GHz & 5GHz)')
+    wifi_hidden = db.Column(db.Boolean, default=False, comment='SSID is hidden / not broadcast')
+
+    @property
+    def wifi_configured(self) -> bool:
+        return bool(self.wifi_ssid)
+
+    def wifi_payload(self) -> str | None:
+        """QR payload in the standard WIFI: format."""
+        if not self.wifi_ssid:
+            return None
+
+        def _escape(value: str) -> str:
+            return value.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,').replace(':', '\\:').replace('"', '\\"')
+
+        security = (self.wifi_security or 'WPA').upper()
+        if security == 'NONE':
+            security = 'nopass'
+        parts = [
+            'WIFI:',
+            f'T:{security};',
+            f'S:{_escape(self.wifi_ssid)};',
+        ]
+        if self.wifi_password:
+            parts.append(f'P:{_escape(self.wifi_password)};')
+        if self.wifi_hidden:
+            parts.append('H:true;')
+        parts.append(';')
+        return ''.join(parts)
+
+    def wifi_connect_uri(self) -> str | None:
+        """Tap-to-connect URI. ``wifi:`` scheme is handled natively by Android;
+        iOS ignores the scheme (browsers block it) so the QR stays the fallback."""
+        payload = self.wifi_payload()
+        if not payload:
+            return None
+        return 'wifi:' + payload[len('WIFI:'):]
+
 
 class Reservation(db.Model):
     __tablename__ = 'reservation'
@@ -245,7 +287,7 @@ class Reservation(db.Model):
             from zoneinfo import ZoneInfo
             rome = ZoneInfo('Europe/Rome')
         except Exception:
-            from datetime import timezone, timedelta
+            from datetime import timedelta, timezone
             m = date.today().month
             rome = timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
 

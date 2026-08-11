@@ -1,13 +1,13 @@
 from datetime import date, datetime
 
-from flask import abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import csrf, db, limiter
 from app.models import Coupon, Reservation
 from app.routes import bp
 from app.routes.helpers import calculate_dynamic_total, get_apartment, is_available
-from app.services.smart_lock import SmartLockError, get_shelly_service, get_nuki_service
+from app.services.smart_lock import SmartLockError, get_nuki_service, get_shelly_service
 
 # ── API Endpoints ────────────────────────────────────────────────────────────
 
@@ -301,8 +301,8 @@ def _guest_pay_tax(reservation):
         flash('Online city tax payment is not enabled for this reservation.', 'info')
         return redirect(url_for('routes.guest_self_checkin', token=reservation.checkin_token))
 
-    from app.services.tourist_tax import TouristTaxService
     from app.routes.helpers import create_tourist_tax_payment_session
+    from app.services.tourist_tax import TouristTaxService
 
     tax_service = TouristTaxService(apartment)
     reservation.tourist_tax_amount = tax_service.calculate_tax(reservation)
@@ -326,11 +326,16 @@ def guest_access(token):
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
     door_configured = bool(apartment and apartment.nuki_enabled)
+
+    from app.services.wifi_qr import wifi_qr_data_uri
+
+    wifi_qr = wifi_qr_data_uri(apartment)
     return render_template('guest_access.html',
         reservation=reservation,
         apartment=apartment,
         gate_configured=gate_configured,
         door_configured=door_configured,
+        wifi_qr=wifi_qr,
     )
 
 
@@ -355,6 +360,9 @@ def guest_portal(token):
     if city_tax_enabled and reservation.status == 'confirmed':
         tax_amount = TouristTaxService(apartment).calculate_tax(reservation)
 
+    from app.services.wifi_qr import wifi_qr_data_uri
+
+    wifi_qr = wifi_qr_data_uri(apartment)
     return render_template('guest_portal.html',
         reservation=reservation,
         apartment=apartment,
@@ -367,4 +375,5 @@ def guest_portal(token):
         today=today,
         city_tax_enabled=city_tax_enabled,
         tax_amount=tax_amount,
+        wifi_qr=wifi_qr,
     )

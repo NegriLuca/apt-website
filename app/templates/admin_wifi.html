@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Guest Wi-Fi') }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% include 'admin_header.html' %}
+
+    <div class="main-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="page-title mb-1">{{ _('Guest Wi-Fi') }}</h1>
+                        <p class="lead text-muted mb-0">{{ _('Network name, password and scan-to-connect QR for your guests') }}</p>
+                    </div>
+                    {% if qr_data_uri %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('routes.admin_wifi_qr_png') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-download me-1"></i>{{ _('Download PNG') }}
+                        </a>
+                        <a href="{{ url_for('routes.admin_wifi_print') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-printer me-1"></i>{{ _('Printable Card') }}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form method="POST" class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ _('Network Name (SSID)') }}</label>
+                            <input type="text" name="wifi_ssid" class="form-control"
+                                   value="{{ apartment.wifi_ssid or '' }}" maxlength="100"
+                                   placeholder="{{ _('e.g. Lotto235 Guest') }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ _('Password') }}</label>
+                            <div class="input-group">
+                                <input type="password" name="wifi_password" id="wifiPassword" class="form-control"
+                                       value="{{ apartment.wifi_password or '' }}" maxlength="100"
+                                       placeholder="{{ _('Leave empty for an open network') }}">
+                                <button type="button" class="btn btn-outline-secondary" id="togglePassword" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">{{ _('Used for the QR code. Not shown on the guest portal.') }}</div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Security') }}</label>
+                                <select name="wifi_security" class="form-select">
+                                    {% for sec, label in [('WPA', 'WPA / WPA2 / WPA3'), ('WEP', 'WEP'), ('NOPASS', _('Open (no password)'))] %}
+                                    <option value="{{ sec }}" {% if (apartment.wifi_security or 'WPA').upper() == sec %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Band / Label (optional)') }}</label>
+                                <input type="text" name="wifi_band" class="form-control"
+                                       value="{{ apartment.wifi_band or '' }}" maxlength="50"
+                                       placeholder="{{ _('e.g. 2.4GHz & 5GHz') }}">
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="wifi_hidden" value="1"
+                                   id="wifiHidden" {% if apartment.wifi_hidden %}checked{% endif %}>
+                            <label class="form-check-label" for="wifiHidden">{{ _('Hidden network (SSID not broadcast)') }}</label>
+                        </div>
+
+                        <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">
+                            <i class="bi bi-save me-2"></i>{{ _('Save Wi-Fi Settings') }}
+                        </button>
+                    </div>
+                </form>
+
+                {% if qr_data_uri %}
+                <!-- QR Preview -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <h5 class="fw-bold mb-1">{{ _('Scan-to-Connect QR') }}</h5>
+                        <p class="text-muted small mb-4">{{ _('Guests scan this with their phone camera to join instantly.') }}</p>
+                        <img src="{{ qr_data_uri }}" alt="{{ _('Wi-Fi QR code') }}" class="img-fluid rounded border"
+                             style="max-width: 280px;">
+                        <div class="mt-4">
+                            <div class="text-uppercase small text-muted fw-semibold">{{ _('Network') }}</div>
+                            <div class="fw-bold fs-5">{{ apartment.wifi_ssid }}</div>
+                            {% if apartment.wifi_password %}
+                            <div class="text-uppercase small text-muted fw-semibold mt-2">{{ _('Password') }}</div>
+                            <div class="fw-bold fs-5">{{ apartment.wifi_password }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-center gap-2 mt-4">
+                            <a href="{{ url_for('routes.admin_wifi_qr_png') }}" class="btn-luxury-primary py-2 px-4 text-decoration-none d-inline-block">
+                                <i class="bi bi-download me-1"></i>{{ _('Download QR') }}
+                            </a>
+                            <a href="{{ url_for('routes.admin_wifi_print') }}" class="btn-luxury-outline py-2 px-4 text-decoration-none d-inline-block">
+                                <i class="bi bi-printer me-1"></i>{{ _('Print Card') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card border-0 bg-dark p-4">
+                    <h6 class="fw-bold mb-3 text-white"><i class="bi bi-info-circle me-2"></i>{{ _('Guest Wi-Fi') }}</h6>
+                    <ul class="small text-white-50 mb-0" style="color: rgba(255,255,255,0.7) !important;">
+                        <li class="mb-1">{{ _('Save the network name (SSID) to generate the QR code.') }}</li>
+                        <li>{{ _('The QR and credentials also appear on every guest portal and access page during a stay.') }}</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('togglePassword')?.addEventListener('click', function () {
+    const input = document.getElementById('wifiPassword');
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+});
+</script>
+{% endblock %}

@@ -1,7 +1,7 @@
 import calendar
 import json
 import secrets
-from datetime import date, datetime, timezone, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from flask import Response, abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -220,6 +220,82 @@ def admin_smart_access() -> Response | str:
         gate_configured=gate_configured,
         door_configured=door_configured,
     )
+
+
+@bp.route('/admin/wifi', methods=['GET', 'POST'])
+@login_required
+def admin_wifi() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = Apartment.query.first()
+    if not apartment:
+        apartment = Apartment(name='Lotto 235 Garbatella', price_per_night=130.00)
+        db.session.add(apartment)
+        db.session.commit()
+
+    if request.method == 'POST':
+        apartment.wifi_ssid = request.form.get('wifi_ssid', '').strip()
+        apartment.wifi_password = request.form.get('wifi_password', '').strip()
+        apartment.wifi_security = request.form.get('wifi_security', 'WPA').strip().upper()
+        apartment.wifi_band = request.form.get('wifi_band', '').strip()
+        apartment.wifi_hidden = request.form.get('wifi_hidden') == '1'
+        db.session.commit()
+        admin_audit_log('update_wifi', 'Apartment', apartment.id, f"Wi-Fi '{apartment.wifi_ssid}' configured")
+        flash(_('Guest Wi-Fi settings saved!'), 'success')
+        return redirect(url_for('routes.admin_wifi'))
+
+    from app.services.wifi_qr import wifi_qr_data_uri
+
+    qr_data_uri = wifi_qr_data_uri(apartment)
+    preview_data = {
+        'ssid': apartment.wifi_ssid,
+        'password': apartment.wifi_password,
+        'security': apartment.wifi_security,
+        'band': apartment.wifi_band,
+        'hidden': apartment.wifi_hidden,
+    }
+    return render_template('admin_wifi.html', apartment=apartment, qr_data_uri=qr_data_uri, preview_data=preview_data)
+
+
+@bp.route('/admin/wifi/qr.png')
+@login_required
+def admin_wifi_qr_png() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = Apartment.query.first()
+    scale = request.args.get('scale', 10, type=int) or 10
+
+    from app.services.wifi_qr import wifi_qr_bytes
+
+    png = wifi_qr_bytes(apartment, scale=scale)
+    if not png:
+        abort(404)
+
+    return Response(
+        png,
+        mimetype='image/png',
+        headers={'Content-Disposition': 'attachment; filename="lotto235-wifi-qr.png"'},
+    )
+
+
+@bp.route('/admin/wifi/print')
+@login_required
+def admin_wifi_print() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = Apartment.query.first()
+
+    from app.services.wifi_qr import wifi_qr_data_uri
+
+    qr_data_uri = wifi_qr_data_uri(apartment)
+    if not qr_data_uri:
+        flash(_('Configure the guest Wi-Fi before printing.'), 'warning')
+        return redirect(url_for('routes.admin_wifi'))
+
+    return render_template('admin_wifi_print.html', apartment=apartment, qr_data_uri=qr_data_uri)
 
 
 @bp.route('/admin/trust-badges', methods=['GET', 'POST'])
@@ -678,7 +754,7 @@ def _rome_zone():
 
         return ZoneInfo('Europe/Rome')
     except Exception:
-        from datetime import timezone, timedelta
+        from datetime import timedelta, timezone
 
         m = date.today().month
         return timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
@@ -692,7 +768,7 @@ def access_window_utc(reservation):
     tz = _rome_zone()
     start = _dt(reservation.check_in.year, reservation.check_in.month, reservation.check_in.day, 13, 0, tzinfo=tz)
     end = _dt(reservation.check_out.year, reservation.check_out.month, reservation.check_out.day, 13, 0, tzinfo=tz)
-    return start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+    return start.astimezone(UTC), end.astimezone(UTC)
 
 
 @bp.route('/admin/access/generate-keypad-code', methods=['POST'])
