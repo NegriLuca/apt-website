@@ -118,13 +118,14 @@
                 {{ _('After turning right, you will see the covered entrance for') }} <strong>Scala C</strong>. {{ _('Push open the main glass and iron entrance door to access the building lobby.') }}
             </p>
 
-            {% if access_url %}
+            {% if access_token %}
             <div class="mb-4">
-                <a href="{{ access_url }}" class="btn-luxury-primary w-100 py-3 fw-bold text-center d-block text-decoration-none">
+                <button type="button" class="btn-luxury-primary w-100 py-3 fw-bold text-center d-block" id="gateBtn" onclick="openBuildingGate()">
                     <i class="bi bi-building me-2"></i>{{ _('Open the Building Gate') }}
-                </a>
-                <div class="text-center mt-3">
-                    <small class="text-muted">{{ _('Press the gate button on the access page to unlock the building gate from your phone.') }}</small>
+                </button>
+                <div id="gateStatus" class="mt-3"></div>
+                <div class="text-center mt-2">
+                    <small class="text-muted">{{ _('Active from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}</small>
                 </div>
             </div>
             {% endif %}
@@ -189,6 +190,22 @@
         </div>
     </div>
 
+    <!-- Popup modal -->
+    <div class="modal fade" id="gateMessageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="gateMessageTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
+                </div>
+                <div class="modal-body pt-0" id="gateMessageBody"></div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-dark btn-sm px-4" data-bs-dismiss="modal">{{ _('OK') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer note -->
     <div class="text-center mt-5 pt-4 border-top">
         <i class="bi bi-chat-heart text-accent fs-4"></i>
@@ -199,4 +216,55 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const accessToken = {{ access_token | tojson }};
+const windowStart = new Date({{ window_start_iso | tojson }});
+const windowEnd = new Date({{ window_end_iso | tojson }});
+
+function showPopup(title, message, type) {
+    document.getElementById('gateMessageTitle').textContent = title;
+    const alert = type === 'success' ? 'alert-success' : 'alert-warning';
+    document.getElementById('gateMessageBody').innerHTML =
+        `<div class="alert ${alert} py-2 small mb-0" role="alert">${message}</div>`;
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('gateMessageModal'));
+    modal.show();
+}
+
+async function openBuildingGate() {
+    const btn = document.getElementById('gateBtn');
+    const now = new Date();
+
+    if (now < windowStart) {
+        showPopup({{ _('Not yet available') | tojson }}, {{ _('It\'s too early! The building gate can be opened from 13:00 on your check-in day, until 13:00 on your check-out day (Rome time).') | tojson }}, 'error');
+        return;
+    }
+    if (now > windowEnd) {
+        showPopup({{ _('Access expired') | tojson }}, {{ _('The gate access expired at 13:00 on your check-out day.') | tojson }}, 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + {{ _('Opening...') | tojson }};
+    try {
+        const response = await fetch('/api/access/gate/open', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Access-Token': accessToken }
+        });
+        const data = await response.json();
+        if (data.ok) {
+            showPopup({{ _('Gate opened') | tojson }}, {{ _('The building gate is now open. Please walk through!') | tojson }}, 'success');
+        } else {
+            showPopup({{ _('Gate error') | tojson }}, data.error || {{ _('Failed to open the gate. Please contact the host.') | tojson }}, 'error');
+        }
+    } catch (e) {
+        showPopup({{ _('Connection error') | tojson }}, {{ _('Please check your connection and try again.') | tojson }}, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-building me-2"></i>' + {{ _('Open the Building Gate') | tojson }};
+    }
+}
+</script>
 {% endblock %}

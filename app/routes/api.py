@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from flask import abort, current_app, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -348,19 +348,32 @@ def guest_checkin_guide(token):
     Uses the reservation's access token (same link family as the guest access
     page) so the host can share it before check-in. Not restricted to the stay
     window on purpose — guests should read it while travelling to the flat.
+    The gate button on the page is only enabled during the stay window.
     """
     reservation = Reservation.query.filter_by(access_token=token).first_or_404()
     apartment = get_apartment()
-    access_url = (
-        url_for('routes.guest_access', token=reservation.access_token, _external=True)
-        if reservation.access_token
-        else None
+
+    try:
+        from zoneinfo import ZoneInfo
+
+        rome = ZoneInfo('Europe/Rome')
+    except Exception:
+        rome = timezone.utc
+
+    window_start = datetime(
+        reservation.check_in.year, reservation.check_in.month, reservation.check_in.day, 13, 0, tzinfo=rome
     )
+    window_end = datetime(
+        reservation.check_out.year, reservation.check_out.month, reservation.check_out.day, 13, 0, tzinfo=rome
+    )
+
     return render_template(
         'checkin_guide.html',
         reservation=reservation,
         apartment=apartment,
-        access_url=access_url,
+        access_token=reservation.access_token,
+        window_start_iso=window_start.astimezone(timezone.utc).isoformat(),
+        window_end_iso=window_end.astimezone(timezone.utc).isoformat(),
     )
 
 
