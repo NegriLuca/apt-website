@@ -5,6 +5,20 @@
 {% block content %}
 <div class="main-content">
 
+    <style>
+        .step-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            object-position: top center;
+            border-radius: var(--radius-none);
+            border: 1px solid var(--color-border);
+        }
+        @media (max-width: 575.98px) {
+            .step-img { height: 220px; }
+        }
+    </style>
+
     <!-- Header -->
     <div class="text-center mb-5">
         <h1 class="page-title mb-2">{{ _('Self Check-in Guide') }}</h1>
@@ -66,7 +80,7 @@
                 {{ _('Locate building number') }} <strong>235</strong> {{ _('on Circonvallazione Ostiense. Walk directly through the covered passageway under the building.') }}
             </p>
             <img src="{{ url_for('static', filename='images/checkin_instructions/Street_Entrance.jpeg') }}"
-                 alt="{{ _('Street Entrance 235') }}" class="w-100 rounded border">
+                 alt="{{ _('Street Entrance 235') }}" class="step-img">
         </div>
     </div>
 
@@ -86,7 +100,7 @@
                 {{ _('Continue walking straight through the internal courtyard along the paved pathway until you reach the very end, then turn right.') }}
             </p>
             <img src="{{ url_for('static', filename='images/checkin_instructions/Courtyard.jpeg') }}"
-                 alt="{{ _('Inner Courtyard Pathway') }}" class="w-100 rounded border">
+                 alt="{{ _('Inner Courtyard Pathway') }}" class="step-img">
         </div>
     </div>
 
@@ -105,8 +119,20 @@
             <p class="text-muted mb-4">
                 {{ _('After turning right, you will see the covered entrance for') }} <strong>Scala C</strong>. {{ _('Push open the main glass and iron entrance door to access the building lobby.') }}
             </p>
+
+            {% if access_url %}
+            <div class="mb-4">
+                <a href="{{ access_url }}" class="btn-luxury-primary w-100 py-3 fw-bold text-center d-block text-decoration-none">
+                    <i class="bi bi-building me-2"></i>{{ _('Open the Building Gate') }}
+                </a>
+                <div class="text-center mt-3">
+                    <small class="text-muted">{{ _('Press the gate button on the access page to unlock the building gate from your phone.') }}</small>
+                </div>
+            </div>
+            {% endif %}
+
             <img src="{{ url_for('static', filename='images/checkin_instructions/ScalaC_Entrance.jpeg') }}"
-                 alt="{{ _('Building Entrance Scala C') }}" class="w-100 rounded border">
+                 alt="{{ _('Building Entrance Scala C') }}" class="step-img">
         </div>
     </div>
 
@@ -126,7 +152,7 @@
                 {{ _('Once inside the lobby on the ground floor, walk straight down the hallway past the stairs and elevator, then turn right at the end.') }}
             </p>
             <img src="{{ url_for('static', filename='images/checkin_instructions/GroundFloor_Hallway.jpeg') }}"
-                 alt="{{ _('Ground Floor Hallway') }}" class="w-100 rounded border">
+                 alt="{{ _('Ground Floor Hallway') }}" class="step-img">
         </div>
     </div>
 
@@ -160,17 +186,8 @@
             </div>
             {% endif %}
 
-            {% if access_url %}
-            <a href="{{ access_url }}" class="btn-luxury-primary w-100 py-3 fw-bold text-center d-block text-decoration-none">
-                <i class="bi bi-building me-2"></i>{{ _('Open Gate & Door Access Page') }}
-            </a>
-            <div class="text-center mt-3">
-                <small class="text-muted">{{ _('Press the buttons there to open the building gate and the apartment door during your stay.') }}</small>
-            </div>
-            {% endif %}
-
             <img src="{{ url_for('static', filename='images/checkin_instructions/Apartment_Entrance.jpeg') }}"
-                 alt="{{ _('Apartment Entrance Door') }}" class="w-100 rounded border mt-4">
+                 alt="{{ _('Apartment Entrance Door') }}" class="step-img mt-4">
         </div>
     </div>
 
