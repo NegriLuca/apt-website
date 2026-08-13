@@ -604,7 +604,7 @@ class QuesturaService:
                 document_type=document_type or 'altro',
                 document_number=document_number or '',
                 document_expiry=document_expiry if isinstance(document_expiry, _date) else (_date.fromisoformat(document_expiry) if document_expiry else _date.today()),
-                document_country=document_country or 'ITA',
+                document_country=document_country or '',
                 gender=gender or 'M',
                 check_in=reservation.check_in,
                 check_out=reservation.check_out,

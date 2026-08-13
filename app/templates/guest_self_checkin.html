@@ -100,7 +100,7 @@
                     'document_type': reservation.guest_document_type or '',
                     'document_number': reservation.guest_document_number or '',
                     'document_expiry': reservation.guest_document_expiry.strftime('%Y-%m-%d') if reservation.guest_document_expiry else '',
-                    'document_country': reservation.guest_document_country or 'ITA',
+                    'document_country': reservation.guest_document_country or '',
                 } %}
                 {% else %}
                 {% set c = companions[g - 1] if (g - 1 < companions|length) else {} %}
@@ -162,7 +162,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-uppercase small">{{ _('Issuing Country') }}</label>
-                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_document_country" required maxlength="3" value="{{ c.get('document_country', 'ITA') }}" placeholder="ITA">
+                            <input type="text" class="form-control form-control-lg" name="guest_{{ g }}_document_country" required maxlength="3" value="{{ c.get('document_country', '') }}" placeholder="ITA">
                         </div>
                     </div>
                 </div>

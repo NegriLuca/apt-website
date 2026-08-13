@@ -210,6 +210,15 @@ def guest_self_checkin(token):
         return render_template('guest_self_checkin.html', reservation=reservation, already_completed=True)
 
     if request.method == 'POST':
+        REQUIRED_GUEST_FIELDS = [
+            'surname', 'first_name', 'birth_date', 'birth_place',
+            'nationality', 'gender', 'document_type', 'document_number',
+            'document_expiry', 'document_country',
+        ]
+
+        def _guest_incomplete(data):
+            return [f for f in REQUIRED_GUEST_FIELDS if not data.get(f)]
+
         def _guest_data(prefix: str):
             birth_date_str = request.form.get(f'{prefix}birth_date', '').strip()
             doc_expiry_str = request.form.get(f'{prefix}document_expiry', '').strip()
@@ -234,13 +243,31 @@ def guest_self_checkin(token):
                 'document_country': request.form.get(f'{prefix}document_country', '').strip(),
             }
 
+        def _reject(message):
+            flash(message, 'danger')
+            return render_template('guest_self_checkin.html', reservation=reservation)
+
         main = _guest_data('guest_0_')
         if main is None:
-            flash('Invalid birth date format.', 'danger')
-            return render_template('guest_self_checkin.html', reservation=reservation)
+            return _reject('Invalid birth date format.')
         if main.get('document_expiry') is None:
-            flash('Invalid document expiry date.', 'danger')
-            return render_template('guest_self_checkin.html', reservation=reservation)
+            return _reject('Invalid document expiry date.')
+        missing_main = _guest_incomplete(main)
+        if missing_main:
+            return _reject('Please fill in all required guest details before completing check-in.')
+
+        companions = []
+        for g in range(1, reservation.num_guests):
+            data = _guest_data(f'guest_{g}_')
+            if data is None:
+                return _reject('Invalid birth date format.')
+            if data.get('document_expiry') is None:
+                return _reject('Invalid document expiry date.')
+            missing = _guest_incomplete(data)
+            if missing:
+                return _reject('Please fill in all required guest details before completing check-in.')
+            companions.append({k: (v.isoformat() if hasattr(v, 'isoformat') else v) for k, v in data.items()})
+        reservation.companions = companions or None
 
         reservation.guest_surname = main['surname']
         reservation.guest_first_name = main['first_name']
@@ -252,18 +279,6 @@ def guest_self_checkin(token):
         reservation.guest_document_expiry = main['document_expiry']
         reservation.guest_document_country = main['document_country']
         reservation.guest_gender = main['gender']
-
-        companions = []
-        for g in range(1, reservation.num_guests):
-            data = _guest_data(f'guest_{g}_')
-            if data is None:
-                flash('Invalid birth date format.', 'danger')
-                return render_template('guest_self_checkin.html', reservation=reservation)
-            if data.get('document_expiry') is None:
-                flash('Invalid document expiry date.', 'danger')
-                return render_template('guest_self_checkin.html', reservation=reservation)
-            companions.append({k: (v.isoformat() if hasattr(v, 'isoformat') else v) for k, v in data.items()})
-        reservation.companions = companions or None
 
         reservation.checkin_completed_at = datetime.utcnow()
         reservation.checkin_token_used = True

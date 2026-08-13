@@ -96,7 +96,7 @@
                             <div class="col-md-6">
                                 <label class="form-label">{{ _('Issuing Country (ISO 3166-1 alpha-3)') }} <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="guest_document_country" 
-                                    value="{{ reservation.guest_document_country or 'ITA' }}" required maxlength="3"
+                                    value="{{ reservation.guest_document_country }}" required maxlength="3"
                                     placeholder="ITA, FRA, DEU, USA, GBR...">
                                 <div class="form-text">ISO 3-letter code (e.g. ITA for Italy)</div>
                             </div>
