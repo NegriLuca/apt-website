@@ -131,6 +131,9 @@ class TestQuesturaModel:
                 xml = log.request_xml
                 assert xml.count('Rossi') >= 1
                 assert xml.count('Bianchi') >= 1
+                # Tabella 1 records are fixed 168 chars, CRLF-separated.
+                records = xml.split('\r\n')
+                assert all(len(r) == 168 for r in records)
 
     def test_submit_reservation_requires_guest_data(self, app):
         from app.services.questura import get_questura_service
@@ -199,3 +202,71 @@ class TestQuesturaModel:
             db.session.commit()
 
             assert res.questura_logs.count() == 3
+
+    def test_build_record_single_italian_guest(self, app):
+        from datetime import date as d
+
+        from app.services.questura import QuesturaGuest, get_questura_service
+
+        with app.app_context():
+            svc = get_questura_service(test_mode=True)
+            guest = QuesturaGuest(
+                surname='Rossi', first_name='Mario', birth_date=d(1990, 1, 1),
+                birth_place='Roma', birth_country='ITA', nationality='ITA',
+                document_type='id_card', document_number='AB123456',
+                document_expiry=d(2030, 1, 1), document_country='ITA',
+                gender='M', check_in=d(2026, 8, 13), check_out=d(2026, 8, 15),
+                reservation_id=1,
+            )
+            schedine = svc.build_schedine([guest])
+            record = schedine[0]
+            assert len(record) == 168
+            # tipo alloggiato (0:2), data arrivo (2:12), giorni (12:14)
+            assert record[0:2] == '16'
+            assert record[2:12] == '13/08/2026'
+            assert record[12:14] == ' 2'
+            # cognome/nome padded
+            assert record[14:64].strip() == 'Rossi'
+            assert record[64:94].strip() == 'Mario'
+            # sesso M=1, data nascita, Italia 100000100 in stato nascita e cittadinanza
+            assert record[94] == '1'
+            assert record[95:105] == '01/01/1990'
+            assert record[116:125] == '100000100'
+            assert record[125:134] == '100000100'
+            # documento: IDENT + numero + luogo (comune code not resolved in test mode)
+            assert record[134:139].strip() == 'IDENT'
+            assert record[139:159].strip() == 'AB123456'
+
+    def test_build_record_family_group(self, app):
+        from datetime import date as d
+
+        from app.services.questura import QuesturaGuest, get_questura_service
+
+        with app.app_context():
+            svc = get_questura_service(test_mode=True)
+            main = QuesturaGuest(
+                surname='Rossi', first_name='Mario', birth_date=d(1990, 1, 1),
+                birth_place='Roma', birth_country='ITA', nationality='ITA',
+                document_type='passport', document_number='AB123456',
+                document_expiry=d(2030, 1, 1), document_country='ITA',
+                gender='M', check_in=d(2026, 8, 13), check_out=d(2026, 8, 15),
+                reservation_id=1,
+            )
+            child = QuesturaGuest(
+                surname='Rossi', first_name='Anna', birth_date=d(2018, 5, 5),
+                birth_place='Roma', birth_country='ITA', nationality='ITA',
+                document_type='', document_number='',
+                document_expiry=d(2030, 1, 1), document_country='ITA',
+                gender='F', check_in=d(2026, 8, 13), check_out=d(2026, 8, 15),
+                reservation_id=1,
+            )
+            records = svc.build_schedine([main, child])
+            assert len(records) == 2
+            assert all(len(r) == 168 for r in records)
+            # capo famiglia (17) then familiare (19)
+            assert records[0][0:2] == '17'
+            assert records[1][0:2] == '19'
+            # familiare document fields are blank
+            assert records[1][134:168] == ' ' * 34
+            # gender F=2
+            assert records[1][94] == '2'

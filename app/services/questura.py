@@ -65,6 +65,8 @@ class QuesturaService:
         self.test_mode = test_mode
         self.session = self._create_session()
         self._config_cache = {}
+        self._document_codes = None
+        self._luoghi = None
 
     def _create_session(self) -> requests.Session:
         """Create requests session with retry strategy"""
@@ -114,69 +116,226 @@ class QuesturaService:
             return endpoint
         return self.TEST_ENDPOINT if self.test_mode else self.DEFAULT_ENDPOINT
 
-    # ── Schedina XML building ────────────────────────────────────────────────
+    # ── Schedina record building ─────────────────────────────────────────────
+    #
+    # The AlloggiatiWeb `Send` operation expects fixed-width text records
+    # ("tracciato record", D.M. 07/01/2013). Normal struttura accounts use
+    # tabella 1: 168 characters per alloggiato. (Accounts with "Lista
+    # Appartamenti" use tabella 2 = 174 chars, adding IdAppartamento.)
+    #
+    # Layout (0-indexed):
+    #   0:2   tipo alloggiato (16=ospite singolo, 17=capo famiglia,
+    #                         19=familiare, 18/20=membro gruppo)
+    #   2:12  data arrivo (gg/mm/aaaa)
+    #   12:14 giorni permanenza (max 30)
+    #   14:64 cognome (left-padded with spaces)
+    #   64:94 nome
+    #   94:95 sesso (1=M, 2=F)
+    #   95:105 data nascita (gg/mm/aaaa)
+    #   105:114 comune nascita (codice 9 cifre, blank if born abroad)
+    #   114:116 provincia nascita (sigla 2 lettere, blank if born abroad)
+    #   116:125 stato nascita (codice 9 cifre, obbligatorio)
+    #   125:134 cittadinanza (codice 9 cifre, obbligatorio)
+    #   134:139 tipo documento (codice 5, blank for familiari/membri)
+    #   139:159 numero documento (blank for familiari/membri)
+    #   159:168 luogo/stato rilascio documento (blank for familiari/membri)
+    ITALY_STATE_CODE = '100000100'
 
-    def build_guest_xml(self, guest: QuesturaGuest) -> str:
-        """Build the AlloggiatiWeb schedina XML for a single guest."""
+    # Confirmed by the official manual (MANUALEALBERGHI.pdf §12):
+    #   IDENT = Carta d'Identità. The other codes are resolved at runtime
+    #   from the Tipi_Documento table downloaded via the SOAP `Tabella` op.
+    _DOC_TYPE_KEYWORDS = {
+        'id_card': ['carta d\'identit', 'carta di identit', 'carta identit', 'identit', 'id card', 'carta identita'],
+        'passport': ['passaporto', 'passaport', 'passport'],
+        'driving_license': ['patente', 'patente di guida', 'driving license', 'driving licence', 'licenza di guida'],
+    }
 
-        def fmt_date(d: date) -> str:
+    def build_schedine(self, guests: list[QuesturaGuest]) -> list[str]:
+        """Build the 168-char text records (tabella 1) for a group of guests.
+
+        A single guest becomes tipo 16 (ospite singolo). Multiple guests become
+        a capo famiglia (17) followed by familiari (19), whose document fields
+        are blank per the tracciato record rules.
+        """
+        if len(guests) == 1:
+            return [self._build_record(guests[0], '16')]
+        records = [self._build_record(guests[0], '17')]
+        records.extend(self._build_record(g, '19', include_document=False) for g in guests[1:])
+        return records
+
+    def _build_record(self, guest: QuesturaGuest, tipo: str, include_document: bool = True) -> str:
+        def pad(value: str | None, width: int, align: str = 'left') -> str:
+            v = (value or '')[:width]
+            return v.ljust(width) if align == 'left' else v.rjust(width)
+
+        def blank(width: int) -> str:
+            return ' ' * width
+
+        def fmt_date(d) -> str:
+            if not d:
+                return ''
+            if isinstance(d, str):
+                try:
+                    d = datetime.strptime(d, '%Y-%m-%d').date()
+                except ValueError:
+                    return d[:10]
             return d.strftime('%d/%m/%Y')
 
-        return f"""<?xml version="1.0" encoding="UTF-8"?>
-<Alloggiati xmlns="http://www.poliziadistato.it/AlloggiatiWeb">
-    <Struttura>
-        <Protocollo>{self._escape_xml(self._get_protocol())}</Protocollo>
-    </Struttura>
-    <Ospite>
-        <Cognome>{self._escape_xml(guest.surname)}</Cognome>
-        <Nome>{self._escape_xml(guest.first_name)}</Nome>
-        <DataNascita>{fmt_date(guest.birth_date)}</DataNascita>
-        <LuogoNascita>{self._escape_xml(guest.birth_place)}</LuogoNascita>
-        <StatoNascita>{self._escape_xml(guest.birth_country)}</StatoNascita>
-        <Cittadinanza>{self._escape_xml(guest.nationality)}</Cittadinanza>
-        <TipoDocumento>{self._map_doc_type(guest.document_type)}</TipoDocumento>
-        <NumeroDocumento>{self._escape_xml(guest.document_number)}</NumeroDocumento>
-        <ScadenzaDocumento>{fmt_date(guest.document_expiry)}</ScadenzaDocumento>
-        <StatoRilascioDocumento>{self._escape_xml(guest.document_country)}</StatoRilascioDocumento>
-        <Sesso>{guest.gender.upper()}</Sesso>
-        <DataArrivo>{fmt_date(guest.check_in)}</DataArrivo>
-        <DataPartenza>{fmt_date(guest.check_out)}</DataPartenza>
-    </Ospite>
-</Alloggiati>"""
+        # Days of stay, clamped to the 30-day maximum.
+        days = 0
+        if guest.check_out and guest.check_in:
+            days = min(30, max(0, (guest.check_out - guest.check_in).days))
 
-    def build_multiple_guests_xml(self, guests: list[QuesturaGuest]) -> str:
-        """Build a single Alloggiati XML with multiple <Ospite> blocks."""
+        # Sesso: 1 (M) or 2 (F).
+        gender = '2' if guest.gender and str(guest.gender).upper().startswith('F') else '1'
 
-        def fmt_date(d: date) -> str:
-            return d.strftime('%d/%m/%Y')
+        # Italy = known 9-char code; other countries cannot be resolved from
+        # the web service (no stati table is exposed) and are left blank so
+        # the API surfaces the validation error in the QuesturaLog.
+        birth_country = (guest.birth_country or guest.nationality or '').upper()
+        nationality = (guest.nationality or '').upper()
+        stato_nascita = self.ITALY_STATE_CODE if birth_country == 'ITA' else ''
+        cittadinanza = self.ITALY_STATE_CODE if nationality == 'ITA' else ''
 
-        ospiti = []
-        for guest in guests:
-            ospiti.append(f"""
-        <Ospite>
-            <Cognome>{self._escape_xml(guest.surname)}</Cognome>
-            <Nome>{self._escape_xml(guest.first_name)}</Nome>
-            <DataNascita>{fmt_date(guest.birth_date)}</DataNascita>
-            <LuogoNascita>{self._escape_xml(guest.birth_place)}</LuogoNascita>
-            <StatoNascita>{self._escape_xml(guest.birth_country)}</StatoNascita>
-            <Cittadinanza>{self._escape_xml(guest.nationality)}</Cittadinanza>
-            <TipoDocumento>{self._map_doc_type(guest.document_type)}</TipoDocumento>
-            <NumeroDocumento>{self._escape_xml(guest.document_number)}</NumeroDocumento>
-            <ScadenzaDocumento>{fmt_date(guest.document_expiry)}</ScadenzaDocumento>
-            <StatoRilascioDocumento>{self._escape_xml(guest.document_country)}</StatoRilascioDocumento>
-            <Sesso>{guest.gender.upper()}</Sesso>
-            <DataArrivo>{fmt_date(guest.check_in)}</DataArrivo>
-            <DataPartenza>{fmt_date(guest.check_out)}</DataPartenza>
-        </Ospite>""")
+        # Comune/provincia of birth — resolved against the Luoghi table.
+        comune_code, provincia = ('', '')
+        if birth_country == 'ITA' and guest.birth_place:
+            comune_code, provincia = self._find_comune(guest.birth_place)
 
-        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<Alloggiati xmlns="http://www.poliziadistato.it/AlloggiatiWeb">
-    <Struttura>
-        <Protocollo>{self._escape_xml(self._get_protocol())}</Protocollo>
-    </Struttura>"""
-        xml += ''.join(ospiti)
-        xml += '\n</Alloggiati>'
-        return xml
+        # Document block: only for ospite singolo/capo famiglia/capo gruppo.
+        doc_type = doc_number = doc_place = ''
+        if include_document and tipo in ('16', '17', '18'):
+            doc_type = self._map_doc_type(guest.document_type) or ''
+            doc_number = guest.document_number or ''
+            if doc_type:
+                doc_country = (guest.document_country or '').upper()
+                if doc_country == 'ITA':
+                    doc_place = comune_code  # issued in Italy -> comune code
+                elif doc_country and doc_country != 'ITA':
+                    doc_place = ''  # foreign state code not resolvable
+                elif birth_country == 'ITA':
+                    doc_place = comune_code
+
+        fields = [
+            pad(tipo, 2),
+            pad(fmt_date(guest.check_in), 10),
+            pad(str(days), 2, align='right'),
+            pad(guest.surname, 50),
+            pad(guest.first_name, 30),
+            pad(gender, 1),
+            pad(fmt_date(guest.birth_date), 10),
+            pad(comune_code, 9),
+            pad(provincia, 2),
+            pad(stato_nascita, 9),
+            pad(cittadinanza, 9),
+            pad(doc_type, 5),
+            pad(doc_number, 20),
+            pad(doc_place, 9),
+        ]
+        return ''.join(fields)
+
+    # ── Reference tables (SOAP `Tabella` op) ─────────────────────────────────
+
+    def _load_table(self, tipo: str, parser) -> list:
+        """Download a reference table from the web service and parse it."""
+        try:
+            token_result = self._generate_token()
+            if not token_result.get('success'):
+                logger.warning('Cannot download %s table: %s', tipo, token_result.get('error'))
+                return []
+            body = (
+                f'<Tabella xmlns="{self.SERVICE_NS}">'
+                f'<Utente>{self._escape_xml(self._get_username())}</Utente>'
+                f'<token>{self._escape_xml(token_result["token"])}</token>'
+                f'<tipo>{tipo}</tipo>'
+                f'<CSV></CSV>'
+                f'</Tabella>'
+            )
+            result = self._call('Tabella', self._build_soap_envelope(body))
+            if not result.get('success'):
+                return []
+            root = ET.fromstring(result.get('response_xml', ''))
+            err = self._find_detail_error(root)
+            if err:
+                logger.warning('Cannot download %s table: %s', tipo, err)
+                return []
+            csv_el = root.find('.//{*}CSV')
+            if csv_el is None or not csv_el.text:
+                return []
+            return parser(csv_el.text)
+        except ET.ParseError:
+            logger.exception('Invalid %s table response', tipo)
+            return []
+        except Exception:
+            logger.exception('Failed to load %s table', tipo)
+            return []
+
+    def _get_document_codes(self) -> dict[str, str]:
+        """Map lowercase description -> 5-char code from the Tipi_Documento table."""
+        if self.test_mode:
+            return {}
+        if self._document_codes is None:
+            codes = {}
+
+            def parse(text: str) -> dict[str, str]:
+                for line in text.splitlines():
+                    cols = [c.strip() for c in line.split(';')]
+                    code = next((c for c in cols if c and c.isascii() and c.isalpha() and len(c) == 5), None)
+                    desc = next((c for c in cols if c and len(c) > 5), None)
+                    if code and desc:
+                        codes[desc.lower()] = code
+                return codes
+
+            self._document_codes = self._load_table('Tipi_Documento', parse) or codes
+        return self._document_codes
+
+    def _map_doc_type(self, doc_type: str) -> str | None:
+        """Resolve the internal document type to an AlloggiatiWeb 5-char code."""
+        if not doc_type:
+            return None
+        key = doc_type.strip().lower().replace('_', ' ')
+        if key in ('id card', 'id_card', 'carta identita', 'carta d\'identita'):
+            return 'IDENT'
+        for internal, keywords in self._DOC_TYPE_KEYWORDS.items():
+            for kw in keywords:
+                if kw in key:
+                    codes = self._get_document_codes()
+                    for desc, code in codes.items():
+                        if kw in desc:
+                            return code
+        return None
+
+    def _find_comune(self, name: str) -> tuple[str, str]:
+        """Return (9-char codice, 2-char provincia) for an Italian comune name."""
+        if self.test_mode:
+            return '', ''
+        if self._luoghi is None:
+            self._luoghi = self._load_table('Luoghi', self._parse_luoghi)
+        target = self._normalize(name)
+        for code, comune, prov in self._luoghi:
+            if target == self._normalize(comune):
+                return code, prov
+        for code, comune, prov in self._luoghi:
+            if self._normalize(comune).startswith(target):
+                return code, prov
+        return '', ''
+
+    @staticmethod
+    def _parse_luoghi(text: str) -> list[tuple[str, str, str]]:
+        rows = []
+        for line in text.splitlines():
+            cols = [c.strip() for c in line.split(';')]
+            code = next((c for c in cols if c.isdigit() and len(c) == 9), None)
+            prov = next((c for c in cols if len(c) == 2 and c.isupper() and c.isalpha()), None)
+            comune = next((c for c in cols if c and not c.isdigit() and c != prov), None)
+            if code and comune:
+                rows.append((code, comune, prov or ''))
+        return rows
+
+    @staticmethod
+    def _normalize(text: str) -> str:
+        import unicodedata
+        return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode().lower()
 
     def _escape_xml(self, text: str | None) -> str:
         """Escape XML special characters"""
@@ -189,20 +348,6 @@ class QuesturaService:
             .replace('"', '&quot;')
             .replace("'", '&apos;')
         )
-
-    def _map_doc_type(self, doc_type: str) -> str:
-        """Map internal doc type to Questura codes"""
-        mapping = {
-            'passport': 'P',
-            'passaporto': 'P',
-            'id_card': 'CI',
-            'carta_identita': 'CI',
-            'driving_license': 'PAT',
-            'patente': 'PAT',
-            'other': 'ALT',
-            'altro': 'ALT',
-        }
-        return mapping.get(doc_type.lower(), 'ALT')
 
     # ── SOAP transport ───────────────────────────────────────────────────────
 
@@ -358,8 +503,15 @@ class QuesturaService:
         if not guests:
             return {'success': False, 'error': 'No guests to submit'}
 
-        schedine = [self.build_guest_xml(g) for g in guests]
-        request_xml = '\n'.join(schedine)
+        # Best-effort: warm the reference table caches (document codes,
+        # comuni). Failures are non-fatal — unresolved fields stay blank and
+        # surface as API validation errors in the log.
+        if not self.test_mode:
+            self._get_document_codes()
+            self._find_comune('')
+
+        schedine = self.build_schedine(guests)
+        request_xml = '\r\n'.join(schedine)
 
         log = QuesturaLog(
             reservation_id=guests[0].reservation_id, action='submit', request_xml=request_xml, status='pending'
