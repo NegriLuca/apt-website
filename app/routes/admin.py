@@ -1046,9 +1046,12 @@ def admin_guest_message(reservation_id: int) -> Response | str:
             keypad_status = f'error: {e}'
     checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
     access_url = url_for('routes.guest_access', token=res.access_token, _external=True)
+    guide_url = url_for('routes.guest_checkin_guide', token=res.access_token, _external=True)
 
     apt_name = apt.name if apt else 'Lotto 235 Garbatella'
     keypad_block = f"\n\U0001f511 *Codice di accesso keypad*: {res.keypad_code}\n" if res.keypad_code else ""
+    guide_block = f"\n\U0001f5fa *Come raggiungere l'appartamento* — guida al self check-in:\n{guide_url}\n"
+    guide_block_en = f"\n\U0001f5fa *Self Check-in Guide* (how to reach the apartment):\n{guide_url}\n"
 
     from app.services.tourist_tax import TouristTaxService
 
@@ -1081,11 +1084,11 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     else:
         guest_label = res.external_uid or f'#{res.id}'
 
-    checkin_message = f"""Ciao {guest_label},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}{tax_block}\n\nA presto!\n{apt_name}"""
+    checkin_message = f"""Ciao {guest_label},\n\nGrazie per aver prenotato presso {apt_name}!\n\nPer completare il check-in online (obbligatorio per legge italiana), clicca qui:\n{checkin_url}\n\nIl link \u00e8 valido dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nDurante il soggiorno potrai aprire il cancello e la porta dell'appartamento da questo link:\n{access_url}{keypad_block}{tax_block}{guide_block}\n\nA presto!\n{apt_name}"""
 
-    whatsapp_message = f"""Ciao {guest_label}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}{tax_block}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
+    whatsapp_message = f"""Ciao {guest_label}! \U0001f44b\n\nGrazie per aver prenotato da {apt_name}!\n\n\U0001f511 *Check-in online (obbligatorio)*:\n{checkin_url}\n\n\U0001f6aa *Apri cancello e porta* (valido durante il soggiorno):\n{access_url}{keypad_block}{tax_block}\n\n\U0001f5fa *Come raggiungere l'appartamento* — guida al self check-in:\n{guide_url}\n\nDisponibile dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')}.\n\nA presto!"""
 
-    airbnb_message = f"""Hi {guest_label},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}{tax_block_en}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
+    airbnb_message = f"""Hi {guest_label},\n\nThanks for booking at {apt_name}!\n\n\U0001f511 *Online Check-in (required by Italian law)*:\n{checkin_url}\n\n\U0001f6aa *Gate & Door Access* (valid during your stay):\n{access_url}{keypad_block}{tax_block_en}\n\n\U0001f5fa *Self Check-in Guide* (how to reach the apartment):\n{guide_url}\n\nAvailable from {res.check_in.strftime('%b %d')} to {res.check_out.strftime('%b %d, %Y')}.\n\nSee you soon!"""
 
     food_url = url_for('routes.food_recommendations', _external=True)
     attractions_url = url_for('routes.attractions', _external=True)
@@ -1103,6 +1106,9 @@ Grazie per aver scelto il nostro appartamento.
 
 \U0001f6aa APRI CANCELLO E PORTA (durante il soggiorno):
 {access_url}{keypad_block}{tax_block}
+
+\U0001f5fa COME RAGGIUNGERE L'APPARTAMENTO — guida al self check-in:
+{guide_url}
 
 \U0001f371 CIBO E BEVANDE — i nostri consigli:
 {food_url}
@@ -1128,6 +1134,9 @@ Thank you for choosing our apartment.
 
 \U0001f6aa OPEN GATE & DOOR (during your stay):
 {access_url}{keypad_block}{tax_block_en}
+
+\U0001f5fa SELF CHECK-IN GUIDE — how to reach the apartment:
+{guide_url}
 
 \U0001f371 FOOD & DRINKS — our recommendations:
 {food_url}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Self Check-in Guide') }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="page-title mb-2">{{ _('Self Check-in Guide') }}</h1>
+        <p class="lead text-muted mb-3">{{ apartment.name if apartment else 'Lotto 235 Garbatella' }} · Roma</p>
+        <div class="tag">{{ _('Step-by-step instructions to reach the apartment') }}</div>
+    </div>
+
+    <!-- Reservation Summary -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <div class="text-uppercase small text-muted fw-semibold">{{ _('Check-in') }}</div>
+                <div class="fw-bold">{{ reservation.check_in.strftime('%d/%m/%Y') }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-uppercase small text-muted fw-semibold">{{ _('Check-out') }}</div>
+                <div class="fw-bold">{{ reservation.check_out.strftime('%d/%m/%Y') }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-uppercase small text-muted fw-semibold">{{ _('Guest') }}</div>
+                <div class="fw-bold">{{ reservation.guest_name }}</div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="text-uppercase small text-muted fw-semibold">{{ _('Reservation') }}</div>
+                <div class="fw-bold">#{{ reservation.id }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Bar -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="d-flex align-items-center">
+            <div class="bg-dark bg-opacity-10 rounded-circle p-3 me-3 flex-shrink-0">
+                <i class="bi bi-geo-alt-fill text-dark fs-4"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold mb-1">{{ _('Address') }}</h3>
+                <p class="mb-0">Circonvallazione Ostiense 235, 00154 Roma RM</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Steps -->
+    <h2 class="section-title mb-4">{{ _('How to get in') }}</h2>
+
+    <!-- Step 1 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-dark bg-opacity-10 rounded-circle p-3 me-3 flex-shrink-0">
+                    <i class="bi bi-1-circle-fill text-dark fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0">{{ _('Arrive at Street Entrance') }}</h3>
+                    <small class="text-muted">{{ _('Step 1') }}</small>
+                </div>
+            </div>
+            <p class="text-muted mb-4">
+                {{ _('Locate building number') }} <strong>235</strong> {{ _('on Circonvallazione Ostiense. Walk directly through the covered passageway under the building.') }}
+            </p>
+            <img src="{{ url_for('static', filename='images/checkin_instructions/Street_Entrance.jpeg') }}"
+                 alt="{{ _('Street Entrance 235') }}" class="w-100 rounded border">
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-dark bg-opacity-10 rounded-circle p-3 me-3 flex-shrink-0">
+                    <i class="bi bi-2-circle-fill text-dark fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0">{{ _('Enter the Inner Courtyard') }}</h3>
+                    <small class="text-muted">{{ _('Step 2') }}</small>
+                </div>
+            </div>
+            <p class="text-muted mb-4">
+                {{ _('Continue walking straight through the internal courtyard along the paved pathway until you reach the very end, then turn right.') }}
+            </p>
+            <img src="{{ url_for('static', filename='images/checkin_instructions/Courtyard.jpeg') }}"
+                 alt="{{ _('Inner Courtyard Pathway') }}" class="w-100 rounded border">
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-dark bg-opacity-10 rounded-circle p-3 me-3 flex-shrink-0">
+                    <i class="bi bi-3-circle-fill text-dark fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0">{{ _('Locate Building Entrance (Scala C)') }}</h3>
+                    <small class="text-muted">{{ _('Step 3') }}</small>
+                </div>
+            </div>
+            <p class="text-muted mb-4">
+                {{ _('After turning right, you will see the covered entrance for') }} <strong>Scala C</strong>. {{ _('Push open the main glass and iron entrance door to access the building lobby.') }}
+            </p>
+            <img src="{{ url_for('static', filename='images/checkin_instructions/ScalaC_Entrance.jpeg') }}"
+                 alt="{{ _('Building Entrance Scala C') }}" class="w-100 rounded border">
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-dark bg-opacity-10 rounded-circle p-3 me-3 flex-shrink-0">
+                    <i class="bi bi-4-circle-fill text-dark fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0">{{ _('Ground Floor Hallway') }}</h3>
+                    <small class="text-muted">{{ _('Step 4') }}</small>
+                </div>
+            </div>
+            <p class="text-muted mb-4">
+                {{ _('Once inside the lobby on the ground floor, walk straight down the hallway past the stairs and elevator, then turn right at the end.') }}
+            </p>
+            <img src="{{ url_for('static', filename='images/checkin_instructions/GroundFloor_Hallway.jpeg') }}"
+                 alt="{{ _('Ground Floor Hallway') }}" class="w-100 rounded border">
+        </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-dark bg-opacity-10 rounded-circle p-3 me-3 flex-shrink-0">
+                    <i class="bi bi-5-circle-fill text-dark fs-3"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0">{{ _('Apartment Entrance & Smart Lock') }}</h3>
+                    <small class="text-muted">{{ _('Step 5') }}</small>
+                </div>
+            </div>
+            <p class="text-muted mb-4">
+                {{ _('You will find the wooden entrance door (Apt. 3). Enter your personal access code on the digital keypad located on the right door frame to unlock and step inside!') }}
+            </p>
+
+            {% if reservation.keypad_code %}
+            <div class="bg-dark text-white rounded p-4 mb-4 text-center">
+                <div class="text-uppercase small fw-semibold mb-2 opacity-75">{{ _('Your keypad code') }}</div>
+                <div class="display-4 fw-bold" style="letter-spacing: 8px;">{{ reservation.keypad_code }}</div>
+                <div class="small opacity-75 mt-2">
+                    {{ _('Enter it on the keypad next to the door. Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}
+                </div>
+            </div>
+            {% else %}
+            <div class="alert bg-dark bg-opacity-10 border-0 text-dark mb-4">
+                <i class="bi bi-key me-1"></i>{{ _('Your personal keypad code is sent to you via message.') }}
+            </div>
+            {% endif %}
+
+            {% if access_url %}
+            <a href="{{ access_url }}" class="btn-luxury-primary w-100 py-3 fw-bold text-center d-block text-decoration-none">
+                <i class="bi bi-building me-2"></i>{{ _('Open Gate & Door Access Page') }}
+            </a>
+            <div class="text-center mt-3">
+                <small class="text-muted">{{ _('Press the buttons there to open the building gate and the apartment door during your stay.') }}</small>
+            </div>
+            {% endif %}
+
+            <img src="{{ url_for('static', filename='images/checkin_instructions/Apartment_Entrance.jpeg') }}"
+                 alt="{{ _('Apartment Entrance Door') }}" class="w-100 rounded border mt-4">
+        </div>
+    </div>
+
+    <!-- Footer note -->
+    <div class="text-center mt-5 pt-4 border-top">
+        <i class="bi bi-chat-heart text-accent fs-4"></i>
+        <p class="text-muted mt-2 mb-0">
+            {{ _('Need assistance during check-in?') }} <strong>{{ _('Contact us via WhatsApp or phone') }}</strong>.
+            {{ _('Have a wonderful stay!') }}
+        </p>
+    </div>
+
+</div>
+{% endblock %}

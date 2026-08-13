@@ -208,6 +208,7 @@ def robots() -> Response:
     content = """User-agent: *
 Disallow: /admin/
 Disallow: /checkin/
+Disallow: /checkin-guide/
 Disallow: /portal/
 Disallow: /access/
 Disallow: /api/
