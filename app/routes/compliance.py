@@ -95,7 +95,7 @@ def questura_list() -> Response | str:
     status_filter = request.args.get('status', 'all')
     page = request.args.get('page', 1, type=int)
 
-    query = Reservation.query.order_by(Reservation.check_in.desc())
+    query = Reservation.query.filter(Reservation.status != 'cancelled').order_by(Reservation.check_in.desc())
     if status_filter != 'all':
         query = query.filter(Reservation.questura_status == status_filter)
 
@@ -334,7 +334,7 @@ def ross1000_list():
     status_filter = request.args.get('status', 'all')
     page = request.args.get('page', 1, type=int)
 
-    query = Reservation.query.order_by(Reservation.check_in.desc())
+    query = Reservation.query.filter(Reservation.status != 'cancelled').order_by(Reservation.check_in.desc())
     if status_filter != 'all':
         query = query.filter(Reservation.ross1000_status == status_filter)
 

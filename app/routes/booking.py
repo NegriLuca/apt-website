@@ -508,6 +508,9 @@ def cancel_reservation(token):
             current_app.logger.error(f'Stripe refund transaction failed: {str(e)}')
             refund_failed_warning = True
 
+    from app.services.smart_lock import revoke_reservation_keypad
+
+    revoke_reservation_keypad(reservation)
     reservation.status = 'cancelled'
     db.session.commit()
 

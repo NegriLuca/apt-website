@@ -12,6 +12,12 @@ from app.services.smart_lock import SmartLockError, get_nuki_service, get_shelly
 # ── API Endpoints ────────────────────────────────────────────────────────────
 
 
+def _abort_cancelled():
+    """Return 404 for token links of cancelled reservations (indistinguishable
+    from a missing/never-sent link)."""
+    abort(404)
+
+
 @bp.route('/api/validate-coupon')
 def validate_coupon():
     code = request.args.get('code', '').strip().upper()
@@ -197,6 +203,9 @@ def api_door_open():
 def guest_self_checkin(token):
     reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
 
+    if reservation.status == 'cancelled':
+        return _abort_cancelled()
+
     if reservation.checkin_token_used and reservation.checkin_completed_at:
         return render_template('guest_self_checkin.html', reservation=reservation, already_completed=True)
 
@@ -292,6 +301,9 @@ def guest_tax_link(token):
 
 
 def _guest_pay_tax(reservation):
+    if reservation.status == 'cancelled':
+        return _abort_cancelled()
+
     apartment = get_apartment()
     if not apartment:
         flash('City tax payment is not available right now.', 'danger')
@@ -318,6 +330,8 @@ def _guest_pay_tax(reservation):
 @bp.route('/access/<token>')
 def guest_access(token):
     reservation = Reservation.query.filter_by(access_token=token).first_or_404()
+    if reservation.status == 'cancelled':
+        return _abort_cancelled()
     if not reservation.is_access_valid():
         return render_template('guest_access_denied.html',
             reservation=reservation,
@@ -351,6 +365,8 @@ def guest_checkin_guide(token):
     The gate button on the page is only enabled during the stay window.
     """
     reservation = Reservation.query.filter_by(access_token=token).first_or_404()
+    if reservation.status == 'cancelled':
+        return _abort_cancelled()
     apartment = get_apartment()
 
     try:
@@ -380,7 +396,10 @@ def guest_checkin_guide(token):
 @bp.route('/portal/<token>')
 def guest_portal(token):
     from datetime import date
+
     reservation = Reservation.query.filter_by(checkin_token=token).first_or_404()
+    if reservation.status == 'cancelled':
+        return _abort_cancelled()
     apartment = get_apartment()
     today = date.today()
 

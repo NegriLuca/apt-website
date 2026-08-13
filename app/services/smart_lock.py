@@ -367,6 +367,39 @@ def get_nuki_service(apartment):
     return NukiService(apartment)
 
 
+def revoke_reservation_keypad(reservation):
+    """Revoke a reservation's Nuki keypad code, typically when it is cancelled.
+
+    Best-effort against the Nuki API: even if the remote revoke fails (network,
+    auth…) the stored code fields are cleared so guest-facing pages stop showing
+    the code; the physical code is then only still valid if it was already
+    programmed on the device (logged for manual follow-up). Returns True when a
+    code existed.
+    """
+    from app.models import Apartment
+
+    if not (reservation.keypad_code or reservation.keypad_auth_id):
+        return False
+
+    apartment = Apartment.query.first()
+    if apartment and apartment.nuki_enabled:
+        try:
+            svc = get_nuki_service(apartment)
+            if svc.is_configured() and reservation.keypad_auth_id:
+                svc.revoke_keypad_code(reservation.keypad_auth_id)
+        except SmartLockError:
+            current_app.logger.warning(
+                'Nuki keypad revoke failed for cancelled reservation #%s (code %s) — manual revoke needed',
+                reservation.id,
+                reservation.keypad_code,
+            )
+
+    reservation.keypad_code = None
+    reservation.keypad_auth_id = None
+    reservation.keypad_created_at = None
+    return True
+
+
 def revoke_expired_keypad_codes(apartment):
     """Revoke Nuki keypad codes for reservations whose stay has ended.
 

@@ -249,6 +249,9 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
     for r in orphans:
         if (r.check_in, r.check_out) in live_date_pairs:
             continue  # still present by dates → legitimately booked (UID may have changed)
+        from app.services.smart_lock import revoke_reservation_keypad
+
+        revoke_reservation_keypad(r)
         r.status = 'cancelled'
         cancelled += 1
         log.info(

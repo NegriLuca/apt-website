@@ -106,10 +106,16 @@ def admin_dashboard() -> Response | str:
     year_start = today.replace(month=1, day=1)
     occupancy_end = _add_months(today, 3)
 
-    reservations = Reservation.query.order_by(Reservation.check_in.desc()).all()
+    # Cancelled reservations are excluded from the ledger and all operational
+    # lists (kept in the DB for audit/compliance, just never displayed).
+    reservations = (
+        Reservation.query.filter(Reservation.status != 'cancelled')
+        .order_by(Reservation.check_in.desc())
+        .all()
+    )
 
     confirmed = [r for r in reservations if r.status == 'confirmed']
-    cancelled = [r for r in reservations if r.status == 'cancelled']
+    cancelled_count = Reservation.query.filter_by(status='cancelled').count()
     pending = [r for r in reservations if r.status == 'pending']
 
     monthly_confirmed = [r for r in confirmed if r.check_in >= month_start]
@@ -139,7 +145,7 @@ def admin_dashboard() -> Response | str:
     dashboard_data = {
         'total': len(reservations),
         'confirmed': len(confirmed),
-        'cancelled': len(cancelled),
+        'cancelled': cancelled_count,
         'pending': len(pending),
         'monthly_revenue': monthly_revenue,
         'yearly_revenue': yearly_revenue,
@@ -464,6 +470,9 @@ def admin_cancel_reservation(res_id: int) -> Response | str:
         abort(403)
 
     res = Reservation.query.get_or_404(res_id)
+    from app.services.smart_lock import revoke_reservation_keypad
+
+    revoke_reservation_keypad(res)
     res.status = 'cancelled'
     db.session.commit()
     admin_audit_log('cancel_reservation', 'Reservation', res_id, 'Cancelled by admin')
@@ -478,6 +487,9 @@ def admin_cancel_via_token(token: str) -> Response | str:
         abort(403)
 
     reservation = Reservation.query.filter_by(cancel_token=token).first_or_404()
+    from app.services.smart_lock import revoke_reservation_keypad
+
+    revoke_reservation_keypad(reservation)
     reservation.status = 'cancelled'
     db.session.commit()
     flash('Booking cancelled (admin).', 'success')
