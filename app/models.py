@@ -367,6 +367,7 @@ class ComplianceConfig(db.Model):
     # - questura_wsdl_url
     # - questura_username
     # - questura_password
+    # - questura_ws_key
     # - questura_cert_path
     # - questura_cert_password
     # - questura_protocol_number

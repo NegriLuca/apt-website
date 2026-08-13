@@ -10,7 +10,7 @@ from flask import current_app
 
 from app import db
 from app.models import Reservation
-from app.services.questura import QuesturaGuest, get_questura_service
+from app.services.questura import get_questura_service
 from app.services.tourist_tax import get_tax_service
 
 logger = logging.getLogger(__name__)
@@ -36,12 +36,12 @@ except ImportError:
 def submit_questura_daily(self):
     """
     Daily task: Submit today's check-ins to Questura.
-    Runs at 08:00 via Celery Beat.
+    Runs at 08:00 via APScheduler (or Celery Beat if available).
     Only submits reservations where guest data is complete.
     """
     try:
         today = date.today()
-        logger.info(f'Starting daily Questura submission for {today}')
+        logger.info('Starting daily Questura submission for %s', today)
 
         # Find confirmed reservations checking in today with complete guest data
         reservations = Reservation.query.filter(
@@ -61,14 +61,14 @@ def submit_questura_daily(self):
         results = {'submitted': 0, 'failed': 0, 'not_ready': len(not_ready), 'errors': []}
 
         if not_ready:
-            logger.warning(f'{len(not_ready)} reservations missing guest data for Questura')
+            logger.warning('%d reservations missing guest data for Questura', len(not_ready))
             for r in not_ready:
-                logger.warning(f'  Reservation #{r.id}: missing guest identification data')
+                logger.warning('  Reservation #%s: missing guest identification data', r.id)
 
         if not ready:
             return {
                 'success': True,
-                'message': f'No reservations ready (out of {len(reservations)} with complete guest data',
+                'message': f'No reservations ready (out of {len(reservations)} with complete guest data)',
                 **results,
             }
 
@@ -76,51 +76,25 @@ def submit_questura_daily(self):
         if not service.is_configured():
             return {'success': False, 'error': 'Questura service not configured'}
 
-        # Submit each reservation (each could have multiple guests)
+        # Submit each reservation (service.submit_reservation builds the guest
+        # list including companions and updates the reservation status itself)
         for res in ready:
-            # Build guest list from reservation
-            # For single-booking reservations, one guest record
-            # In practice, you'd want a Guest model for multiple guests per reservation
-            guest = QuesturaGuest(
-                surname=res.guest_surname,
-                first_name=res.guest_first_name,
-                birth_date=res.guest_birth_date,
-                birth_place=res.guest_birth_place,
-                birth_country=res.guest_birth_place,  # Assuming same as birth place
-                nationality=res.guest_nationality,
-                document_type=res.guest_document_type,
-                document_number=res.guest_document_number,
-                document_expiry=res.guest_document_expiry,
-                document_country=res.guest_document_country,
-                gender=res.guest_gender,
-                check_in=res.check_in,
-                check_out=res.check_out,
-                reservation_id=res.id,
-                guest_email=res.guest_email,
-                guest_phone=None,  # Not in model yet
-            )
-
-            result = service.submit_guests([guest])
+            result = service.submit_reservation(res)
 
             if result.get('success'):
                 results['submitted'] += 1
-                res.questura_status = 'accepted'
-                res.questura_submitted_at = datetime.utcnow()
             else:
                 results['failed'] += 1
                 results['errors'].append(f'Reservation #{res.id}: {result.get("error", "Unknown error")}')
-                res.questura_status = 'rejected'
-                res.questura_error = result.get('error', 'Unknown error')
 
-            db.session.add(res)
-
-        db.session.commit()
-        logger.info(f'Daily Questura submission complete: {results}')
+        logger.info('Daily Questura submission complete: %s', results)
         return results
 
     except Exception as e:
         logger.exception('Daily Questura submission failed')
-        self.retry(exc=e)
+        if self is not None and hasattr(self, 'retry'):
+            self.retry(exc=e)
+        return {'success': False, 'error': str(e)}
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=1800)
@@ -140,48 +114,25 @@ def retry_failed_questura(self, reservation_ids: list[int] = None):
 
         for res in reservations:
             if not res.questura_ready():
-                logger.warning(f'Reservation #{res.id} still missing guest data, skipping')
+                logger.warning('Reservation #%s still missing guest data, skipping', res.id)
                 continue
 
-            guest = QuesturaGuest(
-                surname=res.guest_surname,
-                first_name=res.guest_first_name,
-                birth_date=res.guest_birth_date,
-                birth_place=res.guest_birth_place,
-                birth_country=res.guest_birth_place,
-                nationality=res.guest_nationality,
-                document_type=res.guest_document_type,
-                document_number=res.guest_document_number,
-                document_expiry=res.guest_document_expiry,
-                document_country=res.guest_document_country,
-                gender=res.guest_gender,
-                check_in=res.check_in,
-                check_out=res.check_out,
-                reservation_id=res.id,
-                guest_email=res.guest_email,
-            )
-
-            result = service.submit_guests([guest])
-
-            if result.get('success'):
-                results['succeeded'] += 1
-                res.questura_status = 'accepted'
-                res.questura_submitted_at = datetime.utcnow()
-                res.questura_error = None
-            else:
-                results['failed'] += 1
-                res.questura_error = result.get('error', 'Retry failed')
+            result = service.submit_reservation(res)
 
             results['retried'] += 1
-            db.session.add(res)
+            if result.get('success'):
+                results['succeeded'] += 1
+            else:
+                results['failed'] += 1
 
-        db.session.commit()
-        logger.info(f'Questura retry complete: {results}')
+        logger.info('Questura retry complete: %s', results)
         return results
 
     except Exception as e:
         logger.exception('Questura retry failed')
-        self.retry(exc=e)
+        if self is not None and hasattr(self, 'retry'):
+            self.retry(exc=e)
+        return {'success': False, 'error': str(e)}
 
 
 @shared_task(bind=True)
@@ -410,9 +361,16 @@ CELERY_BEAT_SCHEDULE = {
 
 
 # Fallback functions for running without Celery
+def _run_sync(task, *args):
+    """Run a shared_task synchronously, whether Celery is installed or not."""
+    if hasattr(task, 'run'):  # Celery Task object
+        return task.run(*args)
+    return task(None, *args)
+
+
 def run_daily_questura():
     """Run daily Questura submission synchronously (for testing/cron)"""
-    return submit_questura_daily()
+    return _run_sync(submit_questura_daily)
 
 
 def run_monthly_tax_report():
@@ -427,4 +385,4 @@ def run_guest_reminder():
 
 def run_questura_retry(reservation_ids: list[int] = None):
     """Retry failed Questura submissions synchronously"""
-    return retry_failed_questura(reservation_ids)
+    return _run_sync(retry_failed_questura, reservation_ids)

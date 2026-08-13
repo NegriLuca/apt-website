@@ -1,6 +1,6 @@
 """
 Questura (Italian Police) guest registration service.
-Implements the AlloggiatiWeb / Ross1000 protocol for guest check-in reporting.
+Implements the AlloggiatiWeb SOAP protocol (GenerateToken + Send operations).
 """
 
 import logging
@@ -42,18 +42,24 @@ class QuesturaGuest:
 
 
 class QuesturaService:
-    """Service for submitting guest data to Questura via AlloggiatiWeb/Ross1000"""
+    """Service for submitting guest data to Questura via the AlloggiatiWeb SOAP API."""
 
-    WSDL_URL_KEY = 'questura_wsdl_url'
     USERNAME_KEY = 'questura_username'
     PASSWORD_KEY = 'questura_password'
+    WS_KEY_KEY = 'questura_ws_key'
+    PROTOCOL_KEY = 'questura_protocol_number'
+    WSDL_URL_KEY = 'questura_wsdl_url'
+
+    # Legacy certificate-based config (old WCF endpoint) — kept for reference.
     CERT_PATH_KEY = 'questura_cert_path'
     CERT_PASSWORD_KEY = 'questura_cert_password'
-    PROTOCOL_KEY = 'questura_protocol_number'
 
-    # Default Ross1000 endpoints
-    DEFAULT_WSDL = 'https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl'
-    TEST_WSDL = 'https://alloggiatiwebtest.poliziadistato.it/AlloggiatiWebService.svc?wsdl'
+    # AlloggiatiWeb ASMX endpoints
+    DEFAULT_ENDPOINT = 'https://alloggiatiweb.poliziadistato.it/service/service.asmx'
+    TEST_ENDPOINT = 'https://alloggiatiwebtest.poliziadistato.it/service/service.asmx'
+
+    SOAP_NS = 'http://schemas.xmlsoap.org/soap/envelope/'
+    SERVICE_NS = 'AlloggiatiService'
 
     def __init__(self, test_mode: bool = False):
         self.test_mode = test_mode
@@ -80,24 +86,46 @@ class QuesturaService:
             self._config_cache[key] = ComplianceConfig.get(key)
         return self._config_cache[key]
 
+    def _get_username(self) -> str | None:
+        import os
+        return os.environ.get('QUESTURA_USERNAME') or self._get_config(self.USERNAME_KEY)
+
+    def _get_password(self) -> str | None:
+        import os
+        return os.environ.get('QUESTURA_PASSWORD') or self._get_config(self.PASSWORD_KEY)
+
+    def _get_ws_key(self) -> str | None:
+        import os
+        return os.environ.get('QUESTURA_WS_KEY') or self._get_config(self.WS_KEY_KEY)
+
+    def _get_protocol(self) -> str | None:
+        import os
+        return os.environ.get('QUESTURA_PROTOCOL_NUMBER') or self._get_config(self.PROTOCOL_KEY)
+
     def is_configured(self) -> bool:
         """Check if all required config is present"""
-        required = [self.USERNAME_KEY, self.PASSWORD_KEY, self.PROTOCOL_KEY]
-        if not self.test_mode:
-            required.append(self.CERT_PATH_KEY)
-        return all(self._get_config(k) for k in required)
+        required = [self._get_username(), self._get_password(), self._get_ws_key(), self._get_protocol()]
+        return all(required)
+
+    def _get_endpoint(self) -> str:
+        import os
+        endpoint = os.environ.get('QUESTURA_ENDPOINT') or self._get_config(self.WSDL_URL_KEY)
+        if endpoint:
+            return endpoint
+        return self.TEST_ENDPOINT if self.test_mode else self.DEFAULT_ENDPOINT
+
+    # ── Schedina XML building ────────────────────────────────────────────────
 
     def build_guest_xml(self, guest: QuesturaGuest) -> str:
-        """Build XML for a single guest according to AlloggiatiWeb schema"""
+        """Build the AlloggiatiWeb schedina XML for a single guest."""
 
-        # All dates in DD/MM/YYYY format
         def fmt_date(d: date) -> str:
             return d.strftime('%d/%m/%Y')
 
-        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Alloggiati xmlns="http://www.poliziadistato.it/AlloggiatiWeb">
     <Struttura>
-        <Protocollo>{self._get_config(self.PROTOCOL_KEY)}</Protocollo>
+        <Protocollo>{self._escape_xml(self._get_protocol())}</Protocollo>
     </Struttura>
     <Ospite>
         <Cognome>{self._escape_xml(guest.surname)}</Cognome>
@@ -115,10 +143,9 @@ class QuesturaService:
         <DataPartenza>{fmt_date(guest.check_out)}</DataPartenza>
     </Ospite>
 </Alloggiati>"""
-        return xml
 
     def build_multiple_guests_xml(self, guests: list[QuesturaGuest]) -> str:
-        """Build XML for multiple guests in one submission"""
+        """Build a single Alloggiati XML with multiple <Ospite> blocks."""
 
         def fmt_date(d: date) -> str:
             return d.strftime('%d/%m/%Y')
@@ -132,7 +159,7 @@ class QuesturaService:
             <DataNascita>{fmt_date(guest.birth_date)}</DataNascita>
             <LuogoNascita>{self._escape_xml(guest.birth_place)}</LuogoNascita>
             <StatoNascita>{self._escape_xml(guest.birth_country)}</StatoNascita>
-            <Cittadinanza>{self._escape_xml(guest.nationality)}</Cittadinanza
+            <Cittadinanza>{self._escape_xml(guest.nationality)}</Cittadinanza>
             <TipoDocumento>{self._map_doc_type(guest.document_type)}</TipoDocumento>
             <NumeroDocumento>{self._escape_xml(guest.document_number)}</NumeroDocumento>
             <ScadenzaDocumento>{fmt_date(guest.document_expiry)}</ScadenzaDocumento>
@@ -145,17 +172,23 @@ class QuesturaService:
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Alloggiati xmlns="http://www.poliziadistato.it/AlloggiatiWeb">
     <Struttura>
-        <Protocollo>{self._get_config(self.PROTOCOL_KEY)}</Protocollo>
+        <Protocollo>{self._escape_xml(self._get_protocol())}</Protocollo>
     </Struttura>"""
         xml += ''.join(ospiti)
         xml += '\n</Alloggiati>'
         return xml
 
-    def _escape_xml(self, text: str) -> str:
+    def _escape_xml(self, text: str | None) -> str:
         """Escape XML special characters"""
         if not text:
             return ''
-        return text.replace('&', '&').replace('<', '<').replace('>', '>').replace('"', '"').replace("'", '&apos;')
+        return (
+            text.replace('&', '&amp;')
+            .replace('<', '&lt;')
+            .replace('>', '&gt;')
+            .replace('"', '&quot;')
+            .replace("'", '&apos;')
+        )
 
     def _map_doc_type(self, doc_type: str) -> str:
         """Map internal doc type to Questura codes"""
@@ -171,90 +204,214 @@ class QuesturaService:
         }
         return mapping.get(doc_type.lower(), 'ALT')
 
+    # ── SOAP transport ───────────────────────────────────────────────────────
+
+    def _build_soap_envelope(self, body: str) -> str:
+        return f'''<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+               xmlns:soap="{self.SOAP_NS}">
+  <soap:Body>
+    {body}
+  </soap:Body>
+</soap:Envelope>'''
+
+    def _call(self, operation: str, envelope: str) -> dict[str, Any]:
+        """POST a SOAP request to the AlloggiatiWeb endpoint."""
+        headers = {
+            'Content-Type': 'text/xml; charset=utf-8',
+            'SOAPAction': f'"{self.SERVICE_NS}/{operation}"',
+        }
+        try:
+            response = self.session.post(
+                self._get_endpoint(),
+                data=envelope.encode('utf-8'),
+                headers=headers,
+                timeout=60,
+            )
+        except requests.exceptions.Timeout:
+            logger.error('AlloggiatiWeb %s timed out', operation)
+            return {'success': False, 'error': 'Request timed out'}
+        except requests.exceptions.ConnectionError as e:
+            logger.error('AlloggiatiWeb connection error: %s', e)
+            return {'success': False, 'error': f'Connection error: {e}'}
+        except Exception as e:
+            logger.exception('AlloggiatiWeb %s failed', operation)
+            return {'success': False, 'error': str(e)}
+
+        if response.status_code != 200:
+            logger.error(
+                'AlloggiatiWeb %s HTTP %s: %s', operation, response.status_code, response.text[:500]
+            )
+            return {
+                'success': False,
+                'error': f'HTTP {response.status_code} — {response.text[:300]}',
+                'response_xml': response.text,
+            }
+
+        return {'success': True, 'response_xml': response.text}
+
+    def _generate_token(self) -> dict[str, Any]:
+        """Step 1: exchange username/password/WsKey for a short-lived token."""
+        body = (
+            f'<GenerateToken xmlns="{self.SERVICE_NS}">'
+            f'<Utente>{self._escape_xml(self._get_username())}</Utente>'
+            f'<Password>{self._escape_xml(self._get_password())}</Password>'
+            f'<WsKey>{self._escape_xml(self._get_ws_key())}</WsKey>'
+            f'</GenerateToken>'
+        )
+        result = self._call('GenerateToken', self._build_soap_envelope(body))
+        if not result.get('success'):
+            return result
+
+        response_xml = result.get('response_xml', '')
+        try:
+            root = ET.fromstring(response_xml)
+        except ET.ParseError:
+            return {'success': False, 'error': 'Invalid XML response', 'response_xml': response_xml}
+
+        err = self._find_detail_error(root)
+        if err:
+            return {'success': False, 'error': err, 'response_xml': response_xml}
+
+        token_el = root.find('.//{*}token')
+        if token_el is not None and token_el.text and token_el.text.strip():
+            return {'success': True, 'token': token_el.text.strip(), 'response_xml': response_xml}
+
+        return {'success': False, 'error': 'No token returned', 'response_xml': response_xml}
+
+    def _send_schedine(self, token: str, schedine: list[str]) -> dict[str, Any]:
+        """Step 2: send the guest schedine with the previously generated token."""
+        strings = ''.join(f'<string>{self._escape_xml(s)}</string>' for s in schedine)
+        body = (
+            f'<Send xmlns="{self.SERVICE_NS}">'
+            f'<Utente>{self._escape_xml(self._get_username())}</Utente>'
+            f'<token>{self._escape_xml(token)}</token>'
+            f'<ElencoSchedine>{strings}</ElencoSchedine>'
+            f'</Send>'
+        )
+        result = self._call('Send', self._build_soap_envelope(body))
+        if not result.get('success'):
+            return result
+        return self._parse_send_response(result.get('response_xml', ''))
+
+    def _find_detail_error(self, root: ET.Element) -> str:
+        """Extract the first non-empty <ErroreDettaglio> text."""
+        for el in root.iter('{*}ErroreDettaglio'):
+            if el.text and el.text.strip():
+                return el.text.strip()
+        return ''
+
+    def _parse_send_response(self, response_xml: str) -> dict[str, Any]:
+        """Parse the Send response: SchedineValide + per-schedina error details."""
+        try:
+            root = ET.fromstring(response_xml)
+        except ET.ParseError:
+            return {'success': False, 'error': 'Invalid XML response', 'response_xml': response_xml}
+
+        validated_el = root.find('.//{*}SchedineValide')
+        validated = 0
+        if validated_el is not None and validated_el.text and validated_el.text.strip().isdigit():
+            validated = int(validated_el.text.strip())
+
+        errors = []
+        for esito in root.findall('.//{*}EsitoOperazioneServizio'):
+            el = esito.find('{*}ErroreDettaglio')
+            if el is not None and el.text and el.text.strip():
+                errors.append(el.text.strip())
+
+        top_error = self._find_detail_error(root)
+        if top_error:
+            return {
+                'success': False,
+                'error': top_error,
+                'validated': validated,
+                'errors': errors,
+                'response_xml': response_xml,
+            }
+        if errors:
+            return {
+                'success': False,
+                'error': '; '.join(errors),
+                'validated': validated,
+                'errors': errors,
+                'response_xml': response_xml,
+            }
+        if validated == 0:
+            return {
+                'success': False,
+                'error': 'No schedine validated',
+                'validated': 0,
+                'response_xml': response_xml,
+            }
+
+        return {'success': True, 'validated': validated, 'errors': errors, 'response_xml': response_xml}
+
     def submit_guests(self, guests: list[QuesturaGuest]) -> dict[str, Any]:
-        """Submit guests to Questura. Returns dict with success, message, details"""
+        """Submit guests to AlloggiatiWeb. Returns dict with success, message, details."""
         if not self.is_configured():
-            return {'success': False, 'error': 'Questura service not configured. Missing credentials or certificate.'}
+            return {
+                'success': False,
+                'error': 'Questura service not configured. Set username, password, WsKey and protocol.',
+            }
 
         if not guests:
             return {'success': False, 'error': 'No guests to submit'}
 
-        # Build XML
-        xml_payload = self.build_multiple_guests_xml(guests)
+        schedine = [self.build_guest_xml(g) for g in guests]
+        request_xml = '\n'.join(schedine)
 
-        # Log attempt
         log = QuesturaLog(
-            reservation_id=guests[0].reservation_id, action='submit', request_xml=xml_payload, status='pending'
+            reservation_id=guests[0].reservation_id, action='submit', request_xml=request_xml, status='pending'
         )
         db.session.add(log)
         db.session.commit()
 
         try:
-            # For Ross1000/AlloggiatiWeb, the typical approach is:
-            # 1. Client certificate auth (mTLS)
-            # 2. POST to service endpoint with XML body
-
-            cert_path = self._get_config(self.CERT_PATH_KEY)
-            cert_password = self._get_config(self.CERT_PASSWORD_KEY)
-
             if self.test_mode:
-                # In test mode, just log and return success
-                logger.info(f'[TEST MODE] Would submit {len(guests)} guests to Questura')
+                logger.info('[TEST MODE] Would submit %d guests to AlloggiatiWeb', len(guests))
                 log.status = 'success'
                 log.response_xml = '<TestResponse>OK</TestResponse>'
                 db.session.commit()
-
-                # Update reservation tracking
                 for g in guests:
-                    self._update_reservation_questura(g.reservation_id, 'accepted')
+                    self._update_reservation_questura(g.reservation_id, 'accepted', None)
+                return {
+                    'success': True,
+                    'message': 'Test submission logged (no actual API call)',
+                    'test_mode': True,
+                }
 
-                return {'success': True, 'message': 'Test submission logged (no actual API call)', 'test_mode': True}
-
-            # Production: client certificate auth
-            if cert_path and cert_password:
-                # Load PKCS12 certificate
-                import ssl
-
-                context = ssl.create_default_context()
-                context.load_cert_chain(cert_path, password=cert_password)
-
-                # For requests with client cert
-                response = self.session.post(
-                    self._get_config(self.WSDL_URL_KEY) or self.DEFAULT_WSDL,
-                    data=xml_payload,
-                    headers={'Content-Type': 'application/soap+xml; charset=utf-8', 'SOAPAction': 'InviaAlloggiati'},
-                    cert=(cert_path, cert_password) if cert_password else cert_path,
-                    timeout=30,
-                )
-            else:
-                # Basic auth fallback (some implementations)
-                username = self._get_config(self.USERNAME_KEY)
-                password = self._get_config(self.PASSWORD_KEY)
-                response = self.session.post(
-                    self._get_config(self.WSDL_URL_KEY) or self.DEFAULT_WSDL,
-                    data=xml_payload,
-                    headers={'Content-Type': 'application/soap+xml; charset=utf-8', 'SOAPAction': 'InviaAlloggiati'},
-                    auth=(username, password),
-                    timeout=30,
-                )
-
-            # Parse response
-            response_text = response.text
-            log.response_xml = response_text
-
-            if response.status_code == 200:
-                success = self._parse_response(response_text, log)
-            else:
-                success = False
+            token_result = self._generate_token()
+            if not token_result.get('success'):
+                error = token_result.get('error', 'Token generation failed')
                 log.status = 'error'
-                log.error_message = f'HTTP {response.status_code}: {response_text[:500]}'
+                log.error_message = error
                 db.session.commit()
+                for g in guests:
+                    self._update_reservation_questura(g.reservation_id, 'rejected', error)
+                return {'success': False, 'error': error, 'response_xml': token_result.get('response_xml')}
+
+            result = self._send_schedine(token_result['token'], schedine)
+            success = bool(result.get('success'))
+
+            log.response_xml = result.get('response_xml', '')
+            log.status = 'success' if success else 'error'
+            log.error_message = result.get('error', '') if not success else ''
+            db.session.commit()
+
+            for g in guests:
+                self._update_reservation_questura(
+                    g.reservation_id,
+                    'accepted' if success else 'rejected',
+                    result.get('error') if not success else None,
+                )
 
             return {
                 'success': success,
-                'status_code': response.status_code,
-                'response': response_text,
                 'message': 'Submitted successfully' if success else 'Submission failed',
+                'error': result.get('error'),
+                'validated': result.get('validated'),
+                'response': result.get('response_xml'),
             }
 
         except Exception as e:
@@ -262,47 +419,17 @@ class QuesturaService:
             log.status = 'error'
             log.error_message = str(e)
             db.session.commit()
+            for g in guests:
+                self._update_reservation_questura(g.reservation_id, 'rejected', str(e))
             return {'success': False, 'error': str(e)}
 
-    def _parse_response(self, response_xml: str, log: QuesturaLog) -> bool:
-        """Parse Questura response XML"""
-        try:
-            root = ET.fromstring(response_xml)
-            # Look for success indicators
-            # Typical responses: <Esito>OK</Esito> or <Esito>KO</Esito> with <Messaggio>
-            esito = root.find('.//{*}Esito')
-            if esito is not None and esito.text == 'OK':
-                log.status = 'success'
-                db.session.commit()
-
-                # Update reservations
-                for g in []:  # We'd need to track which reservations
-                    self._update_reservation_questura(g.reservation_id, 'accepted')
-                return True
-
-            messaggio = root.find('.//{*}Messaggio')
-            log.status = 'error'
-            log.error_message = messaggio.text if messaggio is not None else 'Unknown error'
-            db.session.commit()
-            return False
-
-        except ET.ParseError:
-            # Not XML, maybe HTML error page
-            if 'errore' in response_xml.lower() or 'error' in response_xml.lower():
-                log.status = 'error'
-                log.error_message = 'Invalid response format'
-                db.session.commit()
-                return False
-            log.status = 'success'  # Assume success if no error
-            db.session.commit()
-            return True
-
-    def _update_reservation_questura(self, reservation_id: int, status: str):
+    def _update_reservation_questura(self, reservation_id: int, status: str, error: str | None = None):
         """Update reservation questura tracking fields"""
         res = Reservation.query.get(reservation_id)
         if res:
             res.questura_status = status
             res.questura_submitted_at = datetime.utcnow()
+            res.questura_error = error
             db.session.commit()
 
     def submit_reservation(self, reservation: Reservation) -> dict[str, Any]:

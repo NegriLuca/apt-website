@@ -234,6 +234,27 @@ def _start_scheduler(app: Flask):
             if revoked:
                 app.logger.info('Revoked %d expired Nuki keypad code(s)', revoked)
 
+    def _questura_daily_job():
+        with app.app_context():
+            from app.tasks.compliance import run_daily_questura
+
+            try:
+                result = run_daily_questura()
+            except Exception:
+                app.logger.exception('Questura daily job crashed')
+                return
+            if not result:
+                return
+            if result.get('submitted'):
+                app.logger.info(
+                    'Questura daily: submitted=%s failed=%s not_ready=%s',
+                    result.get('submitted'),
+                    result.get('failed'),
+                    result.get('not_ready'),
+                )
+            if result.get('errors'):
+                app.logger.warning('Questura daily errors: %s', result.get('errors'))
+
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
         _sync_job,
@@ -266,6 +287,15 @@ def _start_scheduler(app: Flask):
         hour=12,
         minute=0,
         id='revoke_expired_keypad_codes',
+        replace_existing=True,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        _questura_daily_job,
+        trigger='cron',
+        hour=8,
+        minute=0,
+        id='questura_daily_submission',
         replace_existing=True,
         coalesce=True,
     )

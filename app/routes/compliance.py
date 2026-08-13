@@ -51,6 +51,7 @@ def compliance_dashboard() -> Response | str:
         'questura_wsdl_url',
         'questura_username',
         'questura_password',
+        'questura_ws_key',
         'questura_cert_path',
         'questura_cert_password',
         'questura_protocol_number',
@@ -115,8 +116,10 @@ def questura_submit() -> Response | str:
     from app.services.questura import get_questura_service
 
     service = get_questura_service()
-    ok, msg = service.submit_reservation(res)
-    flash(msg or ('Submitted.' if ok else 'Failed.'), 'success' if ok else 'danger')
+    result = service.submit_reservation(res)
+    ok = bool(result.get('success'))
+    msg = result.get('message') or result.get('error') or ('Submitted.' if ok else 'Failed.')
+    flash(msg, 'success' if ok else 'danger')
     return redirect(url_for('routes.questura_list'))
 
 
@@ -272,21 +275,37 @@ def tourist_tax_toggle_exclude(reservation_id: int) -> Response | str:
 
 # ── Compliance Config ────────────────────────────────────────────────────────
 
+CONFIG_FIELDS = {
+    'questura_wsdl_url': 'Questura / AlloggiatiWeb endpoint URL',
+    'questura_protocol_number': 'Questura protocol number (Protocollo)',
+    'questura_username': 'AlloggiatiWeb username (Utente)',
+    'questura_password': 'AlloggiatiWeb password',
+    'questura_ws_key': 'AlloggiatiWeb WsKey (generated on the portal)',
+    'questura_cert_path': 'Legacy client certificate path',
+    'questura_cert_password': 'Legacy client certificate password',
+    'tourist_tax_category': 'Tourist tax property category',
+    'tourist_tax_rate': 'Tourist tax custom rate (EUR)',
+    'roma_tax_office_email': 'Rome tax office email',
+    'ross1000_username': 'ROSS1000 username',
+    'ross1000_password': 'ROSS1000 password',
+    'ross1000_structure_code': 'ROSS1000 structure code',
+}
 
-@bp.route('/admin/compliance/config')
+
+@bp.route('/admin/compliance/config', methods=['GET', 'POST'])
 @login_required
 def compliance_config() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
     if request.method == 'POST':
-        key = request.form.get('key')
-        value = request.form.get('value')
-        description = request.form.get('description')
-
-        if key and value:
-            ComplianceConfig.set(key, value, description)
-            flash(f'Configuration "{key}" updated', 'success')
+        saved = 0
+        for key, description in CONFIG_FIELDS.items():
+            if key in request.form:
+                value = request.form.get(key, '').strip()
+                ComplianceConfig.set(key, value or None, description)
+                saved += 1
+        flash(f'Saved {saved} configuration value(s).', 'success' if saved else 'warning')
         return redirect(url_for('routes.compliance_config'))
 
     configs = ComplianceConfig.query.order_by(ComplianceConfig.key).all()

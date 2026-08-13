@@ -24,11 +24,11 @@
                     <form method="POST" id="questuraConfigForm">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('WSDL URL') }}</label>
+                                <label class="form-label">{{ _('Endpoint URL') }}</label>
                                 <input type="text" class="form-control" name="questura_wsdl_url" 
-                                    value="{{ ComplianceConfig.get('questura_wsdl_url', 'https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl') }}"
-                                    placeholder="https://alloggiatiweb.poliziadistato.it/AlloggiatiWebService.svc?wsdl">
-                                <div class="form-text">{{ _('URL of the SOAP service. Use test version for development.') }}</div>
+                                    value="{{ ComplianceConfig.get('questura_wsdl_url', 'https://alloggiatiweb.poliziadistato.it/service/service.asmx') }}"
+                                    placeholder="https://alloggiatiweb.poliziadistato.it/service/service.asmx">
+                                <div class="form-text">{{ _('URL of the AlloggiatiWeb SOAP service. Use the test version for development.') }}</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">{{ _('Questura Protocol') }}</label>
@@ -48,17 +48,22 @@
                                     value="{{ ComplianceConfig.get('questura_password', '') }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Certificate Path (.pfx/.p12)') }}</label>
-                                <input type="text" class="form-control" name="questura_cert_path" 
-                                    value="{{ ComplianceConfig.get('questura_cert_path', '/etc/ssl/questura/client.pfx') }}"
-                                    placeholder="/path/to/certificate.pfx">
-                                <div class="form-text">{{ _('Absolute path of client certificate for mTLS.') }}</div>
+                                <label class="form-label">{{ _('WsKey (Web Service Key)') }}</label>
+                                <input type="text" class="form-control" name="questura_ws_key" 
+                                    value="{{ ComplianceConfig.get('questura_ws_key', '') }}" required>
+                                <div class="form-text">{{ _('Generated on the AlloggiatiWeb portal: Utente → Chiave Web Service. Genera un nuovo codice se serve.') }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{ _('Certificate Password') }}</label>
+                                <label class="form-label">{{ _('Certificate Path (.pfx/.p12) - legacy, optional') }}</label>
+                                <input type="text" class="form-control" name="questura_cert_path" 
+                                    value="{{ ComplianceConfig.get('questura_cert_path', '') }}"
+                                    placeholder="/path/to/certificate.pfx">
+                                <div class="form-text">{{ _('Only needed for the old mTLS endpoint. The current service.asmx API uses WsKey authentication.') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ _('Certificate Password - legacy, optional') }}</label>
                                 <input type="password" class="form-control" name="questura_cert_password" 
                                     value="{{ ComplianceConfig.get('questura_cert_password', '') }}">
-                                <div class="form-text">{{ _('Password of .pfx/.p12 file.') }}</div>
                             </div>
                         </div>
                         <div class="d-flex gap-2 mt-3">
