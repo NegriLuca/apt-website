@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-11 12:28+0200\n"
+"POT-Creation-Date: 2026-08-13 12:14+0200\n"
 "PO-Revision-Date: 2026-07-26 13:00+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -34,9 +34,9 @@ msgstr "Email"
 #: app/templates/admin_guest_checkin.html:109
 #: app/templates/admin_guest_message.html:26
 #: app/templates/admin_questura.html:67 app/templates/admin_ross1000.html:65
-#: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
-#: app/templates/guest_access.html:33 app/templates/guest_portal.html:20
-#: app/templates/guest_self_checkin.html:31
+#: app/templates/admin_tourist_tax.html:156 app/templates/checkin_guide.html:31
+#: app/templates/checkout.html:38 app/templates/guest_access.html:33
+#: app/templates/guest_portal.html:20 app/templates/guest_self_checkin.html:31
 msgid "Check-in"
 msgstr "Arrivée"
 
@@ -45,9 +45,9 @@ msgstr "Arrivée"
 #: app/templates/admin_guest_checkin.html:113
 #: app/templates/admin_guest_message.html:30
 #: app/templates/admin_questura.html:68 app/templates/admin_ross1000.html:66
-#: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
-#: app/templates/guest_access.html:37 app/templates/guest_portal.html:24
-#: app/templates/guest_self_checkin.html:35
+#: app/templates/admin_tourist_tax.html:157 app/templates/checkin_guide.html:35
+#: app/templates/checkout.html:42 app/templates/guest_access.html:37
+#: app/templates/guest_portal.html:24 app/templates/guest_self_checkin.html:35
 msgid "Check-out"
 msgstr "Départ"
 
@@ -143,16 +143,16 @@ msgstr "Date de séjour (optionnel)"
 msgid "Submit Review"
 msgstr "Soumettre l'avis"
 
-#: app/routes/admin.py:279
+#: app/routes/admin.py:281
 msgid "Guest Wi-Fi settings saved!"
 msgstr ""
 
-#: app/routes/admin.py:329
+#: app/routes/admin.py:331
 #, fuzzy
 msgid "Configure the guest Wi-Fi before printing."
 msgstr "Confirmer et obtenir les instructions de virement"
 
-#: app/routes/admin.py:387
+#: app/routes/admin.py:390
 msgid "Trust Badges & Widgets settings saved!"
 msgstr ""
 
@@ -401,8 +401,9 @@ msgstr ""
 #: app/templates/admin_guest_message.html:18
 #: app/templates/admin_questura.html:66 app/templates/admin_ross1000.html:64
 #: app/templates/admin_testimonials.html:49
-#: app/templates/admin_tourist_tax.html:155 app/templates/checkout.html:30
-#: app/templates/guest_access.html:41 app/templates/guest_portal.html:28
+#: app/templates/admin_tourist_tax.html:155 app/templates/checkin_guide.html:39
+#: app/templates/checkout.html:30 app/templates/guest_access.html:41
+#: app/templates/guest_portal.html:28
 msgid "Guest"
 msgstr "Invité"
 
@@ -826,6 +827,7 @@ msgstr "Invités"
 #: app/templates/admin_dashboard.html:299 app/templates/admin_pricing.html:122
 #: app/templates/admin_ross1000_logs.html:78
 #: app/templates/admin_testimonials.html:170
+#: app/templates/checkin_guide.html:199
 msgid "Close"
 msgstr "Fermer"
 
@@ -1407,8 +1409,9 @@ msgstr ""
 
 #: app/templates/admin_questura_logs.html:27
 #: app/templates/admin_ross1000_logs.html:27
-#: app/templates/email_guest_access.html:30 app/templates/guest_access.html:45
-#: app/templates/guest_portal.html:32 app/templates/guest_self_checkin.html:43
+#: app/templates/checkin_guide.html:43 app/templates/email_guest_access.html:30
+#: app/templates/guest_access.html:45 app/templates/guest_portal.html:32
+#: app/templates/guest_self_checkin.html:43
 msgid "Reservation"
 msgstr "Réservation"
 
@@ -1507,11 +1510,13 @@ msgstr ""
 msgid "Open Gate"
 msgstr "Ouvrir le portail"
 
-#: app/templates/admin_smart_access.html:54 app/templates/guest_access.html:79
+#: app/templates/admin_smart_access.html:54 app/templates/guest_access.html:80
+#: app/templates/guest_access.html:94
 msgid "Apartment Door"
 msgstr "Porte de l'appartement"
 
-#: app/templates/admin_smart_access.html:55 app/templates/guest_access.html:80
+#: app/templates/admin_smart_access.html:55 app/templates/guest_access.html:81
+#: app/templates/guest_access.html:95
 msgid "Press to unlock the apartment door."
 msgstr "Appuyez pour déverrouiller la porte de l'appartement."
 
@@ -1533,31 +1538,32 @@ msgstr ""
 msgid "The WhatsApp contact button is configured in Settings too."
 msgstr ""
 
-#: app/templates/admin_smart_access.html:90 app/templates/guest_access.html:148
+#: app/templates/admin_smart_access.html:90 app/templates/guest_access.html:157
 msgid "Processing..."
 msgstr "Traitement en cours..."
 
-#: app/templates/admin_smart_access.html:93 app/templates/guest_access.html:151
+#: app/templates/admin_smart_access.html:93 app/templates/guest_access.html:160
 msgid "Try Again"
 msgstr "Réessayer"
 
 #: app/templates/admin_smart_access.html:119
-#: app/templates/guest_access.html:170 app/templates/guest_access.html:182
+#: app/templates/guest_access.html:179 app/templates/guest_access.html:191
 msgid "Failed"
 msgstr "Échec"
 
 #: app/templates/admin_smart_access.html:121
-#: app/templates/guest_access.html:171 app/templates/guest_access.html:183
+#: app/templates/checkin_guide.html:263 app/templates/guest_access.html:180
+#: app/templates/guest_access.html:192
 msgid "Connection error"
 msgstr "Erreur de connexion"
 
 #: app/templates/admin_smart_access.html:127
-#: app/templates/guest_access.html:166
+#: app/templates/guest_access.html:175
 msgid "Opening gate..."
 msgstr "Ouverture du portail..."
 
 #: app/templates/admin_smart_access.html:131
-#: app/templates/guest_access.html:178
+#: app/templates/guest_access.html:187
 msgid "Unlocking door..."
 msgstr "Déverrouillage de la porte..."
 
@@ -1874,93 +1880,93 @@ msgstr "Porte de l'appartement"
 msgid "Enable Door Access"
 msgstr "Activer l'accès à la porte"
 
-#: app/templates/admin_trust_badges.html:201
+#: app/templates/admin_trust_badges.html:204
 msgid "Show door button to guests"
 msgstr "Afficher le bouton de porte aux invités"
 
-#: app/templates/admin_trust_badges.html:202
+#: app/templates/admin_trust_badges.html:205
 msgid "If disabled, guests only see the keypad code."
 msgstr "Si désactivé, les invités ne voient que le code du clavier."
 
-#: app/templates/admin_trust_badges.html:202
+#: app/templates/admin_trust_badges.html:207
 msgid "Smart Lock ID (Decimal)"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:204
+#: app/templates/admin_trust_badges.html:209
 msgid "Web API Token"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:208
+#: app/templates/admin_trust_badges.html:213
 msgid "API Base URL"
 msgstr "URL de base API"
 
-#: app/templates/admin_trust_badges.html:212
+#: app/templates/admin_trust_badges.html:217
 msgid "Unlock Action"
 msgstr "Action de déverrouillage"
 
-#: app/templates/admin_trust_badges.html:214
+#: app/templates/admin_trust_badges.html:219
 msgid "Unlock"
 msgstr "Retour"
 
-#: app/templates/admin_trust_badges.html:215
+#: app/templates/admin_trust_badges.html:220
 msgid "Unlatch"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:227
+#: app/templates/admin_trust_badges.html:232
 msgid "WhatsApp Contact Button"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:228
+#: app/templates/admin_trust_badges.html:233
 msgid ""
 "Floating WhatsApp button shown to visitors. Leave the number empty to "
 "hide it."
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:231
+#: app/templates/admin_trust_badges.html:236
 msgid "WhatsApp Number"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:233
+#: app/templates/admin_trust_badges.html:238
 msgid "International format without + or spaces. Example: 393000000000"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:236
+#: app/templates/admin_trust_badges.html:241
 msgid "Default Message (optional)"
 msgstr "Message par défaut (facultatif)"
 
-#: app/templates/admin_trust_badges.html:237
+#: app/templates/admin_trust_badges.html:242
 msgid "Ciao, vorrei informazioni per prenotare..."
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:238
+#: app/templates/admin_trust_badges.html:243
 msgid "Pre-filled message when user clicks the button"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:245
+#: app/templates/admin_trust_badges.html:250
 msgid "Display Settings"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:250
+#: app/templates/admin_trust_badges.html:255
 msgid "Show review badges in footer"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:256
+#: app/templates/admin_trust_badges.html:261
 msgid "Show review badges on homepage"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:262
+#: app/templates/admin_trust_badges.html:267
 msgid "Show review badges on booking page"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:268
+#: app/templates/admin_trust_badges.html:273
 msgid "Show payment badges in footer"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:274
+#: app/templates/admin_trust_badges.html:279
 msgid "Show payment badges on checkout page"
 msgstr ""
 
-#: app/templates/admin_trust_badges.html:281
+#: app/templates/admin_trust_badges.html:286
 msgid "Save Trust Badges & Widgets Config"
 msgstr ""
 
@@ -2631,6 +2637,215 @@ msgstr "Impossible d'annuler"
 msgid "Return to Homepage"
 msgstr "Retour à la page d'accueil"
 
+#: app/templates/checkin_guide.html:2 app/templates/checkin_guide.html:22
+msgid "Self Check-in Guide"
+msgstr "Guide d'auto-enregistrement"
+
+#: app/templates/checkin_guide.html:24
+msgid "Step-by-step instructions to reach the apartment"
+msgstr "Instructions pas à pas pour rejoindre l'appartement"
+
+#: app/templates/checkin_guide.html:56
+msgid "Address"
+msgstr "Adresse"
+
+#: app/templates/checkin_guide.html:63
+msgid "How to get in"
+msgstr "Comment entrer"
+
+#: app/templates/checkin_guide.html:73
+msgid "Arrive at Street Entrance"
+msgstr "Arrivée à l'entrée sur la rue"
+
+#: app/templates/checkin_guide.html:74
+msgid "Step 1"
+msgstr "Étape 1"
+
+#: app/templates/checkin_guide.html:78
+msgid "Locate building number"
+msgstr "Repérez le numéro du bâtiment"
+
+#: app/templates/checkin_guide.html:78
+msgid ""
+"on Circonvallazione Ostiense. Walk directly through the covered "
+"passageway under the building."
+msgstr ""
+"sur Circonvallazione Ostiense. Traversez directement le passage couvert "
+"sous le bâtiment."
+
+#: app/templates/checkin_guide.html:81
+msgid "Street Entrance 235"
+msgstr "Entrée sur la rue 235"
+
+#: app/templates/checkin_guide.html:93
+msgid "Enter the Inner Courtyard"
+msgstr "Entrez dans la cour intérieure"
+
+#: app/templates/checkin_guide.html:94
+msgid "Step 2"
+msgstr "Étape 2"
+
+#: app/templates/checkin_guide.html:98
+msgid ""
+"Continue walking straight through the internal courtyard along the paved "
+"pathway until you reach the very end, then turn right."
+msgstr ""
+"Continuez tout droit à travers la cour intérieure le long du chemin pavé "
+"jusqu'à atteindre le bout, puis tournez à droite."
+
+#: app/templates/checkin_guide.html:101
+msgid "Inner Courtyard Pathway"
+msgstr "Chemin de la cour intérieure"
+
+#: app/templates/checkin_guide.html:113
+msgid "Locate Building Entrance (Scala C)"
+msgstr "Repérez l'entrée de l'immeuble (Scala C)"
+
+#: app/templates/checkin_guide.html:114
+msgid "Step 3"
+msgstr "Étape 3"
+
+#: app/templates/checkin_guide.html:118
+msgid "After turning right, you will see the covered entrance for"
+msgstr "Après avoir tourné à droite, vous verrez l'entrée couverte pour"
+
+#: app/templates/checkin_guide.html:118
+msgid ""
+"Push open the main glass and iron entrance door to access the building "
+"lobby."
+msgstr ""
+"Poussez la porte d'entrée principale en verre et fer pour accéder au hall"
+" de l'immeuble."
+
+#: app/templates/checkin_guide.html:124 app/templates/checkin_guide.html:266
+msgid "Open the Building Gate"
+msgstr "Ouvrir le portail"
+
+#: app/templates/checkin_guide.html:128
+msgid "Active from 13:00 on check-in day to 13:00 on check-out day (Rome time)."
+msgstr ""
+"Actif de 13h00 le jour de l'arrivée à 13h00 le jour du départ (heure de "
+"Rome)."
+
+#: app/templates/checkin_guide.html:134
+msgid "Building Entrance Scala C"
+msgstr "Entrée de l'immeuble Scala C"
+
+#: app/templates/checkin_guide.html:146 app/templates/checkin_guide.html:154
+msgid "Ground Floor Hallway"
+msgstr "Couloir du rez-de-chaussée"
+
+#: app/templates/checkin_guide.html:147
+msgid "Step 4"
+msgstr "Étape 4"
+
+#: app/templates/checkin_guide.html:151
+msgid ""
+"Once inside the lobby on the ground floor, walk straight down the hallway"
+" past the stairs and elevator, then turn right at the end."
+msgstr ""
+"Une fois dans le hall au rez-de-chaussée, longez le couloir en passant "
+"devant les escaliers et l'ascenseur, puis tournez à droite au bout."
+
+#: app/templates/checkin_guide.html:166
+msgid "Apartment Entrance & Smart Lock"
+msgstr "Entrée de l'appartement et serrure intelligente"
+
+#: app/templates/checkin_guide.html:167
+msgid "Step 5"
+msgstr "Étape 5"
+
+#: app/templates/checkin_guide.html:171
+msgid ""
+"You will find the wooden entrance door (Apt. 3). Enter your personal "
+"access code on the digital keypad located on the right door frame to "
+"unlock and step inside!"
+msgstr ""
+"Vous trouverez la porte d'entrée en bois (Appt 3). Saisissez votre code "
+"d'accès personnel sur le clavier numérique situé à droite du cadre de la "
+"porte pour déverrouiller et entrer !"
+
+#: app/templates/checkin_guide.html:176
+msgid "Your keypad code"
+msgstr "Votre code clavier"
+
+#: app/templates/checkin_guide.html:179
+msgid ""
+"Enter it on the keypad next to the door. Valid from 13:00 on check-in day"
+" to 13:00 on check-out day (Rome time)."
+msgstr ""
+"Saisissez-le sur le clavier à côté de la porte. Valable de 13h00 le jour "
+"de l'arrivée à 13h00 le jour du départ (heure de Rome)."
+
+#: app/templates/checkin_guide.html:184
+msgid "Your personal keypad code is sent to you via message."
+msgstr "Votre code clavier personnel vous est envoyé par message."
+
+#: app/templates/checkin_guide.html:189
+msgid "Apartment Entrance Door"
+msgstr "Porte d'entrée de l'appartement"
+
+#: app/templates/checkin_guide.html:203
+msgid "OK"
+msgstr ""
+
+#: app/templates/checkin_guide.html:213
+msgid "Need assistance during check-in?"
+msgstr "Besoin d'aide lors de l'enregistrement ?"
+
+#: app/templates/checkin_guide.html:213
+msgid "Contact us via WhatsApp or phone"
+msgstr "Contactez-nous via WhatsApp ou par téléphone"
+
+#: app/templates/checkin_guide.html:214
+msgid "Have a wonderful stay!"
+msgstr "Passez un excellent séjour !"
+
+#: app/templates/checkin_guide.html:241
+msgid "Not yet available"
+msgstr "Pas encore disponible"
+
+#: app/templates/checkin_guide.html:241
+msgid ""
+"It's too early! The building gate can be opened from 13:00 on your check-"
+"in day, until 13:00 on your check-out day (Rome time)."
+msgstr ""
+"C'est trop tôt ! Le portail de l'immeuble peut être ouvert à partir de "
+"13h00 le jour de votre arrivée, jusqu'à 13h00 le jour de votre départ "
+"(heure de Rome)."
+
+#: app/templates/checkin_guide.html:245
+msgid "Access expired"
+msgstr "Accès expiré"
+
+#: app/templates/checkin_guide.html:245
+msgid "The gate access expired at 13:00 on your check-out day."
+msgstr "L'accès au portail a expiré à 13h00 le jour de votre départ."
+
+#: app/templates/checkin_guide.html:250
+msgid "Opening..."
+msgstr "Ouverture en cours..."
+
+#: app/templates/checkin_guide.html:258 app/templates/guest_access.html:178
+msgid "Gate opened"
+msgstr "Portail ouvert"
+
+#: app/templates/checkin_guide.html:258
+msgid "The building gate is now open. Please walk through!"
+msgstr "Le portail de l'immeuble est maintenant ouvert. Veuillez entrer !"
+
+#: app/templates/checkin_guide.html:260
+msgid "Gate error"
+msgstr "Erreur du portail"
+
+#: app/templates/checkin_guide.html:260
+msgid "Failed to open the gate. Please contact the host."
+msgstr "Échec de l'ouverture du portail. Veuillez contacter l'hôte."
+
+#: app/templates/checkin_guide.html:263
+msgid "Please check your connection and try again."
+msgstr "Veuillez vérifier votre connexion et réessayer."
+
 #: app/templates/checkout.html:2
 msgid "Complete your booking"
 msgstr "Finaliser votre réservation"
@@ -3150,7 +3365,7 @@ msgstr "Déverrouiller la porte de l'appartement (Nuki Smart Lock Ultra)"
 msgid "Access works only during your stay dates"
 msgstr "L'accès est valable uniquement pendant votre séjour"
 
-#: app/templates/email_guest_access.html:77 app/templates/guest_access.html:102
+#: app/templates/email_guest_access.html:77 app/templates/guest_access.html:111
 #: app/templates/guest_portal.html:158
 msgid "Door Keypad Code"
 msgstr ""
@@ -3608,8 +3823,12 @@ msgid "Admin preview"
 msgstr "Aperçu admin"
 
 #: app/templates/guest_access.html:13
-msgid "this is what guests see on their Smart Access page during their stay. Buttons are disabled."
-msgstr "Voici ce que les invités voient sur leur page Smart Access pendant leur séjour. Les boutons sont désactivés."
+msgid ""
+"this is what guests see on their Smart Access page during their stay. "
+"Buttons are disabled."
+msgstr ""
+"Voici ce que les invités voient sur leur page Smart Access pendant leur "
+"séjour. Les boutons sont désactivés."
 
 #: app/templates/guest_access.html:20 app/templates/guest_portal.html:89
 msgid "Valid during your stay"
@@ -3624,43 +3843,41 @@ msgstr "Retour à l'accueil"
 msgid "Gate control not configured. Please contact the host."
 msgstr "Contrôle du portail non configuré. Veuillez contacter l'hôte."
 
-#: app/templates/guest_access.html:89
+#: app/templates/guest_access.html:98
 msgid "Door control not configured. Please contact the host."
 msgstr "Contrôle de la porte non configuré. Veuillez contacter l'hôte."
 
-#: app/templates/guest_access.html:103
+#: app/templates/guest_access.html:112
 msgid "Enter this code on the keypad next to the door."
 msgstr "Saisissez ce code sur le clavier à côté de la porte."
 
-#: app/templates/guest_access.html:106
+#: app/templates/guest_access.html:115
 msgid "Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time)"
-msgstr "Valable de 13h00 le jour de l'arrivée à 13h00 le jour du départ (heure de Rome)"
+msgstr ""
+"Valable de 13h00 le jour de l'arrivée à 13h00 le jour du départ (heure de"
+" Rome)"
 
-#: app/templates/guest_access.html:117
+#: app/templates/guest_access.html:126
 msgid "Important"
 msgstr "Important:"
 
-#: app/templates/guest_access.html:119
+#: app/templates/guest_access.html:128
 msgid "Access is only valid during your stay dates"
 msgstr "L'accès est valable uniquement pendant les dates de votre séjour"
 
-#: app/templates/guest_access.html:120
+#: app/templates/guest_access.html:129
 msgid "Do not share this link with anyone outside your booking"
 msgstr "Ne partagez pas ce lien avec des personnes extérieures à votre réservation"
 
-#: app/templates/guest_access.html:121
+#: app/templates/guest_access.html:130
 msgid "If the gate/door does not respond, contact the host"
 msgstr "Si le portail/la porte ne répond pas, contactez l'hôte"
 
-#: app/templates/guest_access.html:122
+#: app/templates/guest_access.html:131
 msgid "Access expires automatically on check-out day"
 msgstr "L'accès expire automatiquement le jour du départ"
 
-#: app/templates/guest_access.html:169
-msgid "Gate opened"
-msgstr "Portail ouvert"
-
-#: app/templates/guest_access.html:181
+#: app/templates/guest_access.html:190
 msgid "Door unlocked"
 msgstr "Porte déverrouillée"
 
@@ -5279,209 +5496,4 @@ msgstr ""
 #: app/templates/policies/terms.html:90
 msgid "For questions about these terms, contact us at:"
 msgstr "Pour toute question concernant ces conditions, contactez-nous à :"
-
-#~ msgid "Session expired. Please start again."
-#~ msgstr "Session expirée. Veuillez recommencer."
-
-#~ msgid "Sorry, those dates were just booked. Please choose again."
-#~ msgstr ""
-#~ "Désolé, ces dates viennent d'être "
-#~ "réservées. Veuillez en choisir d'autres."
-
-#~ msgid "Pending Review"
-#~ msgstr "En attente de révision"
-
-#~ msgid "Guest Name / Contact"
-#~ msgstr "Nom de l'invité / Contact"
-
-#~ msgid "No email provided via sync"
-#~ msgstr "Aucun email fourni via la synchronisation"
-
-#~ msgid "Paid via"
-#~ msgstr "Payé via"
-
-#~ msgid "Processed by Channel"
-#~ msgstr "Traité par le canal"
-
-#~ msgid "Approve & Paid"
-#~ msgstr "Approuver et marquer payé"
-
-#~ msgid ""
-#~ "WARNING: Are you sure you want to"
-#~ " cancel this booking and issue a "
-#~ "full Stripe refund?"
-#~ msgstr ""
-#~ "ATTENTION: Êtes-vous sûr de vouloir "
-#~ "annuler cette réservation et émettre un"
-#~ " remboursement Stripe complet?"
-
-#~ msgid "Cancel & Refund"
-#~ msgstr "Annuler et rembourser"
-
-#~ msgid "No reservations logged matching this state."
-#~ msgstr "Aucune réservation enregistrée ne correspond à cet état."
-
-#~ msgid "External iCal Synchronization Feeds"
-#~ msgstr "Flux de synchronisation iCal externes"
-
-#~ msgid "Are you sure you want to delete this feed?"
-#~ msgstr "Êtes-vous sûr de vouloir supprimer ce flux?"
-
-#~ msgid "No external calendar feeds added yet."
-#~ msgstr "Aucun flux de calendrier externe ajouté pour le moment."
-
-#~ msgid "Testimonials"
-#~ msgstr "Témoignages"
-
-#~ msgid ""
-#~ "Elegante e raffinato appartamento nel "
-#~ "cuore della Garbatella a Roma. Prenota"
-#~ " il tuo soggiorno ideale."
-#~ msgstr ""
-#~ "Élégant appartement raffiné au cœur de"
-#~ " Garbatella à Rome. Réservez votre "
-#~ "séjour idéal."
-
-#~ msgid "Camera da letto - Bedroom"
-#~ msgstr "Chambre à coucher"
-
-#~ msgid "Camera da letto - Bedroom view 2"
-#~ msgstr "Chambre à coucher - vue 2"
-
-#~ msgid "Cucina moderna - Modern kitchen"
-#~ msgstr "Cuisine moderne"
-
-#~ msgid "100% refund"
-#~ msgstr "Remboursement à 100%"
-
-#~ msgid "50% refund"
-#~ msgstr "Remboursement à 50%"
-
-#~ msgid "Shelly Host / IP Address"
-#~ msgstr ""
-
-#~ msgid "Local IP or mDNS hostname of the Shelly device"
-#~ msgstr ""
-
-#~ msgid "Auth Key (Optional)"
-#~ msgstr "Clé d'authentification (facultative)"
-
-#~ msgid "Gen4 auth key if authentication is enabled on device"
-#~ msgstr ""
-
-#~ msgid "Pulse Duration (seconds)"
-#~ msgstr ""
-
-#~ msgid "How long to keep gate open"
-#~ msgstr ""
-
-#~ msgid "Test Mode (dry run)"
-#~ msgstr ""
-
-#~ msgid "13:00 - 20:00 (self check-in via lockbox after hours)"
-#~ msgstr "13:00 - 20:00 (arrivée autonome via boîte à clé après les heures)"
-
-#~ msgid "Return keys to lockbox / leave on counter"
-#~ msgstr "Remettre les clés dans la boîte à clé / laisser sur le comptoir"
-
-#~ msgid "Close windows when AC/heating on"
-#~ msgstr "Fermer les fenêtres quand la clim/le chauffage est allumé"
-
-#~ msgid "Dishwasher: Run only when full"
-#~ msgstr "Lave-vaisselle: Lancer seulement quand plein"
-
-#~ msgid "Lost keys: €50 (lockbox) / €150 (building key)"
-#~ msgstr "Clés perdues: 50 € (boîte à clé) / 150 € (clé d'immeuble)"
-
-#~ msgid ""
-#~ "Check-in: 13:00 - 20:00 (Self "
-#~ "check-in available after hours with "
-#~ "key lockbox)"
-#~ msgstr "13:00 - 20:00 (arrivée autonome via boîte à clé après les heures)"
-
-#~ msgid "Occupancy"
-#~ msgstr ""
-
-#~ msgid "Smart Access & WhatsApp"
-#~ msgstr ""
-
-#~ msgid "Smart Access Configuration"
-#~ msgstr ""
-
-#~ msgid "Gate: Shelly Mini 1 Gen4 | Door: Nuki Smart Lock Ultra"
-#~ msgstr ""
-
-#~ msgid "Building Gate (Shelly Mini 1 Gen4)"
-#~ msgstr ""
-
-#~ msgid "Shelly Host / Device ID"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Leave blank if SHELLY_DEVICE_ID env var"
-#~ " is set. Only needed for LAN "
-#~ "access without the cloud env vars."
-#~ msgstr ""
-
-#~ msgid "0 for Shelly Mini 1 Gen4"
-#~ msgstr ""
-
-#~ msgid "Apartment Door (Nuki Smart Lock Ultra)"
-#~ msgstr ""
-
-#~ msgid "Get from Nuki Web API: GET /smartlock"
-#~ msgstr ""
-
-#~ msgid "Generate at web.nuki.io → API"
-#~ msgstr ""
-
-#~ msgid "Unlock (turn cylinder)"
-#~ msgstr ""
-
-#~ msgid "Unlatch (open door)"
-#~ msgstr ""
-
-#~ msgid "Unlatch opens the door; unlock just turns the cylinder"
-#~ msgstr ""
-
-#~ msgid "Enable WhatsApp Float Button"
-#~ msgstr ""
-
-#~ msgid "Save Smart Access & WhatsApp Config"
-#~ msgstr ""
-
-#~ msgid "Test Gate"
-#~ msgstr "Tester le portail"
-
-#~ msgid "Test Door"
-#~ msgstr "Tester la porte"
-
-#~ msgid "Maximum occupancy: As per booking (no extra overnight guests)"
-#~ msgstr ""
-#~ "Occupation maximum: Selon la réservation "
-#~ "(pas d'invités supplémentaires pour la "
-#~ "nuit)"
-
-#~ msgid "Smoking permitted on balcony/terrace only"
-#~ msgstr "Fumer autorisé uniquement sur le balcon/la terrasse"
-
-#~ msgid "Please use ashtray provided"
-#~ msgstr "Veuillez utiliser le cendrier fourni"
-
-#~ msgid "No unregistered overnight guests"
-#~ msgstr "Pas d'invités non enregistrés pour la nuit"
-
-#~ msgid "Grey/Black:"
-#~ msgstr "Gris/Noir:"
-
-#~ msgid "Do NOT put waste in wrong bins - fines apply to building"
-#~ msgstr ""
-#~ "NE PAS mettre les déchets dans les"
-#~ " mauvaises poubelles - amendes pour "
-#~ "l'immeuble"
-
-#~ msgid "Damage deposit may be charged via Stripe for significant issues"
-#~ msgstr ""
-#~ "Caution pour dégâts peut être prélevée"
-#~ " via Stripe pour problèmes importants"
 

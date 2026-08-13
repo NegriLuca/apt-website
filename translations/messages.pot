@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-11 13:19+0200\n"
+"POT-Creation-Date: 2026-08-13 12:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,9 +33,9 @@ msgstr ""
 #: app/templates/admin_guest_checkin.html:109
 #: app/templates/admin_guest_message.html:26
 #: app/templates/admin_questura.html:67 app/templates/admin_ross1000.html:65
-#: app/templates/admin_tourist_tax.html:156 app/templates/checkout.html:38
-#: app/templates/guest_access.html:33 app/templates/guest_portal.html:20
-#: app/templates/guest_self_checkin.html:31
+#: app/templates/admin_tourist_tax.html:156 app/templates/checkin_guide.html:31
+#: app/templates/checkout.html:38 app/templates/guest_access.html:33
+#: app/templates/guest_portal.html:20 app/templates/guest_self_checkin.html:31
 msgid "Check-in"
 msgstr ""
 
@@ -44,9 +44,9 @@ msgstr ""
 #: app/templates/admin_guest_checkin.html:113
 #: app/templates/admin_guest_message.html:30
 #: app/templates/admin_questura.html:68 app/templates/admin_ross1000.html:66
-#: app/templates/admin_tourist_tax.html:157 app/templates/checkout.html:42
-#: app/templates/guest_access.html:37 app/templates/guest_portal.html:24
-#: app/templates/guest_self_checkin.html:35
+#: app/templates/admin_tourist_tax.html:157 app/templates/checkin_guide.html:35
+#: app/templates/checkout.html:42 app/templates/guest_access.html:37
+#: app/templates/guest_portal.html:24 app/templates/guest_self_checkin.html:35
 msgid "Check-out"
 msgstr ""
 
@@ -383,8 +383,9 @@ msgstr ""
 #: app/templates/admin_guest_message.html:18
 #: app/templates/admin_questura.html:66 app/templates/admin_ross1000.html:64
 #: app/templates/admin_testimonials.html:49
-#: app/templates/admin_tourist_tax.html:155 app/templates/checkout.html:30
-#: app/templates/guest_access.html:41 app/templates/guest_portal.html:28
+#: app/templates/admin_tourist_tax.html:155 app/templates/checkin_guide.html:39
+#: app/templates/checkout.html:30 app/templates/guest_access.html:41
+#: app/templates/guest_portal.html:28
 msgid "Guest"
 msgstr ""
 
@@ -785,6 +786,7 @@ msgstr ""
 #: app/templates/admin_dashboard.html:299 app/templates/admin_pricing.html:122
 #: app/templates/admin_ross1000_logs.html:78
 #: app/templates/admin_testimonials.html:170
+#: app/templates/checkin_guide.html:199
 msgid "Close"
 msgstr ""
 
@@ -1344,8 +1346,9 @@ msgstr ""
 
 #: app/templates/admin_questura_logs.html:27
 #: app/templates/admin_ross1000_logs.html:27
-#: app/templates/email_guest_access.html:30 app/templates/guest_access.html:45
-#: app/templates/guest_portal.html:32 app/templates/guest_self_checkin.html:43
+#: app/templates/checkin_guide.html:43 app/templates/email_guest_access.html:30
+#: app/templates/guest_access.html:45 app/templates/guest_portal.html:32
+#: app/templates/guest_self_checkin.html:43
 msgid "Reservation"
 msgstr ""
 
@@ -1485,7 +1488,8 @@ msgid "Failed"
 msgstr ""
 
 #: app/templates/admin_smart_access.html:121
-#: app/templates/guest_access.html:180 app/templates/guest_access.html:192
+#: app/templates/checkin_guide.html:263 app/templates/guest_access.html:180
+#: app/templates/guest_access.html:192
 msgid "Connection error"
 msgstr ""
 
@@ -2539,6 +2543,197 @@ msgstr ""
 msgid "Return to Homepage"
 msgstr ""
 
+#: app/templates/checkin_guide.html:2 app/templates/checkin_guide.html:22
+msgid "Self Check-in Guide"
+msgstr ""
+
+#: app/templates/checkin_guide.html:24
+msgid "Step-by-step instructions to reach the apartment"
+msgstr ""
+
+#: app/templates/checkin_guide.html:56
+msgid "Address"
+msgstr ""
+
+#: app/templates/checkin_guide.html:63
+msgid "How to get in"
+msgstr ""
+
+#: app/templates/checkin_guide.html:73
+msgid "Arrive at Street Entrance"
+msgstr ""
+
+#: app/templates/checkin_guide.html:74
+msgid "Step 1"
+msgstr ""
+
+#: app/templates/checkin_guide.html:78
+msgid "Locate building number"
+msgstr ""
+
+#: app/templates/checkin_guide.html:78
+msgid ""
+"on Circonvallazione Ostiense. Walk directly through the covered "
+"passageway under the building."
+msgstr ""
+
+#: app/templates/checkin_guide.html:81
+msgid "Street Entrance 235"
+msgstr ""
+
+#: app/templates/checkin_guide.html:93
+msgid "Enter the Inner Courtyard"
+msgstr ""
+
+#: app/templates/checkin_guide.html:94
+msgid "Step 2"
+msgstr ""
+
+#: app/templates/checkin_guide.html:98
+msgid ""
+"Continue walking straight through the internal courtyard along the paved "
+"pathway until you reach the very end, then turn right."
+msgstr ""
+
+#: app/templates/checkin_guide.html:101
+msgid "Inner Courtyard Pathway"
+msgstr ""
+
+#: app/templates/checkin_guide.html:113
+msgid "Locate Building Entrance (Scala C)"
+msgstr ""
+
+#: app/templates/checkin_guide.html:114
+msgid "Step 3"
+msgstr ""
+
+#: app/templates/checkin_guide.html:118
+msgid "After turning right, you will see the covered entrance for"
+msgstr ""
+
+#: app/templates/checkin_guide.html:118
+msgid ""
+"Push open the main glass and iron entrance door to access the building "
+"lobby."
+msgstr ""
+
+#: app/templates/checkin_guide.html:124 app/templates/checkin_guide.html:266
+msgid "Open the Building Gate"
+msgstr ""
+
+#: app/templates/checkin_guide.html:128
+msgid "Active from 13:00 on check-in day to 13:00 on check-out day (Rome time)."
+msgstr ""
+
+#: app/templates/checkin_guide.html:134
+msgid "Building Entrance Scala C"
+msgstr ""
+
+#: app/templates/checkin_guide.html:146 app/templates/checkin_guide.html:154
+msgid "Ground Floor Hallway"
+msgstr ""
+
+#: app/templates/checkin_guide.html:147
+msgid "Step 4"
+msgstr ""
+
+#: app/templates/checkin_guide.html:151
+msgid ""
+"Once inside the lobby on the ground floor, walk straight down the hallway"
+" past the stairs and elevator, then turn right at the end."
+msgstr ""
+
+#: app/templates/checkin_guide.html:166
+msgid "Apartment Entrance & Smart Lock"
+msgstr ""
+
+#: app/templates/checkin_guide.html:167
+msgid "Step 5"
+msgstr ""
+
+#: app/templates/checkin_guide.html:171
+msgid ""
+"You will find the wooden entrance door (Apt. 3). Enter your personal "
+"access code on the digital keypad located on the right door frame to "
+"unlock and step inside!"
+msgstr ""
+
+#: app/templates/checkin_guide.html:176
+msgid "Your keypad code"
+msgstr ""
+
+#: app/templates/checkin_guide.html:179
+msgid ""
+"Enter it on the keypad next to the door. Valid from 13:00 on check-in day"
+" to 13:00 on check-out day (Rome time)."
+msgstr ""
+
+#: app/templates/checkin_guide.html:184
+msgid "Your personal keypad code is sent to you via message."
+msgstr ""
+
+#: app/templates/checkin_guide.html:189
+msgid "Apartment Entrance Door"
+msgstr ""
+
+#: app/templates/checkin_guide.html:203
+msgid "OK"
+msgstr ""
+
+#: app/templates/checkin_guide.html:213
+msgid "Need assistance during check-in?"
+msgstr ""
+
+#: app/templates/checkin_guide.html:213
+msgid "Contact us via WhatsApp or phone"
+msgstr ""
+
+#: app/templates/checkin_guide.html:214
+msgid "Have a wonderful stay!"
+msgstr ""
+
+#: app/templates/checkin_guide.html:241
+msgid "Not yet available"
+msgstr ""
+
+#: app/templates/checkin_guide.html:241
+msgid ""
+"It's too early! The building gate can be opened from 13:00 on your check-"
+"in day, until 13:00 on your check-out day (Rome time)."
+msgstr ""
+
+#: app/templates/checkin_guide.html:245
+msgid "Access expired"
+msgstr ""
+
+#: app/templates/checkin_guide.html:245
+msgid "The gate access expired at 13:00 on your check-out day."
+msgstr ""
+
+#: app/templates/checkin_guide.html:250
+msgid "Opening..."
+msgstr ""
+
+#: app/templates/checkin_guide.html:258 app/templates/guest_access.html:178
+msgid "Gate opened"
+msgstr ""
+
+#: app/templates/checkin_guide.html:258
+msgid "The building gate is now open. Please walk through!"
+msgstr ""
+
+#: app/templates/checkin_guide.html:260
+msgid "Gate error"
+msgstr ""
+
+#: app/templates/checkin_guide.html:260
+msgid "Failed to open the gate. Please contact the host."
+msgstr ""
+
+#: app/templates/checkin_guide.html:263
+msgid "Please check your connection and try again."
+msgstr ""
+
 #: app/templates/checkout.html:2
 msgid "Complete your booking"
 msgstr ""
@@ -3502,10 +3697,6 @@ msgstr ""
 
 #: app/templates/guest_access.html:131
 msgid "Access expires automatically on check-out day"
-msgstr ""
-
-#: app/templates/guest_access.html:178
-msgid "Gate opened"
 msgstr ""
 
 #: app/templates/guest_access.html:190
