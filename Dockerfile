@@ -9,7 +9,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         tesseract-ocr \
         tesseract-ocr-eng \
+        ca-certificates \
+        curl \
     && rm -rf /var/lib/apt/lists/*
+
+# OCR-B traineddata: tesseract reads the MRZ font far more accurately with it
+# than with the generic English model.
+RUN curl -sL -o /usr/share/tesseract-ocr/5/tessdata/ocrb_int.traineddata \
+        "https://github.com/Shreeshrii/tessdata_ocrb/raw/master/ocrb_int.traineddata"
 
 WORKDIR /app
 

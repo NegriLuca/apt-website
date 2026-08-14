@@ -24,6 +24,21 @@ class MrzResult:
 
 _MRZ_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<'
 
+_OCR_LANG: str | None = None
+
+
+def _pick_ocr_lang() -> str:
+    """Prefer the OCR-B traineddata (built for MRZ); fall back to English."""
+    global _OCR_LANG
+    if _OCR_LANG is not None:
+        return _OCR_LANG
+    try:
+        available = set(pytesseract.get_languages(config=''))
+        _OCR_LANG = 'ocrb_int' if 'ocrb_int' in available else 'eng'
+    except Exception:
+        _OCR_LANG = 'eng'
+    return _OCR_LANG
+
 
 def _to_grayscale(image: np.ndarray) -> np.ndarray:
     if len(image.shape) == 3:
@@ -89,6 +104,7 @@ def _ocr_lines(image: np.ndarray, psm: int) -> list[str]:
         )
     text = pytesseract.image_to_string(
         thresh,
+        lang=_pick_ocr_lang(),
         config=f'--oem 1 --psm {psm} -c tessedit_char_whitelist={_MRZ_CHARS}',
     )
     return [re.sub(r'[^A-Z0-9<]', '', line) for line in text.splitlines() if line.strip()]
@@ -130,11 +146,21 @@ def extract_mrz(data: bytes) -> MrzResult:
     if not cleaned:
         return MrzResult(ok=False, error='No text recognised in the image')
 
-    parsed = _parse_mrz(cleaned)
+    parsed = _parse_mrz_scan(cleaned)
     if parsed is None:
         return MrzResult(ok=False, error='Could not parse a valid MRZ from the text', raw_lines=cleaned)
 
     return parsed
+
+
+def _parse_mrz_scan(lines: list[str]) -> MrzResult | None:
+    """Search all recognised lines for a valid MRZ, bottom-up: the MRZ sits at
+    the very bottom of the document, so the last candidate wins."""
+    for i in range(len(lines) - 1, -1, -1):
+        parsed = _parse_mrz(lines[i:i + 3])
+        if parsed is not None:
+            return parsed
+    return None
 
 
 def _decode_input(data: bytes) -> np.ndarray | MrzResult:
@@ -175,50 +201,82 @@ def _render_pdf(data: bytes) -> np.ndarray | None:
 
 
 def _parse_mrz(lines: list[str]) -> MrzResult | None:
-    # TD3: passport — 2 lines of 44 chars
+    # TD3: passport — 2 lines of 44 chars. Line 1 must contain the '<<'
+    # surname/given-name separator, which plain OCR text never produces.
     if len(lines) >= 2 and len(lines[0]) >= 18 and len(lines[1]) >= 30:
         line1, line2 = lines[0], lines[1]
-        if line1[0] in 'PVA':
+        if line1[0] in 'PVAIC' and '<<' in line1[5:]:
             # Split on '<<'; trailing fillers may be OCR'd as garbage, so only
             # trust the surname and given-name fields at the start of line 1.
             parts = re.split(r'<<+', line1[5:])
             surname = _name_field(parts[0] if parts else '')
             given = _name_field(parts[1] if len(parts) > 1 else '')
-            return MrzResult(
-                ok=True,
-                raw_lines=[line1[:44], line2[:44]],
-                document_type=line1[0],
-                country=_name_field(line1[2:5]),
-                surname=surname,
-                given_names=given,
-                document_number=_digits(line2[0:9]).replace('<', ''),
-                nationality=_name_field(line2[10:13]),
-                birth_date=_digits(line2[13:19]),
-                sex=line2[20].replace('O', '0'),
-                expiry_date=_digits(line2[21:27]),
-            )
+            if (
+                _valid_name(surname)
+                and _valid_country(line1[2:5])
+                and _valid_country(line2[10:13])
+                and _looks_like_date(line2[13:19])
+                and _looks_like_date(line2[21:27])
+            ):
+                return MrzResult(
+                    ok=True,
+                    raw_lines=[line1[:44], line2[:44]],
+                    document_type=line1[0],
+                    country=_name_field(line1[2:5]),
+                    surname=surname,
+                    given_names=given,
+                    document_number=_digits(line2[0:9]).replace('<', ''),
+                    nationality=_name_field(line2[10:13]),
+                    birth_date=_digits(line2[13:19]),
+                    sex=line2[20].replace('O', '0'),
+                    expiry_date=_digits(line2[21:27]),
+                )
 
     # TD1: ID card — 3 lines of 30 chars (trailing fillers often dropped by OCR)
     if len(lines) >= 3 and len(lines[0]) >= 24 and len(lines[1]) >= 19 and len(lines[2]) >= 10:
         line1, line2, line3 = lines[0], lines[1], lines[2]
-        parts = re.split(r'<<+', line3[0:29])
-        surname = _name_field(parts[0] if parts else '')
-        given = _name_field(parts[1] if len(parts) > 1 else '')
-        return MrzResult(
-            ok=True,
-            raw_lines=[line1[:30], line2[:30], line3[:30]],
-            document_type=line1[0],
-            country=_name_field(line1[2:5]),
-            document_number=_digits(line1[5:14]).replace('<', ''),
-            surname=surname,
-            given_names=given,
-            nationality=_name_field(line2[15:18]),
-            birth_date=_digits(line2[0:6]),
-            sex=line2[7].replace('O', '0'),
-            expiry_date=_digits(line2[8:14]),
-        )
+        if line1[0] in 'IACV' and '<<' in line3[0:29]:
+            parts = re.split(r'<<+', line3[0:29])
+            surname = _name_field(parts[0] if parts else '')
+            given = _name_field(parts[1] if len(parts) > 1 else '')
+            if (
+                _valid_name(surname)
+                and _valid_country(line1[2:5])
+                and _valid_country(line2[15:18])
+                and _looks_like_date(line2[0:6])
+                and _looks_like_date(line2[8:14])
+            ):
+                return MrzResult(
+                    ok=True,
+                    raw_lines=[line1[:30], line2[:30], line3[:30]],
+                    document_type=line1[0],
+                    country=_name_field(line1[2:5]),
+                    document_number=_digits(line1[5:14]).replace('<', ''),
+                    surname=surname,
+                    given_names=given,
+                    nationality=_name_field(line2[15:18]),
+                    birth_date=_digits(line2[0:6]),
+                    sex=line2[7].replace('O', '0'),
+                    expiry_date=_digits(line2[8:14]),
+                )
 
     return None
+
+
+def _valid_name(value: str) -> bool:
+    return bool(value) and len(value) >= 2 and value.isalpha()
+
+
+def _valid_country(value: str) -> bool:
+    return bool(value) and len(value) >= 2 and value.isalpha()
+
+
+def _looks_like_date(value: str) -> bool:
+    """YYMMDD / YYMMDD expiry: after OCR digit-correction, mostly digits."""
+    if len(value) < 4:
+        return False
+    digits = sum(1 for ch in _digits(value) if ch.isdigit())
+    return digits >= len(value) - 2
 
 
 def image_to_data_uri(image_bytes: bytes, mime: str = 'image/jpeg') -> str:
