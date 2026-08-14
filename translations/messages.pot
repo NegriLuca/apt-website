@@ -2613,8 +2613,8 @@ msgstr ""
 
 #: app/templates/checkin_guide.html:118
 msgid ""
-"Push open the main glass and iron entrance door to access the building "
-"lobby."
+"To open the door, press the button below (active from 13:00 on check-in day"
+" to 13:00 on check-out day, Rome time), then enter the building lobby."
 msgstr ""
 
 #: app/templates/checkin_guide.html:124 app/templates/checkin_guide.html:266

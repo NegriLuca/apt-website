@@ -2710,11 +2710,12 @@ msgstr "Dopo aver girato a destra, vedrai l'ingresso coperto della"
 
 #: app/templates/checkin_guide.html:118
 msgid ""
-"Push open the main glass and iron entrance door to access the building "
-"lobby."
+"To open the door, press the button below (active from 13:00 on check-in day"
+" to 13:00 on check-out day, Rome time), then enter the building lobby."
 msgstr ""
-"Spingi la porta principale in vetro e ferro per accedere all'atrio "
-"dell'edificio."
+"Per aprire la porta, premi il pulsante qui sotto (attivo dalle 13:00 del "
+"giorno di check-in alle 13:00 del giorno di check-out, ora di Roma), poi "
+"entra nell'atrio dell'edificio."
 
 #: app/templates/checkin_guide.html:124 app/templates/checkin_guide.html:266
 msgid "Open the Building Gate"

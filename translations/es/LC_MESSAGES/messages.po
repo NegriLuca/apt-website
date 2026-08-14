@@ -2705,11 +2705,12 @@ msgstr "Después de girar a la derecha, verás la entrada cubierta de"
 
 #: app/templates/checkin_guide.html:118
 msgid ""
-"Push open the main glass and iron entrance door to access the building "
-"lobby."
+"To open the door, press the button below (active from 13:00 on check-in day"
+" to 13:00 on check-out day, Rome time), then enter the building lobby."
 msgstr ""
-"Empuja la puerta de entrada principal de vidrio y hierro para acceder al "
-"vestíbulo del edificio."
+"Para abrir la puerta, pulsa el botón de abajo (activo desde las 13:00 del "
+"día de entrada hasta las 13:00 del día de salida, hora de Roma) y luego "
+"entra en el vestíbulo del edificio."
 
 #: app/templates/checkin_guide.html:124 app/templates/checkin_guide.html:266
 msgid "Open the Building Gate"

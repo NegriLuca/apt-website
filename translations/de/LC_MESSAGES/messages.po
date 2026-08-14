@@ -2713,11 +2713,12 @@ msgstr "Nachdem Sie rechts abgebogen sind, sehen Sie den überdachten Eingang f�
 
 #: app/templates/checkin_guide.html:118
 msgid ""
-"Push open the main glass and iron entrance door to access the building "
-"lobby."
+"To open the door, press the button below (active from 13:00 on check-in day"
+" to 13:00 on check-out day, Rome time), then enter the building lobby."
 msgstr ""
-"Schieben Sie die große Eingangstür aus Glas und Eisen auf, um die Lobby "
-"zu betreten."
+"Um die Tür zu öffnen, drücken Sie den Knopf unten (aktiv von 13:00 Uhr am "
+"Anreisetag bis 13:00 Uhr am Abreisetag, römische Zeit) und betreten Sie "
+"dann die Lobby."
 
 #: app/templates/checkin_guide.html:124 app/templates/checkin_guide.html:266
 msgid "Open the Building Gate"
