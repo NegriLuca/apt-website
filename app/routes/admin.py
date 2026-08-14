@@ -1464,3 +1464,43 @@ def admin_audit_log_view() -> Response | str:
         entity_filter=entity_filter,
         date_from=date_from,
     )
+
+
+# ── MRZ Extractor Test ────────────────────────────────────────────────────────
+
+
+@bp.route('/admin/mrz-extractor', methods=['GET', 'POST'])
+@login_required
+def admin_mrz_extractor() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    result = None
+    error = None
+    preview_uri = None
+
+    if request.method == 'POST':
+        file = request.files.get('document_image')
+        if not file or not file.filename:
+            error = _('Please choose an image to upload.')
+        elif file.content_length and file.content_length > 8 * 1024 * 1024:
+            error = _('Image too large (max 8 MB).')
+        else:
+            data = file.read()
+            if len(data) > 8 * 1024 * 1024:
+                error = _('Image too large (max 8 MB).')
+            elif not data:
+                error = _('The uploaded file is empty.')
+            else:
+                from app.services.mrz_extractor import extract_mrz, image_to_data_uri
+
+                result = extract_mrz(data)
+                if result.ok:
+                    preview_uri = image_to_data_uri(data)
+
+    return render_template(
+        'admin_mrz_extractor.html',
+        result=result,
+        error=error,
+        preview_uri=preview_uri,
+    )

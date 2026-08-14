@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('MRZ Extractor Test') }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% include 'admin_header.html' %}
+
+    <div class="main-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="page-title mb-1">{{ _('MRZ Extractor Test') }}</h1>
+                        <p class="lead text-muted mb-0">{{ _('Upload a passport or ID card photo to test automatic data extraction.') }}</p>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ _('Document image') }}</label>
+                            <input type="file" name="document_image" class="form-control" accept="image/*" required>
+                            <div class="form-text">{{ _('Passport (MRZ) or EU ID card (MRZ). Max 8 MB. The image is processed in memory and not stored.') }}</div>
+                        </div>
+
+                        <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">
+                            <i class="bi bi-scan me-2"></i>{{ _('Extract Data') }}
+                        </button>
+                    </div>
+                </form>
+
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+                {% if result %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h5 class="fw-bold mb-3">
+                            {% if result.ok %}
+                            <span class="text-success"><i class="bi bi-check-circle me-1"></i>{{ _('Extraction successful') }}</span>
+                            {% else %}
+                            <span class="text-danger"><i class="bi bi-x-circle me-1"></i>{{ _('Extraction failed') }}</span>
+                            {% endif %}
+                        </h5>
+
+                        {% if preview_uri %}
+                        <div class="text-center mb-4">
+                            <img src="{{ preview_uri }}" alt="{{ _('Uploaded document') }}"
+                                 class="img-fluid rounded border" style="max-width: 320px;">
+                        </div>
+                        {% endif %}
+
+                        {% if not result.ok %}
+                        <p class="text-muted mb-3">{{ result.error }}</p>
+                        {% if result.raw_lines %}
+                        <h6 class="fw-semibold">{{ _('Recognised text') }}</h6>
+                        <pre class="bg-dark text-white p-3 rounded small">{{ result.raw_lines|join('\n') }}</pre>
+                        {% endif %}
+                        {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <tbody>
+                                    <tr><th class="w-50">{{ _('Document type') }}</th><td>{{ result.document_type }}</td></tr>
+                                    <tr><th>{{ _('Document number') }}</th><td>{{ result.document_number }}</td></tr>
+                                    <tr><th>{{ _('Surname') }}</th><td>{{ result.surname }}</td></tr>
+                                    <tr><th>{{ _('Given names') }}</th><td>{{ result.given_names }}</td></tr>
+                                    <tr><th>{{ _('Nationality') }}</th><td>{{ result.nationality }}</td></tr>
+                                    <tr><th>{{ _('Birth date') }}</th><td>{{ result.birth_date }}</td></tr>
+                                    <tr><th>{{ _('Sex') }}</th><td>{{ result.sex }}</td></tr>
+                                    <tr><th>{{ _('Expiry date') }}</th><td>{{ result.expiry_date }}</td></tr>
+                                    <tr><th>{{ _('Issuing country') }}</th><td>{{ result.country }}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
