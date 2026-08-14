@@ -1482,21 +1482,21 @@ def admin_mrz_extractor() -> Response | str:
     if request.method == 'POST':
         file = request.files.get('document_image')
         if not file or not file.filename:
-            error = _('Please choose an image to upload.')
+            error = _('Please choose an image or PDF to upload.')
         elif file.content_length and file.content_length > 8 * 1024 * 1024:
-            error = _('Image too large (max 8 MB).')
+            error = _('File too large (max 8 MB).')
         else:
             data = file.read()
             if len(data) > 8 * 1024 * 1024:
-                error = _('Image too large (max 8 MB).')
+                error = _('File too large (max 8 MB).')
             elif not data:
                 error = _('The uploaded file is empty.')
             else:
-                from app.services.mrz_extractor import extract_mrz, image_to_data_uri
+                from app.services.mrz_extractor import extract_mrz, preview_data_uri
 
                 result = extract_mrz(data)
                 if result.ok:
-                    preview_uri = image_to_data_uri(data)
+                    preview_uri = preview_data_uri(data)
 
     return render_template(
         'admin_mrz_extractor.html',

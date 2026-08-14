@@ -22,9 +22,10 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">{{ _('Document image') }}</label>
-                            <input type="file" name="document_image" class="form-control" accept="image/*" required>
-                            <div class="form-text">{{ _('Passport (MRZ) or EU ID card (MRZ). Max 8 MB. The image is processed in memory and not stored.') }}</div>
+                            <label class="form-label fw-semibold">{{ _('Document image or PDF') }}</label>
+                            <input type="file" name="document_image" id="documentImage" class="form-control"
+                                   accept="image/*,application/pdf" capture="environment" required>
+                            <div class="form-text">{{ _('Passport (MRZ) or EU ID card (MRZ). Images, PDFs, or a photo taken with your device camera. Max 8 MB. The document is processed in memory and not stored.') }}</div>
                         </div>
 
                         <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">

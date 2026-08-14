@@ -112,15 +112,11 @@ def _name_field(part: str) -> str:
     return _letters(part).rstrip('O')
 
 
-def extract_mrz(image_bytes: bytes) -> MrzResult:
-    """Extract structured data from the MRZ zone of a passport/ID image."""
-    try:
-        arr = np.frombuffer(image_bytes, np.uint8)
-        image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-        if image is None:
-            return MrzResult(ok=False, error='Could not decode image')
-    except Exception as exc:
-        return MrzResult(ok=False, error=f'Could not decode image: {exc}')
+def extract_mrz(data: bytes) -> MrzResult:
+    """Extract structured data from the MRZ zone of a passport/ID image or PDF."""
+    image = _decode_input(data)
+    if isinstance(image, MrzResult):
+        return image
 
     try:
         region = _crop_mrz_region(image)
@@ -139,6 +135,43 @@ def extract_mrz(image_bytes: bytes) -> MrzResult:
         return MrzResult(ok=False, error='Could not parse a valid MRZ from the text', raw_lines=cleaned)
 
     return parsed
+
+
+def _decode_input(data: bytes) -> np.ndarray | MrzResult:
+    """Decode raw upload bytes into an image. Handles JPEG/PNG and PDF."""
+    if data[:5] == b'%PDF-':
+        image = _render_pdf(data)
+        if image is None:
+            return MrzResult(ok=False, error='Could not render the PDF to an image')
+        return image
+
+    try:
+        arr = np.frombuffer(data, np.uint8)
+        image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        if image is None:
+            return MrzResult(ok=False, error='Could not decode image (only images and PDFs are supported)')
+        return image
+    except Exception as exc:
+        return MrzResult(ok=False, error=f'Could not decode image: {exc}')
+
+
+def _render_pdf(data: bytes) -> np.ndarray | None:
+    """Render the first page of a PDF to a high-res BGR image via PyMuPDF."""
+    try:
+        import fitz  # PyMuPDF
+    except ImportError:
+        return None
+
+    try:
+        with fitz.open(stream=data, filetype='pdf') as doc:
+            page = doc[0]
+            # 200 DPI keeps MRZ text legible for OCR without huge images
+            zoom = 200 / 72.0
+            pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+            img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)
+            return cv2.cvtColor(img, cv2.COLOR_RGB2BGR) if pix.n == 3 else img
+    except Exception:
+        return None
 
 
 def _parse_mrz(lines: list[str]) -> MrzResult | None:
@@ -192,3 +225,25 @@ def image_to_data_uri(image_bytes: bytes, mime: str = 'image/jpeg') -> str:
     import base64
 
     return f'data:{mime};base64,{base64.b64encode(image_bytes).decode()}'
+
+
+def preview_data_uri(data: bytes) -> str | None:
+    """Return a data URI to preview an uploaded image/PDF (None if unsupported)."""
+    import base64
+
+    if data[:5] == b'%PDF-':
+        image = _render_pdf(data)
+        if image is None:
+            return None
+        ok, encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 80])
+        if not ok:
+            return None
+        return f'data:image/jpeg;base64,{base64.b64encode(encoded.tobytes()).decode()}'
+
+    if data[:4] == b'\x89PNG':
+        mime = 'image/png'
+    elif data[:3] in (b'\xff\xd8\xff',):
+        mime = 'image/jpeg'
+    else:
+        return None
+    return f'data:{mime};base64,{base64.b64encode(data).decode()}'
