@@ -1699,13 +1699,11 @@ def admin_cleaning_access_preview(item_id: int) -> Response | str:
     item = CleaningAccess.query.get_or_404(item_id)
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
-    door_configured = bool(apartment and apartment.nuki_enabled)
     return render_template(
         'cleaning_access.html',
         item=item,
         apartment=apartment,
         gate_configured=gate_configured,
-        door_configured=door_configured,
         preview=True,
     )
 

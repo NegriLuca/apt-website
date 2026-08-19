@@ -380,13 +380,11 @@ def cleaning_access_page(token):
         return render_template('cleaning_access_denied.html', item=item), 403
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
-    door_configured = bool(apartment and apartment.nuki_enabled)
     return render_template(
         'cleaning_access.html',
         item=item,
         apartment=apartment,
         gate_configured=gate_configured,
-        door_configured=door_configured,
         preview=False,
     )
 
@@ -407,27 +405,6 @@ def api_cleaning_gate_open():
         return jsonify({'ok': False, 'error': 'No apartment configured.'}), 400
     try:
         ok, msg = get_shelly_service(apt).pulse_relay()
-    except SmartLockError as e:
-        return jsonify({'ok': False, 'error': str(e)}), 400
-    return jsonify({'ok': ok, 'message': msg})
-
-
-@bp.route('/api/cleaning-access/door/open', methods=['POST'])
-@limiter.limit('10 per minute')
-@csrf.exempt
-def api_cleaning_door_open():
-    token = request.headers.get('X-Access-Token') or request.form.get('token')
-    item = CleaningAccess.query.filter_by(token=token).first() if token else None
-    if not item:
-        return jsonify({'ok': False, 'error': 'Invalid token'}), 403
-    if not item.is_now_active():
-        return jsonify({'ok': False, 'error': 'This cleaning access link is disabled.'}), 403
-
-    apt = get_apartment()
-    if not apt:
-        return jsonify({'ok': False, 'error': 'No apartment configured.'}), 400
-    try:
-        ok, msg = get_nuki_service(apt).unlock()
     except SmartLockError as e:
         return jsonify({'ok': False, 'error': str(e)}), 400
     return jsonify({'ok': ok, 'message': msg})

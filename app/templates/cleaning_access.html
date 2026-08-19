@@ -51,28 +51,6 @@
                 </div>
             </div>
 
-            <!-- Door Control -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body p-4 p-md-5 text-center">
-                    <div class="mb-3">
-                        <i class="bi bi-door-open fs-1 text-muted"></i>
-                    </div>
-                    <h5 class="fw-bold mb-1">{{ _('Apartment Door') }}</h5>
-                    <p class="text-muted small mb-4">{{ _('Press to unlock the apartment door.') }}</p>
-                    {% if door_configured %}
-                    <button type="button" class="btn-luxury-primary w-100 py-3 fw-bold" id="doorBtn" {% if preview %}disabled{% endif %} onclick="openDoor()">
-                        <i class="bi bi-door-open me-2"></i><span id="doorBtnText">{{ _('Unlock Door') }}</span>
-                    </button>
-                    <div id="doorStatus" class="mt-3"></div>
-                    {% else %}
-                    <div class="text-muted small">
-                        <i class="bi bi-exclamation-circle me-1"></i>
-                        {{ _('Door control not configured. Please contact the host.') }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
             <!-- Keypad Code -->
             {% if item.keypad_code %}
             <div class="card border-0 shadow-sm mb-4">
@@ -148,18 +126,6 @@ async function openGate() {
         else showStatus('gateStatus', r.error || '{{ _('Failed') }}', 'error');
     } catch { showStatus('gateStatus', '{{ _('Connection error') }}', 'error'); }
     setLoading('gateBtn', false);
-}
-
-async function openDoor() {
-    if (previewMode) return;
-    setLoading('doorBtn', true);
-    showStatus('doorStatus', '{{ _('Unlocking door...') }}', 'loading');
-    try {
-        const r = await callApi('/api/cleaning-access/door/open');
-        if (r.ok) showStatus('doorStatus', r.message || '{{ _('Door unlocked') }}', 'success');
-        else showStatus('doorStatus', r.error || '{{ _('Failed') }}', 'error');
-    } catch { showStatus('doorStatus', '{{ _('Connection error') }}', 'error'); }
-    setLoading('doorBtn', false);
 }
 </script>
 {% endblock %}
