@@ -5,12 +5,15 @@ import cv2
 import numpy as np
 import pytesseract
 
+from app.services import mrz_cnn
+
 
 @dataclass
 class MrzResult:
     ok: bool
     error: str | None = None
     raw_lines: list[str] | None = None
+    engine: str | None = None
     document_type: str | None = None
     document_number: str | None = None
     surname: str | None = None
@@ -77,7 +80,11 @@ def _crop_mrz_region(image: np.ndarray) -> np.ndarray | None:
     bottom_group = groups[-1]
     line_heights = [g[1] - g[0] + 1 for g in groups]
     median_height = float(sorted(line_heights)[len(line_heights) // 2])
-    max_gap = max(2, int(median_height * 0.8))
+    # Generous threshold: MRZ lines can sit up to ~1.5x a line height apart
+    # (tight real-world scans AND synthetic renders with 2x font spacing).
+    # Over-cropping is harmless: the parser scans bottom-up and the CNN keeps
+    # only the last few lines, so stray text above the MRZ is ignored.
+    max_gap = max(2, int(median_height * 1.5))
 
     top = bottom_group[0]
     for idx in range(len(groups) - 2, -1, -1):
@@ -136,21 +143,37 @@ def extract_mrz(data: bytes) -> MrzResult:
 
     try:
         region = _crop_mrz_region(image)
-        lines = _ocr_lines(region, psm=6)
-        if len(lines) < 2:
-            lines = _ocr_lines(region, psm=11)
+        if region is None:
+            return MrzResult(ok=False, error='No text region found in the image')
+
+        # Run both engines so the other can confirm or rescue a miss.
+        cnn_lines = mrz_cnn.cnn_ocr_lines(region)
+        tess_lines = _ocr_lines(region, psm=6)
+        if len(tess_lines) < 2:
+            tess_lines = _ocr_lines(region, psm=11)
     except Exception as exc:
         return MrzResult(ok=False, error=f'OCR failed: {exc}')
 
-    cleaned = [_normalize_line(line) for line in lines if line.strip()]
+    cleaned_cnn = [_normalize_line(line) for line in cnn_lines if line.strip()]
+    parsed = _parse_mrz_scan(cleaned_cnn)
+    if parsed is not None:
+        parsed.engine = 'cnn'
+        return parsed
+
+    cleaned_tess = [_normalize_line(line) for line in tess_lines if line.strip()]
+    parsed = _parse_mrz_scan(cleaned_tess)
+    if parsed is not None:
+        parsed.engine = 'tesseract'
+        return parsed
+
+    cleaned = cleaned_cnn if len(cleaned_cnn) >= len(cleaned_tess) else cleaned_tess
     if not cleaned:
-        return MrzResult(ok=False, error='No text recognised in the image')
-
-    parsed = _parse_mrz_scan(cleaned)
-    if parsed is None:
-        return MrzResult(ok=False, error='Could not parse a valid MRZ from the text', raw_lines=cleaned)
-
-    return parsed
+        return MrzResult(ok=False, error='No text recognised in the image (cnn + tesseract)')
+    return MrzResult(
+        ok=False,
+        error='Could not parse a valid MRZ from the text (cnn + tesseract)',
+        raw_lines=cleaned,
+    )
 
 
 def _parse_mrz_scan(lines: list[str]) -> MrzResult | None:

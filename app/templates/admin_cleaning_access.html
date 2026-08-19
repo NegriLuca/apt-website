@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Cleaning Access') }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% include 'admin_header.html' %}
+
+    <div class="main-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h1 class="page-title mb-1">{{ _('Cleaning Access') }}</h1>
+                        <p class="lead text-muted mb-0">{{ _('Time-limited door/gate links to share with cleaners or staff') }}</p>
+                    </div>
+                </div>
+
+                <!-- Create Form -->
+                <form method="POST" action="{{ url_for('routes.admin_cleaning_access_create') }}" class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="reservation_id" id="accessReservationId" value=""/>
+
+                        <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>{{ _('New cleaning access') }}</h5>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Label') }} *</label>
+                                <input type="text" name="label" id="accessLabel" class="form-control" required
+                                       maxlength="100" placeholder="{{ _('e.g. Cleaning 24/08') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Pre-fill from reservation') }}</label>
+                                <select class="form-select" id="reservationSelect">
+                                    <option value="">— {{ _('choose a reservation (optional)') }} —</option>
+                                    {% for g in gaps %}
+                                    <option value="{{ g.id }}">{{ g.label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">{{ _('Fills the window with check-out 13:00 → next check-in 13:00 (Rome).') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Starts at (Rome time)') }}</label>
+                                <input type="datetime-local" name="starts_at" id="accessStarts" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ _('Ends at (Rome time)') }}</label>
+                                <input type="datetime-local" name="ends_at" id="accessEnds" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ _('Message for the link') }}</label>
+                            <textarea name="message" class="form-control" rows="3" maxlength="2000"
+                                      placeholder="{{ _('e.g. Hi, here is the access for the cleaning on Saturday. Gate code and door PIN below.') }}"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-luxury-primary w-100 py-3 fw-bold">
+                            <i class="bi bi-plus-lg me-2"></i>{{ _('Create Access Link') }}
+                        </button>
+                    </div>
+                </form>
+
+                {% if not nuki_configured %}
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span>{{ _('Nuki door is not configured yet. Keypad codes can only be generated once it is set up on the Smart Access page.') }}</span>
+                </div>
+                {% endif %}
+
+                <!-- List -->
+                {% if items %}
+                <h5 class="fw-bold mb-3 mt-5"><i class="bi bi-link-45deg me-2"></i>{{ _('Your access links') }}</h5>
+                {% for item in items %}
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <h6 class="mb-1 fw-bold">
+                                    {{ item.label }}
+                                    {% if item.auto_generated %}<span class="badge bg-secondary ms-1">{{ _('from reservation') }}</span>{% endif %}
+                                </h6>
+                                {% if item.starts_at and item.ends_at %}
+                                <div class="small text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ item.starts_at.strftime('%d/%m/%Y %H:%M') }} → {{ item.ends_at.strftime('%d/%m/%Y %H:%M') }} {{ _('(Rome)') }}
+                                </div>
+                                {% else %}
+                                <div class="small text-muted">{{ _('No time window set') }}</div>
+                                {% endif %}
+                                {% if item.message %}<p class="small text-muted mb-0 mt-1">{{ item.message }}</p>{% endif %}
+                            </div>
+                            <span class="badge {% if item.active %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                {{ _('Active') if item.active else _('Disabled') }}
+                            </span>
+                        </div>
+
+                        {% if item.token %}
+                        <div class="input-group mt-3">
+                            <input type="text" class="form-control form-control-sm bg-light" readonly
+                                   value="{{ url_for('routes.cleaning_access_page', token=item.token, _external=True) }}" id="shareLink{{ item.id }}">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    onclick="copyLink({{ item.id }})"><i class="bi bi-clipboard me-1"></i>{{ _('Copy') }}</button>
+                            <a href="{{ url_for('routes.admin_cleaning_access_preview', item_id=item.id) }}" target="_blank"
+                               class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>{{ _('Preview') }}</a>
+                        </div>
+                        {% endif %}
+
+                        {% if item.keypad_code %}
+                        <div class="mt-3 d-flex align-items-center gap-3 flex-wrap">
+                            <span class="text-muted small">{{ _('Keypad code') }}:</span>
+                            <span class="display-6 fw-bold letter-spacing-3">{{ item.keypad_code }}</span>
+                            <span class="text-muted small">{{ _('valid until') }} {{ item.ends_at.strftime('%d/%m/%Y %H:%M') if item.ends_at else '—' }} {{ _('(Rome)') }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2 mt-3 flex-wrap">
+                            {% if item.keypad_code %}
+                            <form action="{{ url_for('routes.admin_cleaning_access_revoke_keypad', item_id=item.id) }}" method="POST"
+                                  onsubmit="return confirm('{{ _('Revoke this keypad code?') }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle me-1"></i>{{ _('Revoke code') }}</button>
+                            </form>
+                            {% else %}
+                            <form action="{{ url_for('routes.admin_cleaning_access_generate_keypad', item_id=item.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-dpad me-1"></i>{{ _('Generate keypad code') }}</button>
+                            </form>
+                            {% endif %}
+                            <form action="{{ url_for('routes.admin_cleaning_access_toggle', item_id=item.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-{{ 'danger' if item.active else 'success' }}">
+                                    <i class="bi bi-{{ 'x-circle' if item.active else 'check-circle' }} me-1"></i>
+                                    {{ _('Disable') if item.active else _('Enable') }}
+                                </button>
+                            </form>
+                            <form action="{{ url_for('routes.admin_cleaning_access_delete', item_id=item.id) }}" method="POST"
+                                  onsubmit="return confirm('{{ _('Delete this cleaning access?') }}')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>{{ _('Delete') }}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="card border-0 bg-dark p-4 mt-4">
+                    <h6 class="fw-bold mb-3 text-white"><i class="bi bi-info-circle me-2"></i>{{ _('Cleaning Access') }}</h6>
+                    <ul class="small text-white-50 mb-0" style="color: rgba(255,255,255,0.7) !important;">
+                        <li class="mb-1">{{ _('Create a link with dates/times and a message, then share it with your cleaner.') }}</li>
+                        <li class="mb-1">{{ _('The link lets them open the gate and door and shows the keypad code.') }}</li>
+                        <li>{{ _('Generate a Nuki keypad code so the PIN only works during the window you set.') }}</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const gaps = {{ gaps|tojson }};
+const gapMap = {};
+gaps.forEach(g => gapMap[g.id] = g);
+
+const resSelect = document.getElementById('reservationSelect');
+const startsInput = document.getElementById('accessStarts');
+const endsInput = document.getElementById('accessEnds');
+const labelInput = document.getElementById('accessLabel');
+const resIdInput = document.getElementById('accessReservationId');
+
+if (resSelect) {
+    resSelect.addEventListener('change', function () {
+        const g = gapMap[this.value];
+        if (!g) return;
+        resIdInput.value = g.id;
+        startsInput.value = g.starts_at;
+        endsInput.value = g.ends_at;
+        if (!labelInput.value) labelInput.value = g.label;
+    });
+}
+
+function copyLink(id) {
+    const input = document.getElementById('shareLink' + id);
+    if (!input) return;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard?.writeText(input.value).then(() => {
+        input.classList.add('border-success');
+        setTimeout(() => input.classList.remove('border-success'), 1500);
+    });
+}
+</script>
+{% endblock %}

@@ -9,7 +9,17 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 from app import db, limiter
 from app.forms import ICalFeedForm, LoginForm
-from app.models import Apartment, AuditLog, Coupon, ICalFeed, Notification, Reservation, Testimonial, User
+from app.models import (
+    Apartment,
+    AuditLog,
+    CleaningAccess,
+    Coupon,
+    ICalFeed,
+    Notification,
+    Reservation,
+    Testimonial,
+    User,
+)
 from app.routes import bp
 from app.routes.helpers import create_balance_payment_session, create_tourist_tax_payment_session, get_apartment
 
@@ -1463,6 +1473,234 @@ def admin_audit_log_view() -> Response | str:
         admin_filter=admin_filter,
         entity_filter=entity_filter,
         date_from=date_from,
+    )
+
+
+# ── Cleaning Access ──────────────────────────────────────────────────────────
+
+
+def _cleaning_gap_windows() -> list[dict]:
+    """Return upcoming reservations with a computed cleaning window:
+    check-out 13:00 -> next check-in 13:00 (Europe/Rome). Used to pre-fill
+    the cleaning-access create form."""
+    from datetime import datetime as _dt
+
+    upcoming = (
+        Reservation.query.filter(Reservation.status.in_(['pending', 'confirmed']))
+        .order_by(Reservation.check_in.asc())
+        .all()
+    )
+    windows = []
+    for i, res in enumerate(upcoming):
+        nxt = next((o for o in upcoming[i + 1 :] if o.check_in >= res.check_out), None)
+        start = _dt(res.check_out.year, res.check_out.month, res.check_out.day, 13, 0)
+        end = (
+            _dt(nxt.check_in.year, nxt.check_in.month, nxt.check_in.day, 13, 0)
+            if nxt
+            else start + timedelta(hours=6)
+        )
+        windows.append(
+            {
+                'id': res.id,
+                'guest': res.guest_name,
+                'check_in': res.check_in.isoformat(),
+                'check_out': res.check_out.isoformat(),
+                'starts_at': start.isoformat(),
+                'ends_at': end.isoformat(),
+                'label': f'Cleaning {res.check_out.strftime("%d/%m")} — {res.guest_name}',
+            }
+        )
+    return windows
+
+
+def _parse_local_dt(raw: str) -> datetime | None:
+    """Parse a ``datetime-local`` input into a naive Europe/Rome datetime."""
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
+def _local_naive_to_utc(dt: datetime):
+    """Convert a naive Europe/Rome datetime to aware UTC."""
+    return dt.replace(tzinfo=_rome_zone()).astimezone(UTC)
+
+
+@bp.route('/admin/cleaning-access')
+@login_required
+def admin_cleaning_access() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    apartment = get_apartment()
+    items = CleaningAccess.query.order_by(CleaningAccess.created_at.desc()).all()
+    gaps = _cleaning_gap_windows()
+    nuki_configured = bool(apartment and apartment.nuki_enabled)
+    return render_template(
+        'admin_cleaning_access.html',
+        items=items,
+        gaps=gaps,
+        nuki_configured=nuki_configured,
+    )
+
+
+@bp.route('/admin/cleaning-access/create', methods=['POST'])
+@login_required
+def admin_cleaning_access_create() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    label = request.form.get('label', '').strip()
+    message = request.form.get('message', '').strip() or None
+    starts_at = _parse_local_dt(request.form.get('starts_at', ''))
+    ends_at = _parse_local_dt(request.form.get('ends_at', ''))
+    reservation_id = request.form.get('reservation_id', type=int) or None
+
+    if not label:
+        flash('A label is required (e.g. "Cleaning 24/08").', 'danger')
+        return redirect(url_for('routes.admin_cleaning_access'))
+    if starts_at and ends_at and ends_at <= starts_at:
+        flash('The end time must be after the start time.', 'danger')
+        return redirect(url_for('routes.admin_cleaning_access'))
+
+    item = CleaningAccess(
+        label=label,
+        message=message,
+        starts_at=starts_at,
+        ends_at=ends_at,
+        reservation_id=reservation_id,
+        auto_generated=bool(reservation_id),
+        active=True,
+    )
+    item.generate_token()
+    db.session.add(item)
+    db.session.commit()
+    admin_audit_log('create_cleaning_access', 'CleaningAccess', item.id, label)
+    flash(f'Cleaning access "{label}" created.', 'success')
+    return redirect(url_for('routes.admin_cleaning_access'))
+
+
+@bp.route('/admin/cleaning-access/<int:item_id>/toggle', methods=['POST'])
+@login_required
+def admin_cleaning_access_toggle(item_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    item = CleaningAccess.query.get_or_404(item_id)
+    item.active = not item.active
+    db.session.commit()
+    admin_audit_log('toggle_cleaning_access', 'CleaningAccess', item.id, f'active={item.active}')
+    flash(f'"{item.label}" is now {"active" if item.active else "disabled"}.', 'success')
+    return redirect(url_for('routes.admin_cleaning_access'))
+
+
+@bp.route('/admin/cleaning-access/<int:item_id>/generate-keypad', methods=['POST'])
+@login_required
+def admin_cleaning_access_generate_keypad(item_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    item = CleaningAccess.query.get_or_404(item_id)
+
+    from app.services.smart_lock import SmartLockError, get_nuki_service
+
+    apartment = get_apartment()
+    if not apartment:
+        flash('No apartment configured.', 'danger')
+        return redirect(url_for('routes.admin_cleaning_access'))
+
+    svc = get_nuki_service(apartment)
+    if not svc.is_configured():
+        flash('Nuki door not configured. Set it up on the Smart Access page.', 'danger')
+        return redirect(url_for('routes.admin_cleaning_access'))
+
+    if not item.starts_at or not item.ends_at:
+        flash('Set the start and end times before generating a keypad code.', 'danger')
+        return redirect(url_for('routes.admin_cleaning_access'))
+
+    try:
+        start_utc = _local_naive_to_utc(item.starts_at)
+        end_utc = _local_naive_to_utc(item.ends_at)
+        name = f'Cleaning {item.label}'[:20]
+        code = svc.create_keypad_code(name, start_utc, end_utc)
+        item.keypad_code = code
+        item.keypad_created_at = datetime.utcnow()
+        item.keypad_auth_id = svc.find_keypad_auth_id(code)
+        db.session.commit()
+        flash(
+            f'Keypad code {code} created for "{item.label}". Valid until '
+            f'{item.ends_at.strftime("%d/%m/%Y %H:%M")} (Rome).',
+            'success',
+        )
+        if not item.keypad_auth_id:
+            flash('Note: accepted but not yet confirmed on the Nuki device; it will be revocable once it syncs.', 'warning')
+    except SmartLockError as e:
+        flash(f'Failed to create keypad code: {e}', 'danger')
+
+    return redirect(url_for('routes.admin_cleaning_access'))
+
+
+@bp.route('/admin/cleaning-access/<int:item_id>/revoke-keypad', methods=['POST'])
+@login_required
+def admin_cleaning_access_revoke_keypad(item_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    item = CleaningAccess.query.get_or_404(item_id)
+
+    from app.services.smart_lock import SmartLockError, get_nuki_service
+
+    if item.keypad_auth_id:
+        apartment = get_apartment()
+        try:
+            svc = get_nuki_service(apartment) if apartment else None
+            if svc and svc.is_configured():
+                svc.revoke_keypad_code(item.keypad_auth_id)
+        except SmartLockError as e:
+            flash(f'Failed to revoke keypad code on Nuki: {e}', 'danger')
+
+    item.keypad_code = None
+    item.keypad_auth_id = None
+    item.keypad_created_at = None
+    db.session.commit()
+    flash(f'Keypad code revoked for "{item.label}".', 'success')
+    return redirect(url_for('routes.admin_cleaning_access'))
+
+
+@bp.route('/admin/cleaning-access/<int:item_id>/delete', methods=['POST'])
+@login_required
+def admin_cleaning_access_delete(item_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    item = CleaningAccess.query.get_or_404(item_id)
+
+    from app.services.smart_lock import SmartLockError, get_nuki_service
+
+    if item.keypad_auth_id:
+        apartment = get_apartment()
+        try:
+            svc = get_nuki_service(apartment) if apartment else None
+            if svc and svc.is_configured():
+                svc.revoke_keypad_code(item.keypad_auth_id)
+        except SmartLockError:
+            pass
+
+    admin_audit_log('delete_cleaning_access', 'CleaningAccess', item.id, item.label)
+    db.session.delete(item)
+    db.session.commit()
+    flash(f'Cleaning access "{item.label}" deleted.', 'success')
+    return redirect(url_for('routes.admin_cleaning_access'))
+
+
+@bp.route('/admin/cleaning-access/<int:item_id>/preview')
+@login_required
+def admin_cleaning_access_preview(item_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    item = CleaningAccess.query.get_or_404(item_id)
+    return render_template(
+        'cleaning_access.html',
+        item=item,
+        preview=True,
     )
 
 

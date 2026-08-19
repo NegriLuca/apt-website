@@ -306,6 +306,48 @@ class Reservation(db.Model):
         return self.access_token
 
 
+class CleaningAccess(db.Model):
+    """Shareable door/gate access window for staff (e.g. cleaning after check-out).
+
+    ``starts_at`` / ``ends_at`` are naive datetimes in Europe/Rome (the timezone
+    the admin configures them in). The public link stays available until the
+    window is deactivated; the Nuki keypad code, when generated, physically
+    expires on the device at ``ends_at``.
+    """
+
+    __tablename__ = 'cleaning_access'
+
+    id = db.Column(db.Integer, primary_key=True)
+    label = db.Column(db.String(100), nullable=False, comment='Short name, e.g. Cleaning 24/08')
+    message = db.Column(db.Text, nullable=True, comment='Message shown on the share link')
+    starts_at = db.Column(db.DateTime, nullable=True, comment='Access window start (Europe/Rome naive)')
+    ends_at = db.Column(db.DateTime, nullable=True, comment='Access window end (Europe/Rome naive)')
+    token = db.Column(db.String(128), unique=True, index=True, nullable=True)
+    active = db.Column(db.Boolean, default=True, comment='Link responds; inactive links show disabled state')
+    auto_generated = db.Column(db.Boolean, default=False, comment='Prefilled from a reservation gap')
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=True)
+    keypad_code = db.Column(db.String(6), nullable=True)
+    keypad_auth_id = db.Column(db.String(64), nullable=True)
+    keypad_created_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    reservation = db.relationship('Reservation', backref=db.backref('cleaning_accesses', lazy='dynamic'))
+
+    def generate_token(self) -> str:
+        import secrets
+
+        self.token = secrets.token_urlsafe(32)
+        return self.token
+
+    def is_now_active(self) -> bool:
+        """True when the link is enabled (time window, if set, is ignored: the
+        link stays usable until manually deactivated)."""
+        return bool(self.active)
+
+    def __repr__(self) -> str:
+        return f'<CleaningAccess {self.id} {self.label!r}>'
+
+
 class ICalFeed(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     source = db.Column(db.String(20))  # airbnb / vrbo / booking
