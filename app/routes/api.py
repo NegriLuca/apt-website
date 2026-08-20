@@ -7,6 +7,7 @@ from app import csrf, db, limiter
 from app.models import CleaningAccess, Coupon, Reservation
 from app.routes import bp
 from app.routes.helpers import calculate_dynamic_total, get_apartment, is_available
+from app.services.email_service import send_admin_checkin_notification
 from app.services.smart_lock import SmartLockError, get_nuki_service, get_shelly_service
 
 # ── API Endpoints ────────────────────────────────────────────────────────────
@@ -283,6 +284,11 @@ def guest_self_checkin(token):
         reservation.checkin_completed_at = datetime.utcnow()
         reservation.checkin_token_used = True
         db.session.commit()
+
+        try:
+            send_admin_checkin_notification(reservation)
+        except Exception:
+            current_app.logger.exception('Admin check-in notification failed')
 
         flash('Check-in completed successfully!', 'success')
         return redirect(url_for('routes.guest_portal', token=reservation.checkin_token))
