@@ -108,6 +108,15 @@ def questura_list() -> Response | str:
     return render_template('admin_questura.html', reservations=reservations, status_filter=status_filter)
 
 
+@bp.route('/admin/compliance/questura/<int:res_id>/guest-data')
+@login_required
+def questura_guest_data(res_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    reservation = Reservation.query.get_or_404(res_id)
+    return render_template('admin_guest_data.html', reservation=reservation)
+
+
 @bp.route('/admin/compliance/questura/submit', methods=['POST'])
 @login_required
 def questura_submit() -> Response | str:

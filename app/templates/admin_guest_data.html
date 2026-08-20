@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Guest Data') }} #{{ reservation.id }}{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="page-title mb-0"><i class="bi bi-person-lines-fill me-2"></i>{{ _('Guest Data') }} — #{{ reservation.id }}</h1>
+                <a href="{{ url_for('routes.questura_list', status=request.args.get('status', 'all')) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Questura') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% set doc_labels = {'passport': _('Passport'), 'id_card': _('Identity Card'), 'driving_license': _('Driving License'), 'other': _('Other')} %}
+
+    <!-- Reservation Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="form-label text-muted small text-uppercase">{{ _('Guest') }}</div>
+                            <div class="fw-bold">{{ reservation.guest_name or '—' }}</div>
+                            {% if reservation.guest_email %}<div class="text-muted small">{{ reservation.guest_email }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-label text-muted small text-uppercase">{{ _('Stay') }}</div>
+                            <div class="fw-bold">{{ reservation.check_in.strftime('%d/%m/%Y') }} — {{ reservation.check_out.strftime('%d/%m/%Y') }}</div>
+                            <div class="text-muted small">{{ reservation.nights }} {{ _('nights') }} · {{ reservation.num_guests }} {{ _('guests') }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-label text-muted small text-uppercase">{{ _('Reservation status') }}</div>
+                            <div>
+                                {% if reservation.status == 'confirmed' %}<span class="badge bg-success">{{ _('Confirmed') }}</span>
+                                {% elif reservation.status == 'cancelled' %}<span class="badge bg-danger">{{ _('Cancelled') }}</span>
+                                {% else %}<span class="badge bg-warning text-dark">{{ _('Pending') }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-label text-muted small text-uppercase">{{ _('Questura') }}</div>
+                            {% set qs = reservation.questura_status or 'none' %}
+                            <span class="badge bg-{{ 'success' if qs == 'accepted' else 'warning' if qs in ['pending', 'sent'] else 'danger' if qs == 'rejected' else 'secondary' }}">
+                                {{ _('Accepted') if qs == 'accepted' else _('Rejected') if qs == 'rejected' else _('Pending') if qs in ['pending', 'sent'] else _('To be sent') }}
+                            </span>
+                            {% if reservation.checkin_completed_at %}
+                            <div class="text-muted small mt-1">{{ _('Online check-in completed') }}: {{ reservation.checkin_completed_at | format_datetime }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Guest Data -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0"><i class="bi bi-person me-2"></i>{{ _('Main Guest') }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0 align-middle">
+                            <tbody>
+                                <tr><th class="w-25 bg-light">{{ _('Surname') }}</th><td>{{ reservation.guest_surname or '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('First name') }}</th><td>{{ reservation.guest_first_name or '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Gender') }}</th><td>{{ 'F' if reservation.guest_gender == 'F' else 'M' if reservation.guest_gender == 'M' else '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Birth date') }}</th><td>{{ reservation.guest_birth_date.strftime('%d/%m/%Y') if reservation.guest_birth_date else '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Birth place') }}</th><td>{{ reservation.guest_birth_place or '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Nationality') }}</th><td>{{ reservation.guest_nationality or '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Document type') }}</th><td>{{ doc_labels.get(reservation.guest_document_type, reservation.guest_document_type or '—') }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Document number') }}</th><td>{{ reservation.guest_document_number or '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Document expiry') }}</th><td>{{ reservation.guest_document_expiry.strftime('%d/%m/%Y') if reservation.guest_document_expiry else '—' }}</td></tr>
+                                <tr><th class="bg-light">{{ _('Document country') }}</th><td>{{ reservation.guest_document_country or '—' }}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>{{ _('Companions') }} ({{ reservation.companions | length if reservation.companions else 0 }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if reservation.companions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ _('Surname') }}</th>
+                                    <th>{{ _('First name') }}</th>
+                                    <th>{{ _('Gender') }}</th>
+                                    <th>{{ _('Birth date') }}</th>
+                                    <th>{{ _('Birth place') }}</th>
+                                    <th>{{ _('Nationality') }}</th>
+                                    <th>{{ _('Document') }}</th>
+                                    <th>{{ _('Number') }}</th>
+                                    <th>{{ _('Expiry') }}</th>
+                                    <th>{{ _('Country') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in reservation.companions %}
+                                <tr>
+                                    <td>{{ c.get('surname', '') }}</td>
+                                    <td>{{ c.get('first_name', '') }}</td>
+                                    <td>{{ 'F' if c.get('gender') == 'F' else 'M' if c.get('gender') == 'M' else '' }}</td>
+                                    <td>{{ c.get('birth_date', '') }}</td>
+                                    <td>{{ c.get('birth_place', '') }}</td>
+                                    <td>{{ c.get('nationality', '') }}</td>
+                                    <td>{{ doc_labels.get(c.get('document_type'), c.get('document_type', '')) }}</td>
+                                    <td>{{ c.get('document_number', '') }}</td>
+                                    <td>{{ c.get('document_expiry', '') }}</td>
+                                    <td>{{ c.get('document_country', '') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">{{ _('No companions recorded.') }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
