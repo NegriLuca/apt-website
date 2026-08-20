@@ -97,7 +97,11 @@ def questura_list() -> Response | str:
     page = request.args.get('page', 1, type=int)
 
     query = Reservation.query.filter(Reservation.status != 'cancelled').order_by(Reservation.check_in.desc())
-    if status_filter != 'all':
+    if status_filter == 'pending':
+        query = query.filter(Reservation.questura_status.in_([None, 'pending']))
+    elif status_filter == 'None':
+        query = query.filter(Reservation.questura_status.is_(None))
+    elif status_filter != 'all':
         query = query.filter(Reservation.questura_status == status_filter)
 
     reservations = query.paginate(page=page, per_page=25, error_out=False)

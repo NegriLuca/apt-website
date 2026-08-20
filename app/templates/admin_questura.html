@@ -103,7 +103,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('routes.guest_self_checkin', token=r.checkin_token) }}" class="btn btn-outline-primary" title="{{ _('Guest Data') }}">
+                                            <a href="{{ url_for('routes.guest_self_checkin', token=r.checkin_token) if r.checkin_token else '#' }}" class="btn btn-outline-primary" title="{{ _('Guest Data') }}">
                                                 <i class="bi bi-person"></i>
                                             </a>
                                             {% if r.questura_ready() and status != 'accepted' %}
