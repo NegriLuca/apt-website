@@ -85,6 +85,12 @@
                     <i class="bi bi-cash-coin me-1"></i> {{ _('Pricing') }}
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link text-uppercase small fw-semibold {% if request.endpoint == 'routes.admin_earnings' %}active text-dark border-dark{% else %}text-muted{% endif %}" 
+                   href="{{ url_for('routes.admin_earnings') }}" style="border-radius: var(--radius-none) !important; border-width: 0 0 2px 0 !important;">
+                    <i class="bi bi-graph-up-arrow me-1"></i> {{ _('Earnings') }}
+                </a>
+            </li>
         </ul>
 
     </div>

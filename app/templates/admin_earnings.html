@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+{% block title %}Airbnb Earnings{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Airbnb Earnings</h1>
+            <p class="lead text-muted mb-0">Upload your Airbnb earnings CSV — gross, Airbnb service fee, withholding (21% cedolare), net (gross − service − withholding), per-night averages and monthly breakdown.</p>
+        </div>
+        <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger d-flex align-items-start" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+        <div>
+            <strong>Could not parse</strong><br>
+            <span class="small">{{ error }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Upload -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Upload CSV</h5>
+            <span class="text-muted small">Columns: Date,Type,Confirmation code,Start date,End date,Nights,Guest,Gross earnings,Service/Cleaning fee,Amount (withholding negative)</span>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <label class="form-label fw-semibold small text-uppercase">CSV file (Airbnb Earnings export)</label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv,text/csv">
+                        <div class="form-text">Export from Airbnb → Earnings → Download CSV. Max 5 MB. Encoding auto-detected.</div>
+                    </div>
+                    <div class="col-lg-6">
+                        <label class="form-label fw-semibold small text-uppercase">Or paste CSV text</label>
+                        <textarea name="csv_text" class="form-control font-monospace small" rows="5" placeholder="Date,Type,Confirmation code,...&#10;08/24/2026,Reservation,HMNYSZ9PEA,...">{% if sample %}Date,Type,Confirmation code,Booking date,Start date,End date,Nights,Guest,Listing,Details,Reference code,Currency,Amount,Service fee,Cleaning fee,Gross earnings,Airbnb remitted tax,Earnings year
+08/24/2026,Reservation,HMNYSZ9PEA,08/05/2026,08/20/2026,08/24/2026,4,Karen Garcia,Lotto 235 - Garbatella,,,EUR,265.97,62.02,40.00,316.81,48.00,
+08/24/2026,Tax Withholding for Italy Income,HMNYSZ9PEA,08/05/2026,08/20/2026,08/24/2026,4,Karen Garcia,Lotto 235 - Garbatella,,,EUR,-68.88,0.00,0.00,,0.00,{% endif %}</textarea>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-dark px-4"><i class="bi bi-calculator me-1"></i> Compute statistics</button>
+                    <a href="{{ url_for('routes.admin_earnings', sample='1') }}" class="btn btn-outline-secondary">Load sample (your 7 bookings)</a>
+                    {% if result %}
+                    <button type="button" class="btn btn-outline-success ms-auto" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+                    {% endif %}
+                </div>
+            </form>
+            <div class="alert bg-light border-0 small mt-4 mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Privacy:</strong> File is parsed in memory, never stored on disk or sent to Nuki/Brevo. Withholding ~<code>21.74%</code> of gross (cedolare secca 21% on Airbnb) — <code>Net = Amount + Withholding</code> (Amount already = (room − discount + cleaning) − Airbnb service fee). <code>Airbnb remitted tax</code> is tourist tax collected by Airbnb (not earnings). Example: Karen 20/08 → Amount €265.97 − €68.88 = <strong>€197.09</strong> net.
+            </div>
+        </div>
+    </div>
+
+    {% if result %}
+    <!-- Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">Bookings</small>
+                <h3 class="mb-0 font-monospace">{{ result.totals.count }}</h3>
+                <small class="text-muted">{{ result.totals.nights }} nights · {{ result.totals.reservations }} payouts, {{ result.totals.withholdings }} withholdings</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 border-top border-success border-3">
+                <small class="text-muted text-uppercase fw-bold">Gross Earnings</small>
+                <h3 class="mb-0 font-monospace text-success">€{{ '%.2f'|format(result.totals.gross) }}</h3>
+                <small class="text-muted">before withholding</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 border-top border-warning border-3">
+                <small class="text-muted text-uppercase fw-bold">Withholding 21%</small>
+                <h3 class="mb-0 font-monospace text-warning">€{{ '%.2f'|format(result.totals.withholding) }}</h3>
+                <small class="text-muted">{{ '%.1f'|format(result.totals.withholding_rate) }}% of gross</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 border-top border-dark border-3">
+                <small class="text-muted text-uppercase fw-bold">Net Payout</small>
+                <h3 class="mb-0 font-monospace">€{{ '%.2f'|format(result.totals.net) }}</h3>
+                <small class="text-muted">Amount + withholding (bank)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <small class="text-muted">Avg gross / night</small>
+                <strong class="d-block font-monospace">€{{ '%.2f'|format(result.totals.avg_gross_night) }}</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <small class="text-muted">Avg net / night</small>
+                <strong class="d-block font-monospace">€{{ '%.2f'|format(result.totals.avg_net_night) }}</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <small class="text-muted">Service fees</small>
+                <strong class="d-block font-monospace">€{{ '%.2f'|format(result.totals.service) }}</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <small class="text-muted">Cleaning fees</small>
+                <strong class="d-block font-monospace">€{{ '%.2f'|format(result.totals.cleaning) }}</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <small class="text-muted">Airbnb tax remitted</small>
+                <strong class="d-block font-monospace">€{{ '%.2f'|format(result.totals.airbnb_tax) }}</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <small class="text-muted">File</small>
+                <strong class="d-block small text-truncate" title="{{ result.filename }}">{{ result.filename }}</strong>
+                <small class="text-muted">{{ result.raw_rows }} rows</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-calendar-week me-1"></i> Monthly breakdown (by Start date)</h5></div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Month</th>
+                        <th class="text-end">Bookings</th>
+                        <th class="text-end">Nights</th>
+                        <th class="text-end">Gross</th>
+                        <th class="text-end">Withholding</th>
+                        <th class="text-end">Net</th>
+                        <th class="text-end">Avg net / night</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in result.monthly %}
+                    <tr>
+                        <td><span class="fw-semibold">{{ m.label }}</span> <small class="text-muted">{{ m.month }}</small></td>
+                        <td class="text-end">{{ m.count }}</td>
+                        <td class="text-end">{{ m.nights }}</td>
+                        <td class="text-end font-monospace">€{{ '%.2f'|format(m.gross) }}</td>
+                        <td class="text-end font-monospace text-warning">€{{ '%.2f'|format(m.withholding) }}</td>
+                        <td class="text-end font-monospace fw-bold">€{{ '%.2f'|format(m.net) }}</td>
+                        <td class="text-end font-monospace">€{{ '%.2f'|format(m.avg_net_night) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-dark">
+                    <tr>
+                        <th>Total</th>
+                        <th class="text-end">{{ result.totals.count }}</th>
+                        <th class="text-end">{{ result.totals.nights }}</th>
+                        <th class="text-end">€{{ '%.2f'|format(result.totals.gross) }}</th>
+                        <th class="text-end">€{{ '%.2f'|format(result.totals.withholding) }}</th>
+                        <th class="text-end">€{{ '%.2f'|format(result.totals.net) }}</th>
+                        <th class="text-end">€{{ '%.2f'|format(result.totals.avg_net_night) }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="card-body p-3">
+            <canvas id="monthlyChart" height="80"></canvas>
+        </div>
+    </div>
+
+    <!-- Per booking -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-receipt me-1"></i> Per-booking detail (net = Amount + withholding)</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="copyTable('perCodeTable')">📋 Copy</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0" id="perCodeTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Guest</th>
+                        <th>Code</th>
+                        <th>Dates</th>
+                        <th class="text-end">Nights</th>
+                        <th class="text-end">Gross</th>
+                        <th class="text-end">Service</th>
+                        <th class="text-end">Cleaning</th>
+                        <th class="text-end">Withholding</th>
+                        <th class="text-end">Net</th>
+                        <th class="text-end">Net / night</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in result.per_code %}
+                    <tr>
+                        <td><strong>{{ r.guest }}</strong><br><small class="text-muted">{{ r.code }}</small></td>
+                        <td class="font-monospace small">{{ r.code }}</td>
+                        <td class="small">{{ r.start.strftime('%d/%m/%Y') if r.start else '—' }} → {{ r.end.strftime('%d/%m/%Y') if r.end else '—' }}</td>
+                        <td class="text-end">{{ r.nights }}</td>
+                        <td class="text-end font-monospace">€{{ '%.2f'|format(r.gross) }}</td>
+                        <td class="text-end font-monospace small">€{{ '%.2f'|format(r.service) }}</td>
+                        <td class="text-end font-monospace small">€{{ '%.2f'|format(r.cleaning) }}</td>
+                        <td class="text-end font-monospace text-warning">€{{ '%.2f'|format(r.withholding) }}</td>
+                        <td class="text-end font-monospace fw-bold">€{{ '%.2f'|format(r.net) }}</td>
+                        <td class="text-end font-monospace">{{ '%.2f'|format(r.net / r.nights if r.nights else 0) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Raw -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-header bg-white"><h5 class="mb-0 small text-uppercase fw-bold">Notes</h5></div>
+        <div class="card-body small text-muted">
+            <ul class="mb-0">
+                <li><strong>Amount</strong> = (room − discount + cleaning) − Airbnb service fee. <strong>Net = Amount + Withholding</strong> (withholding negative ~-21.74% cedolare secca) — e.g. Karen 265.97−68.88=197.09. <strong>Gross</strong> shown for reference.</li>
+                <li>Service fee is Airbnb's host fee (already deducted from Amount). Cleaning fee is included in Amount.</li>
+                <li>Months are grouped by <code>Start date</code> (stay month), not payout <code>Date</code>.</li>
+                <li>Withholding rate in this file: <strong>{{ '%.2f'|format(result.totals.withholding_rate) }}%</strong> of gross.</li>
+            </ul>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty state with analysis of your sample -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb me-1 text-warning"></i> Your 7 bookings at a glance (sample you pasted) — net = Amount + withholding</h5>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light"><tr><th>Guest</th><th>Stay</th><th>Nights</th><th>Amount</th><th>Service</th><th>Withholding</th><th>Net (bank)</th></tr></thead>
+                            <tbody>
+                                <tr><td>Karen Garcia</td><td>20–24/08</td><td>4</td><td>€265.97</td><td>€62.02</td><td class="text-warning">-€68.88</td><td><strong>€197.09</strong></td></tr>
+                                <tr><td>Iraklis Eleftheriadis</td><td>11–17/09</td><td>6</td><td>€405.45</td><td>€94.55</td><td class="text-warning">-€105.00</td><td><strong>€300.45</strong></td></tr>
+                                <tr><td>Damian Stachowicz</td><td>17–21/09</td><td>4</td><td>€286.09</td><td>€66.71</td><td class="text-warning">-€74.09</td><td><strong>€212.00</strong></td></tr>
+                                <tr><td>Emma Gilson</td><td>22–23/09</td><td>1</td><td>€104.12</td><td>€24.28</td><td class="text-warning">-€26.96</td><td><strong>€77.16</strong></td></tr>
+                                <tr><td>Raphaele Poupard</td><td>24–27/09</td><td>3</td><td>€198.51</td><td>€46.29</td><td class="text-warning">-€51.41</td><td><strong>€147.10</strong></td></tr>
+                                <tr><td>Tadeo Badr</td><td>01–04/10</td><td>3</td><td>€235.91</td><td>€55.01</td><td class="text-warning">-€61.09</td><td><strong>€174.82</strong></td></tr>
+                                <tr><td>Manuel Morales</td><td>29/10–02/11</td><td>4</td><td>€292.70</td><td>€68.26</td><td class="text-warning">-€75.80</td><td><strong>€216.90</strong></td></tr>
+                            </tbody>
+                            <tfoot class="table-dark"><tr><th colspan="2">Total 7 bookings</th><th>25</th><th>€1,788.75</th><th>€417.12</th><th>-€463.23</th><th>€1,325.52</th></tr></tfoot>
+                        </table>
+                    </div>
+                    <div class="small text-muted mt-2">Amount = (360−72 discount +40 cleaning) − service. Gross €2,130.65 shown for reference.</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="bg-light rounded p-3 small">
+                        <div class="fw-bold mb-2">Key numbers</div>
+                        <div class="d-flex justify-content-between"><span>Gross / night</span><strong>€85.23</strong></div>
+                        <div class="d-flex justify-content-between"><span>Net / night (Amount+withholding)</span><strong>€53.02</strong></div>
+                        <div class="d-flex justify-content-between"><span>Service fees</span><span>€417.12</span></div>
+                        <div class="d-flex justify-content-between"><span>Cleaning</span><span>€240.00</span></div>
+                        <div class="d-flex justify-content-between"><span>Airbnb tourist tax remitted</span><span>€300.00</span></div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between"><span>Sep 2026</span><strong>€736.71 net (4 stays, 14n)</strong></div>
+                        <div class="d-flex justify-content-between"><span>Oct–Nov</span><span>€391.72 net</span></div>
+                        <div class="d-flex justify-content-between"><span>Aug (Karen)</span><span>€197.09 net</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 small text-muted">Net = Amount + Withholding (= (room−discount+cleaning−service) − cedolare). Click <em>Load sample</em> above to see the full interactive breakdown with monthly chart.</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if result %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+    const monthly = {{ result.monthly | tojson }};
+    const ctx = document.getElementById('monthlyChart');
+    if (!ctx || !monthly.length) return;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: monthly.map(m => m.label),
+            datasets: [
+                { label: 'Gross', data: monthly.map(m => m.gross), backgroundColor: 'rgba(25,135,84,0.6)', borderColor: 'rgba(25,135,84,1)', borderWidth: 1 },
+                { label: 'Net', data: monthly.map(m => m.net), backgroundColor: 'rgba(33,37,41,0.85)', borderColor: 'rgba(33,37,41,1)', borderWidth: 1 },
+                { label: 'Withholding', data: monthly.map(m => -m.withholding), backgroundColor: 'rgba(255,193,7,0.6)', borderColor: 'rgba(255,193,7,1)', borderWidth: 1 },
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (c)=> `${c.dataset.label}: €${c.raw.toFixed(2)}` } } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '€'+v } } }
+        }
+    });
+})();
+function copyTable(id){
+    const t = document.getElementById(id);
+    if (!t) return;
+    let out = '';
+    t.querySelectorAll('tr').forEach(tr=>{
+        const row = Array.from(tr.querySelectorAll('th,td')).map(td=> td.innerText.replace(/\s+/g,' ').trim()).join('\t');
+        out += row + '\n';
+    });
+    navigator.clipboard.writeText(out).then(()=> alert('Copied to clipboard'));
+}
+window.copyTable = copyTable;
+</script>
+{% endif %}
+{% endblock %}

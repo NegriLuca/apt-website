@@ -216,6 +216,49 @@ def admin_pricing() -> Response | str:
     return render_template('admin_pricing.html', apartment=apartment, coupons=all_coupons)
 
 
+@bp.route('/admin/earnings', methods=['GET', 'POST'])
+@login_required
+def admin_earnings() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    result = None
+    error = None
+    # Allow pre-fill from pasted CSV for demo
+    sample = request.args.get('sample') == '1'
+
+    if request.method == 'POST':
+        csv_text = request.form.get('csv_text', '').strip()
+        f = request.files.get('csv_file')
+        raw = None
+        filename = None
+        if f and f.filename:
+            try:
+                raw = f.read()
+                filename = f.filename
+            except Exception as e:
+                error = f'Failed to read file: {e}'
+        elif csv_text:
+            raw = csv_text.encode('utf-8')
+            filename = 'pasted.csv'
+        else:
+            error = 'Please upload a CSV file or paste CSV text.'
+
+        if raw is not None and not error:
+            try:
+                from app.services.airbnb_earnings import parse_earnings_csv
+                result = parse_earnings_csv(raw)
+                result['filename'] = filename
+                if result['totals']['count'] == 0:
+                    error = 'No reservations found — check the CSV format (Airbnb Earnings export).'
+                    result = None
+            except Exception as e:
+                current_app.logger.exception('Earnings parse failed')
+                error = f'Failed to parse CSV: {e}'
+
+    return render_template('admin_earnings.html', result=result, error=error, sample=sample)
+
+
 @bp.route('/admin/smart-access')
 @login_required
 def admin_smart_access() -> Response | str:
