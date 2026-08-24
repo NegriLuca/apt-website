@@ -55,7 +55,7 @@
             </form>
             <div class="alert bg-light border-0 small mt-4 mb-0">
                 <i class="bi bi-info-circle me-1"></i>
-                <strong>Privacy:</strong> File is parsed in memory, never stored on disk or sent to Nuki/Brevo. Withholding ~<code>21.74%</code> of gross (cedolare secca 21% on Airbnb) — <code>Net = Amount + Withholding</code> (Amount already = (room − discount + cleaning) − Airbnb service fee). <code>Airbnb remitted tax</code> is tourist tax collected by Airbnb (not earnings). Example: Karen 20/08 → Amount €265.97 − €68.88 = <strong>€197.09</strong> net.
+                File is parsed in memory. Withholding ~<code>21.74%</code> of gross (cedolare secca 21% on Airbnb) — <code>Net = Amount + Withholding</code> (Amount already = (room − discount + cleaning) − Airbnb service fee).
             </div>
         </div>
     </div>
@@ -293,7 +293,7 @@
         <div class="card-header bg-white"><h5 class="mb-0 small text-uppercase fw-bold">Notes</h5></div>
         <div class="card-body small text-muted">
             <ul class="mb-0">
-                <li><strong>Amount</strong> = (room − discount + cleaning) − Airbnb service fee. <strong>Net = Amount + Withholding</strong> (withholding negative ~-21.74% cedolare secca) — e.g. Karen 265.97−68.88=197.09. <strong>Gross</strong> shown for reference.</li>
+                <li><strong>Amount</strong> = (room − discount + cleaning) − Airbnb service fee. <strong>Net = Amount + Withholding</strong> (withholding negative ~-21.74% cedolare secca). <strong>Gross</strong> shown for reference.</li>
                 <li>Service fee is Airbnb's host fee (already deducted from Amount). Cleaning fee is included in Amount.</li>
                 <li>Months are grouped by <code>Start date</code> (stay month), not payout <code>Date</code>.</li>
                 <li>Withholding rate in this file: <strong>{{ '%.2f'|format(result.totals.withholding_rate) }}%</strong> of gross.</li>
@@ -301,45 +301,40 @@
         </div>
     </div>
     {% else %}
-    <!-- Empty state with analysis of your sample -->
+    <!-- Empty state — neutral, months only -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb me-1 text-warning"></i> Your 7 bookings at a glance (sample you pasted) — net = Amount + withholding</h5>
+            <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb me-1 text-warning"></i> Sample — 7 payouts, 25 nights</h5>
             <div class="row g-3">
                 <div class="col-md-8">
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
-                            <thead class="table-light"><tr><th>Guest</th><th>Stay</th><th>Nights</th><th>Amount</th><th>Service</th><th>Withholding</th><th>Net (bank)</th></tr></thead>
+                            <thead class="table-light"><tr><th>Month (by Start date)</th><th class="text-end">Bookings</th><th class="text-end">Nights</th><th class="text-end">Gross</th><th class="text-end">Service</th><th class="text-end">Withholding</th><th class="text-end">Net (bank)</th></tr></thead>
                             <tbody>
-                                <tr><td>Karen Garcia</td><td>20–24/08</td><td>4</td><td>€265.97</td><td>€62.02</td><td class="text-warning">-€68.88</td><td><strong>€197.09</strong></td></tr>
-                                <tr><td>Iraklis Eleftheriadis</td><td>11–17/09</td><td>6</td><td>€405.45</td><td>€94.55</td><td class="text-warning">-€105.00</td><td><strong>€300.45</strong></td></tr>
-                                <tr><td>Damian Stachowicz</td><td>17–21/09</td><td>4</td><td>€286.09</td><td>€66.71</td><td class="text-warning">-€74.09</td><td><strong>€212.00</strong></td></tr>
-                                <tr><td>Emma Gilson</td><td>22–23/09</td><td>1</td><td>€104.12</td><td>€24.28</td><td class="text-warning">-€26.96</td><td><strong>€77.16</strong></td></tr>
-                                <tr><td>Raphaele Poupard</td><td>24–27/09</td><td>3</td><td>€198.51</td><td>€46.29</td><td class="text-warning">-€51.41</td><td><strong>€147.10</strong></td></tr>
-                                <tr><td>Tadeo Badr</td><td>01–04/10</td><td>3</td><td>€235.91</td><td>€55.01</td><td class="text-warning">-€61.09</td><td><strong>€174.82</strong></td></tr>
-                                <tr><td>Manuel Morales</td><td>29/10–02/11</td><td>4</td><td>€292.70</td><td>€68.26</td><td class="text-warning">-€75.80</td><td><strong>€216.90</strong></td></tr>
+                                <tr><td>Aug 2026</td><td class="text-end">1</td><td class="text-end">4</td><td class="text-end">€316.81</td><td class="text-end">€62.02</td><td class="text-end text-warning">-€68.88</td><td class="text-end"><strong>€197.09</strong></td></tr>
+                                <tr><td>Sep 2026</td><td class="text-end">4</td><td class="text-end">14</td><td class="text-end">€1,184.19</td><td class="text-end">€231.83</td><td class="text-end text-warning">-€257.46</td><td class="text-end"><strong>€736.71</strong></td></tr>
+                                <tr><td>Oct 2026</td><td class="text-end">2</td><td class="text-end">7</td><td class="text-end">€629.65</td><td class="text-end">€123.27</td><td class="text-end text-warning">-€136.89</td><td class="text-end"><strong>€391.72</strong></td></tr>
                             </tbody>
-                            <tfoot class="table-dark"><tr><th colspan="2">Total 7 bookings</th><th>25</th><th>€1,788.75</th><th>€417.12</th><th>-€463.23</th><th>€1,325.52</th></tr></tfoot>
+                            <tfoot class="table-dark"><tr><th>Total</th><th class="text-end">7</th><th class="text-end">25</th><th class="text-end">€2,130.65</th><th class="text-end">€417.12</th><th class="text-end">-€463.23</th><th class="text-end">€1,325.52</th></tr></tfoot>
                         </table>
                     </div>
-                    <div class="small text-muted mt-2">Amount = (360−72 discount +40 cleaning) − service. Gross €2,130.65 shown for reference.</div>
+                    <div class="small text-muted mt-2">Net = Amount + Withholding (Amount = (room − discount + cleaning) − service). Gross shown for reference.</div>
                 </div>
                 <div class="col-md-4">
                     <div class="bg-light rounded p-3 small">
                         <div class="fw-bold mb-2">Key numbers</div>
                         <div class="d-flex justify-content-between"><span>Gross / night</span><strong>€85.23</strong></div>
-                        <div class="d-flex justify-content-between"><span>Net / night (Amount+withholding)</span><strong>€53.02</strong></div>
+                        <div class="d-flex justify-content-between"><span>Net / night</span><strong>€53.02</strong></div>
                         <div class="d-flex justify-content-between"><span>Service fees</span><span>€417.12</span></div>
                         <div class="d-flex justify-content-between"><span>Cleaning</span><span>€240.00</span></div>
                         <div class="d-flex justify-content-between"><span>Airbnb tourist tax remitted</span><span>€300.00</span></div>
                         <hr class="my-2">
-                        <div class="d-flex justify-content-between"><span>Sep 2026</span><strong>€736.71 net (4 stays, 14n)</strong></div>
-                        <div class="d-flex justify-content-between"><span>Oct–Nov</span><span>€391.72 net</span></div>
-                        <div class="d-flex justify-content-between"><span>Aug (Karen)</span><span>€197.09 net</span></div>
+                        <div class="d-flex justify-content-between"><span>Withholding rate</span><strong>21.74% of gross</strong></div>
+                        <div class="d-flex justify-content-between"><span>Total payouts</span><strong>7</strong></div>
                     </div>
                 </div>
             </div>
-            <div class="mt-3 small text-muted">Net = Amount + Withholding (= (room−discount+cleaning−service) − cedolare). Click <em>Load sample</em> above to see the full interactive breakdown with monthly chart.</div>
+            <div class="mt-3 small text-muted">Upload your CSV to see per-booking detail. Click <em>Load sample</em> above for an interactive demo.</div>
         </div>
     </div>
     {% endif %}
