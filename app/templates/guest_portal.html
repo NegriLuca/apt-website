@@ -166,7 +166,9 @@
                     <div class="alert bg-dark text-white border-0 mt-4 mb-0">
                         <i class="bi bi-shield-lock me-2"></i>
                         <strong>{{ _('Security Notice:') }}</strong>
-                        <p class="mb-0 mt-2 small opacity-75">{{ _('This access is personal and valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}</p>
+                        <p class="mb-0 mt-2 small opacity-75">
+                            {% if reservation.access_window_display is defined %}{{ _('This access is personal and valid %(window)s.', window=reservation.access_window_display()) }}{% else %}{{ _('This access is personal and valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}{% endif %}
+                        </p>
                         <p class="mb-0 mt-1 small opacity-75">{{ _('Do not share this link with unauthorized persons. Access is logged.') }}</p>
                     </div>
 

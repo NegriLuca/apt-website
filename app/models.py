@@ -234,6 +234,11 @@ class Reservation(db.Model):
     keypad_auth_id = db.Column(db.String(64), nullable=True)
     keypad_created_at = db.Column(db.DateTime, nullable=True)
 
+    # Smart access window overrides — hours only, dates stay fixed to check_in/check_out.
+    # NULL means default 13:00 (kept for backward compat). Stored as HH:MM strings "13:00".
+    access_checkin_time = db.Column(db.String(5), nullable=True, comment='HH:MM on check-in day, Rome time (default 13:00)')
+    access_checkout_time = db.Column(db.String(5), nullable=True, comment='HH:MM on check-out day, Rome time (default 13:00)')
+
     # Tourist tax
     tourist_tax_amount = db.Column(db.Float, nullable=True, default=0.0)
     tourist_tax_paid = db.Column(db.Boolean, default=False)
@@ -281,9 +286,26 @@ class Reservation(db.Model):
         ]
         return all(required)
 
-    def is_access_valid(self) -> bool:
-        """Check if access token is valid during the stay period.
-        Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time)."""
+    # ── Smart access window helpers (hours configurable, dates fixed) ──────────
+
+    def _parse_hhmm(self, value: str | None, default: str = '13:00') -> tuple[int, int]:
+        """Parse HH:MM string, fallback to default 13:00 on bad input."""
+        src = (value or default).strip()
+        try:
+            h_str, m_str = src.split(':')
+            h, m = int(h_str), int(m_str)
+            if 0 <= h <= 23 and 0 <= m <= 59:
+                return h, m
+        except Exception:
+            pass
+        return 13, 0
+
+    def get_access_window(self):
+        """Return (start, end) datetimes with Europe/Rome tz for this reservation.
+
+        Hours come from access_checkin_time / access_checkout_time (HH:MM),
+        dates from check_in / check_out. Defaults to 13:00→13:00 for backward compat.
+        """
         try:
             from zoneinfo import ZoneInfo
             rome = ZoneInfo('Europe/Rome')
@@ -291,10 +313,35 @@ class Reservation(db.Model):
             from datetime import timedelta, timezone
             m = date.today().month
             rome = timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
+        sh, sm = self._parse_hhmm(getattr(self, 'access_checkin_time', None), '13:00')
+        eh, em = self._parse_hhmm(getattr(self, 'access_checkout_time', None), '13:00')
+        start = datetime(self.check_in.year, self.check_in.month, self.check_in.day, sh, sm, tzinfo=rome)
+        end = datetime(self.check_out.year, self.check_out.month, self.check_out.day, eh, em, tzinfo=rome)
+        return start, end
 
+    def get_access_window_utc(self):
+        """Same window converted to UTC (for Nuki API)."""
+        from datetime import timezone as _tz
+        start, end = self.get_access_window()
+        return start.astimezone(_tz.utc), end.astimezone(_tz.utc)
+
+    def access_window_display(self) -> str:
+        """Human string e.g. '13:00 24/08 → 11:00 27/08 (Rome)' for UI/flash."""
+        sh, sm = self._parse_hhmm(getattr(self, 'access_checkin_time', None), '13:00')
+        eh, em = self._parse_hhmm(getattr(self, 'access_checkout_time', None), '13:00')
+        return f"{sh:02d}:{sm:02d} {self.check_in.strftime('%d/%m/%Y')} → {eh:02d}:{em:02d} {self.check_out.strftime('%d/%m/%Y')} (Rome)"
+
+    def is_access_valid(self) -> bool:
+        """Check if now (Rome) is inside the access window."""
+        try:
+            from zoneinfo import ZoneInfo
+            rome = ZoneInfo('Europe/Rome')
+        except Exception:
+            from datetime import timedelta, timezone
+            m = date.today().month
+            rome = timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
         now = datetime.now(rome)
-        start = datetime(self.check_in.year, self.check_in.month, self.check_in.day, 13, 0, tzinfo=rome)
-        end = datetime(self.check_out.year, self.check_out.month, self.check_out.day, 13, 0, tzinfo=rome)
+        start, end = self.get_access_window()
         return start <= now <= end
 
     def generate_access_token(self) -> str:

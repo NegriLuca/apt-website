@@ -149,8 +149,8 @@ def api_gate_open():
         return jsonify({'ok': False, 'error': 'Invalid token'}), 403
 
     if not res.is_access_valid():
-        reason = 'Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).'
-        return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. {reason}'}), 403
+        reason = res.access_window_display() if hasattr(res, 'access_window_display') else 'Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).'
+        return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. Valid {reason}.'}), 403
 
     apt = get_apartment()
     if not apt:
@@ -182,8 +182,8 @@ def api_door_open():
         return jsonify({'ok': False, 'error': 'Invalid token'}), 403
 
     if not res.is_access_valid():
-        reason = 'Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).'
-        return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. {reason}'}), 403
+        reason = res.access_window_display() if hasattr(res, 'access_window_display') else 'Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).'
+        return jsonify({'ok': False, 'error': f'Access not allowed outside stay dates. Valid {reason}.'}), 403
 
     apt = get_apartment()
     if not apt:
@@ -354,9 +354,10 @@ def guest_access(token):
     if reservation.status == 'cancelled':
         return _abort_cancelled()
     if not reservation.is_access_valid():
+        window = reservation.access_window_display() if hasattr(reservation, 'access_window_display') else '13:00 check-in → 13:00 check-out (Rome)'
         return render_template('guest_access_denied.html',
             reservation=reservation,
-            reason='Access valid from 13:00 on check-in day to 13:00 on check-out day (Rome time). Your current access window has ended or not yet started.',
+            reason=f'Access valid {window}. Your current access window has ended or not yet started.',
         ), 403
     apartment = get_apartment()
     gate_configured = bool(apartment and apartment.shelly_enabled)
@@ -430,19 +431,17 @@ def guest_checkin_guide(token):
         return _abort_cancelled()
     apartment = get_apartment()
 
+    # Use reservation's configured window (HH:MM overrides, default 13:00)
     try:
-        from zoneinfo import ZoneInfo
-
-        rome = ZoneInfo('Europe/Rome')
+        window_start, window_end = reservation.get_access_window()
     except Exception:
-        rome = timezone.utc
-
-    window_start = datetime(
-        reservation.check_in.year, reservation.check_in.month, reservation.check_in.day, 13, 0, tzinfo=rome
-    )
-    window_end = datetime(
-        reservation.check_out.year, reservation.check_out.month, reservation.check_out.day, 13, 0, tzinfo=rome
-    )
+        try:
+            from zoneinfo import ZoneInfo
+            rome = ZoneInfo('Europe/Rome')
+        except Exception:
+            rome = timezone.utc
+        window_start = datetime(reservation.check_in.year, reservation.check_in.month, reservation.check_in.day, 13, 0, tzinfo=rome)
+        window_end = datetime(reservation.check_out.year, reservation.check_out.month, reservation.check_out.day, 13, 0, tzinfo=rome)
 
     return render_template(
         'checkin_guide.html',

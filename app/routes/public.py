@@ -121,6 +121,11 @@ def contact() -> Response | str:
             'htmlContent': f'<p><strong>Name:</strong> {name}</p><p><strong>Email:</strong> {email}</p><p><strong>Message:</strong><br>{message_text}</p>',
         }
 
+        if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+            current_app.logger.info('Email suppressed (TESTING): contact from %s', email)
+            flash(_('Thank you! Your message has been sent. (suppressed in test mode)'), 'success')
+            return redirect(url_for('routes.contact'))
+
         try:
             url = 'https://api.brevo.com/v3/smtp/email'
             headers = {'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key}

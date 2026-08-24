@@ -13,6 +13,9 @@ from app import db
 def send_checkin_email(reservation, checkin_url):
     """Send check-in link to guest via email"""
     try:
+        if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+            current_app.logger.info('Email suppressed (TESTING): check-in for #%s', reservation.id)
+            return True
         brevo_api_key = current_app.config.get('MAIL_PASSWORD')
         sender_email = 'lotto235roma@gmail.com'
         apt = db.session.query(current_app.models.Apartment).first() if hasattr(current_app, 'models') else None
@@ -50,6 +53,9 @@ def send_checkin_email(reservation, checkin_url):
 def send_access_email(reservation, access_url):
     """Send gate/door access link to guest via email"""
     try:
+        if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+            current_app.logger.info('Email suppressed (TESTING): access for #%s', reservation.id)
+            return True
         brevo_api_key = current_app.config.get('MAIL_PASSWORD')
         sender_email = 'lotto235roma@gmail.com'
 
@@ -85,6 +91,9 @@ def send_access_email(reservation, access_url):
 def send_admin_checkin_notification(reservation):
     """Notify admin when guest completes check-in"""
     try:
+        if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+            current_app.logger.info('Email suppressed (TESTING): admin check-in for #%s', reservation.id)
+            return True
         brevo_api_key = current_app.config.get('MAIL_PASSWORD')
         sender_email = 'lotto235roma@gmail.com'
         admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'

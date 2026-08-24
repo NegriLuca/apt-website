@@ -38,6 +38,17 @@
                             <div class="text-muted text-uppercase">{{ _('Keypad code') }}</div>
                             <div class="fw-bold">{{ reservation.keypad_code or '—' }}</div>
                         </div>
+                        <div class="col-12">
+                            <div class="text-muted text-uppercase">{{ _('Access window') }}</div>
+                            <div class="fw-bold">
+                                {% if reservation.access_window_display is defined %}
+                                    {{ reservation.access_window_display() }}
+                                {% else %}
+                                    13:00 {{ reservation.check_in.strftime('%d/%m/%Y') }} → 13:00 {{ reservation.check_out.strftime('%d/%m/%Y') }} (Rome)
+                                {% endif %}
+                            </div>
+                            <div class="form-text">{{ _('Gate / door / keypad — dates are fixed, hours below are editable.') }}</div>
+                        </div>
                     </div>
 
                     <hr>
@@ -52,6 +63,19 @@
                             <label class="form-label fw-semibold small text-uppercase">{{ _('Number of guests') }}</label>
                             <input type="number" class="form-control" name="num_guests" min="1" max="4" value="{{ reservation.num_guests }}" required>
                             <div class="form-text">{{ _('Used in the online check-in — make sure it is correct.') }}</div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase">{{ _('Access from (check-in hour)') }}</label>
+                                <input type="time" class="form-control" name="access_checkin_time" value="{{ reservation.access_checkin_time or '13:00' }}" step="300">
+                                <div class="form-text">{{ _('HH:MM on') }} {{ reservation.check_in.strftime('%d/%m/%Y') }}. {{ _('Default 13:00') }}.</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small text-uppercase">{{ _('Access until (check-out hour)') }}</label>
+                                <input type="time" class="form-control" name="access_checkout_time" value="{{ reservation.access_checkout_time or '13:00' }}" step="300">
+                                <div class="form-text">{{ _('HH:MM on') }} {{ reservation.check_out.strftime('%d/%m/%Y') }}. {{ _('Default 13:00') }}.</div>
+                            </div>
+                            <div class="col-12"><div class="form-text"><i class="bi bi-info-circle me-1"></i>{{ _('Clear to reset to 13:00. Changing hours re-syncs the Nuki keypad if one exists.') }}</div></div>
                         </div>
                         <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" name="guest_city_tax_enabled" id="guest_city_tax_enabled" {% if reservation.guest_city_tax_enabled %}checked{% endif %}>

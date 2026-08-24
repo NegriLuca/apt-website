@@ -115,7 +115,12 @@
                 </div>
             </div>
             <p class="text-muted mb-4">
-                {{ _('After turning right, you will see the covered entrance for') }} <strong>Scala C</strong>. {{ _('To open the door, press the button below (active from 13:00 on check-in day to 13:00 on check-out day, Rome time), then enter the building lobby.') }}
+                {{ _('After turning right, you will see the covered entrance for') }} <strong>Scala C</strong>.
+                {% if reservation.access_window_display is defined %}
+                    {{ _('To open the door, press the button below') }} ({{ reservation.access_window_display() }}, {{ _('then enter the building lobby.') }})
+                {% else %}
+                    {{ _('To open the door, press the button below (active from 13:00 on check-in day to 13:00 on check-out day, Rome time), then enter the building lobby.') }}
+                {% endif %}
             </p>
 
             {% if access_token %}
@@ -125,7 +130,9 @@
                 </button>
                 <div id="gateStatus" class="mt-3"></div>
                 <div class="text-center mt-2">
-                    <small class="text-muted">{{ _('Active from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}</small>
+                    <small class="text-muted">
+                    {% if reservation.access_window_display is defined %}{{ _('Active') }} {{ reservation.access_window_display() }}{% else %}{{ _('Active from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}{% endif %}
+                    </small>
                 </div>
             </div>
             {% endif %}
@@ -176,7 +183,7 @@
                 <div class="text-uppercase small fw-semibold mb-2 opacity-75">{{ _('Your keypad code') }}</div>
                 <div class="display-4 fw-bold" style="letter-spacing: 8px;">{{ reservation.keypad_code }}</div>
                 <div class="small opacity-75 mt-2">
-                    {{ _('Enter it on the keypad next to the door. Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}
+                    {% if reservation.access_window_display is defined %}{{ _('Enter it on the keypad next to the door.') }} {{ _('Valid') }} {{ reservation.access_window_display() }}{% else %}{{ _('Enter it on the keypad next to the door. Valid from 13:00 on check-in day to 13:00 on check-out day (Rome time).') }}{% endif %}
                 </div>
             </div>
             {% else %}
@@ -237,12 +244,13 @@ async function openBuildingGate() {
     const btn = document.getElementById('gateBtn');
     const now = new Date();
 
+    const windowDisplay = {{ (reservation.access_window_display() if reservation.access_window_display is defined else '13:00 check-in → 13:00 check-out (Rome)') | tojson }};
     if (now < windowStart) {
-        showPopup({{ _('Not yet available') | tojson }}, {{ _('It\'s too early! The building gate can be opened from 13:00 on your check-in day, until 13:00 on your check-out day (Rome time).') | tojson }}, 'error');
+        showPopup({{ _('Not yet available') | tojson }}, {{ _('It\'s too early!') | tojson }} + ' ' + {{ _('Access valid') | tojson }} + ' ' + windowDisplay, 'error');
         return;
     }
     if (now > windowEnd) {
-        showPopup({{ _('Access expired') | tojson }}, {{ _('The gate access expired at 13:00 on your check-out day.') | tojson }}, 'error');
+        showPopup({{ _('Access expired') | tojson }}, {{ _('Access expired.') | tojson }} + ' ' + {{ _('Valid') | tojson }} + ' ' + windowDisplay, 'error');
         return;
     }
 

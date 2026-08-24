@@ -476,6 +476,11 @@ def send_checkin_link() -> Response | str:
 
     import requests
 
+    if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+        current_app.logger.info('Email suppressed (TESTING): check-in link for #%s', res.id)
+        flash('Email suppressed (test mode) — not sent to Brevo.', 'info')
+        return redirect(url_for('routes.compliance_dashboard'))
+
     try:
         r = requests.post(
             'https://api.brevo.com/v3/smtp/email',

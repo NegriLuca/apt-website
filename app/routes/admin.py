@@ -777,6 +777,11 @@ def admin_send_access_link() -> Response | str:
 
     import requests
 
+    if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+        current_app.logger.info('Email suppressed (TESTING): access link for #%s', res.id)
+        flash('Email suppressed (test mode) — not sent to Brevo.', 'info')
+        return redirect(url_for('routes.admin_dashboard'))
+
     try:
         r = requests.post(
             'https://api.brevo.com/v3/smtp/email',
@@ -820,8 +825,16 @@ def _rome_zone():
 
 
 def access_window_utc(reservation):
-    """Return (start, end) UTC datetimes matching the smart access window:
-    13:00 on check-in day to 13:00 on check-out day (Rome time)."""
+    """Return (start, end) UTC datetimes for the smart access window.
+
+    Delegates to Reservation.get_access_window_utc() so custom HH:MM overrides
+    are respected (default 13:00→13:00). Keeps legacy fallback for old DB rows.
+    """
+    if hasattr(reservation, 'get_access_window_utc'):
+        try:
+            return reservation.get_access_window_utc()
+        except Exception:
+            pass
     from datetime import datetime as _dt
 
     tz = _rome_zone()
@@ -857,9 +870,10 @@ def admin_generate_keypad_code() -> Response | str:
         res.keypad_created_at = datetime.utcnow()
         res.keypad_auth_id = svc.find_keypad_auth_id(code)
         db.session.commit()
+        window_str = res.access_window_display() if hasattr(res, 'access_window_display') else f"13:00 {res.check_in.strftime('%d/%m/%Y')} → 13:00 {res.check_out.strftime('%d/%m/%Y')} (Rome)"
         flash(
             f'Keypad code {code} created for {res.guest_name}. '
-            f'Valid from {res.check_in.strftime("%d/%m/%Y")} 13:00 to {res.check_out.strftime("%d/%m/%Y")} 13:00 (Rome).',
+            f'Valid {window_str}.',
             'success',
         )
         if not res.keypad_auth_id:
@@ -1282,6 +1296,36 @@ def admin_guest_message_update(reservation_id: int) -> Response | str:
     num_guests = request.form.get('num_guests', type=int)
     guest_city_tax_enabled = request.form.get('guest_city_tax_enabled') == 'on'
 
+    # HH:MM inputs — hours only, dates stay fixed to reservation
+    def _clean_hhmm(raw: str | None) -> str | None:
+        s = (raw or '').strip()
+        if not s:
+            return None
+        try:
+            h_str, m_str = s.split(':')
+            h, m = int(h_str), int(m_str)
+            if 0 <= h <= 23 and 0 <= m <= 59:
+                return f"{h:02d}:{m:02d}"
+        except Exception:
+            pass
+        return None
+
+    raw_in = request.form.get('access_checkin_time', '').strip()
+    raw_out = request.form.get('access_checkout_time', '').strip()
+    # None means "use default 13:00" (NULL in DB); empty field resets to default
+    new_in = _clean_hhmm(raw_in) if raw_in else None
+    new_out = _clean_hhmm(raw_out) if raw_out else None
+    # validate: if user typed something invalid, reject
+    if raw_in and new_in is None:
+        flash('Invalid check-in time (use HH:MM).', 'danger')
+        return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+    if raw_out and new_out is None:
+        flash('Invalid check-out time (use HH:MM).', 'danger')
+        return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+
+    old_in = getattr(res, 'access_checkin_time', None)
+    old_out = getattr(res, 'access_checkout_time', None)
+
     if guest_name:
         res.guest_name = guest_name
     if num_guests and 1 <= num_guests <= 4:
@@ -1289,7 +1333,59 @@ def admin_guest_message_update(reservation_id: int) -> Response | str:
         res.num_adults = num_guests
         res.num_children = 0
     res.guest_city_tax_enabled = guest_city_tax_enabled
+    res.access_checkin_time = new_in
+    res.access_checkout_time = new_out
     db.session.commit()
+
+    # If window hours changed and a keypad code exists, re-sync it to the new window
+    if (old_in != new_in or old_out != new_out) and res.keypad_code:
+        from app.services.smart_lock import SmartLockError, get_nuki_service
+        apt = get_apartment()
+        try:
+            svc = get_nuki_service(apt) if apt else None
+            if svc and svc.is_configured() and res.keypad_auth_id:
+                # Nuki has no "update" — revoke old and create new with same PIN but new window
+                # Keep the same 6-digit code; recreate via delete + put with same code.
+                # If revoke fails we still try to create a fresh code.
+                try:
+                    svc.revoke_keypad_code(res.keypad_auth_id)
+                except SmartLockError:
+                    pass
+                start_utc, end_utc = access_window_utc(res)
+                # Re-create with same code by direct PUT (service generates new code otherwise,
+                # so we do raw call to keep the code stable for the guest).
+                import requests
+                payload = {
+                    'name': f'Res{res.id} {res.guest_name}'.strip()[:20],
+                    'type': 13,
+                    'code': int(res.keypad_code),
+                    'smartlockIds': [int(apt.nuki_smartlock_id)],
+                    'allowedFromDate': start_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                    'allowedUntilDate': end_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                    'allowedWeekDays': 127,
+                    'allowedFromTime': 0,
+                    'allowedUntilTime': 0,
+                }
+                url = f'{svc.base_url}/smartlock/auth'
+                resp = requests.put(url, headers=svc._get_headers(), json=payload, timeout=15)
+                resp.raise_for_status()
+                new_auth = svc.find_keypad_auth_id(res.keypad_code)
+                res.keypad_auth_id = new_auth
+                res.keypad_created_at = datetime.utcnow()
+                db.session.commit()
+                flash(f'Access window updated to {res.access_window_display()}. Keypad {res.keypad_code} re-synced.', 'success')
+            elif svc and svc.is_configured():
+                # No auth_id yet (not synced) — just note; next revoke/create will use new window
+                flash(f'Access window updated to {res.access_window_display()}. Keypad will use new window on next sync.', 'info')
+            else:
+                flash(f'Access window updated to {res.access_window_display()}. Generate a new keypad code to apply it to the door.', 'warning')
+        except Exception as e:
+            current_app.logger.warning('Keypad re-sync failed after window change for res #%s: %s', res.id, e)
+            flash(f'Access window saved ({res.access_window_display()}), but keypad re-sync failed: {e}. Revoke and regenerate the code.', 'warning')
+        admin_audit_log('update_access_window', 'Reservation', res.id,
+                        f'{old_in or "13:00"}→{new_in or "13:00"} , {old_out or "13:00"}→{new_out or "13:00"}')
+        return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+
     admin_audit_log('edit_reservation', 'Reservation', res.id, 'Updated guest message details')
     flash('Reservation details updated.', 'success')
     return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))

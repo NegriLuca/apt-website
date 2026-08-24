@@ -102,6 +102,13 @@ def calculate_city_tax(check_in, check_out, num_adults=2, apartment=None) -> flo
 
 
 def _send_brevo_email(payload):
+    if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
+        current_app.logger.info('Email suppressed (TESTING): %s', payload.get('subject'))
+        class _MockResp:  # mimic success response
+            status_code = 201
+            text = 'suppressed'
+            def json(self): return {}
+        return _MockResp()
     brevo_api_key = current_app.config.get('MAIL_PASSWORD')
     url = 'https://api.brevo.com/v3/smtp/email'
     headers = {'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key}
