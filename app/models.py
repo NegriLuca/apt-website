@@ -353,6 +353,50 @@ class Reservation(db.Model):
         return self.access_token
 
 
+class Earning(db.Model):
+    """Persisted payout for a single confirmation code (Airbnb + Booking).
+
+    One row per confirmation code (e.g. HMNYSZ9PEA). Stores the two CSV lines
+    (Reservation + Tax Withholding) collapsed into one: gross, service, withholding,
+    net = amount + withholding (amount already net of service). Linked to a
+    Reservation via external_uid or guest+dates when possible.
+    """
+
+    __tablename__ = 'earnings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    platform = db.Column(db.String(20), nullable=False, default='airbnb', comment='airbnb / booking / vrbo')
+    confirmation_code = db.Column(db.String(64), nullable=False, index=True, comment='Airbnb confirmation code or Booking reservation id')
+    guest_name = db.Column(db.String(120), nullable=True)
+    listing = db.Column(db.String(200), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
+    payout_date = db.Column(db.Date, nullable=True, comment='Date column = payout date')
+    booking_date = db.Column(db.Date, nullable=True)
+    nights = db.Column(db.Integer, nullable=True)
+    currency = db.Column(db.String(10), nullable=False, default='EUR')
+    amount = db.Column(db.Float, nullable=False, default=0.0, comment='CSV Amount (host payout before withholding, already net of service)')
+    service_fee = db.Column(db.Float, nullable=False, default=0.0)
+    cleaning_fee = db.Column(db.Float, nullable=False, default=0.0)
+    gross_earnings = db.Column(db.Float, nullable=False, default=0.0)
+    airbnb_tax = db.Column(db.Float, nullable=False, default=0.0, comment='Airbnb remitted tourist tax')
+    withholding = db.Column(db.Float, nullable=False, default=0.0, comment='Negative cedolare secca, e.g. -68.88')
+    net = db.Column(db.Float, nullable=False, default=0.0, comment='amount + withholding = bank payout')
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=True, index=True)
+    raw_json = db.Column(db.JSON, nullable=True, comment='Original CSV row(s) collapsed')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    reservation = db.relationship('Reservation', backref=db.backref('earnings', lazy='dynamic'))
+
+    __table_args__ = (
+        db.UniqueConstraint('platform', 'confirmation_code', name='uq_earning_platform_code'),
+    )
+
+    def __repr__(self) -> str:
+        return f'<Earning {self.platform}:{self.confirmation_code} {self.guest_name} {self.net:.2f}>'
+
+
 class CleaningAccess(db.Model):
     """Shareable door/gate access window for staff (e.g. cleaning after check-out).
 

@@ -60,8 +60,74 @@
         </div>
     </div>
 
+    {% if stored %}
+    <!-- Stored earnings (DB) -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-database me-1"></i> Stored in DB <span class="badge bg-dark ms-2">{{ stored|length }} payouts</span></h5>
+            <div class="d-flex gap-2">
+                <span class="text-muted small align-self-center">Net stored: <strong>€{{ '%.2f'|format(stored_totals.net) if stored_totals else '0.00' }}</strong> · <strong>{{ stored_totals.nights if stored_totals else 0 }} nights</strong></span>
+                <form method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="action" value="sync"/>
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-link-45deg me-1"></i> Sync to reservations</button>
+                </form>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Platform / Code</th>
+                        <th>Guest</th>
+                        <th>Dates</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end">Withholding</th>
+                        <th class="text-end">Net</th>
+                        <th>Linked reservation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in stored %}
+                    <tr>
+                        <td><span class="badge bg-{{ 'danger' if e.platform=='airbnb' else 'primary' }}">{{ e.platform }}</span><br><span class="font-monospace small">{{ e.confirmation_code }}</span></td>
+                        <td class="small"><strong>{{ e.guest_name }}</strong><br><span class="text-muted">{{ e.listing }}</span></td>
+                        <td class="small">{{ e.start_date.strftime('%d/%m/%Y') if e.start_date else '—' }} → {{ e.end_date.strftime('%d/%m/%Y') if e.end_date else '—' }}<br><span class="text-muted">{{ e.nights }}n · payout {{ e.payout_date.strftime('%d/%m') if e.payout_date else '—' }}</span></td>
+                        <td class="text-end font-monospace">€{{ '%.2f'|format(e.amount) }}</td>
+                        <td class="text-end font-monospace text-warning">€{{ '%.2f'|format(e.withholding) }}</td>
+                        <td class="text-end font-monospace fw-bold">€{{ '%.2f'|format(e.net) }}</td>
+                        <td class="small">
+                            {% if e.reservation_id %}
+                                {% set r = e.reservation %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> #{{ e.reservation_id }}</span>
+                                {% if r %}<a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="ms-1">{{ r.guest_name }}</a> <span class="text-muted">{{ r.check_in }}→{{ r.check_out }}</span>{% endif %}
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i> Not linked</span>
+                                <div class="text-muted" style="font-size: 0.75em;">Will match on <code>external_uid == code</code> or dates</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="3" class="text-end">Stored total</th>
+                        <th class="text-end font-monospace">€{{ '%.2f'|format(stored_totals.amount) }}</th>
+                        <th class="text-end font-monospace">€{{ '%.2f'|format(stored_totals.withholding) }}</th>
+                        <th class="text-end font-monospace">€{{ '%.2f'|format(stored_totals.net) }}</th>
+                        <th>{{ stored_totals.count }} codes · {{ stored_totals.nights }} nights</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="card-body small text-muted">
+            <i class="bi bi-info-circle me-1"></i> Pasted CSV is auto-stored (upsert on <code>platform+code</code>) and auto-synced to <code>Reservation.external_uid</code> when dates/guest match. Re-upload same file updates. <code>Sync to reservations</code> re-tries linking for already stored rows (e.g. after new reservations arrive via iCal).
+        </div>
+    </div>
+    {% endif %}
+
     {% if result %}
-    <!-- Summary -->
+    <!-- Summary for just-uploaded file (not yet stored vs stored) -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center p-3 h-100">

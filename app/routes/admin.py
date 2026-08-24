@@ -222,12 +222,53 @@ def admin_earnings() -> Response | str:
     if not current_user.is_admin:
         abort(403)
 
+    from app.models import Earning
+
     result = None
     error = None
-    # Allow pre-fill from pasted CSV for demo
     sample = request.args.get('sample') == '1'
+    stored = Earning.query.order_by(Earning.payout_date.desc(), Earning.start_date.desc()).all()
+
+    # compute stored totals for GET view
+    stored_totals = None
+    if stored:
+        from collections import defaultdict as _dd
+        _gross = sum(e.gross_earnings for e in stored)
+        _amount = sum(e.amount for e in stored)
+        _service = sum(e.service_fee for e in stored)
+        _with = sum(e.withholding for e in stored)
+        _net = sum(e.net for e in stored)
+        _nights = sum(e.nights or 0 for e in stored)
+        stored_totals = dict(count=len(stored), gross=_gross, amount=_amount, service=_service, withholding=_with, net=_net, nights=_nights,
+                             avg_net_night=(_net/_nights if _nights else 0), avg_gross_night=(_gross/_nights if _nights else 0))
 
     if request.method == 'POST':
+        # handle sync button separately
+        if request.form.get('action') == 'sync':
+            synced = 0
+            for e in stored:
+                if not e.reservation_id:
+                    # try external_uid exact
+                    res = Reservation.query.filter_by(external_uid=e.confirmation_code).first()
+                    if not res and e.guest_name and e.start_date:
+                        # fallback: guest token prefix + dates (fuzzy)
+                        res = Reservation.query.filter(
+                            Reservation.check_in == e.start_date,
+                            Reservation.check_out == e.end_date,
+                        ).first()
+                        # also try guest name contains
+                        if not res:
+                            res = Reservation.query.filter(
+                                Reservation.guest_name.ilike(f"%{e.guest_name.split()[0]}%"),
+                                Reservation.check_in == e.start_date,
+                            ).first()
+                    if res:
+                        e.reservation_id = res.id
+                        synced += 1
+            db.session.commit()
+            flash(f'Synced {synced} earnings to reservations.', 'success' if synced else 'info')
+            return redirect(url_for('routes.admin_earnings'))
+
         csv_text = request.form.get('csv_text', '').strip()
         f = request.files.get('csv_file')
         raw = None
@@ -252,11 +293,93 @@ def admin_earnings() -> Response | str:
                 if result['totals']['count'] == 0:
                     error = 'No reservations found — check the CSV format (Airbnb Earnings export).'
                     result = None
+                else:
+                    # store to DB + auto-sync to Reservation
+                    do_store = request.form.get('store') != '0'
+                    if do_store:
+                        stored_new = 0
+                        synced_new = 0
+                        for entry in result['per_code']:
+                            code = entry['code']
+                            # platform auto-detect: Airbnb codes are HMS* etc., Booking are numeric — for now airbnb
+                            platform = 'airbnb'
+                            # try find existing
+                            earn = Earning.query.filter_by(platform=platform, confirmation_code=code).first()
+                            if not earn:
+                                earn = Earning(platform=platform, confirmation_code=code)
+                                db.session.add(earn)
+                                stored_new += 1
+                            earn.guest_name = entry.get('guest')
+                            earn.listing = (entry.get('reservation') or {}).get('listing') or entry.get('listing')
+                            earn.start_date = entry.get('start')
+                            earn.end_date = entry.get('end')
+                            earn.payout_date = (entry.get('reservation') or {}).get('payout_date') or entry.get('start')
+                            earn.booking_date = (entry.get('reservation') or {}).get('booking_date')  # may be None
+                            # booking_date from raw if available
+                            try:
+                                from app.services.airbnb_earnings import _parse_date as _pd
+                                earn.booking_date = _pd((entry.get('reservation') or {}).get('raw', {}).get('Booking date', ''))
+                            except Exception:
+                                pass
+                            earn.nights = entry.get('nights')
+                            earn.currency = (entry.get('reservation') or {}).get('currency', 'EUR') or 'EUR'
+                            earn.amount = entry.get('amount', 0) or 0
+                            earn.service_fee = entry.get('service', 0) or 0
+                            earn.cleaning_fee = entry.get('cleaning', 0) or 0
+                            earn.gross_earnings = entry.get('gross', 0) or 0
+                            earn.airbnb_tax = entry.get('airbnb_tax', 0) or 0
+                            earn.withholding = entry.get('withholding', 0) or 0
+                            earn.net = entry.get('net', 0) or 0
+                            # JSON-safe raw (dates → ISO strings)
+                            def _j(v):
+                                from datetime import date as _d, datetime as _dt
+                                if isinstance(v, (_d, _dt)):
+                                    return v.isoformat()
+                                if isinstance(v, dict):
+                                    return {k: _j(x) for k, x in v.items()}
+                                if isinstance(v, list):
+                                    return [_j(x) for x in v]
+                                return v
+                            earn.raw_json = _j(entry)
+                            # auto-sync to reservation
+                            if not earn.reservation_id:
+                                res = Reservation.query.filter_by(external_uid=code).first()
+                                if not res and earn.guest_name and earn.start_date:
+                                    res = Reservation.query.filter(
+                                        Reservation.check_in == earn.start_date,
+                                        Reservation.check_out == earn.end_date,
+                                    ).first()
+                                    if not res:
+                                        # looser: guest first name + start
+                                        try:
+                                            first = earn.guest_name.split()[0]
+                                            res = Reservation.query.filter(
+                                                Reservation.guest_name.ilike(f"%{first}%"),
+                                                Reservation.check_in == earn.start_date,
+                                            ).first()
+                                        except Exception:
+                                            res = None
+                                if res:
+                                    earn.reservation_id = res.id
+                                    synced_new += 1
+                        db.session.commit()
+                        flash(f'Stored {len(result["per_code"])} earnings ({stored_new} new) and auto-synced {synced_new} to reservations.', 'success')
+                        # refresh stored
+                        stored = Earning.query.order_by(Earning.payout_date.desc(), Earning.start_date.desc()).all()
+                        # recompute stored totals after store
+                        _gross = sum(e.gross_earnings for e in stored)
+                        _amount = sum(e.amount for e in stored)
+                        _service = sum(e.service_fee for e in stored)
+                        _with = sum(e.withholding for e in stored)
+                        _net = sum(e.net for e in stored)
+                        _nights = sum(e.nights or 0 for e in stored)
+                        stored_totals = dict(count=len(stored), gross=_gross, amount=_amount, service=_service, withholding=_with, net=_net, nights=_nights,
+                                             avg_net_night=(_net/_nights if _nights else 0), avg_gross_night=(_gross/_nights if _nights else 0))
             except Exception as e:
                 current_app.logger.exception('Earnings parse failed')
                 error = f'Failed to parse CSV: {e}'
 
-    return render_template('admin_earnings.html', result=result, error=error, sample=sample)
+    return render_template('admin_earnings.html', result=result, error=error, sample=sample, stored=stored, stored_totals=stored_totals)
 
 
 @bp.route('/admin/smart-access')
