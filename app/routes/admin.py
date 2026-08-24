@@ -865,6 +865,49 @@ def admin_generate_keypad_code() -> Response | str:
     try:
         start_utc, end_utc = access_window_utc(res)
         name = f'Res{res.id} {res.guest_name}'.strip()[:20]
+        # If a code already exists, try to keep same PIN on regenerate
+        old_code = (res.keypad_code or '').strip()
+        if old_code and old_code.isdigit() and len(old_code) == 6:
+            try:
+                svc.revoke_keypad_code(res.keypad_auth_id)
+            except SmartLockError:
+                pass
+            import time as _time
+            _time.sleep(1)
+            # Try to recreate with same number and new window
+            import requests
+            payload = {
+                'name': name,
+                'type': 13,
+                'code': int(old_code),
+                'smartlockIds': [int(apt.nuki_smartlock_id)],
+                'allowedFromDate': start_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                'allowedUntilDate': end_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                'allowedWeekDays': 127,
+                'allowedFromTime': 0,
+                'allowedUntilTime': 0,
+            }
+            try:
+                resp = requests.put(f'{svc.base_url}/smartlock/auth', headers=svc._get_headers(), json=payload, timeout=15)
+                resp.raise_for_status()
+                res.keypad_code = old_code
+                res.keypad_created_at = datetime.utcnow()
+                res.keypad_auth_id = svc.find_keypad_auth_id(old_code)
+                db.session.commit()
+                window_str = res.access_window_display() if hasattr(res, 'access_window_display') else f"13:00 {res.check_in.strftime('%d/%m/%Y')} → 13:00 {res.check_out.strftime('%d/%m/%Y')} (Rome)"
+                flash(f'Keypad code {old_code} re-created for {res.guest_name} (same PIN). Valid {window_str}.', 'success')
+                if not res.keypad_auth_id:
+                    flash('Note: the code was accepted but not yet confirmed on the Nuki device. It will be revocable once it syncs.', 'warning')
+                return redirect(url_for('routes.admin_dashboard'))
+            except Exception as e:
+                current_app.logger.warning('Same-code recreate failed for res #%s code %s: %s — falling back to new code', res.id, old_code, e)
+                # fall through to generate new code
+        # No old code or same-code path failed — generate fresh
+        if res.keypad_auth_id:
+            try:
+                svc.revoke_keypad_code(res.keypad_auth_id)
+            except SmartLockError:
+                pass
         code = svc.create_keypad_code(name, start_utc, end_utc)
         res.keypad_code = code
         res.keypad_created_at = datetime.utcnow()
@@ -1337,43 +1380,88 @@ def admin_guest_message_update(reservation_id: int) -> Response | str:
     res.access_checkout_time = new_out
     db.session.commit()
 
+    window_changed = (old_in != new_in or old_out != new_out)
+
     # If window hours changed and a keypad code exists, re-sync it to the new window
-    if (old_in != new_in or old_out != new_out) and res.keypad_code:
+    if window_changed and res.keypad_code:
         from app.services.smart_lock import SmartLockError, get_nuki_service
         apt = get_apartment()
         try:
             svc = get_nuki_service(apt) if apt else None
             if svc and svc.is_configured() and res.keypad_auth_id:
-                # Nuki has no "update" — revoke old and create new with same PIN but new window
-                # Keep the same 6-digit code; recreate via delete + put with same code.
-                # If revoke fails we still try to create a fresh code.
-                try:
-                    svc.revoke_keypad_code(res.keypad_auth_id)
-                except SmartLockError:
-                    pass
                 start_utc, end_utc = access_window_utc(res)
-                # Re-create with same code by direct PUT (service generates new code otherwise,
-                # so we do raw call to keep the code stable for the guest).
-                import requests
-                payload = {
-                    'name': f'Res{res.id} {res.guest_name}'.strip()[:20],
-                    'type': 13,
-                    'code': int(res.keypad_code),
-                    'smartlockIds': [int(apt.nuki_smartlock_id)],
-                    'allowedFromDate': start_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
-                    'allowedUntilDate': end_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
-                    'allowedWeekDays': 127,
-                    'allowedFromTime': 0,
-                    'allowedUntilTime': 0,
-                }
-                url = f'{svc.base_url}/smartlock/auth'
-                resp = requests.put(url, headers=svc._get_headers(), json=payload, timeout=15)
-                resp.raise_for_status()
-                new_auth = svc.find_keypad_auth_id(res.keypad_code)
-                res.keypad_auth_id = new_auth
-                res.keypad_created_at = datetime.utcnow()
-                db.session.commit()
-                flash(f'Access window updated to {res.access_window_display()}. Keypad {res.keypad_code} re-synced.', 'success')
+                name = f'Res{res.id} {res.guest_name}'.strip()[:20]
+                # Preferred: in-place update (avoids 409 race from async delete+create)
+                try:
+                    svc.update_keypad_code_window(res.keypad_auth_id, name, start_utc, end_utc, code=res.keypad_code)
+                    flash(f'Access window updated to {res.access_window_display()}. Keypad {res.keypad_code} re-synced (same code).', 'success')
+                except SmartLockError as upd_err:
+                    msg = str(upd_err)
+                    # Fallback: pure retry of in-place update after wait (keeps same PIN, no delete)
+                    # Delete+recreate races with Nuki async and causes 409 again, so we just retry the POST update.
+                    current_app.logger.warning('Keypad in-place update failed for res #%s: %s — retrying update', res.id, msg)
+                    if '409' in msg or 'Conflict' in msg or '400' in msg or '429' in msg:
+                        import time as _time
+                        # Nuki Web → device sync is async; backoff before retrying same POST update
+                        _time.sleep(5)
+                        try:
+                            svc.update_keypad_code_window(res.keypad_auth_id, name, start_utc, end_utc, code=res.keypad_code)
+                            flash(f'Access window updated to {res.access_window_display()}. Keypad {res.keypad_code} re-synced after retry (same code).', 'success')
+                            return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+                        except Exception as e2:
+                            current_app.logger.warning('Retry update still failed for res #%s: %s', res.id, e2)
+                            msg = str(e2)
+                            # Final fallback: only if retry still 409, do revoke+recreate same code with poll
+                            if '409' in msg or 'Conflict' in msg:
+                                try:
+                                    svc.revoke_keypad_code(res.keypad_auth_id)
+                                except SmartLockError:
+                                    pass
+                                for _ in range(6):
+                                    _time.sleep(3)
+                                    try:
+                                        if not svc.find_keypad_auth_id(res.keypad_code, attempts=1):
+                                            break
+                                    except Exception:
+                                        pass
+                                import requests
+                                payload = {
+                                    'name': name,
+                                    'type': 13,
+                                    'code': int(res.keypad_code),
+                                    'smartlockIds': [int(apt.nuki_smartlock_id)],
+                                    'allowedFromDate': start_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                                    'allowedUntilDate': end_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                                    'allowedWeekDays': 127,
+                                    'allowedFromTime': 0,
+                                    'allowedUntilTime': 0,
+                                }
+                                try:
+                                    resp = requests.put(f'{svc.base_url}/smartlock/auth', headers=svc._get_headers(), json=payload, timeout=15)
+                                    resp.raise_for_status()
+                                    res.keypad_auth_id = svc.find_keypad_auth_id(res.keypad_code)
+                                    res.keypad_created_at = datetime.utcnow()
+                                    db.session.commit()
+                                    flash(f'Access window updated to {res.access_window_display()}. Keypad {res.keypad_code} re-created after 409.', 'success')
+                                    return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+                                except Exception as e3:
+                                    e2 = e3
+                            # Last resort: new random PIN
+                            try:
+                                try:
+                                    svc.revoke_keypad_code(res.keypad_auth_id)
+                                except Exception:
+                                    pass
+                                new_code = svc.create_keypad_code(name, start_utc, end_utc)
+                                res.keypad_code = new_code
+                                res.keypad_auth_id = svc.find_keypad_auth_id(new_code)
+                                res.keypad_created_at = datetime.utcnow()
+                                db.session.commit()
+                                flash(f'Access window updated to {res.access_window_display()}. Old PIN conflicted (409), new keypad {new_code} generated — share it with the guest.', 'warning')
+                            except Exception as e3:
+                                raise SmartLockError(f'Update 409 and recreate failed: {e2}; new code also failed: {e3}')
+                    else:
+                        raise
             elif svc and svc.is_configured():
                 # No auth_id yet (not synced) — just note; next revoke/create will use new window
                 flash(f'Access window updated to {res.access_window_display()}. Keypad will use new window on next sync.', 'info')
@@ -1385,6 +1473,25 @@ def admin_guest_message_update(reservation_id: int) -> Response | str:
         admin_audit_log('update_access_window', 'Reservation', res.id,
                         f'{old_in or "13:00"}→{new_in or "13:00"} , {old_out or "13:00"}→{new_out or "13:00"}')
         return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+
+    # Even if window didn't change, detect orphaned keypad (deleted on Nuki but still in DB) and offer fix
+    if not window_changed and res.keypad_code:
+        from app.services.smart_lock import SmartLockError, get_nuki_service
+        apt = get_apartment()
+        svc = get_nuki_service(apt) if apt and apt.nuki_enabled else None
+        if svc and svc.is_configured() and res.keypad_auth_id:
+            try:
+                found = svc.find_keypad_auth_id(res.keypad_code, attempts=1)
+                if not found:
+                    # Auth missing on Nuki (e.g. revoked by previous 409 flow) — clear stale id so UI shows "generate"
+                    current_app.logger.warning('Orphaned keypad detected for res #%s (code %s auth %s not on Nuki) — clearing', res.id, res.keypad_code, res.keypad_auth_id)
+                    res.keypad_auth_id = None
+                    db.session.commit()
+                    flash(f'Keypad {res.keypad_code} was deleted from Nuki (409 race). Window {res.access_window_display()} is saved. Click “Re-generate keypad” below or use Dashboard → 🔢 to recreate it with the new window.', 'warning')
+                    admin_audit_log('detect_orphaned_keypad', 'Reservation', res.id, f'Code {res.keypad_code} orphaned, cleared auth_id')
+                    return redirect(url_for('routes.admin_guest_message', reservation_id=reservation_id))
+            except Exception:
+                pass
 
     admin_audit_log('edit_reservation', 'Reservation', res.id, 'Updated guest message details')
     flash('Reservation details updated.', 'success')

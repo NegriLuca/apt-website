@@ -323,6 +323,44 @@ class NukiService:
             time.sleep(3)
         return None
 
+    def update_keypad_code_window(self, auth_id, name, allowed_from, allowed_until, code=None):
+        """Update an existing keypad code's time window in-place (keeps same PIN).
+
+        Uses POST /smartlock/{id}/auth/{authId} – the Nuki-recommended way to
+        move the window without hitting 409 on code reuse (async delete+create
+        races). Sends all 5 allowed* fields so they aren't cleared (Nuki quirk).
+        """
+        if not self.is_configured():
+            raise SmartLockError('Nuki not configured')
+        payload = {
+            'name': (name or 'Guest')[:20],
+            'allowedFromDate': allowed_from.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+            'allowedUntilDate': allowed_until.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+            'allowedWeekDays': 127,
+            'allowedFromTime': 0,
+            'allowedUntilTime': 0,
+        }
+        if code is not None:
+            try:
+                payload['code'] = int(code)
+            except ValueError:
+                pass
+        url = f'{self.base_url}/smartlock/{self.smartlock_id}/auth/{auth_id}'
+        try:
+            resp = requests.post(url, headers=self._get_headers(), json=payload, timeout=15)
+            resp.raise_for_status()
+            current_app.logger.info(f'Nuki keypad {auth_id} window updated to {payload["allowedFromDate"]} → {payload["allowedUntilDate"]}')
+            return True
+        except requests.RequestException as e:
+            body = ''
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    body = e.response.text or ''
+                except Exception:
+                    pass
+            current_app.logger.error(f'Nuki update keypad {auth_id} failed: {e} body={body}')
+            raise SmartLockError(f'Failed to update keypad window: {e} {body}'.strip())
+
     def revoke_keypad_code(self, auth_id):
         """Delete a keypad code authorization from the smart lock."""
         if not self.is_configured():

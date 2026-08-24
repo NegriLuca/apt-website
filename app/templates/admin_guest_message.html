@@ -37,6 +37,27 @@
                         <div class="col-6">
                             <div class="text-muted text-uppercase">{{ _('Keypad code') }}</div>
                             <div class="fw-bold">{{ reservation.keypad_code or '—' }}</div>
+                            {% if reservation.keypad_code %}
+                                <div class="mt-1 d-flex gap-1 flex-wrap">
+                                    <form method="POST" action="{{ url_for('routes.admin_revoke_keypad_code') }}" onsubmit="return confirm('{{ _('Revoke this keypad code?') }}')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="reservation_id" value="{{ reservation.id }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="{{ _('Revoke') }}">✕ {{ _('Revoke') }}</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('routes.admin_generate_keypad_code') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="reservation_id" value="{{ reservation.id }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2" title="{{ _('Generate new code with current window') }}">↻ {{ _('Regenerate') }}</button>
+                                    </form>
+                                </div>
+                                <div class="form-text">{{ _('Uses current window') }} {{ reservation.access_window_display() if reservation.access_window_display is defined else '' }}</div>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('routes.admin_generate_keypad_code') }}" class="mt-1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="reservation_id" value="{{ reservation.id }}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2">＋ {{ _('Generate keypad') }}</button>
+                                </form>
+                            {% endif %}
                         </div>
                         <div class="col-12">
                             <div class="text-muted text-uppercase">{{ _('Access window') }}</div>
