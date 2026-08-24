@@ -243,30 +243,64 @@ def admin_earnings() -> Response | str:
                              avg_net_night=(_net/_nights if _nights else 0), avg_gross_night=(_gross/_nights if _nights else 0))
 
     if request.method == 'POST':
-        # handle sync button separately
+        # handle sync button — link + push name/dates/financials to Reservation so Dashboard revenue appears
         if request.form.get('action') == 'sync':
             synced = 0
+            updated = 0
             for e in stored:
-                if not e.reservation_id:
-                    # try external_uid exact
+                res = None
+                if e.reservation_id:
+                    res = Reservation.query.get(e.reservation_id)
+                if not res:
                     res = Reservation.query.filter_by(external_uid=e.confirmation_code).first()
                     if not res and e.guest_name and e.start_date:
-                        # fallback: guest token prefix + dates (fuzzy)
                         res = Reservation.query.filter(
                             Reservation.check_in == e.start_date,
                             Reservation.check_out == e.end_date,
                         ).first()
-                        # also try guest name contains
                         if not res:
-                            res = Reservation.query.filter(
-                                Reservation.guest_name.ilike(f"%{e.guest_name.split()[0]}%"),
-                                Reservation.check_in == e.start_date,
-                            ).first()
-                    if res:
+                            try:
+                                first = e.guest_name.split()[0]
+                                res = Reservation.query.filter(
+                                    Reservation.guest_name.ilike(f"%{first}%"),
+                                    Reservation.check_in == e.start_date,
+                                ).first()
+                            except Exception:
+                                res = None
+                    if res and not e.reservation_id:
                         e.reservation_id = res.id
                         synced += 1
+                if res:
+                    changed = False
+                    if e.guest_name and res.guest_name != e.guest_name and (not res.guest_name or 'Airbnb Guest' in res.guest_name or 'Booking Guest' in res.guest_name):
+                        res.guest_name = e.guest_name
+                        if not res.guest_first_name and ' ' in e.guest_name:
+                            parts = e.guest_name.split()
+                            res.guest_first_name = parts[0]
+                            res.guest_surname = ' '.join(parts[1:])
+                        changed = True
+                    if e.start_date and res.check_in != e.start_date:
+                        res.check_in = e.start_date
+                        changed = True
+                    if e.end_date and res.check_out != e.end_date:
+                        res.check_out = e.end_date
+                        changed = True
+                    if e.net and (not res.total_price or abs(res.total_price - e.net) > 1.0):
+                        res.total_price = round(e.net, 2)
+                        res.amount_paid = round(e.net, 2)
+                        res.payment_status = 'paid'
+                        if res.status == 'pending':
+                            res.status = 'confirmed'
+                        if not res.external_uid:
+                            res.external_uid = e.confirmation_code
+                        changed = True
+                    if changed:
+                        updated += 1
             db.session.commit()
-            flash(f'Synced {synced} earnings to reservations.', 'success' if synced else 'info')
+            if synced or updated:
+                flash(f'Synced {synced} links and updated {updated} reservations (name/dates/net → Dashboard revenue).', 'success')
+            else:
+                flash(f'No new links — {len(stored)} earnings already synced.', 'info')
             return redirect(url_for('routes.admin_earnings'))
 
         csv_text = request.form.get('csv_text', '').strip()
@@ -341,27 +375,76 @@ def admin_earnings() -> Response | str:
                                     return [_j(x) for x in v]
                                 return v
                             earn.raw_json = _j(entry)
-                            # auto-sync to reservation
-                            if not earn.reservation_id:
-                                res = Reservation.query.filter_by(external_uid=code).first()
-                                if not res and earn.guest_name and earn.start_date:
-                                    res = Reservation.query.filter(
-                                        Reservation.check_in == earn.start_date,
-                                        Reservation.check_out == earn.end_date,
+                            # auto-sync to reservation — update name/dates/financials so Dashboard revenue shows
+                            def _find_reservation(code, guest, start, end):
+                                r = Reservation.query.filter_by(external_uid=code).first()
+                                if r:
+                                    return r
+                                if guest and start and end:
+                                    r = Reservation.query.filter(
+                                        Reservation.check_in == start,
+                                        Reservation.check_out == end,
                                     ).first()
-                                    if not res:
-                                        # looser: guest first name + start
-                                        try:
-                                            first = earn.guest_name.split()[0]
-                                            res = Reservation.query.filter(
-                                                Reservation.guest_name.ilike(f"%{first}%"),
-                                                Reservation.check_in == earn.start_date,
-                                            ).first()
-                                        except Exception:
-                                            res = None
+                                    if r:
+                                        return r
+                                    try:
+                                        first = guest.split()[0]
+                                        r = Reservation.query.filter(
+                                            Reservation.guest_name.ilike(f"%{first}%"),
+                                            Reservation.check_in == start,
+                                        ).first()
+                                        if r:
+                                            return r
+                                    except Exception:
+                                        pass
+                                return None
+
+                            if not earn.reservation_id:
+                                res = _find_reservation(code, earn.guest_name, earn.start_date, earn.end_date)
                                 if res:
                                     earn.reservation_id = res.id
                                     synced_new += 1
+                                else:
+                                    # No reservation yet — keep earning unlinked (user may have deleted/never imported). Don't auto-create to avoid ghost bookings.
+                                    res = None
+                            else:
+                                res = Reservation.query.get(earn.reservation_id)
+
+                            # If linked, sync fields so Dashboard revenue + guest list are correct
+                            if res:
+                                changed = False
+                                # Name: only overwrite generic "Airbnb Guest (CODE)" or empty
+                                if earn.guest_name and res.guest_name != earn.guest_name:
+                                    if not res.guest_name or 'Airbnb Guest' in res.guest_name or 'Booking Guest' in res.guest_name or 'Guest' in res.guest_name and len(res.guest_name) < 30:
+                                        res.guest_name = earn.guest_name
+                                        # also split for Questura if empty
+                                        if not res.guest_first_name and ' ' in earn.guest_name:
+                                            parts = earn.guest_name.split()
+                                            res.guest_first_name = parts[0]
+                                            res.guest_surname = ' '.join(parts[1:])
+                                        changed = True
+                                # Dates (authoritative from payout)
+                                if earn.start_date and res.check_in != earn.start_date:
+                                    res.check_in = earn.start_date
+                                    changed = True
+                                if earn.end_date and res.check_out != earn.end_date:
+                                    res.check_out = earn.end_date
+                                    changed = True
+                                # Financials — total_price drives Dashboard revenue; use net (Amount+withholding = bank payout)
+                                # Keep original total_price if already set and close to net (avoid overwriting manual edits)
+                                if earn.net and (not res.total_price or abs(res.total_price - earn.net) > 1.0):
+                                    res.total_price = round(earn.net, 2)
+                                    res.amount_paid = round(earn.net, 2)
+                                    res.payment_status = 'paid'
+                                    changed = True
+                                # N guests: CSV doesn't have it — keep existing, don't overwrite
+                                if changed:
+                                    # ensure external_uid is set for future exact matches
+                                    if not res.external_uid:
+                                        res.external_uid = code
+                                    # mark confirmed so it counts in revenue
+                                    if res.status == 'pending':
+                                        res.status = 'confirmed'
                         db.session.commit()
                         flash(f'Stored {len(result["per_code"])} earnings ({stored_new} new) and auto-synced {synced_new} to reservations.', 'success')
                         # refresh stored
