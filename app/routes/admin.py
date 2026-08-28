@@ -523,6 +523,95 @@ def admin_smart_access_preview() -> Response | str:
     )
 
 
+# ── Boiler Shelly (hot water) manual controls ─────────────────────────────────
+
+@bp.route('/admin/boiler/on', methods=['POST'])
+@login_required
+def admin_boiler_on() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.services.boiler import get_boiler_service
+    svc = get_boiler_service(get_apartment())
+    if not svc or not svc.is_configured():
+        flash('Boiler Shelly not configured — enable it and set device ID 206ef104b850 in Trust Badges → Smart Access.', 'danger')
+        return redirect(url_for('routes.admin_trust_badges'))
+    try:
+        svc.turn_on()
+        admin_audit_log('boiler_on', 'Apartment', get_apartment().id)
+        flash('Boiler turned ON (07:00 check-in job would also do this).', 'success')
+    except Exception as e:
+        flash(f'Boiler ON failed: {e}', 'danger')
+    return redirect(url_for('routes.admin_trust_badges'))
+
+
+@bp.route('/admin/boiler/off', methods=['POST'])
+@login_required
+def admin_boiler_off() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.services.boiler import get_boiler_service
+    svc = get_boiler_service(get_apartment())
+    if not svc or not svc.is_configured():
+        flash('Boiler Shelly not configured.', 'danger')
+        return redirect(url_for('routes.admin_trust_badges'))
+    try:
+        svc.turn_off()
+        admin_audit_log('boiler_off', 'Apartment', get_apartment().id)
+        flash('Boiler turned OFF (16:00 check-out job respects gap >=2).', 'success')
+    except Exception as e:
+        flash(f'Boiler OFF failed: {e}', 'danger')
+    return redirect(url_for('routes.admin_trust_badges'))
+
+
+@bp.route('/admin/boiler/status')
+@login_required
+def admin_boiler_status() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.services.boiler import get_boiler_service
+    svc = get_boiler_service(get_apartment())
+    if not svc or not svc.is_configured():
+        return jsonify({'configured': False, 'error': 'Boiler not enabled/configured'})
+    try:
+        status = svc.get_status()
+        return jsonify({'configured': True, 'status': status})
+    except Exception as e:
+        return jsonify({'configured': True, 'error': str(e)}), 500
+
+
+@bp.route('/admin/boiler/test-jobs', methods=['POST'])
+@login_required
+def admin_boiler_test_jobs() -> Response | str:
+    """Dry-run the 07:00/16:00 jobs for today — shows what would happen without toggling."""
+    if not current_user.is_admin:
+        abort(403)
+    from datetime import date as _date
+
+    from app.services.boiler import run_boiler_checkin_job, run_boiler_checkout_job, should_turn_off_on_checkout
+    from app.models import Reservation
+
+    today = _date.today()
+    checkins = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_in == today).count()
+    checkouts = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out == today).count()
+    nxt = None
+    if checkouts:
+        from app.services.boiler import _next_checkin_after
+        nxt = _next_checkin_after(today)
+        gap = (nxt - today).days if nxt else None
+        would_off = all(should_turn_off_on_checkout(r.check_out) for r in Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out == today).all())
+    else:
+        gap = None
+        would_off = False
+    # If ?do=1, actually run the jobs
+    if request.args.get('do') == '1' or request.form.get('do') == '1':
+        r1 = run_boiler_checkin_job(today)
+        r2 = run_boiler_checkout_job(today)
+        flash(f'Boiler jobs executed: check-in {r1} | check-out {r2}', 'info')
+    else:
+        flash(f'[DRY RUN {today}] check-ins={checkins} → would force ON at 07:00 | check-outs={checkouts} → would OFF={would_off} (next check-in {nxt}, gap {gap} days, OFF only if gap>=2)', 'info')
+    return redirect(url_for('routes.admin_trust_badges'))
+
+
 @bp.route('/admin/wifi', methods=['GET', 'POST'])
 @login_required
 def admin_wifi() -> Response | str:
@@ -639,6 +728,14 @@ def admin_trust_badges() -> Response | str:
         apartment.shelly_enabled = bool(request.form.get('shelly_enabled'))
         apartment.shelly_host = request.form.get('shelly_host', '').strip() or None
         apartment.shelly_relay_channel = request.form.get('shelly_relay_channel', type=int) or 0
+
+        # Boiler Shelly (hot water)
+        apartment.boiler_shelly_enabled = bool(request.form.get('boiler_shelly_enabled'))
+        apartment.boiler_shelly_device_id = request.form.get('boiler_shelly_device_id', '').strip() or None
+        apartment.boiler_shelly_channel = request.form.get('boiler_shelly_channel', type=int) or 0
+        # optional host fallback for boiler (local mode)
+        if request.form.get('boiler_shelly_host') is not None:
+            apartment.boiler_shelly_host = request.form.get('boiler_shelly_host', '').strip() or None
 
         apartment.nuki_enabled = bool(request.form.get('nuki_enabled'))
         apartment.nuki_show_door_button = 'nuki_show_door_button' in request.form

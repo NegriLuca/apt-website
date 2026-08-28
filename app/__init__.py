@@ -255,6 +255,36 @@ def _start_scheduler(app: Flask):
             if result.get('errors'):
                 app.logger.warning('Questura daily errors: %s', result.get('errors'))
 
+    def _boiler_checkin_job():
+        with app.app_context():
+            from app.services.boiler import run_boiler_checkin_job
+
+            try:
+                result = run_boiler_checkin_job()
+            except Exception:
+                app.logger.exception('Boiler check-in job crashed')
+                return
+            if result.get('success'):
+                app.logger.info('Boiler check-in %s: ON %s', result.get('date'), result.get('reservations'))
+            elif not result.get('skipped'):
+                app.logger.warning('Boiler check-in failed: %s', result)
+
+    def _boiler_checkout_job():
+        with app.app_context():
+            from app.services.boiler import run_boiler_checkout_job
+
+            try:
+                result = run_boiler_checkout_job()
+            except Exception:
+                app.logger.exception('Boiler check-out job crashed')
+                return
+            if result.get('success'):
+                app.logger.info('Boiler check-out %s: OFF %s', result.get('date'), result.get('reservations'))
+            elif result.get('skipped'):
+                app.logger.info('Boiler check-out %s skipped: %s', result.get('date'), result.get('reason'))
+            else:
+                app.logger.warning('Boiler check-out failed: %s', result)
+
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
         _sync_job,
@@ -296,6 +326,24 @@ def _start_scheduler(app: Flask):
         hour=8,
         minute=0,
         id='questura_daily_submission',
+        replace_existing=True,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        _boiler_checkin_job,
+        trigger='cron',
+        hour=7,
+        minute=0,
+        id='boiler_checkin_on',
+        replace_existing=True,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        _boiler_checkout_job,
+        trigger='cron',
+        hour=16,
+        minute=0,
+        id='boiler_checkout_off',
         replace_existing=True,
         coalesce=True,
     )

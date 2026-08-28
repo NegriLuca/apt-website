@@ -106,6 +106,31 @@ with app.app_context():
 
     sync_wifi_from_env()
 
+    # ── SYNC BOILER SHELLY CONFIG FROM ENV VARS ──
+    # Seeds/keeps the boiler device configured when env var is set (same cloud account as gate).
+    boiler_device = os.environ.get('SHELLY_BOILER_DEVICE_ID', '').strip()
+    boiler_channel = os.environ.get('SHELLY_BOILER_CHANNEL', '').strip()
+    boiler_host = os.environ.get('SHELLY_BOILER_HOST', '').strip()
+    if boiler_device or boiler_host:
+        print(f"🔥 Syncing boiler Shelly from env vars (device={boiler_device or '—'} ch={boiler_channel or '0'})...")
+        if default_apartment is None:
+            default_apartment = Apartment.query.first()
+        if default_apartment is not None:
+            if boiler_device:
+                default_apartment.boiler_shelly_device_id = boiler_device
+            if boiler_channel != '':
+                try:
+                    default_apartment.boiler_shelly_channel = int(boiler_channel)
+                except ValueError:
+                    pass
+            if boiler_host:
+                default_apartment.boiler_shelly_host = boiler_host
+            # Auto-enable if device is present and not explicitly disabled
+            if boiler_device and not default_apartment.boiler_shelly_enabled:
+                default_apartment.boiler_shelly_enabled = True
+            db.session.commit()
+            print(f"✅ Boiler Shelly synced (enabled={default_apartment.boiler_shelly_enabled}, device={default_apartment.boiler_shelly_device_id}, ch={default_apartment.boiler_shelly_channel}).")
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=False)

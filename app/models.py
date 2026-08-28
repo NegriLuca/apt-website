@@ -53,6 +53,12 @@ class Apartment(db.Model):
     shelly_relay_channel = db.Column(db.Integer, default=0, comment='Relay channel (0 for Shelly 1 Mini)')
     shelly_pulse_duration = db.Column(db.Integer, default=3, comment='Gate pulse duration in seconds')
 
+    # Boiler Shelly (hot water) — second Shelly on same cloud account
+    boiler_shelly_enabled = db.Column(db.Boolean, default=False, comment='Enable boiler auto ON/OFF')
+    boiler_shelly_device_id = db.Column(db.String(100), nullable=True, comment='Shelly device ID for boiler (e.g., 206ef104b850)')
+    boiler_shelly_channel = db.Column(db.Integer, default=0, comment='Relay channel for boiler (0 for Shelly 1 Mini)')
+    boiler_shelly_host = db.Column(db.String(100), nullable=True, comment='Optional fallback host/IP for boiler Shelly (local mode)')
+
     # Nuki Smart Lock Ultra (Apartment Door)
     nuki_enabled = db.Column(db.Boolean, default=False)
     nuki_show_door_button = db.Column(db.Boolean, default=True, comment='Show the door button on the guest page (else guests use the keypad only)')
