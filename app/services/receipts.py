@@ -7,6 +7,7 @@ Valida per locazioni brevi non-imprenditoriali:
 - bollo 2€ se imponibile soggiorno > 77.47
 - indirizzo guest preso da Stripe customer_details se disponibile
 """
+import os
 from datetime import date, datetime
 from typing import Optional
 
@@ -17,6 +18,8 @@ from app.models import Apartment, Receipt, Reservation
 
 BOLLO_THRESHOLD = 77.47
 BOLLO_AMOUNT = 2.00
+# Percorso immagine marca da bollo — metti/sostituisci il tuo PNG qui
+MARCA_BOLLO_IMAGE = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "static", "images", "marca_da_bollo.png"))
 IVA_EXEMPTION_TEXT = "Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972"
 
 
@@ -247,6 +250,54 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
 
+    # ── Marca da bollo stamp — solo se dovuta (>77.47), sempre visibile quando required
+    # Top-right, con contenuto spostato in basso per non coprire testo
+    if getattr(receipt, 'bollo_required', False):
+        try:
+            if os.path.exists(MARCA_BOLLO_IMAGE):
+                # immagine reale (sostituisci il file con la tua scansione se vuoi)
+                pdf.image(MARCA_BOLLO_IMAGE, x=168, y=6, w=30)
+                # identificativo sotto l'immagine (14 cifre)
+                id_txt = receipt.bollo_id if receipt.bollo_id else '--- DA INSERIRE ---'
+                pdf.set_xy(168, 26)
+                pdf.set_font('Helvetica', '', 6)
+                pdf.set_text_color(0, 0, 0)
+                pdf.cell(30, 3, id_txt, align='C')
+                pdf.set_text_color(0, 0, 0)
+            else:
+                # fallback disegnato se manca file — garantisce sempre visibile
+                pdf.set_draw_color(180, 150, 0)
+                pdf.set_fill_color(255, 248, 200)
+                pdf.set_line_width(0.4)
+                pdf.rect(168, 6, 30, 22, style='DF')
+                pdf.set_xy(168, 8)
+                pdf.set_font('Helvetica', 'B', 6)
+                pdf.set_text_color(120, 90, 0)
+                pdf.cell(30, 3, 'MARCA DA BOLLO', align='C')
+                pdf.set_xy(168, 11.5)
+                pdf.set_font('Helvetica', 'B', 7)
+                pdf.set_text_color(0, 0, 0)
+                pdf.cell(30, 3, 'EUR 2,00', align='C')
+                pdf.set_xy(168, 15.5)
+                pdf.set_font('Helvetica', '', 5.5)
+                pdf.cell(30, 3, receipt.bollo_id if receipt.bollo_id else 'DA INSERIRE', align='C')
+                pdf.set_xy(168, 19.5)
+                pdf.set_font('Helvetica', '', 5)
+                pdf.set_text_color(100, 100, 100)
+                pdf.cell(30, 3, 'Identificativo 14 cifre', align='C')
+                pdf.set_text_color(0, 0, 0)
+                pdf.set_line_width(0.2)
+                pdf.set_draw_color(200, 200, 200)
+            # sposta tutto il contenuto sotto il timbro per non sovrapporre
+            pdf.set_y(34)
+            pdf.set_x(10)
+        except Exception:
+            import logging as _lg
+            _lg.getLogger(__name__).warning("Marca da bollo stamp failed", exc_info=True)
+            pdf.set_y(10)
+    else:
+        pdf.set_y(10)
+
     def _sanitize(t: str) -> str:
         # Helvetica core font = latin-1 only — replace unsupported unicode
         return (
@@ -391,15 +442,17 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
         pdf.set_text_color(0, 0, 0)
     pdf.ln(2)
 
-    # Bollo — discreto (richiesto: niente scritte obbligatorie/DA APPLICARE)
-    if receipt.bollo_required and receipt.bollo_id:
+    # Bollo — sempre visibile quando dovuto (>77.47), con identificativo manuale
+    if receipt.bollo_required:
         pdf.set_text_color(0, 0, 0)
         pdf.set_font('Helvetica', '', 7)
-        pdf.cell(0, 4, f"Imposta di bollo 2,00 EUR assolta — Contrassegno: {receipt.bollo_id}", new_x='LMARGIN', new_y='NEXT')
+        id_display = receipt.bollo_id if receipt.bollo_id else 'DA INSERIRE (inserisci identificativo 14 cifre in /admin/receipts)'
+        pdf.cell(0, 4, f"Imposta di bollo 2,00 EUR assolta — Contrassegno: {id_display}", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', '', 6)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(0, 3, "Marca da bollo apposta sull'originale — identificativo univoco 14 cifre (art.13 DPR 642/1972).", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_text_color(0, 0, 0)
         pdf.ln(2)
-    elif receipt.bollo_required and not receipt.bollo_id:
-        # richiesto ma non ancora inserito: nessuna scritta invasiva (resta solo riga tabella)
-        pdf.ln(1)
     else:
         pdf.ln(1)
 

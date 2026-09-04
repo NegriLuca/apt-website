@@ -12,7 +12,16 @@
     </div>
 
     <div class="card border-0 shadow-sm">
-        <div class="card-body p-4" style="max-width: 900px; margin: 0 auto; font-size: 14px;">
+        <div class="card-body p-4" style="max-width: 900px; margin: 0 auto; font-size: 14px; position: relative; {% if receipt.bollo_required %}padding-top: 28px;{% endif %}">
+            {% if receipt.bollo_required %}
+            <!-- Marca da bollo — sempre visibile quando dovuta (>77.47), top-right spostata per non coprire -->
+            <div style="position: absolute; top: 10px; right: 14px; width: 118px; text-align: center; border: 1.5px solid #d4a017; background: #fff8c8; padding: 4px 4px 5px; border-radius: 3px; line-height: 1.1;">
+                <img src="{{ url_for('static', filename='images/marca_da_bollo.png') }}" alt="Marca da bollo" style="width: 100%; height: auto; display: block; border-radius: 2px;" onerror="this.style.display='none'; this.nextElementSibling.style.marginTop='0'">
+                <div style="font-size: 7px; font-weight: 800; color: #7a6000; letter-spacing: 0.4px; margin-top: 3px;">MARCA DA BOLLO — EUR 2,00</div>
+                <div style="font-size: 8px; font-family: monospace; font-weight: 700; color: #111; margin-top: 2px; word-break: break-all;">{{ receipt.bollo_id or 'DA INSERIRE' }}</div>
+                <div style="font-size: 6px; color: #777;">Identificativo 14 cifre</div>
+            </div>
+            {% endif %}
             <div class="text-center mb-4">
                 <h2 class="h5 fw-bold text-uppercase mb-1">Ricevuta di locazione breve</h2>
                 <small class="text-muted">Documento non-fattura — Operazione fuori campo IVA art. 1 c.2 DPR 633/1972</small>
@@ -56,11 +65,12 @@
 
             <h6 class="fw-bold mt-3">Imposta di bollo</h6>
             {% if receipt.bollo_required %}
-                <p class="small mb-1">Marca da bollo da €2,00 dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} &gt; 77,47€).<br>
-                {% if receipt.bollo_id %}Contrassegno: <code>{{ receipt.bollo_id }}</code> (14 cifre) — applicato sull'originale.
-                {% else %}<span class="text-danger">Contrassegno: DA APPLICARE sull'originale.</span>{% endif %}</p>
+                <p class="small mb-1">Marca da bollo da €2,00 dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} &gt; 77,47€) — sempre esposta in alto a destra.<br>
+                Contrassegno: {% if receipt.bollo_id %}<code>{{ receipt.bollo_id }}</code> <span class="text-muted">(14 cifre identificativo)</span> — assolta sull'originale.
+                {% else %}<span class="text-danger fw-bold">DA INSERIRE</span> <span class="text-muted">— inserisci le 14 cifre in /admin/receipts (campo Bollo). Sia immagine che identificativo possono e devono coesistere.</span>{% endif %}</p>
+                <p class="small text-muted mb-1" style="font-size: 11px;">Sì, è ok avere <strong>sia</strong> l'immagine del contrassegno <strong>che</strong> l'identificativo a 14 cifre: l'identificativo è la prova legale dell'assolvimento (art.13 DPR 642/1972).</p>
             {% else %}
-                <p class="small">Non dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} ≤ 77,47€).</p>
+                <p class="small">Non dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} ≤ 77,47€) — marca non esposta.</p>
             {% endif %}
 
             <hr>
