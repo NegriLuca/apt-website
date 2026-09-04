@@ -93,13 +93,16 @@ def create_or_get_receipt(reservation: Reservation, issue_date: Optional[date] =
     sequence = get_next_sequence(year)
     receipt_number = _format_receipt_number(sequence, year)
 
-    stay_amount = float(reservation.total_price or 0.0)
     tourist_tax = float(reservation.tourist_tax_amount or 0.0)
-    total = round(stay_amount + tourist_tax, 2)
+    # Imponibile cedolare = soggiorno netto (senza tassa/bollo)
+    # total_price in DB è sempre netto; totale lordo pagato = stay + tassa + bollo
+    stay_amount = float(reservation.total_price or 0.0)
+    # Nota: se reservation è vecchia con total_price lordo (188 già inclusivo),
+    # correggere DB: total_price = 162.10 (netto), amount_paid = 188.10 (lordo)
 
     bollo_required = stay_amount > BOLLO_THRESHOLD
     bollo_amount = BOLLO_AMOUNT if bollo_required else 0.0
-    # totale per ricevuta sito = soggiorno + tassa (on top) + bollo 2€ se dovuto
+    # ricalcola totale lordo coerente con stay netto
     total = round(stay_amount + tourist_tax + bollo_amount, 2)
 
     apartment = Apartment.query.first()
