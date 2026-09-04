@@ -2447,6 +2447,76 @@ def admin_receipt_confirm(receipt_id: int) -> Response | str:
     return redirect(url_for('routes.admin_receipts'))
 
 
+@bp.route('/admin/receipts/fix-last', methods=['POST'])
+@login_required
+def admin_fix_last() -> Response | str:
+    """Corregge l'ultima prenotazione senza ricevuta confermata (generico, non solo #80).
+    Converte lordo -> netto se necessario e permette di modificare importi manualmente."""
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+
+    reservation_id = request.form.get('reservation_id', type=int)
+    # se passato id specifico, usa quello, altrimenti ultima pending
+    if reservation_id:
+        r = Reservation.query.get(reservation_id)
+    else:
+        r = (Reservation.query.filter(Reservation.source.in_(['direct', 'stripe']), Reservation.status != 'cancelled')
+             .order_by(Reservation.id.desc()).first())
+        # preferisci quella senza ricevuta confermata
+        if r and getattr(r, 'receipt', None) and r.receipt.is_confirmed:
+            r = (Reservation.query.filter(Reservation.source.in_(['direct', 'stripe']), Reservation.status != 'cancelled')
+                 .outerjoin(Receipt).filter(db.or_(Receipt.id.is_(None), Receipt.is_confirmed.is_(False)))
+                 .order_by(Reservation.id.desc()).first())
+
+    if not r:
+        flash('Nessuna prenotazione da correggere.', 'danger')
+        return redirect(url_for('routes.admin_receipts'))
+
+    # campi opzionali dal form: se presenti sovrascrivono
+    try:
+        new_total = request.form.get('new_total_price', '').strip()
+        new_tax = request.form.get('new_tourist_tax', '').strip()
+        if new_total:
+            r.total_price = float(new_total.replace(',', '.'))
+        if new_tax:
+            r.tourist_tax_amount = float(new_tax.replace(',', '.'))
+        # se nessun override ma è caso lordo (amount_paid == total_price), fai auto-fix lordo->netto
+        is_lordo = r.amount_paid and abs(float(r.amount_paid) - float(r.total_price or 0)) < 0.01 and (r.tourist_tax_amount or 0) > 0
+        if not new_total and not new_tax and is_lordo:
+            tax = float(r.tourist_tax_amount or 0)
+            gross = float(r.total_price or 0)
+            net = round(gross - tax - (2.0 if gross - tax > 77.47 else 0.0), 2)
+            r.total_price = net
+        db.session.commit()
+        # elimina ricevuta bozza non confermata per rigenerare
+        rec = Receipt.query.filter_by(reservation_id=r.id).first()
+        if rec and not rec.is_confirmed:
+            num = rec.receipt_number
+            db.session.delete(rec)
+            db.session.commit()
+            admin_audit_log('fix_last', 'Reservation', r.id, f'corretto -> netto {r.total_price}, eliminata {num}')
+            flash(f'Prenotazione #{r.id} corretta a netto {r.total_price:.2f} (tassa {r.tourist_tax_amount:.2f}), ricevuta {num} eliminata. Rigenera.', 'success')
+        else:
+            admin_audit_log('fix_last', 'Reservation', r.id, f'corretto netto {r.total_price}')
+            flash(f'Prenotazione #{r.id} corretta: imponibile {r.total_price:.2f}, tassa {r.tourist_tax_amount:.2f}. Genera ricevuta.', 'success')
+    except Exception as e:
+        flash(f'Errore fix: {e}', 'danger')
+    return redirect(url_for('routes.admin_receipts'))
+
+
+# compat: mantieni /fix-80 che ora chiama fix-last
+@bp.route('/admin/receipts/fix-80', methods=['POST'])
+@login_required
+def admin_fix_80() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    # delega a fix-last con id 80
+    request.form = request.form.copy()
+    request.form['reservation_id'] = '80'
+    return admin_fix_last()
+
+
 @bp.route('/admin/receipts/host-config', methods=['POST'])
 @login_required
 def admin_receipt_host_config() -> Response | str:

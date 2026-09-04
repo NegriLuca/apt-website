@@ -168,6 +168,8 @@ with app.app_context():
             apt_for_host.cir_code = env_cir
             db.session.commit()
 
+    # (fix manuale 188 rimosso su richiesta — vedi /admin/receipts/fix-80)
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=False)
