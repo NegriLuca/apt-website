@@ -99,6 +99,8 @@ def create_or_get_receipt(reservation: Reservation, issue_date: Optional[date] =
 
     bollo_required = stay_amount > BOLLO_THRESHOLD
     bollo_amount = BOLLO_AMOUNT if bollo_required else 0.0
+    # totale per ricevuta sito = soggiorno + tassa (on top) + bollo 2€ se dovuto
+    total = round(stay_amount + tourist_tax + bollo_amount, 2)
 
     apartment = Apartment.query.first()
     host = _snapshot_host(apartment)
