@@ -288,6 +288,57 @@ def enrich_reservation_from_stripe_session(reservation: Reservation, session_obj
                 reservation.guest_residence_country = country
                 updated = True
 
+        # ── CF / Passaporto da Stripe custom_fields (fatturazione)
+        # Stripe invia: custom_fields=[{key:tipo_documento_fiscale, dropdown:{value:cf/passport/...}}, {key:codice_fiscale_documento, text:{value:RSS...}}]
+        # Gestisce anche fallback solo testo (vecchio) e CF autodetect
+        try:
+            cf_fields = session_obj.get('custom_fields') or []
+            # alcuni webhook mettono in collected_information
+            if not cf_fields and session_obj.get('collected_information'):
+                cf_fields = session_obj.get('collected_information', {}).get('custom_fields') or []
+            tipo = None
+            codice = None
+            for f in cf_fields:
+                k = f.get('key')
+                if k == 'tipo_documento_fiscale':
+                    tipo = (f.get('dropdown') or {}).get('value') or f.get('value')
+                    if isinstance(tipo, str):
+                        tipo = tipo.strip().lower()
+                elif k == 'codice_fiscale_documento':
+                    codice = (f.get('text') or {}).get('value') or f.get('value') or ''
+                    if isinstance(codice, str):
+                        codice = codice.strip()
+            # normalizza codice
+            if codice:
+                codice_clean = codice.strip().upper()
+                # CF IT: 16 alfanumerici
+                is_cf_format = len(''.join(c for c in codice_clean if c.isalnum())) == 16 and codice_clean.replace(' ', '').isalnum()
+                if (tipo == 'cf' or (not tipo and is_cf_format)):
+                    # salva CF
+                    cf_val = ''.join(c for c in codice_clean if c.isalnum())[:16]
+                    if len(cf_val) == 16 and cf_val != (reservation.guest_codice_fiscale or ''):
+                        reservation.guest_codice_fiscale = cf_val
+                        # se era documento straniero prima, pulisci per coerenza IT
+                        # mantieni document_number solo se già presente e diverso — non sovrascrivere
+                        updated = True
+                elif codice_clean:
+                    # straniero: tipo mappato su guest_document_type
+                    type_map = {'passport': 'passport', 'id_card': 'id_card', 'other': 'id_card', 'cf': 'passport'}
+                    doc_type = type_map.get(tipo or 'passport', 'passport')
+                    if not reservation.guest_codice_fiscale or tipo != 'cf':
+                        # non sovrascrivere CF se già valido
+                        pass
+                    if codice_clean != (reservation.guest_document_number or ''):
+                        reservation.guest_document_type = doc_type
+                        reservation.guest_document_number = codice_clean[:50]
+                        updated = True
+                    # se CF era vuoto e tipo non cf, assicurati CF resti vuoto
+            elif tipo:
+                # solo tipo senza codice — niente da fare
+                pass
+        except Exception as cf_e:
+            current_app.logger.debug(f"CF parse skip for res#{reservation.id}: {cf_e}")
+
         # payment_intent + charges
         pi = session_obj.get('payment_intent')
         # when expanded, pi is dict

@@ -298,6 +298,29 @@ def create_checkout_session():
         billing_address_collection='required',
         customer_creation='always',
         phone_number_collection={'enabled': True},
+        # CF per italiani / documento per stranieri — direttamente su Stripe (fatturazione/ricevuta >77.47)
+        custom_fields=[
+            {
+                "key": "tipo_documento_fiscale",
+                "label": {"type": "custom", "custom": "Tipo documento fiscale (per ricevuta)"},
+                "type": "dropdown",
+                "dropdown": {
+                    "options": [
+                        {"label": "Codice Fiscale (IT - 16 caratteri)", "value": "cf"},
+                        {"label": "Passaporto", "value": "passport"},
+                        {"label": "Carta d'identità", "value": "id_card"},
+                        {"label": "Altro documento", "value": "other"},
+                    ]
+                },
+                "optional": True,
+            },
+            {
+                "key": "codice_fiscale_documento",
+                "label": {"type": "custom", "custom": "CF (16 char) o N. Passaporto/Documento (stranieri)"},
+                "type": "text",
+                "optional": True,
+            },
+        ],
         metadata={
             'guest_name': pending.get('guest_name', 'Guest'),
             'guest_email': pending.get('guest_email', ''),
