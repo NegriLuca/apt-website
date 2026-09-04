@@ -131,6 +131,43 @@ with app.app_context():
             db.session.commit()
             print(f"✅ Boiler Shelly synced (enabled={default_apartment.boiler_shelly_enabled}, device={default_apartment.boiler_shelly_device_id}, ch={default_apartment.boiler_shelly_channel}).")
 
+    # ── SYNC HOST / RICEVUTA CONFIG FROM ENV VARS (Railway) ──
+    # Env vars override DB on every startup so Railway redeploys stay consistent.
+    host_name = os.environ.get('HOST_FULL_NAME', '').strip()
+    host_cf = os.environ.get('HOST_CODICE_FISCALE', '').strip()
+    host_addr = os.environ.get('HOST_ADDRESS', '').strip()
+    # keep reference to apartment created above
+    apt_for_host = Apartment.query.first()
+    if apt_for_host is not None and (host_name or host_cf or host_addr):
+        updated = False
+        if host_name:
+            apt_for_host.host_full_name = host_name
+            updated = True
+        if host_cf:
+            apt_for_host.host_codice_fiscale = host_cf
+            updated = True
+        if host_addr:
+            apt_for_host.host_address = host_addr
+            updated = True
+        if host_name or host_cf:
+            # default address if still empty
+            if not apt_for_host.host_address:
+                apt_for_host.host_address = os.environ.get('HOST_ADDRESS', 'Via Lotto 235, 00153 Roma')
+                updated = True
+        if updated:
+            db.session.commit()
+            print(f"🧾 Host ricevuta synced from env: {apt_for_host.host_full_name or '—'} CF {apt_for_host.host_codice_fiscale or '—'}")
+    # ensure CIN/CIR also synced from env if changed
+    if apt_for_host is not None:
+        env_cin = os.environ.get('CIN_CODE', '').strip()
+        env_cir = os.environ.get('CIR_CODE', '').strip()
+        if env_cin and apt_for_host.cin_code != env_cin:
+            apt_for_host.cin_code = env_cin
+            db.session.commit()
+        if env_cir and apt_for_host.cir_code != env_cir:
+            apt_for_host.cir_code = env_cir
+            db.session.commit()
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port, debug=False)

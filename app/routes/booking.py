@@ -291,6 +291,9 @@ def create_checkout_session():
         success_url=url_for('routes.payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=url_for('routes.checkout', _external=True),
         customer_email=pending.get('guest_email'),
+        billing_address_collection='required',
+        customer_creation='always',
+        phone_number_collection={'enabled': True},
         metadata={
             'guest_name': pending.get('guest_name', 'Guest'),
             'guest_email': pending.get('guest_email', ''),
@@ -331,12 +334,22 @@ def payment_success():
 
     stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
     try:
-        checkout_session = stripe.checkout.Session.retrieve(session_id, expand=['line_items'])
+        checkout_session = stripe.checkout.Session.retrieve(
+            session_id, expand=['line_items', 'payment_intent.charges', 'customer_details']
+        )
     except Exception:
         flash(_('Payment verification failed. Please contact support.'), 'danger')
         return redirect(url_for('routes.home'))
 
     reservation = _create_reservation_from_stripe(checkout_session)
+    # enrich with Stripe billing address / charge after creation
+    try:
+        from app.services.receipts import enrich_reservation_from_stripe_session
+
+        data = checkout_session.to_dict() if hasattr(checkout_session, 'to_dict') else checkout_session
+        enrich_reservation_from_stripe_session(reservation, data)
+    except Exception:
+        pass
     session.pop('pending_reservation_id', None)
     session.pop('booking_data', None)
 
@@ -459,6 +472,23 @@ def stripe_webhook():
                 send_payment_verified_email(res)
         else:
             reservation = _create_reservation_from_stripe(session_obj)
+            # try enrich with billing address / charge (fetch expanded session if webhook not expanded)
+            try:
+                from app.services.receipts import enrich_reservation_from_stripe_session
+
+                # webhook session may be not expanded — try fetch full
+                full = session_obj
+                try:
+                    sid = session_obj.get('id')
+                    if sid:
+                        full = stripe.checkout.Session.retrieve(sid, expand=['payment_intent.charges', 'customer_details'])
+                        if hasattr(full, 'to_dict'):
+                            full = full.to_dict()
+                except Exception:
+                    pass
+                enrich_reservation_from_stripe_session(reservation, full)
+            except Exception:
+                pass
             send_payment_verified_email(reservation)
 
     return '', 200

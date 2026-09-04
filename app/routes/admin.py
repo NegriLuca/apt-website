@@ -2295,3 +2295,141 @@ def admin_mrz_extractor() -> Response | str:
         error=error,
         preview_uri=preview_uri,
     )
+
+
+# ── Ricevute fiscali (solo direct/stripe) ─────────────────────────────────────
+
+
+@bp.route('/admin/receipts')
+@login_required
+def admin_receipts() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+
+    receipts = Receipt.query.order_by(Receipt.year.desc(), Receipt.sequence.desc()).all()
+    # direct reservations without receipt yet
+    pending = Reservation.query.filter(
+        Reservation.source.in_(['direct', 'stripe']),
+        Reservation.status != 'cancelled',
+    ).order_by(Reservation.check_in.desc()).all()
+    pending_no_receipt = [r for r in pending if not getattr(r, 'receipt', None)]
+    apartment = get_apartment()
+    return render_template('admin_receipts.html', receipts=receipts, pending=pending_no_receipt, apartment=apartment)
+
+
+@bp.route('/admin/receipts/create/<int:reservation_id>', methods=['POST'])
+@login_required
+def admin_create_receipt(reservation_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    res = Reservation.query.get_or_404(reservation_id)
+    from app.services.receipts import create_or_get_receipt
+
+    # allow admin to override guest billing data inline
+    if request.form.get('guest_residence_address'):
+        res.guest_residence_address = request.form.get('guest_residence_address', '').strip() or None
+    if request.form.get('guest_residence_city'):
+        res.guest_residence_city = request.form.get('guest_residence_city', '').strip() or None
+    if request.form.get('guest_residence_zip'):
+        res.guest_residence_zip = request.form.get('guest_residence_zip', '').strip() or None
+    if request.form.get('guest_residence_country'):
+        res.guest_residence_country = request.form.get('guest_residence_country', '').strip() or None
+    if request.form.get('guest_codice_fiscale'):
+        res.guest_codice_fiscale = request.form.get('guest_codice_fiscale', '').strip().upper() or None
+    if any([request.form.get('guest_residence_address'), request.form.get('guest_codice_fiscale')]):
+        db.session.commit()
+
+    bollo_id = request.form.get('bollo_id', '').strip() or None
+    try:
+        receipt = create_or_get_receipt(res, bollo_id=bollo_id)
+        admin_audit_log('create_receipt', 'Receipt', receipt.id, f'{receipt.receipt_number} for res {res.id}')
+        flash(f'Ricevuta {receipt.receipt_number} creata per prenotazione #{res.id}.', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
+    except Exception as e:
+        current_app.logger.exception('Receipt create failed')
+        flash(f'Errore creazione ricevuta: {e}', 'danger')
+    return redirect(url_for('routes.admin_receipts'))
+
+
+@bp.route('/admin/receipts/<int:receipt_id>')
+@login_required
+def admin_view_receipt(receipt_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+
+    receipt = Receipt.query.get_or_404(receipt_id)
+    return render_template('admin_receipt_view.html', receipt=receipt)
+
+
+@bp.route('/admin/receipts/<int:receipt_id>.pdf')
+@login_required
+def admin_receipt_pdf(receipt_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+    from app.services.receipts import generate_receipt_pdf_bytes
+
+    receipt = Receipt.query.get_or_404(receipt_id)
+    pdf_bytes = generate_receipt_pdf_bytes(receipt)
+    return Response(
+        pdf_bytes,
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'inline; filename="Ricevuta_{receipt.receipt_number.replace("/", "-")}_{receipt.guest_full_name or receipt.reservation_id}.pdf"'},
+    )
+
+
+@bp.route('/admin/receipts/<int:receipt_id>/bollo', methods=['POST'])
+@login_required
+def admin_receipt_bollo(receipt_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+    from app.services.receipts import update_receipt_bollo
+
+    receipt = Receipt.query.get_or_404(receipt_id)
+    bollo_id = request.form.get('bollo_id', '').strip()
+    try:
+        update_receipt_bollo(receipt, bollo_id)
+        admin_audit_log('update_bollo', 'Receipt', receipt.id, f'bollo {bollo_id}')
+        flash('Codice marca da bollo aggiornato.', 'success')
+    except ValueError as e:
+        flash(str(e), 'danger')
+    return redirect(url_for('routes.admin_receipts'))
+
+
+@bp.route('/admin/receipts/<int:receipt_id>/delete', methods=['POST'])
+@login_required
+def admin_receipt_delete(receipt_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+
+    receipt = Receipt.query.get_or_404(receipt_id)
+    db.session.delete(receipt)
+    db.session.commit()
+    admin_audit_log('delete_receipt', 'Receipt', receipt_id, f'Deleted {receipt.receipt_number}')
+    flash(f'Ricevuta {receipt.receipt_number} eliminata.', 'info')
+    return redirect(url_for('routes.admin_receipts'))
+
+
+@bp.route('/admin/receipts/host-config', methods=['POST'])
+@login_required
+def admin_receipt_host_config() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    apt = get_apartment()
+    if not apt:
+        apt = Apartment(name='Lotto 235 Garbatella', price_per_night=130.00)
+        db.session.add(apt)
+    apt.host_full_name = request.form.get('host_full_name', '').strip() or None
+    apt.host_codice_fiscale = request.form.get('host_codice_fiscale', '').strip().upper() or None
+    apt.host_address = request.form.get('host_address', '').strip() or None
+    apt.cin_code = request.form.get('cin_code', '').strip() or apt.cin_code
+    apt.cir_code = request.form.get('cir_code', '').strip() or apt.cir_code
+    db.session.commit()
+    admin_audit_log('update_host_receipt', 'Apartment', apt.id, f'Host {apt.host_full_name}')
+    flash('Dati emittente ricevuta aggiornati.', 'success')
+    return redirect(url_for('routes.admin_receipts'))

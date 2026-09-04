@@ -131,6 +131,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Reservation Ledger') }}</h4>
+        <a href="{{ url_for('routes.admin_receipts') }}" class="btn btn-sm btn-dark"><i class="bi bi-receipt me-1"></i> {{ _('Ricevute') }}</a>
         <div id="bulk-actions" style="display: none;">
             <button type="button" class="btn btn-sm btn-danger" id="bulk-delete-btn" onclick="bulkDelete()">{{ _('Delete Selected') }}</button>
             <button type="button" class="btn btn-sm btn-secondary" id="bulk-cancel-btn">{{ _('Cancel Selection') }}</button>
@@ -232,6 +233,16 @@
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">🗑</button>
                                     </form>
+                                {% endif %}
+                                {% if r.source in ['direct','stripe'] and r.status != 'cancelled' %}
+                                    {% if r.receipt %}
+                                        <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=r.receipt.id) }}" class="btn btn-sm btn-dark" title="Ricevuta {{ r.receipt.receipt_number }}">🧾 {{ r.receipt.receipt_number }}</a>
+                                    {% else %}
+                                        <form action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-dark" title="{{ _('Genera ricevuta') }}">🧾+</button>
+                                        </form>
+                                    {% endif %}
                                 {% endif %}
                                 <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('Send message') }}">💬</a>
                                 {% if apartment.nuki_enabled %}

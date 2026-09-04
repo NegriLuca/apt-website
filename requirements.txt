@@ -17,6 +17,7 @@ flask-bcrypt==1.0.1
 greenlet==3.3.0
 gunicorn==26.0.0
 holidays==0.99
+fpdf2==2.8.4
 icalendar==6.3.2
 itsdangerous==2.2.0
 Jinja2==3.1.6

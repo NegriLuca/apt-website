@@ -51,6 +51,12 @@ class Config:
     CIN_CODE = os.environ.get('CIN_CODE', 'IT058091C2TXZ44TA6')
     CIR_CODE = os.environ.get('CIR_CODE', '058091-LOC-19856')
 
+    # ── Ricevuta / Fattura — Dati emittente ───────────────────────────────────
+    HOST_FULL_NAME = os.environ.get('HOST_FULL_NAME', '')
+    HOST_CODICE_FISCALE = os.environ.get('HOST_CODICE_FISCALE', '')
+    HOST_ADDRESS = os.environ.get('HOST_ADDRESS', 'Via Lotto 235, 00153 Roma')
+    HOST_VAT_MODE = os.environ.get('HOST_VAT_MODE', 'fuori_campo_iva')
+
     # ── ROSS1000 (Regione Lazio SOAP) ──────────────────────────────────────────
     ROSS1000_USERNAME = os.environ.get('ROSS1000_USERNAME', '')
     ROSS1000_PASSWORD = os.environ.get('ROSS1000_PASSWORD', '')

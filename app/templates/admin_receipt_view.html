@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Ricevuta {{ receipt.receipt_number }} — Lotto235{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h4 mb-0">Ricevuta {{ receipt.receipt_number }} del {{ receipt.issue_date.strftime('%d/%m/%Y') }}</h1>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=receipt.id) }}" target="_blank" class="btn btn-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Scarica PDF</a>
+            <a href="{{ url_for('routes.admin_receipts') }}" class="btn btn-outline-secondary">Torna a ricevute</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4" style="max-width: 900px; margin: 0 auto; font-size: 14px;">
+            <div class="text-center mb-4">
+                <h2 class="h5 fw-bold text-uppercase mb-1">Ricevuta di locazione breve</h2>
+                <small class="text-muted">Documento non-fattura — Operazione fuori campo IVA art. 1 c.2 DPR 633/1972</small>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <strong>Ricevuta N. {{ receipt.receipt_number }}</strong>
+                <span>Data emissione: {{ receipt.issue_date.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <hr>
+            <h6 class="fw-bold bg-light p-2">Dati emittente (locatore)</h6>
+            <p class="mb-1">Nome/Cognome: <strong>{{ receipt.host_full_name or '—' }}</strong><br>
+            Codice Fiscale: {{ receipt.host_codice_fiscale or '—' }}<br>
+            Indirizzo struttura: {{ receipt.host_address or '—' }}<br>
+            CIN: {{ receipt.cin_code or '—' }} — CIR: {{ receipt.cir_code or '—' }}</p>
+
+            <h6 class="fw-bold bg-light p-2 mt-3">Dati ospite</h6>
+            <p class="mb-1">Nome/Cognome: <strong>{{ receipt.guest_full_name }}</strong><br>
+            Residenza: {{ receipt.guest_residence_address or '' }} {{ receipt.guest_residence_city or '' }} {{ receipt.guest_residence_zip or '' }} {{ receipt.guest_residence_country or '' }}<br>
+            Email: {{ receipt.guest_email }}<br>
+            {% if receipt.guest_codice_fiscale %}Codice Fiscale: {{ receipt.guest_codice_fiscale }}
+            {% else %}Documento: {{ receipt.guest_document_type or '' }} {{ receipt.guest_document_number or '' }}{% endif %}</p>
+
+            <h6 class="fw-bold bg-light p-2 mt-3">Dettaglio soggiorno</h6>
+            <p class="mb-1">Check-in: {{ receipt.check_in.strftime('%d/%m/%Y') if receipt.check_in else '—' }} — Check-out: {{ receipt.check_out.strftime('%d/%m/%Y') if receipt.check_out else '—' }} — Notti: {{ receipt.nights }} — Ospiti: {{ receipt.num_guests }}<br>
+            Alloggio: {{ receipt.host_address }}</p>
+
+            <table class="table table-bordered table-sm mt-3">
+                <thead class="table-light"><tr><th>Descrizione</th><th class="text-center">Q.tà</th><th class="text-end">Unitario</th><th class="text-end">Importo</th></tr></thead>
+                <tbody>
+                    <tr><td>Soggiorno (locazione breve)</td><td class="text-center">{{ receipt.nights }} notti x {{ receipt.num_guests }} osp.</td><td class="text-end">€{{ "%.2f"|format(receipt.stay_amount / receipt.nights if receipt.nights else receipt.stay_amount) }}</td><td class="text-end">€{{ "%.2f"|format(receipt.stay_amount) }}</td></tr>
+                    <tr><td>Contributo di Soggiorno Roma Capitale</td><td class="text-center">{{ receipt.nights }} x {{ receipt.num_guests }}</td><td class="text-end">—</td><td class="text-end">€{{ "%.2f"|format(receipt.tourist_tax_amount) }}</td></tr>
+                    <tr class="table-light fw-bold"><td colspan="3" class="text-end">TOTALE</td><td class="text-end">€{{ "%.2f"|format(receipt.total_amount) }}</td></tr>
+                </tbody>
+            </table>
+
+            <p class="small">Modalità pagamento: <strong>{{ receipt.payment_method }}</strong> — €{{ "%.2f"|format(receipt.total_amount) }}
+            {% if receipt.stripe_payment_intent_id %}<br><small class="text-muted">Stripe PI: {{ receipt.stripe_payment_intent_id }}</small>{% endif %}
+            {% if receipt.stripe_charge_id %}<br><small class="text-muted">Charge: {{ receipt.stripe_charge_id }}</small>{% endif %}
+            {% if receipt.stripe_receipt_url %}<br><a href="{{ receipt.stripe_receipt_url }}" target="_blank" class="small">Ricevuta Stripe</a>{% endif %}
+            </p>
+
+            <h6 class="fw-bold mt-3">Imposta di bollo</h6>
+            {% if receipt.bollo_required %}
+                <p class="small mb-1">Marca da bollo da €2,00 dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} &gt; 77,47€).<br>
+                {% if receipt.bollo_id %}Contrassegno: <code>{{ receipt.bollo_id }}</code> (14 cifre) — applicato sull'originale.
+                {% else %}<span class="text-danger">Contrassegno: DA APPLICARE sull'originale.</span>{% endif %}</p>
+            {% else %}
+                <p class="small">Non dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} ≤ 77,47€).</p>
+            {% endif %}
+
+            <hr>
+            <p class="small fst-italic text-center text-muted">Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972 — Locazione breve non imprenditoriale. Ricevuta valida ai fini fiscali (Agenzia Entrate) e amministrativi (Roma Capitale). Tassa di soggiorno incassata per conto del Comune.</p>
+            <p class="small text-center text-muted">Conservare 10 anni. | CIN {{ receipt.cin_code or '' }} CIR {{ receipt.cir_code or '' }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

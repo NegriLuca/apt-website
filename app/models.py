@@ -39,6 +39,12 @@ class Apartment(db.Model):
     tourist_tax_rate = db.Column(db.Float, nullable=True, default=6.00, comment='Euro per night per person')
     max_guests = db.Column(db.Integer, nullable=True, default=4)
 
+    # Ricevuta / Fattura — Dati emittente (proprietario)
+    host_full_name = db.Column(db.String(150), nullable=True, comment='Nome e Cognome proprietario/gestore')
+    host_codice_fiscale = db.Column(db.String(20), nullable=True, comment='Codice Fiscale proprietario')
+    host_address = db.Column(db.String(250), nullable=True, comment='Indirizzo struttura (Via, CAP, Roma)')
+    host_vat_mode = db.Column(db.String(50), nullable=True, default='fuori_campo_iva', comment='Regime fiscale')
+
     # Questura configuration
     questura_protocol = db.Column(db.String(50), nullable=True, comment='Protocollo Questura per AlloggiatiWeb')
     questura_ip_whitelisted = db.Column(db.Boolean, default=False)
@@ -249,6 +255,22 @@ class Reservation(db.Model):
     tourist_tax_amount = db.Column(db.Float, nullable=True, default=0.0)
     tourist_tax_paid = db.Column(db.Boolean, default=False)
     tourist_tax_excluded = db.Column(db.Boolean, default=False, comment='Exclude from tourist tax reports')
+
+    # ── Ricevuta — Dati cliente supplementari (indirizzo / CF) ─────────────────
+    guest_residence_address = db.Column(db.String(250), nullable=True, comment='Via / indirizzo di residenza')
+    guest_residence_city = db.Column(db.String(100), nullable=True, comment='Città di residenza')
+    guest_residence_zip = db.Column(db.String(20), nullable=True, comment='CAP / ZIP')
+    guest_residence_country = db.Column(db.String(100), nullable=True, comment='Nazione di residenza (IT o estero)')
+    guest_codice_fiscale = db.Column(db.String(20), nullable=True, comment='CF 16 char per ospiti IT')
+    # Billing data captured from Stripe (customer_details.address)
+    guest_billing_address_line1 = db.Column(db.String(250), nullable=True)
+    guest_billing_address_line2 = db.Column(db.String(250), nullable=True)
+    guest_billing_city = db.Column(db.String(100), nullable=True)
+    guest_billing_postal_code = db.Column(db.String(20), nullable=True)
+    guest_billing_country = db.Column(db.String(5), nullable=True, comment='ISO 2-letter from Stripe')
+    guest_billing_state = db.Column(db.String(100), nullable=True)
+    stripe_charge_id = db.Column(db.String(128), nullable=True, comment='Stripe charge / payment_intent expanded')
+    stripe_receipt_url = db.Column(db.String(500), nullable=True, comment='Stripe hosted receipt URL')
 
     # Guest communication
     guest_city_tax_enabled = db.Column(
@@ -641,3 +663,73 @@ class Ross1000Log(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     reservation = db.relationship('Reservation', backref=db.backref('ross1000_logs', lazy='dynamic'))
+
+
+class Receipt(db.Model):
+    """Ricevuta fiscale non-fattura — numerazione progressiva annuale.
+
+    Solo per prenotazioni direct/stripe (sito). Reset 01/01 ogni anno:
+    01/2026, 02/2026 … 01/2027.
+    Snapshot dei dati emittente/ospite al momento dell'emissione per
+    validità legale anche se i dati cambiano in futuro.
+    """
+
+    __tablename__ = 'receipts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    reservation_id = db.Column(db.Integer, db.ForeignKey('reservation.id'), nullable=False, unique=True, index=True)
+    year = db.Column(db.Integer, nullable=False, index=True, comment='Anno solare della numerazione')
+    sequence = db.Column(db.Integer, nullable=False, comment='Progressivo nel year (1..n)')
+    receipt_number = db.Column(db.String(20), nullable=False, unique=True, index=True, comment='Es. 01/2026')
+    issue_date = db.Column(db.Date, nullable=False, default=date.today)
+
+    # Snapshot importi
+    stay_amount = db.Column(db.Float, nullable=False, comment='Imponibile soggiorno (esclusa tassa)')
+    tourist_tax_amount = db.Column(db.Float, nullable=False, default=0.0)
+    total_amount = db.Column(db.Float, nullable=False, comment='stay + tourist tax')
+    payment_method = db.Column(db.String(50), nullable=True, comment='stripe / wire_transfer snapshot')
+    stripe_payment_intent_id = db.Column(db.String(128), nullable=True)
+    stripe_charge_id = db.Column(db.String(128), nullable=True)
+    stripe_receipt_url = db.Column(db.String(500), nullable=True)
+
+    # Marca da bollo (obbligatoria se stay_amount > 77.47)
+    bollo_required = db.Column(db.Boolean, default=False)
+    bollo_amount = db.Column(db.Float, default=0.0, comment='2.00 se required altrimenti 0')
+    bollo_id = db.Column(db.String(30), nullable=True, comment='14 cifre marca da bollo su copia cartacea')
+
+    # Snapshot emittente
+    host_full_name = db.Column(db.String(150), nullable=True)
+    host_codice_fiscale = db.Column(db.String(20), nullable=True)
+    host_address = db.Column(db.String(250), nullable=True)
+    cin_code = db.Column(db.String(50), nullable=True)
+    cir_code = db.Column(db.String(50), nullable=True)
+
+    # Snapshot ospite
+    guest_full_name = db.Column(db.String(150), nullable=True)
+    guest_email = db.Column(db.String(120), nullable=True)
+    guest_residence_address = db.Column(db.String(250), nullable=True)
+    guest_residence_city = db.Column(db.String(100), nullable=True)
+    guest_residence_zip = db.Column(db.String(20), nullable=True)
+    guest_residence_country = db.Column(db.String(100), nullable=True)
+    guest_codice_fiscale = db.Column(db.String(20), nullable=True)
+    guest_document_type = db.Column(db.String(20), nullable=True)
+    guest_document_number = db.Column(db.String(50), nullable=True)
+
+    # Dettaglio soggiorno snapshot
+    check_in = db.Column(db.Date, nullable=True)
+    check_out = db.Column(db.Date, nullable=True)
+    nights = db.Column(db.Integer, nullable=True)
+    num_guests = db.Column(db.Integer, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    reservation = db.relationship('Reservation', backref=db.backref('receipt', uselist=False))
+
+    __table_args__ = (
+        db.UniqueConstraint('year', 'sequence', name='uq_receipt_year_sequence'),
+        db.UniqueConstraint('receipt_number', name='uq_receipt_number'),
+    )
+
+    def __repr__(self) -> str:
+        return f'<Receipt {self.receipt_number} res={self.reservation_id}>'

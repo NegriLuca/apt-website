@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Ricevute — Lotto235{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title mb-0"><i class="bi bi-receipt me-2"></i>Ricevute fiscali (solo sito)</h1>
+        <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+    </div>
+
+    <!-- Dati emittente -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light"><h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Dati emittente (locatore)</h5></div>
+        <div class="card-body">
+            {% if not apartment.host_full_name or not apartment.host_codice_fiscale %}
+            <div class="alert alert-warning py-2 small">Completa nome, CF e indirizzo: sono obbligatori in ricevuta (Agenzia Entrate). Puoi anche impostarli via env su Railway: <code>HOST_FULL_NAME</code>, <code>HOST_CODICE_FISCALE</code>, <code>HOST_ADDRESS</code>.</div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('routes.admin_receipt_host_config') }}" class="row g-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nome e Cognome proprietario *</label>
+                    <input type="text" class="form-control" name="host_full_name" value="{{ apartment.host_full_name or '' }}" placeholder="Mario Rossi" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Codice Fiscale *</label>
+                    <input type="text" class="form-control text-uppercase" name="host_codice_fiscale" value="{{ apartment.host_codice_fiscale or '' }}" placeholder="RSSMRA80A01H501Z" maxlength="16">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Indirizzo struttura *</label>
+                    <input type="text" class="form-control" name="host_address" value="{{ apartment.host_address or 'Via Lotto 235, 00153 Roma' }}" placeholder="Via ..., 00153 Roma">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">CIN</label>
+                    <input type="text" class="form-control" name="cin_code" value="{{ apartment.cin_code or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">CIR</label>
+                    <input type="text" class="form-control" name="cir_code" value="{{ apartment.cir_code or '' }}">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salva dati emittente</button>
+                    <small class="text-muted ms-3">Numerazione: <code>01/2026, 02/2026…</code> reset 01/01/2027.</small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pending senza ricevuta -->
+    {% if pending %}
+    <div class="card border-0 shadow-sm mb-4 border-warning">
+        <div class="card-header bg-warning bg-opacity-10"><h5 class="mb-0"><i class="bi bi-exclamation-circle me-2"></i>Prenotazioni sito senza ricevuta ({{ pending|length }})</h5></div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light"><tr><th>#</th><th>Ospite</th><th>Date</th><th>Notti</th><th>Importo</th><th>Tassa</th><th>Pagamento</th><th>Azione</th></tr></thead>
+                    <tbody>
+                        {% for r in pending %}
+                        <tr>
+                            <td>#{{ r.id }}</td>
+                            <td><strong>{{ r.guest_name }}</strong><br><small class="text-muted">{{ r.guest_email }}</small>
+                                {% if r.guest_codice_fiscale %}<br><small class="text-success">CF: {{ r.guest_codice_fiscale }}</small>{% endif %}
+                                {% if r.guest_billing_address_line1 %}<br><small class="text-muted">{{ r.guest_billing_address_line1 }}, {{ r.guest_billing_city }}</small>{% endif %}
+                            </td>
+                            <td>{{ r.check_in.strftime('%d/%m/%Y') }} → {{ r.check_out.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ r.nights }}</td>
+                            <td>€{{ "%.2f"|format(r.total_price or 0) }}</td>
+                            <td>€{{ "%.2f"|format(r.tourist_tax_amount or 0) }}</td>
+                            <td><span class="badge bg-{{ 'success' if r.payment_status=='paid' else 'warning' }}">{{ r.payment_status }}</span><br><small>{{ r.payment_method }}</small></td>
+                            <td>
+                                <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#createReceiptModal{{ r.id }}">🧾 Genera {{ r.id }}</button>
+                            </td>
+                        </tr>
+                        <!-- Modal per integrazione dati -->
+                        <div class="modal fade" id="createReceiptModal{{ r.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <form method="POST" action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" class="modal-content">
+                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                              <div class="modal-header"><h5 class="modal-title">Genera ricevuta #{{ r.id }} — {{ r.guest_name }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                              <div class="modal-body">
+                                <p class="small text-muted">Indirizzo e CF ospite vengono presi da Stripe se ha pagato con carta. Se mancanti, completali qui prima di generare. Riferimento Stripe verrà incluso automaticamente in ricevuta.</p>
+                                <div class="mb-2"><label class="form-label small">Indirizzo residenza (via)</label><input type="text" class="form-control" name="guest_residence_address" value="{{ r.guest_billing_address_line1 or r.guest_residence_address or '' }}" placeholder="Via ..."></div>
+                                <div class="row g-2 mb-2"><div class="col-6"><label class="form-label small">Città</label><input type="text" class="form-control" name="guest_residence_city" value="{{ r.guest_billing_city or r.guest_residence_city or '' }}"></div><div class="col-3"><label class="form-label small">CAP</label><input type="text" class="form-control" name="guest_residence_zip" value="{{ r.guest_billing_postal_code or r.guest_residence_zip or '' }}"></div><div class="col-3"><label class="form-label small">Nazione</label><input type="text" class="form-control" name="guest_residence_country" value="{{ r.guest_billing_country or r.guest_residence_country or r.guest_nationality or '' }}"></div></div>
+                                <div class="mb-2"><label class="form-label small">Codice Fiscale ospite (IT) — lascia vuoto se straniero (va CF o doc)</label><input type="text" class="form-control text-uppercase" name="guest_codice_fiscale" value="{{ r.guest_codice_fiscale or '' }}" maxlength="16" placeholder="16 caratteri se italiano"></div>
+                                {% set stay = r.total_price or 0 %}
+                                {% if stay > 77.47 %}
+                                <div class="mb-2"><label class="form-label small">Marca da bollo 2€ — ID 14 cifre (se già applicata su originale)</label><input type="text" class="form-control" name="bollo_id" placeholder="00000000000000" maxlength="14" pattern="\d{14}"></div>
+                                <small class="text-muted">Obbligatoria perché imponibile €{{ "%.2f"|format(stay) }} &gt; 77,47€.</small>
+                                {% else %}
+                                <small class="text-success">Bollo non dovuto (imponibile €{{ "%.2f"|format(stay) }} ≤ 77,47€).</small>
+                                {% endif %}
+                                {% if r.stripe_payment_intent_id %}<small class="d-block mt-2 text-muted">Stripe PI: <code>{{ r.stripe_payment_intent_id }}</code>{% if r.stripe_charge_id %} · Charge {{ r.stripe_charge_id }}{% endif %}</small>{% endif %}
+                              </div>
+                              <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button><button type="submit" class="btn btn-dark">Genera ricevuta 01/2026…</button></div>
+                            </form>
+                          </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Elenco ricevute -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0"><i class="bi bi-files me-2"></i>Ricevute emesse ({{ receipts|length }})</h5><small class="text-muted">Progressivo unico anno solare — reset 01/01/2027</small></div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark"><tr><th>Ricevuta</th><th>Data</th><th>Ospite</th><th>Soggiorno</th><th>Imponibile</th><th>Tassa</th><th>Totale</th><th>Bollo</th><th>Azioni</th></tr></thead>
+                    <tbody>
+                        {% for rc in receipts %}
+                        <tr>
+                            <td><strong>{{ rc.receipt_number }}</strong><br><small class="text-muted">#{{ rc.reservation_id }}</small></td>
+                            <td>{{ rc.issue_date.strftime('%d/%m/%Y') }}</td>
+                            <td><strong>{{ rc.guest_full_name }}</strong><br><small class="text-muted">{{ rc.guest_email }}</small><br>
+                                <small>{{ rc.guest_residence_address or '' }} {{ rc.guest_residence_city or '' }}</small>{% if rc.guest_codice_fiscale %}<br><small>CF {{ rc.guest_codice_fiscale }}</small>{% elif rc.guest_document_number %}<br><small>{{ rc.guest_document_type }} {{ rc.guest_document_number }}</small>{% endif %}</td>
+                            <td>{{ rc.check_in.strftime('%d/%m') if rc.check_in else '' }} → {{ rc.check_out.strftime('%d/%m/%Y') if rc.check_out else '' }}<br><small>{{ rc.nights }} notti · {{ rc.num_guests }} osp.</small></td>
+                            <td>€{{ "%.2f"|format(rc.stay_amount) }}</td>
+                            <td>€{{ "%.2f"|format(rc.tourist_tax_amount) }}</td>
+                            <td><strong>€{{ "%.2f"|format(rc.total_amount) }}</strong><br><small>{{ rc.payment_method }}</small></td>
+                            <td>
+                                {% if rc.bollo_required %}
+                                    {% if rc.bollo_id %}<span class="badge bg-success">{{ rc.bollo_id }}</span>{% else %}<span class="badge bg-danger">DA APPLICARE 2€</span>{% endif %}
+                                {% else %}<span class="badge bg-secondary">Non dovuto</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=rc.id) }}" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+                                    <a href="{{ url_for('routes.admin_view_receipt', receipt_id=rc.id) }}" class="btn btn-sm btn-outline-secondary">Vista</a>
+                                    {% if rc.bollo_required and not rc.bollo_id %}
+                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse" data-bs-target="#bollo{{ rc.id }}">Bollo</button>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('routes.admin_receipt_delete', receipt_id=rc.id) }}" onsubmit="return confirm('Eliminare ricevuta {{ rc.receipt_number }}? Il numero NON verrà riassegnato.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><button type="submit" class="btn btn-sm btn-outline-danger">🗑</button>
+                                    </form>
+                                </div>
+                                {% if rc.bollo_required and not rc.bollo_id %}
+                                <div class="collapse mt-2" id="bollo{{ rc.id }}">
+                                    <form method="POST" action="{{ url_for('routes.admin_receipt_bollo', receipt_id=rc.id) }}" class="d-flex gap-1">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="text" class="form-control form-control-sm" name="bollo_id" placeholder="14 cifre" maxlength="14" pattern="\d{14}" required>
+                                        <button type="submit" class="btn btn-sm btn-warning">Salva</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                                {% if rc.stripe_payment_intent_id %}<small class="text-muted d-block mt-1" style="font-size: 10px;">PI {{ rc.stripe_payment_intent_id[:18] }}…</small>{% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="9" class="text-center text-muted py-4">Nessuna ricevuta ancora. Genera la prima (sarà 01/2026).</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-light border small mt-4">
+        <strong>Note legali:</strong> Ricevuta fuori campo IVA — dicitura <em>"Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972"</em> già inclusa in PDF. Contributo di soggiorno su riga separata (non reddito). Marca da bollo 2€ se imponibile &gt; 77,47€ — indicare ID 14 cifre se PDF. Conservare 10 anni. Solo prenotazioni <code>direct/stripe</code> (sito); Airbnb/Booking esclusi (commissione piattaforma).
+    </div>
+</div>
+{% endblock %}
