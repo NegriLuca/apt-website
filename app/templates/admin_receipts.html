@@ -109,9 +109,21 @@
                                     {% if rc.bollo_required and not rc.bollo_id %}
                                     <button class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse" data-bs-target="#bollo{{ rc.id }}">Bollo</button>
                                     {% endif %}
-                                    <form method="POST" action="{{ url_for('routes.admin_receipt_delete', receipt_id=rc.id) }}" onsubmit="return confirm('Eliminare ricevuta {{ rc.receipt_number }}? Il numero NON verrà riassegnato.')">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><button type="submit" class="btn btn-sm btn-outline-danger">🗑</button>
-                                    </form>
+                                    {% if not rc.is_confirmed %}
+                                      {% set is_last = max_seq_by_year.get(rc.year, 0) == rc.sequence %}
+                                      {% if is_last %}
+                                        <form method="POST" action="{{ url_for('routes.admin_receipt_delete', receipt_id=rc.id) }}" onsubmit="return confirm('Eliminare ultima ricevuta {{ rc.receipt_number }}? La numerazione tornerà a {{ rc.receipt_number }} e potrai rigenerarla.')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><button type="submit" class="btn btn-sm btn-outline-danger" title="Elimina solo ultima">🗑</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('routes.admin_receipt_confirm', receipt_id=rc.id) }}" onsubmit="return confirm('Confermare {{ rc.receipt_number }}? Dopo non sarà più eliminabile.')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/><button type="submit" class="btn btn-sm btn-success" title="Conferma e blocca">✓ Conferma</button>
+                                        </form>
+                                      {% else %}
+                                        <span class="btn btn-sm btn-outline-secondary disabled" title="Solo l'ultima è eliminabile">🗑</span>
+                                      {% endif %}
+                                    {% else %}
+                                      <span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Confermata</span>
+                                    {% endif %}
                                 </div>
                                 {% if rc.bollo_required and not rc.bollo_id %}
                                 <div class="collapse mt-2" id="bollo{{ rc.id }}">

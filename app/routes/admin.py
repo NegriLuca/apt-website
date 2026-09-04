@@ -2315,7 +2315,11 @@ def admin_receipts() -> Response | str:
     ).order_by(Reservation.check_in.desc()).all()
     pending_no_receipt = [r for r in pending if not getattr(r, 'receipt', None)]
     apartment = get_apartment()
-    return render_template('admin_receipts.html', receipts=receipts, pending=pending_no_receipt, apartment=apartment)
+    # ultima per anno per logica delete-solo-ultima
+    max_seq_by_year = {}
+    for rc in receipts:
+        max_seq_by_year[rc.year] = max(max_seq_by_year.get(rc.year, 0), rc.sequence)
+    return render_template('admin_receipts.html', receipts=receipts, pending=pending_no_receipt, apartment=apartment, max_seq_by_year=max_seq_by_year)
 
 
 @bp.route('/admin/receipts/create/<int:reservation_id>', methods=['POST'])
@@ -2408,10 +2412,38 @@ def admin_receipt_delete(receipt_id: int) -> Response | str:
     from app.models import Receipt
 
     receipt = Receipt.query.get_or_404(receipt_id)
+    if receipt.is_confirmed:
+        flash(f'Ricevuta {receipt.receipt_number} già confermata — non eliminabile.', 'danger')
+        return redirect(url_for('routes.admin_receipts'))
+    # solo ultima della serie annuale
+    max_seq = db.session.query(db.func.max(Receipt.sequence)).filter(Receipt.year == receipt.year).scalar()
+    if receipt.sequence != max_seq:
+        flash(f'Solo l\'ultima ricevuta ({max_seq:02d}/{receipt.year}) è eliminabile per evitare buchi. Questa è {receipt.receipt_number}.', 'danger')
+        return redirect(url_for('routes.admin_receipts'))
     db.session.delete(receipt)
     db.session.commit()
     admin_audit_log('delete_receipt', 'Receipt', receipt_id, f'Deleted {receipt.receipt_number}')
-    flash(f'Ricevuta {receipt.receipt_number} eliminata.', 'info')
+    flash(f'Ricevuta {receipt.receipt_number} eliminata — la numerazione torna indietro, la prossima sarà {receipt.receipt_number}.', 'info')
+    return redirect(url_for('routes.admin_receipts'))
+
+
+@bp.route('/admin/receipts/<int:receipt_id>/confirm', methods=['POST'])
+@login_required
+def admin_receipt_confirm(receipt_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+    from datetime import datetime
+
+    receipt = Receipt.query.get_or_404(receipt_id)
+    if receipt.is_confirmed:
+        flash(f'Ricevuta {receipt.receipt_number} già confermata.', 'info')
+        return redirect(url_for('routes.admin_receipts'))
+    receipt.is_confirmed = True
+    receipt.confirmed_at = datetime.utcnow()
+    db.session.commit()
+    admin_audit_log('confirm_receipt', 'Receipt', receipt.id, f'Confirmed {receipt.receipt_number}')
+    flash(f'Ricevuta {receipt.receipt_number} confermata e bloccata — non più eliminabile.', 'success')
     return redirect(url_for('routes.admin_receipts'))
 
 

@@ -721,6 +721,9 @@ class Receipt(db.Model):
     nights = db.Column(db.Integer, nullable=True)
     num_guests = db.Column(db.Integer, nullable=True)
 
+    is_confirmed = db.Column(db.Boolean, default=False, nullable=False, comment='Bloccata: non eliminabile')
+    confirmed_at = db.Column(db.DateTime, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
