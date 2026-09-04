@@ -60,7 +60,7 @@
                             <td>#{{ r.id }}</td>
                             <td><strong>{{ r.guest_name }}</strong><br><small class="text-muted">{{ r.guest_email }}</small>
                                 {% if r.guest_codice_fiscale %}<br><small class="text-success">CF: {{ r.guest_codice_fiscale }}</small>{% endif %}
-                                {% if r.guest_billing_address_line1 %}<br><small class="text-muted">{{ r.guest_billing_address_line1 }}, {{ r.guest_billing_city }}</small>{% endif %}
+                                {% if r.guest_billing_address_line1 %}<br><small class="text-muted">{{ r.guest_billing_address_line1 }}, {{ r.guest_billing_city }}</small>{% elif r.guest_residence_address %}<br><small class="text-muted">{{ r.guest_residence_address }}</small>{% else %}<br><small class="text-warning">indirizzo da completare</small>{% endif %}
                             </td>
                             <td>{{ r.check_in.strftime('%d/%m/%Y') }} → {{ r.check_out.strftime('%d/%m/%Y') }}</td>
                             <td>{{ r.nights }}</td>
@@ -68,33 +68,9 @@
                             <td>€{{ "%.2f"|format(r.tourist_tax_amount or 0) }}</td>
                             <td><span class="badge bg-{{ 'success' if r.payment_status=='paid' else 'warning' }}">{{ r.payment_status }}</span><br><small>{{ r.payment_method }}</small></td>
                             <td>
-                                <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#createReceiptModal{{ r.id }}">🧾 Genera {{ r.id }}</button>
+                                <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#createReceiptModal{{ r.id }}">🧾 Genera</button>
                             </td>
                         </tr>
-                        <!-- Modal per integrazione dati -->
-                        <div class="modal fade" id="createReceiptModal{{ r.id }}" tabindex="-1" aria-hidden="true">
-                          <div class="modal-dialog">
-                            <form method="POST" action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" class="modal-content">
-                              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                              <div class="modal-header"><h5 class="modal-title">Genera ricevuta #{{ r.id }} — {{ r.guest_name }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                              <div class="modal-body">
-                                <p class="small text-muted">Indirizzo e CF ospite vengono presi da Stripe se ha pagato con carta. Se mancanti, completali qui prima di generare. Riferimento Stripe verrà incluso automaticamente in ricevuta.</p>
-                                <div class="mb-2"><label class="form-label small">Indirizzo residenza (via)</label><input type="text" class="form-control" name="guest_residence_address" value="{{ r.guest_billing_address_line1 or r.guest_residence_address or '' }}" placeholder="Via ..."></div>
-                                <div class="row g-2 mb-2"><div class="col-6"><label class="form-label small">Città</label><input type="text" class="form-control" name="guest_residence_city" value="{{ r.guest_billing_city or r.guest_residence_city or '' }}"></div><div class="col-3"><label class="form-label small">CAP</label><input type="text" class="form-control" name="guest_residence_zip" value="{{ r.guest_billing_postal_code or r.guest_residence_zip or '' }}"></div><div class="col-3"><label class="form-label small">Nazione</label><input type="text" class="form-control" name="guest_residence_country" value="{{ r.guest_billing_country or r.guest_residence_country or r.guest_nationality or '' }}"></div></div>
-                                <div class="mb-2"><label class="form-label small">Codice Fiscale ospite (IT) — lascia vuoto se straniero (va CF o doc)</label><input type="text" class="form-control text-uppercase" name="guest_codice_fiscale" value="{{ r.guest_codice_fiscale or '' }}" maxlength="16" placeholder="16 caratteri se italiano"></div>
-                                {% set stay = r.total_price or 0 %}
-                                {% if stay > 77.47 %}
-                                <div class="mb-2"><label class="form-label small">Marca da bollo 2€ — ID 14 cifre (se già applicata su originale)</label><input type="text" class="form-control" name="bollo_id" placeholder="00000000000000" maxlength="14" pattern="\d{14}"></div>
-                                <small class="text-muted">Obbligatoria perché imponibile €{{ "%.2f"|format(stay) }} &gt; 77,47€.</small>
-                                {% else %}
-                                <small class="text-success">Bollo non dovuto (imponibile €{{ "%.2f"|format(stay) }} ≤ 77,47€).</small>
-                                {% endif %}
-                                {% if r.stripe_payment_intent_id %}<small class="d-block mt-2 text-muted">Stripe PI: <code>{{ r.stripe_payment_intent_id }}</code>{% if r.stripe_charge_id %} · Charge {{ r.stripe_charge_id }}{% endif %}</small>{% endif %}
-                              </div>
-                              <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button><button type="submit" class="btn btn-dark">Genera ricevuta 01/2026…</button></div>
-                            </form>
-                          </div>
-                        </div>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -162,4 +138,57 @@
         <strong>Note legali:</strong> Ricevuta fuori campo IVA — dicitura <em>"Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972"</em> già inclusa in PDF. Contributo di soggiorno su riga separata (non reddito). Marca da bollo 2€ se imponibile &gt; 77,47€ — indicare ID 14 cifre se PDF. Conservare 10 anni. Solo prenotazioni <code>direct/stripe</code> (sito); Airbnb/Booking esclusi (commissione piattaforma).
     </div>
 </div>
+
+<!-- Modali Genera ricevuta — fuori dalla tabella per backdrop corretto -->
+{% for r in pending %}
+<div class="modal fade" id="createReceiptModal{{ r.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST" action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" class="modal-content shadow-lg">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title text-white">Genera ricevuta #{{ r.id }} — {{ r.guest_name }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body bg-white">
+        {# Stripe auto-fill status #}
+        {% set has_stripe_addr = r.guest_billing_address_line1 or r.guest_billing_city %}
+        {% if has_stripe_addr %}
+          <div class="alert alert-success py-2 small"><i class="bi bi-check-circle me-1"></i>Indirizzo recuperato da <strong>Stripe</strong> (billing). Verifica e completa solo il CF se ospite italiano.</div>
+        {% else %}
+          <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>Nessun indirizzo Stripe — compila manualmente (obbligatorio per ricevuta). Per future prenotazioni l'indirizzo verrà chiesto al checkout.</div>
+        {% endif %}
+        <div class="mb-2"><label class="form-label small fw-semibold">Indirizzo residenza (via) *</label><input type="text" class="form-control" name="guest_residence_address" value="{{ r.guest_billing_address_line1 or r.guest_residence_address or '' }}" placeholder="Via Roma 1" required></div>
+        <div class="row g-2 mb-2">
+          <div class="col-6"><label class="form-label small fw-semibold">Città *</label><input type="text" class="form-control" name="guest_residence_city" value="{{ r.guest_billing_city or r.guest_residence_city or '' }}" placeholder="Roma" required></div>
+          <div class="col-3"><label class="form-label small">CAP</label><input type="text" class="form-control" name="guest_residence_zip" value="{{ r.guest_billing_postal_code or r.guest_residence_zip or '' }}" placeholder="00153"></div>
+          <div class="col-3"><label class="form-label small">Nazione *</label><input type="text" class="form-control" name="guest_residence_country" value="{{ r.guest_billing_country or r.guest_residence_country or r.guest_nationality or 'IT' }}" placeholder="IT"></div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Codice Fiscale ospite (IT) <span class="text-muted fw-normal">— lascia vuoto se straniero</span></label>
+          <input type="text" class="form-control text-uppercase" name="guest_codice_fiscale" value="{{ r.guest_codice_fiscale or '' }}" maxlength="16" pattern="[A-Z0-9]{16}" placeholder="RSSMRA80A01H501Z (16 char, solo IT)">
+          <div class="form-text">Per ospiti stranieri basta documento (passaporto/CI) già raccolto al check-in; da Stripe non arriva. Per italiani il CF è obbligatorio in ricevuta.</div>
+        </div>
+        {% set stay = r.total_price or 0 %}
+        {% if stay > 77.47 %}
+        <div class="mb-2"><label class="form-label small">Marca da bollo 2€ — ID 14 cifre <span class="text-muted">(se già comprata su @e.bollo)</span></label><input type="text" class="form-control" name="bollo_id" placeholder="01123456789012" maxlength="14" pattern="\d{14}"><div class="form-text">Obbligatoria perché imponibile €{{ "%.2f"|format(stay) }} &gt; 77,47€. Lascia vuoto → PDF mostra “DA APPLICARE”.</div></div>
+        {% else %}
+        <div class="alert alert-light border py-2 small text-success"><i class="bi bi-info-circle me-1"></i>Bollo non dovuto (imponibile €{{ "%.2f"|format(stay) }} ≤ 77,47€).</div>
+        {% endif %}
+        {% if r.stripe_payment_intent_id %}<div class="small text-muted border-top pt-2 mt-2">Stripe PI: <code>{{ r.stripe_payment_intent_id }}</code>{% if r.stripe_charge_id %}<br>Charge: <code>{{ r.stripe_charge_id }}</code>{% endif %}{% if r.stripe_receipt_url %}<br><a href="{{ r.stripe_receipt_url }}" target="_blank">Ricevuta Stripe</a>{% endif %}</div>{% endif %}
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="submit" class="btn btn-dark"><i class="bi bi-receipt me-1"></i>Genera ricevuta</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+
+<style>
+/* Fix backdrop per modali dentro main-content con overflow */
+.modal-backdrop { background-color: rgba(0,0,0,0.6) !important; }
+.modal-backdrop.show { opacity: 1 !important; }
+.modal-content { border: 0; border-radius: 0; }
+</style>
 {% endblock %}
