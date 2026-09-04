@@ -351,17 +351,24 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     pdf.cell(col_w[2], 6, _money(nightly) if receipt.nights else '—', border=1, align='R')
     pdf.cell(col_w[3], 6, _money(receipt.stay_amount), border=1, align='R')
     pdf.ln()
-    # Riga tassa soggiorno
+    # Riga tassa soggiorno — on top, non reddito
     pdf.cell(col_w[0], 6, 'Contributo di Soggiorno Roma Capitale (incassato per conto del Comune)', border=1)
     pdf.cell(col_w[1], 6, f"{receipt.nights} x {receipt.num_guests}", border=1, align='C')
-    # unit tax
     unit_tax = receipt.tourist_tax_amount / (receipt.nights * receipt.num_guests) if receipt.nights and receipt.num_guests and receipt.tourist_tax_amount else 0
     pdf.cell(col_w[2], 6, _money(unit_tax) if unit_tax else '—', border=1, align='R')
     pdf.cell(col_w[3], 6, _money(receipt.tourist_tax_amount), border=1, align='R')
     pdf.ln()
-    # Totale
+    # Riga bollo 2€ se dovuto — incluso nel totale pagato da sito (fuori reddito)
+    if receipt.bollo_required:
+        pdf.cell(col_w[0], 6, 'Imposta di bollo (art.13 DPR 642/1972)', border=1)
+        pdf.cell(col_w[1], 6, '1', border=1, align='C')
+        pdf.cell(col_w[2], 6, _money(2.00), border=1, align='R')
+        pdf.cell(col_w[3], 6, _money(2.00), border=1, align='R')
+        pdf.ln()
+    # Totale pagato dal sito = soggiorno (imponibile cedolare) + tassa + bollo
     pdf.set_font('Helvetica', 'B', 8)
-    pdf.cell(col_w[0] + col_w[1] + col_w[2], 7, 'TOTALE CORRISPETTIVO (soggiorno + tassa)', border=1, align='R')
+    label_tot = 'TOTALE PAGATO (soggiorno + tassa + bollo)' if receipt.bollo_required else 'TOTALE PAGATO (soggiorno + tassa)'
+    pdf.cell(col_w[0] + col_w[1] + col_w[2], 7, label_tot, border=1, align='R')
     pdf.cell(col_w[3], 7, _money(receipt.total_amount), border=1, align='R')
     pdf.ln(8)
 
@@ -381,23 +388,17 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
         pdf.set_text_color(0, 0, 0)
     pdf.ln(2)
 
-    # Bollo
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font('Helvetica', 'B', 8)
-    pdf.cell(0, 5, 'IMPOSTA DI BOLLO', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_font('Helvetica', '', 8)
-    if receipt.bollo_required:
-        pdf.cell(0, 4, f"Marca da bollo da EUR 2,00 obbligatoria (imponibile soggiorno { _money(receipt.stay_amount)} > EUR 77,47).", new_x='LMARGIN', new_y='NEXT')
-        if receipt.bollo_id:
-            pdf.cell(0, 4, f"Contrassegno telematico applicato sull'originale: {receipt.bollo_id} (14 cifre)", new_x='LMARGIN', new_y='NEXT')
-        else:
-            pdf.set_text_color(180, 0, 0)
-            pdf.cell(0, 4, "Contrassegno: DA APPLICARE sull'originale cartaceo e riportare qui il codice a 14 cifre (art. 13 DPR 642/1972).", new_x='LMARGIN', new_y='NEXT')
-            pdf.set_text_color(0, 0, 0)
-        pdf.cell(0, 4, "Assolta in modo virtuale ove autorizzato; altrimenti marca fisica su copia conservata dal locatore.", new_x='LMARGIN', new_y='NEXT')
+    # Bollo — discreto (richiesto: niente scritte obbligatorie/DA APPLICARE)
+    if receipt.bollo_required and receipt.bollo_id:
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font('Helvetica', '', 7)
+        pdf.cell(0, 4, f"Imposta di bollo 2,00 EUR assolta — Contrassegno: {receipt.bollo_id}", new_x='LMARGIN', new_y='NEXT')
+        pdf.ln(2)
+    elif receipt.bollo_required and not receipt.bollo_id:
+        # richiesto ma non ancora inserito: nessuna scritta invasiva (resta solo riga tabella)
+        pdf.ln(1)
     else:
-        pdf.cell(0, 4, f"Non dovuta (imponibile soggiorno { _money(receipt.stay_amount)} \u2264 EUR 77,47).", new_x='LMARGIN', new_y='NEXT')
-    pdf.ln(3)
+        pdf.ln(1)
 
     # IVA exemption
     pdf.set_draw_color(200, 200, 200)

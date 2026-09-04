@@ -264,13 +264,17 @@ def create_checkout_session():
 
     stripe_amount = request.form.get('stripe_amount', 'full')
     full_total = pending.get('total_price', fallback_total)
+    # tassa soggiorno on top + bollo 2€ se stay >77.47 — per ricevuta sito inclusiva
+    tourist_tax = calculate_city_tax(check_in_dt, check_out_dt, num_adults, apartment)
+    bollo = 2.00 if full_total > 77.47 else 0.0
     is_deposit = stripe_amount == 'deposit'
     if is_deposit:
         amount_to_charge = round(full_total * 0.3, 2)
-        invoice_total = full_total
+        invoice_total = full_total  # stay netto = imponibile cedolare
     else:
-        amount_to_charge = apply_full_payment_discount(full_total)
-        invoice_total = amount_to_charge
+        stay_discounted = apply_full_payment_discount(full_total)
+        amount_to_charge = round(stay_discounted + tourist_tax + bollo, 2)
+        invoice_total = stay_discounted  # resta netto, totale pagato = amount_to_charge = 188 = 162+24+2
 
     stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
     if not stripe.api_key:
