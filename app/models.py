@@ -696,6 +696,7 @@ class Receipt(db.Model):
     bollo_required = db.Column(db.Boolean, default=False)
     bollo_amount = db.Column(db.Float, default=0.0, comment='2.00 se required altrimenti 0')
     bollo_id = db.Column(db.String(30), nullable=True, comment='14 cifre marca da bollo su copia cartacea')
+    bollo_image_path = db.Column(db.String(300), nullable=True, comment='Path immagine marca (per-ricevuta, sovrascrive template globale)')
 
     # Snapshot emittente
     host_full_name = db.Column(db.String(150), nullable=True)

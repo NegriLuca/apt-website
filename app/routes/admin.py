@@ -1,5 +1,6 @@
 import calendar
 import json
+import os
 import secrets
 from datetime import UTC, date, datetime, timedelta
 
@@ -2347,6 +2348,17 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
     bollo_id = request.form.get('bollo_id', '').strip() or None
     try:
         receipt = create_or_get_receipt(res, bollo_id=bollo_id)
+        # foto marca fisica dal tabaccaio — opzionale, per-ricevuta (sovrascrive template)
+        bollo_file = request.files.get('bollo_image')
+        if bollo_file and bollo_file.filename:
+            try:
+                from app.services.receipts import save_bollo_image
+                save_bollo_image(bollo_file, receipt)
+            except ValueError as ve:
+                flash(str(ve), 'warning')
+            except Exception as ie:
+                current_app.logger.warning(f'Bollo image save failed for receipt {receipt.id}: {ie}')
+                flash(f'Ricevuta creata ma foto marca non salvata: {ie}', 'warning')
         admin_audit_log('create_receipt', 'Receipt', receipt.id, f'{receipt.receipt_number} for res {res.id}')
         flash(f'Ricevuta {receipt.receipt_number} creata per prenotazione #{res.id}.', 'success')
     except ValueError as e:
@@ -2385,20 +2397,47 @@ def admin_receipt_pdf(receipt_id: int) -> Response | str:
     )
 
 
+@bp.route('/admin/receipts/<int:receipt_id>/bollo-image')
+@login_required
+def admin_receipt_bollo_image(receipt_id: int):
+    if not current_user.is_admin:
+        abort(403)
+    from app.models import Receipt
+    from app.services.receipts import get_bollo_image_path, MARCA_BOLLO_IMAGE
+    from flask import send_file
+    receipt = Receipt.query.get_or_404(receipt_id)
+    path = get_bollo_image_path(receipt)
+    if path and os.path.exists(path):
+        return send_file(path, mimetype='image/png', max_age=0)
+    # fallback template
+    if os.path.exists(MARCA_BOLLO_IMAGE):
+        return send_file(MARCA_BOLLO_IMAGE, mimetype='image/png', max_age=0)
+    abort(404)
+
+
 @bp.route('/admin/receipts/<int:receipt_id>/bollo', methods=['POST'])
 @login_required
 def admin_receipt_bollo(receipt_id: int) -> Response | str:
     if not current_user.is_admin:
         abort(403)
     from app.models import Receipt
-    from app.services.receipts import update_receipt_bollo
+    from app.services.receipts import update_receipt_bollo, save_bollo_image
 
     receipt = Receipt.query.get_or_404(receipt_id)
     bollo_id = request.form.get('bollo_id', '').strip()
     try:
         update_receipt_bollo(receipt, bollo_id)
-        admin_audit_log('update_bollo', 'Receipt', receipt.id, f'bollo {bollo_id}')
-        flash('Codice marca da bollo aggiornato.', 'success')
+        # anche foto marca fisica se caricata in update
+        bollo_file = request.files.get('bollo_image')
+        if bollo_file and bollo_file.filename:
+            try:
+                save_bollo_image(bollo_file, receipt)
+                flash('Foto marca da bollo caricata.', 'success')
+            except ValueError as ve:
+                flash(str(ve), 'warning')
+        else:
+            flash('Codice marca da bollo aggiornato.', 'success')
+        admin_audit_log('update_bollo', 'Receipt', receipt.id, f'bollo {bollo_id} img={bool(bollo_file and bollo_file.filename)}')
     except ValueError as e:
         flash(str(e), 'danger')
     return redirect(url_for('routes.admin_receipts'))
@@ -2420,6 +2459,24 @@ def admin_receipt_delete(receipt_id: int) -> Response | str:
     if receipt.sequence != max_seq:
         flash(f'Solo l\'ultima ricevuta ({max_seq:02d}/{receipt.year}) è eliminabile per evitare buchi. Questa è {receipt.receipt_number}.', 'danger')
         return redirect(url_for('routes.admin_receipts'))
+    # rimuovi anche foto marca fisica se presente
+    bollo_path = getattr(receipt, 'bollo_image_path', None)
+    if bollo_path:
+        try:
+            abs_p = bollo_path if os.path.isabs(bollo_path) else os.path.normpath(os.path.join(current_app.root_path, "..", bollo_path))
+            if os.path.exists(abs_p):
+                os.remove(abs_p)
+        except Exception:
+            pass
+        # anche convention fallback
+        try:
+            from app.services.receipts import BOLLO_UPLOAD_DIR
+            for ext in (".png", ".jpg", ".jpeg", ".webp"):
+                cand = os.path.join(BOLLO_UPLOAD_DIR, f"bollo_{receipt.id}{ext}")
+                if os.path.exists(cand):
+                    os.remove(cand)
+        except Exception:
+            pass
     db.session.delete(receipt)
     db.session.commit()
     admin_audit_log('delete_receipt', 'Receipt', receipt_id, f'Deleted {receipt.receipt_number}')

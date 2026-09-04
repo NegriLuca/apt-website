@@ -15,11 +15,17 @@
         <div class="card-body p-4" style="max-width: 900px; margin: 0 auto; font-size: 14px; position: relative; {% if receipt.bollo_required %}padding-top: 28px;{% endif %}">
             {% if receipt.bollo_required %}
             <!-- Marca da bollo — sempre visibile quando dovuta (>77.47), top-right spostata per non coprire -->
+            <!-- Priorità: foto tabaccaio per-ricevuta > template globale -->
             <div style="position: absolute; top: 10px; right: 14px; width: 118px; text-align: center; border: 1.5px solid #d4a017; background: #fff8c8; padding: 4px 4px 5px; border-radius: 3px; line-height: 1.1;">
+                {% if receipt.bollo_image_path %}
+                <img src="{{ url_for('routes.admin_receipt_bollo_image', receipt_id=receipt.id) }}" alt="Marca da bollo" style="width: 100%; height: auto; display: block; border-radius: 2px; border:1px solid #e0c36a;" onerror="this.style.display='none'">
+                {% else %}
                 <img src="{{ url_for('static', filename='images/marca_da_bollo.png') }}" alt="Marca da bollo" style="width: 100%; height: auto; display: block; border-radius: 2px;" onerror="this.style.display='none'; this.nextElementSibling.style.marginTop='0'">
+                {% endif %}
                 <div style="font-size: 7px; font-weight: 800; color: #7a6000; letter-spacing: 0.4px; margin-top: 3px;">MARCA DA BOLLO — EUR 2,00</div>
                 <div style="font-size: 8px; font-family: monospace; font-weight: 700; color: #111; margin-top: 2px; word-break: break-all;">{{ receipt.bollo_id or 'DA INSERIRE' }}</div>
                 <div style="font-size: 6px; color: #777;">Identificativo 14 cifre</div>
+                {% if receipt.bollo_image_path %}<div style="font-size: 6px; color: #2a7a00;">✓ Foto tabaccaio caricata</div>{% endif %}
             </div>
             {% endif %}
             <div class="text-center mb-4">

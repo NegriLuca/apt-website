@@ -18,9 +18,83 @@ from app.models import Apartment, Receipt, Reservation
 
 BOLLO_THRESHOLD = 77.47
 BOLLO_AMOUNT = 2.00
-# Percorso immagine marca da bollo — metti/sostituisci il tuo PNG qui
+# Percorso immagine marca da bollo — template globale
 MARCA_BOLLO_IMAGE = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "static", "images", "marca_da_bollo.png"))
+# Cartella per immagini marca per-ricevuta (sovrascrivono il template)
+BOLLO_UPLOAD_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "static", "images", "bolli"))
 IVA_EXEMPTION_TEXT = "Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972"
+
+
+def get_bollo_image_path(receipt: "Receipt") -> Optional[str]:
+    """Ritorna path assoluto immagine marca per questa ricevuta: per-ricevuta > template globale > None."""
+    # per-ricevuta (DB)
+    p = getattr(receipt, 'bollo_image_path', None)
+    if p:
+        # p è salvato come path relativo tipo static/images/bolli/bollo_12.png o assoluto
+        abs_p = p if os.path.isabs(p) else os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", p))
+        # anche se salvato relativo a project root
+        if os.path.exists(abs_p):
+            return abs_p
+        # prova relativo a app root
+        alt = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", p.replace("app/", "").replace("static/", "static/")))
+        if os.path.exists(alt):
+            return alt
+        # fallback: cerca direttamente in BOLLO_UPLOAD_DIR per convenzione
+        cand = os.path.join(BOLLO_UPLOAD_DIR, os.path.basename(p))
+        if os.path.exists(cand):
+            return cand
+    # convention-based per id anche senza DB (retrocompat)
+    if getattr(receipt, 'id', None):
+        for ext in (".png", ".jpg", ".jpeg", ".webp"):
+            cand = os.path.join(BOLLO_UPLOAD_DIR, f"bollo_{receipt.id}{ext}")
+            if os.path.exists(cand):
+                return cand
+    if os.path.exists(MARCA_BOLLO_IMAGE):
+        return MARCA_BOLLO_IMAGE
+    return None
+
+
+def save_bollo_image(file_storage, receipt: "Receipt") -> Optional[str]:
+    """Salva upload marca (PNG/JPG/WEBP) per questa ricevuta, ritorna path relativo per DB."""
+    if not file_storage or not getattr(file_storage, 'filename', ''):
+        return None
+    from werkzeug.utils import secure_filename
+    filename = secure_filename(file_storage.filename)
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in (".png", ".jpg", ".jpeg", ".webp"):
+        raise ValueError("Formato immagine non supportato — usa PNG/JPG/WEBP")
+    # validazione leggera con Pillow
+    try:
+        from PIL import Image
+        file_storage.stream.seek(0)
+        im = Image.open(file_storage.stream)
+        im.verify()
+        file_storage.stream.seek(0)
+    except Exception:
+        # se Pillow non riesce, lascia passare — fpdf proverà comunque
+        file_storage.stream.seek(0)
+    os.makedirs(BOLLO_UPLOAD_DIR, exist_ok=True)
+    # nome deterministico per id (sovrascrive precedente)
+    dest_name = f"bollo_{receipt.id}{ext}"
+    dest_abs = os.path.join(BOLLO_UPLOAD_DIR, dest_name)
+    file_storage.save(dest_abs)
+    # pulisci eventuali vecchi estensioni diverse
+    for old_ext in (".png", ".jpg", ".jpeg", ".webp"):
+        if old_ext != ext:
+            old = os.path.join(BOLLO_UPLOAD_DIR, f"bollo_{receipt.id}{old_ext}")
+            if os.path.exists(old):
+                try:
+                    os.remove(old)
+                except Exception:
+                    pass
+    # path relativo rispetto a project root per DB (usato anche da template)
+    rel = os.path.relpath(dest_abs, os.path.join(os.path.dirname(__file__), "..", ".."))
+    # normalizza a forward slashes per url_for
+    rel = rel.replace(os.sep, "/")
+    # salva in DB
+    receipt.bollo_image_path = rel
+    db.session.commit()
+    return rel
 
 
 def is_direct_reservation(reservation: Reservation) -> bool:
@@ -252,11 +326,12 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
 
     # ── Marca da bollo stamp — solo se dovuta (>77.47), sempre visibile quando required
     # Top-right, con contenuto spostato in basso per non coprire testo
+    # Per-ricevuta (foto tabaccaio) > template globale > fallback disegnato
     if getattr(receipt, 'bollo_required', False):
         try:
-            if os.path.exists(MARCA_BOLLO_IMAGE):
-                # immagine reale (sostituisci il file con la tua scansione se vuoi)
-                pdf.image(MARCA_BOLLO_IMAGE, x=168, y=6, w=30)
+            bollo_img = get_bollo_image_path(receipt)
+            if bollo_img and os.path.exists(bollo_img):
+                pdf.image(bollo_img, x=168, y=6, w=30)
                 # identificativo sotto l'immagine (14 cifre)
                 id_txt = receipt.bollo_id if receipt.bollo_id else '--- DA INSERIRE ---'
                 pdf.set_xy(168, 26)

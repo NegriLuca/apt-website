@@ -134,8 +134,8 @@
                                 <div class="d-flex flex-wrap gap-1">
                                     <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=rc.id) }}" target="_blank" class="btn btn-sm btn-primary"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
                                     <a href="{{ url_for('routes.admin_view_receipt', receipt_id=rc.id) }}" class="btn btn-sm btn-outline-secondary">Vista</a>
-                                    {% if rc.bollo_required and not rc.bollo_id %}
-                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse" data-bs-target="#bollo{{ rc.id }}">Bollo</button>
+                                    {% if rc.bollo_required %}
+                                    <button class="btn btn-sm btn-outline-warning" data-bs-toggle="collapse" data-bs-target="#bollo{{ rc.id }}">{% if rc.bollo_id %}✏️ Bollo{% else %}Bollo{% endif %}</button>
                                     {% endif %}
                                     {% if not rc.is_confirmed %}
                                       {% set is_last = max_seq_by_year.get(rc.year, 0) == rc.sequence %}
@@ -153,12 +153,15 @@
                                       <span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>Confermata</span>
                                     {% endif %}
                                 </div>
-                                {% if rc.bollo_required and not rc.bollo_id %}
+                                {% if rc.bollo_required %}
                                 <div class="collapse mt-2" id="bollo{{ rc.id }}">
-                                    <form method="POST" action="{{ url_for('routes.admin_receipt_bollo', receipt_id=rc.id) }}" class="d-flex gap-1">
+                                    <form method="POST" action="{{ url_for('routes.admin_receipt_bollo', receipt_id=rc.id) }}" class="d-flex flex-column gap-1 border p-2 bg-light rounded" enctype="multipart/form-data">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <input type="text" class="form-control form-control-sm" name="bollo_id" placeholder="14 cifre" maxlength="14" pattern="\d{14}" required>
-                                        <button type="submit" class="btn btn-sm btn-warning">Salva</button>
+                                        <input type="text" class="form-control form-control-sm" name="bollo_id" placeholder="14 cifre" maxlength="14" pattern="\d{14}" value="{{ rc.bollo_id or '' }}">
+                                        <input type="file" class="form-control form-control-sm" name="bollo_image" accept="image/png,image/jpeg,image/webp">
+                                        <small class="text-muted" style="font-size:10px;">Foto marca tabaccaio — sostituisce template per questa ricevuta</small>
+                                        {% if rc.bollo_image_path %}<small class="text-success" style="font-size:10px;">✓ Foto già caricata</small>{% endif %}
+                                        <button type="submit" class="btn btn-sm btn-warning">Salva bollo</button>
                                     </form>
                                 </div>
                                 {% endif %}
@@ -183,7 +186,7 @@
 {% for r in pending %}
 <div class="modal fade" id="createReceiptModal{{ r.id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <form method="POST" action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" class="modal-content shadow-lg">
+    <form method="POST" action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" class="modal-content shadow-lg" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="modal-header bg-dark text-white">
         <h5 class="modal-title text-white">Genera ricevuta #{{ r.id }} — {{ r.guest_name }}</h5>
@@ -210,7 +213,8 @@
         </div>
         {% set stay = r.total_price or 0 %}
         {% if stay > 77.47 %}
-        <div class="mb-2"><label class="form-label small">Marca da bollo 2€ — ID 14 cifre <span class="text-muted">(se già comprata su @e.bollo)</span></label><input type="text" class="form-control" name="bollo_id" placeholder="01123456789012" maxlength="14" pattern="\d{14}"><div class="form-text">Obbligatoria perché imponibile €{{ "%.2f"|format(stay) }} &gt; 77,47€. Lascia vuoto → PDF mostra “DA APPLICARE”.</div></div>
+        <div class="mb-2"><label class="form-label small">Marca da bollo 2€ — ID 14 cifre <span class="text-muted">(tabaccaio, 14 cifre sul contrassegno)</span></label><input type="text" class="form-control" name="bollo_id" placeholder="01123456789012" maxlength="14" pattern="\d{14}"><div class="form-text">Obbligatoria perché imponibile €{{ "%.2f"|format(stay) }} &gt; 77,47€. Lascia vuoto → PDF mostra “DA INSERIRE”.</div></div>
+        <div class="mb-2"><label class="form-label small">Foto marca fisica (tabaccaio) <span class="text-muted">— sostituisce il template nel PDF</span></label><input type="file" class="form-control" name="bollo_image" accept="image/png,image/jpeg,image/webp"><div class="form-text">Scatta foto nitida della marca (max 5MB, PNG/JPG/WEBP). Verrà stampata in alto a destra nella ricevuta. Se lasci vuoto, usa <code>marca_da_bollo.png</code> di default.</div></div>
         {% else %}
         <div class="alert alert-light border py-2 small text-success"><i class="bi bi-info-circle me-1"></i>Bollo non dovuto (imponibile €{{ "%.2f"|format(stay) }} ≤ 77,47€).</div>
         {% endif %}
