@@ -17,7 +17,7 @@ venv/
 env/
 
 # Database (local dev only — use a real DB in production)
-instance/site.db
+instance/
 
 # OS
 .DS_Store
