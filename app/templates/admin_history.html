@@ -35,15 +35,44 @@
                     </select>
                 </div>
                 <div class="col-auto">
+                    <label class="form-label small fw-semibold text-uppercase mb-1">{{ _('Status') }}</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('All') }} ({{ status_counts.all }})</option>
+                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>{{ _('Confirmed') }} ({{ status_counts.confirmed }})</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>{{ _('Cancelled') }} ({{ status_counts.cancelled }})</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ _('Pending') }} ({{ status_counts.pending }})</option>
+                    </select>
+                </div>
+                <div class="col-auto">
                     <button type="submit" class="btn btn-sm btn-dark">{{ _('Filter') }}</button>
                     <a href="{{ url_for('routes.admin_history') }}" class="btn btn-sm btn-outline-secondary">{{ _('Clear') }}</a>
                 </div>
                 <div class="col-auto ms-auto text-muted small">
-                    {{ _('Showing') }} <strong>{{ reservations.total }}</strong> {{ _('past stays') }} {% if source_filter != 'all' or year_filter %}<span class="badge bg-warning text-dark ms-1">{{ _('filtered') }}</span>{% endif %}
+                    {{ _('Showing') }} <strong>{{ reservations.total }}</strong> {{ _('past stays') }} {% if source_filter != 'all' or year_filter or status_filter != 'all' %}<span class="badge bg-warning text-dark ms-1">{{ _('filtered') }}</span>{% endif %}
                 </div>
             </form>
+            <div class="mt-3 d-flex gap-2">
+                <a href="{{ url_for('routes.admin_history', status='all', source=source_filter, year=year_filter) }}" class="btn btn-sm {% if status_filter == 'all' %}btn-dark{% else %}btn-outline-secondary{% endif %}">{{ _('All') }} <span class="badge bg-light text-dark ms-1">{{ status_counts.all }}</span></a>
+                <a href="{{ url_for('routes.admin_history', status='confirmed', source=source_filter, year=year_filter) }}" class="btn btn-sm {% if status_filter == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %}">{{ _('Confirmed') }} <span class="badge bg-light text-dark ms-1">{{ status_counts.confirmed }}</span></a>
+                <a href="{{ url_for('routes.admin_history', status='cancelled', source=source_filter, year=year_filter) }}" class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">{{ _('Cancelled') }} <span class="badge bg-light text-dark ms-1">{{ status_counts.cancelled }}</span></a>
+            </div>
         </div>
     </div>
+
+    {% if restorable_count and restorable_count > 0 %}
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+        <div>
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <strong>{{ restorable_count }}</strong> {{ _('past Airbnb/Booking stays are marked cancelled — they were orphan-cancelled because the feed only shows future dates (bug fixed).') }}
+            {{ _('Restore them to count toward revenue/occupancy.') }}
+        </div>
+        <form method="POST" action="{{ url_for('routes.admin_history_restore_all') }}" class="ms-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="source" value="{{ source_filter }}"/>
+            <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('{{ _('Restore all cancelled past OTA stays to confirmed?') }}')"><i class="bi bi-arrow-counterclockwise me-1"></i> {{ _('Restore all') }} ({{ restorable_count }})</button>
+        </form>
+    </div>
+    {% endif %}
 
     <!-- Top stats: global past aggregates -->
     <div class="row g-3 mb-4">
@@ -170,12 +199,13 @@
                         <th>{{ _('Nights') }}</th>
                         <th>{{ _('Revenue') }}</th>
                         <th>{{ _('Payment') }}</th>
+                        <th>{{ _('Status') }}</th>
                         <th>{{ _('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for r in reservations.items %}
-                    <tr>
+                    <tr {% if r.status == 'cancelled' %}class="table-light opacity-75"{% endif %}>
                         <td><span class="text-muted">#{{ r.id }}</span></td>
                         <td>
                             <strong>{{ r.guest_name }}</strong>
@@ -226,7 +256,24 @@
                                     data-status="{{ r.payment_status }}">✏️</button>
                         </td>
                         <td>
-                            <div class="d-flex gap-1">
+                            {% if r.status == 'cancelled' %}
+                                <span class="badge bg-danger">{{ _('Cancelled') }}</span>
+                            {% elif r.status == 'confirmed' %}
+                                <span class="badge bg-success">{{ _('Confirmed') }}</span>
+                            {% elif r.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">{{ _('Pending') }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ r.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                {% if r.status == 'cancelled' %}
+                                    <form method="POST" action="{{ url_for('routes.admin_history_restore', res_id=r.id, status=status_filter) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-warning" title="{{ _('Restore to confirmed') }}"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                    </form>
+                                {% endif %}
                                 <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('Message / details') }}">💬</a>
                                 {% if r.source in ['direct','stripe'] and r.receipt %}
                                     <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=r.receipt.id) }}" class="btn btn-sm btn-dark" title="Ricevuta {{ r.receipt.receipt_number }}">🧾</a>
@@ -235,7 +282,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="9" class="text-center text-muted py-4">{{ _('No past reservations for this filter.') }}</td></tr>
+                    <tr><td colspan="10" class="text-center text-muted py-4">{{ _('No past reservations for this filter.') }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -245,15 +292,15 @@
             <small class="text-muted">{{ _('Page') }} {{ reservations.page }} {{ _('of') }} {{ reservations.pages }} — {{ reservations.total }} {{ _('total') }}</small>
             <nav>
                 <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item {% if not reservations.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=reservations.prev_num, source=source_filter, year=year_filter) if reservations.has_prev else '#' }}">&laquo;</a></li>
+                    <li class="page-item {% if not reservations.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=reservations.prev_num, source=source_filter, year=year_filter, status=status_filter) if reservations.has_prev else '#' }}">&laquo;</a></li>
                     {% for p in reservations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                         {% if p %}
-                            <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=p, source=source_filter, year=year_filter) }}">{{ p }}</a></li>
+                            <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=p, source=source_filter, year=year_filter, status=status_filter) }}">{{ p }}</a></li>
                         {% else %}
                             <li class="page-item disabled"><span class="page-link">…</span></li>
                         {% endif %}
                     {% endfor %}
-                    <li class="page-item {% if not reservations.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=reservations.next_num, source=source_filter, year=year_filter) if reservations.has_next else '#' }}">&raquo;</a></li>
+                    <li class="page-item {% if not reservations.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=reservations.next_num, source=source_filter, year=year_filter, status=status_filter) if reservations.has_next else '#' }}">&raquo;</a></li>
                 </ul>
             </nav>
         </div>

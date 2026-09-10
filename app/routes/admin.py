@@ -204,18 +204,34 @@ def admin_history() -> Response | str:
     page = request.args.get('page', 1, type=int)
     source_filter = request.args.get('source', 'all')
     year_filter = request.args.get('year', type=int)
+    status_filter = request.args.get('status', 'all')  # all | confirmed | cancelled
 
-    # Base query: past stays only (check_out < today), cancelled excluded by default
-    base_q = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out < today)
+    # Base query: past stays only (check_out < today). Include cancelled so
+    # orphan-cancelled Airbnb stays (bug: past stays were cancelled because
+    # the feed only shows future dates) remain visible and restorable.
+    base_q = Reservation.query.filter(Reservation.check_out < today)
+    if status_filter == 'confirmed':
+        base_q = base_q.filter(Reservation.status == 'confirmed')
+    elif status_filter == 'cancelled':
+        base_q = base_q.filter(Reservation.status == 'cancelled')
+    elif status_filter == 'pending':
+        base_q = base_q.filter(Reservation.status == 'pending')
+    # else 'all' → no status filter (shows confirmed+cancelled+pending)
 
-    # Distinct years for filter dropdown (from all past reservations)
-    all_past_for_years = base_q.all()
+    # Distinct years / sources for filter dropdowns (from all past regardless of status)
+    all_past_for_years = Reservation.query.filter(Reservation.check_out < today).all()
     years = sorted({r.check_in.year for r in all_past_for_years}, reverse=True)
-
-    # Distinct sources for filter dropdown
     sources = sorted({(r.source or 'direct') for r in all_past_for_years})
 
-    # Apply filters
+    # Counters for the status tabs
+    status_counts = {
+        'all': len(all_past_for_years),
+        'confirmed': sum(1 for r in all_past_for_years if r.status == 'confirmed'),
+        'cancelled': sum(1 for r in all_past_for_years if r.status == 'cancelled'),
+        'pending': sum(1 for r in all_past_for_years if r.status == 'pending'),
+    }
+
+    # Apply source/year filters on top of status filter
     filtered_q = base_q
     if source_filter != 'all':
         filtered_q = filtered_q.filter(Reservation.source == source_filter)
@@ -237,8 +253,10 @@ def admin_history() -> Response | str:
     filtered_avg_stay = round(filtered_nights / len(all_filtered_confirmed), 1) if all_filtered_confirmed else 0
 
     # ── Global past aggregates (unfiltered, for the top cards) ────────────
-    all_past = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out < today).all()
-    all_confirmed = [r for r in all_past if r.status == 'confirmed' and not r.is_block]
+    # Stats are always over confirmed past only (blocks excluded) — regardless of current filters,
+    # so the header cards remain stable while the table is filtered.
+    all_past = Reservation.query.filter(Reservation.status == 'confirmed', Reservation.check_out < today).all()
+    all_confirmed = [r for r in all_past if not r.is_block]
     total_revenue = sum(r.total_price for r in all_confirmed)
     total_nights = sum(r.nights for r in all_confirmed)
     avg_nightly = round(total_revenue / total_nights, 2) if total_nights else 0
@@ -247,18 +265,19 @@ def admin_history() -> Response | str:
     total_unpaid = len(all_confirmed) - total_paid
 
     # Occupancy over the last 12 months (or from earliest check_in to today if shorter)
+    # Use all confirmed past (including blocks for occupancy denominator) — but revenue stats already exclude blocks.
+    occupancy_base = Reservation.query.filter(Reservation.status == 'confirmed', Reservation.check_out < today).all()
     if all_confirmed:
         earliest = min(r.check_in for r in all_confirmed)
         twelve_months_ago = _add_months(today, -12)
         occ_start = max(earliest, twelve_months_ago)
-        occupancy_12m = _occupancy_rate(all_past, occ_start, today)
-        # Overall occupancy from earliest to today
-        occupancy_all = _occupancy_rate(all_past, earliest, today)
+        occupancy_12m = _occupancy_rate(occupancy_base, occ_start, today)
+        occupancy_all = _occupancy_rate(occupancy_base, earliest, today)
     else:
         occupancy_12m = 0
         occupancy_all = 0
 
-    # Source breakdown for all past
+    # Source breakdown for all past (confirmed only)
     source_counts = {}
     for r in all_confirmed:
         src = r.source or 'direct'
@@ -268,7 +287,7 @@ def admin_history() -> Response | str:
         src = r.source or 'direct'
         source_revenue[src] = source_revenue.get(src, 0) + (r.total_price or 0)
 
-    # Monthly breakdown (last 12 months or filtered year)
+    # Monthly breakdown (filtered confirmed only)
     from collections import defaultdict
 
     monthly_data = defaultdict(lambda: {'count': 0, 'nights': 0, 'revenue': 0.0})
@@ -288,6 +307,14 @@ def admin_history() -> Response | str:
             'revenue': round(d['revenue'], 2),
             'avg_nightly': round(d['revenue'] / d['nights'], 2) if d['nights'] else 0,
         })
+
+    # Detect orphan-cancelled past OTA stays that can be restored (the bug this fixes)
+    restorable_count = Reservation.query.filter(
+        Reservation.status == 'cancelled',
+        Reservation.check_out < today,
+        Reservation.source.in_(['airbnb', 'booking', 'booking_com', 'vrbo']),
+        Reservation.is_block.is_(False),
+    ).count()
 
     return render_template(
         'admin_history.html',
@@ -312,8 +339,52 @@ def admin_history() -> Response | str:
         sources=sources,
         source_filter=source_filter,
         year_filter=year_filter,
+        status_filter=status_filter,
+        status_counts=status_counts,
+        restorable_count=restorable_count,
         today=today,
     )
+
+
+@bp.route('/admin/history/restore/<int:res_id>', methods=['POST'])
+@login_required
+def admin_history_restore(res_id: int) -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    res = Reservation.query.get_or_404(res_id)
+    if res.status != 'cancelled':
+        flash(f'Reservation #{res_id} is not cancelled.', 'warning')
+        return redirect(url_for('routes.admin_history'))
+    res.status = 'confirmed'
+    db.session.commit()
+    admin_audit_log('restore_reservation', 'Reservation', res_id, 'Restored cancelled past reservation from History')
+    flash(f'Reservation #{res_id} ({res.guest_name} {res.check_in} → {res.check_out}) restored to confirmed.', 'success')
+    return redirect(url_for('routes.admin_history', status=request.args.get('status', 'all')))
+
+
+@bp.route('/admin/history/restore-all-cancelled', methods=['POST'])
+@login_required
+def admin_history_restore_all() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+    today = date.today()
+    q = Reservation.query.filter(
+        Reservation.status == 'cancelled',
+        Reservation.check_out < today,
+        Reservation.source.in_(['airbnb', 'booking', 'booking_com', 'vrbo']),
+        Reservation.is_block.is_(False),
+    )
+    # Optional source filter
+    src = request.form.get('source')
+    if src and src != 'all':
+        q = q.filter(Reservation.source == src)
+    to_restore = q.all()
+    for r in to_restore:
+        r.status = 'confirmed'
+    db.session.commit()
+    admin_audit_log('bulk_restore', 'Reservation', None, f'Restored {len(to_restore)} cancelled past OTA reservations')
+    flash(f'Restored {len(to_restore)} cancelled past reservation(s) to confirmed. Review revenue in History.', 'success')
+    return redirect(url_for('routes.admin_history'))
 
 
 @bp.route('/admin/calendar')
