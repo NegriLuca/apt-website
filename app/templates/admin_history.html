@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% block title %}{{ _('History & Analytics') }}{% endblock %}
+{% block content %}
+<div class="main-content">
+    {% include 'admin_header.html' %}
+
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="page-title mb-1"><i class="bi bi-clock-history me-2"></i>{{ _('History & Analytics') }}</h1>
+            <p class="text-muted mb-0">{{ _('Past stays (check-out < today) with revenue, occupancy and source breakdown. Dashboard shows only upcoming & in-house.') }}</p>
+        </div>
+        <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label small fw-semibold text-uppercase mb-1">{{ _('Source') }}</label>
+                    <select name="source" class="form-select form-select-sm">
+                        <option value="all" {% if source_filter == 'all' %}selected{% endif %}>{{ _('All sources') }}</option>
+                        {% for s in sources %}
+                        <option value="{{ s }}" {% if source_filter == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small fw-semibold text-uppercase mb-1">{{ _('Year') }}</label>
+                    <select name="year" class="form-select form-select-sm">
+                        <option value="">{{ _('All years') }}</option>
+                        {% for y in years %}
+                        <option value="{{ y }}" {% if year_filter == y %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-dark">{{ _('Filter') }}</button>
+                    <a href="{{ url_for('routes.admin_history') }}" class="btn btn-sm btn-outline-secondary">{{ _('Clear') }}</a>
+                </div>
+                <div class="col-auto ms-auto text-muted small">
+                    {{ _('Showing') }} <strong>{{ reservations.total }}</strong> {{ _('past stays') }} {% if source_filter != 'all' or year_filter %}<span class="badge bg-warning text-dark ms-1">{{ _('filtered') }}</span>{% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Top stats: global past aggregates -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Total Past Revenue') }}</small>
+                <h3 class="mb-0 text-success font-monospace">€{{ "%.0f"|format(total_revenue) }}</h3>
+                <small class="text-muted">{{ reservations.total }} {{ _('stays') }} · {{ total_nights }} {{ _('nights') }}</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Avg / Night') }}</small>
+                <h3 class="mb-0 text-primary font-monospace">€{{ "%.2f"|format(avg_nightly) }}</h3>
+                <small class="text-muted">{{ _('avg stay') }} {{ avg_stay }} {{ _('nights') }}</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Occupancy 12m') }}</small>
+                <h3 class="mb-0 text-info font-monospace">{{ occupancy_12m }}%</h3>
+                <small class="text-muted">{{ _('overall') }} {{ occupancy_all }}%</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Payment') }}</small>
+                <div class="mt-1"><span class="badge bg-success">{{ total_paid }} {{ _('paid') }}</span> <span class="badge bg-warning text-dark">{{ total_unpaid }} {{ _('unpaid/other') }}</span></div>
+                <small class="text-muted">{{ _('confirmed past only, blocks excluded') }}</small>
+            </div>
+        </div>
+    </div>
+
+    {% if source_counts %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Past by Source (count)') }}</small>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    {% for src, count in source_counts.items() %}
+                    <span class="badge bg-{{ 'success' if src == 'direct' else 'danger' if src == 'airbnb' else 'primary' if src == 'booking_com' else 'secondary' }} fs-6">{{ src }}: {{ count }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-3 h-100">
+                <small class="text-muted text-uppercase fw-bold">{{ _('Past Revenue by Source') }}</small>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    {% for src, rev in source_revenue.items() %}
+                    <span class="badge bg-light text-dark border font-monospace">€{{ "%.0f"|format(rev) }} {{ src }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if filtered_count is defined and (source_filter != 'all' or year_filter) %}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card border-warning shadow-sm p-3">
+                <div class="d-flex flex-wrap gap-4 align-items-center">
+                    <div><small class="text-muted text-uppercase fw-bold">{{ _('Filtered Revenue') }}</small><div class="font-monospace fw-bold">€{{ "%.2f"|format(filtered_revenue) }}</div></div>
+                    <div><small class="text-muted">{{ _('Stays') }}</small><div class="fw-bold">{{ filtered_count }}</div></div>
+                    <div><small class="text-muted">{{ _('Nights') }}</small><div class="fw-bold">{{ filtered_nights }}</div></div>
+                    <div><small class="text-muted">{{ _('Avg / night') }}</small><div class="font-monospace">€{{ "%.2f"|format(filtered_avg_nightly) }}</div></div>
+                    <div><small class="text-muted">{{ _('Avg stay') }}</small><div>{{ filtered_avg_stay }} {{ _('nights') }}</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if monthly_breakdown %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-calendar-week me-1"></i> {{ _('Monthly Breakdown') }} {% if year_filter %}({{ year_filter }}){% endif %}</h5>
+            <small class="text-muted">{{ _('by check-in month, confirmed only') }}</small>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('Month') }}</th>
+                        <th class="text-end">{{ _('Bookings') }}</th>
+                        <th class="text-end">{{ _('Nights') }}</th>
+                        <th class="text-end">{{ _('Revenue') }}</th>
+                        <th class="text-end">{{ _('Avg / night') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in monthly_breakdown %}
+                    <tr>
+                        <td class="fw-semibold font-monospace">{{ m.month }}</td>
+                        <td class="text-end">{{ m.count }}</td>
+                        <td class="text-end">{{ m.nights }}</td>
+                        <td class="text-end font-monospace">€{{ "%.2f"|format(m.revenue) }}</td>
+                        <td class="text-end font-monospace">€{{ "%.2f"|format(m.avg_nightly) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Past reservations table -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Past Reservations') }}</h5>
+        <small class="text-muted">{{ _('Click ✏️ to edit revenue or payment status') }}</small>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>{{ _('ID') }}</th>
+                        <th>{{ _('Guest') }}</th>
+                        <th>{{ _('Source') }}</th>
+                        <th>{{ _('Check-in') }}</th>
+                        <th>{{ _('Check-out') }}</th>
+                        <th>{{ _('Nights') }}</th>
+                        <th>{{ _('Revenue') }}</th>
+                        <th>{{ _('Payment') }}</th>
+                        <th>{{ _('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reservations.items %}
+                    <tr>
+                        <td><span class="text-muted">#{{ r.id }}</span></td>
+                        <td>
+                            <strong>{{ r.guest_name }}</strong>
+                            {% if r.is_block %}<span class="badge bg-secondary ms-1">block</span>{% endif %}
+                            {% if r.guest_email %}<br><small class="text-muted">{{ r.guest_email }}</small>{% endif %}
+                        </td>
+                        <td>
+                            {% if r.source == 'direct' or r.source == 'stripe' %}
+                                <span class="badge bg-success">{{ _('Direct') }}</span>
+                            {% elif r.source == 'airbnb' %}
+                                <span class="badge" style="background-color: #ff5a5f;">Airbnb</span>
+                            {% elif r.source == 'booking_com' %}
+                                <span class="badge" style="background-color: #003580;">Booking.com</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ r.source }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ r.check_in }}</td>
+                        <td>{{ r.check_out }}</td>
+                        <td>{{ r.nights }}</td>
+                        <td>
+                            <span class="font-monospace">{% if r.total_price > 0 %}€{{ "%.2f"|format(r.total_price) }}{% else %}—{% endif %}</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-1" style="font-size:.75rem;"
+                                    title="{{ _('Edit revenue / payment') }}"
+                                    data-bs-toggle="modal" data-bs-target="#financeModalHist"
+                                    data-action="{{ url_for('routes.admin_update_finance', res_id=r.id) }}"
+                                    data-price="{{ "%.2f"|format(r.total_price) }}"
+                                    data-paid="{{ "%.2f"|format(r.amount_paid or 0) }}"
+                                    data-status="{{ r.payment_status }}">✏️</button>
+                        </td>
+                        <td>
+                            {% if r.payment_status == 'paid' %}
+                                <span class="badge bg-success">{{ _('Paid') }}</span>
+                            {% elif r.payment_status == 'deposit_paid' %}
+                                <span class="badge bg-info text-dark">{{ _('Deposit') }}</span>
+                            {% elif r.payment_status == 'unpaid' %}
+                                <span class="badge bg-warning text-dark">{{ _('Unpaid') }}</span>
+                            {% elif r.payment_status == 'refunded' %}
+                                <span class="badge bg-danger">{{ _('Refunded') }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ r.payment_status }}</span>
+                            {% endif %}
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-1" style="font-size:.70rem;"
+                                    data-bs-toggle="modal" data-bs-target="#financeModalHist"
+                                    data-action="{{ url_for('routes.admin_update_finance', res_id=r.id) }}"
+                                    data-price="{{ "%.2f"|format(r.total_price) }}"
+                                    data-paid="{{ "%.2f"|format(r.amount_paid or 0) }}"
+                                    data-status="{{ r.payment_status }}">✏️</button>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('Message / details') }}">💬</a>
+                                {% if r.source in ['direct','stripe'] and r.receipt %}
+                                    <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=r.receipt.id) }}" class="btn btn-sm btn-dark" title="Ricevuta {{ r.receipt.receipt_number }}">🧾</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="9" class="text-center text-muted py-4">{{ _('No past reservations for this filter.') }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if reservations.pages > 1 %}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+            <small class="text-muted">{{ _('Page') }} {{ reservations.page }} {{ _('of') }} {{ reservations.pages }} — {{ reservations.total }} {{ _('total') }}</small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {% if not reservations.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=reservations.prev_num, source=source_filter, year=year_filter) if reservations.has_prev else '#' }}">&laquo;</a></li>
+                    {% for p in reservations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if p %}
+                            <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=p, source=source_filter, year=year_filter) }}">{{ p }}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not reservations.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('routes.admin_history', page=reservations.next_num, source=source_filter, year=year_filter) if reservations.has_next else '#' }}">&raquo;</a></li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="alert alert-light border small">
+        <i class="bi bi-info-circle me-1"></i> {{ _('Past revenue counts confirmed stays only (blocks excluded). Occupancy = %% of nights in window covered by any confirmed stay (blocks excluded from revenue but counted for occupancy). Edit revenue/payment via ✏️ — changes apply to reports immediately.') }}
+    </div>
+</div>
+
+<div class="modal fade" id="financeModalHist" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="" id="financeFormHist" class="modal-content border-0 shadow-sm" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cash-coin me-1"></i> {{ _('Edit revenue & payment') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ _('Revenue (total price) €') }}</label>
+                    <input type="number" step="0.01" min="0" class="form-control font-monospace" name="total_price" id="finHist_total_price" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ _('Amount paid €') }} <small class="text-muted">({{ _('optional') }})</small></label>
+                    <input type="number" step="0.01" min="0" class="form-control font-monospace" name="amount_paid" id="finHist_amount_paid" placeholder="{{ _('leave blank to auto-sync') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ _('Payment status') }}</label>
+                    <select class="form-select" name="payment_status" id="finHist_payment_status" required>
+                        <option value="unpaid">{{ _('Unpaid') }}</option>
+                        <option value="deposit_paid">{{ _('Deposit paid') }}</option>
+                        <option value="paid">{{ _('Paid') }}</option>
+                        <option value="refunded">{{ _('Refunded') }}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="submit" class="btn btn-dark">{{ _('Save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const finModal = document.getElementById('financeModalHist');
+    if (finModal) {
+        finModal.addEventListener('show.bs.modal', function(event){
+            const btn = event.relatedTarget;
+            if (!btn || !btn.dataset.action) return;
+            document.getElementById('financeFormHist').action = btn.dataset.action;
+            document.getElementById('finHist_total_price').value = btn.dataset.price || '0.00';
+            document.getElementById('finHist_amount_paid').value = btn.dataset.paid || '';
+            const st = btn.dataset.status || 'unpaid';
+            const sel = document.getElementById('finHist_payment_status');
+            if (sel) sel.value = ['unpaid','deposit_paid','paid','refunded'].includes(st) ? st : 'unpaid';
+        });
+    }
+});
+</script>
+{% endblock %}

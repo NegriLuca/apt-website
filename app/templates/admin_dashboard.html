@@ -9,12 +9,14 @@
             <div class="card border-0 shadow-sm text-center p-3">
                 <small class="text-muted text-uppercase fw-bold">{{ _('Monthly Revenue') }}</small>
                 <h3 class="mb-0 text-success font-monospace">€{{ "%.0f"|format(data.monthly_revenue) }}</h3>
+                <small class="text-muted" style="font-size:.7rem;">{{ _('upcoming this month') }}</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <small class="text-muted text-uppercase fw-bold">{{ _('Yearly Revenue') }}</small>
                 <h3 class="mb-0 text-primary font-monospace">€{{ "%.0f"|format(data.yearly_revenue) }}</h3>
+                <small class="text-muted" style="font-size:.7rem;">{{ _('upcoming this year') }}</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
@@ -36,6 +38,7 @@
             <div class="card border-0 shadow-sm text-center p-2">
                 <small class="text-muted">{{ _('Total') }}</small>
                 <strong>{{ data.total }}</strong>
+                <small class="d-block text-muted" style="font-size:.65rem;">{{ _('active') }}</small>
             </div>
         </div>
         <div class="col-6 col-md-2">
@@ -87,6 +90,17 @@
     </div>
     {% endif %}
 
+    {% if data.past_count is defined and data.past_count > 0 %}
+    <div class="alert alert-light border shadow-sm d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <i class="bi bi-clock-history me-2"></i>
+            <strong>{{ data.past_count }}</strong> {{ _('past stays moved to') }} <a href="{{ url_for('routes.admin_history') }}" class="alert-link">{{ _('History & Analytics') }}</a>
+            {% if data.past_revenue %} — <span class="font-monospace">€{{ "%.0f"|format(data.past_revenue) }}</span> {{ _('total past revenue') }}{% endif %}
+        </div>
+        <a href="{{ url_for('routes.admin_history') }}" class="btn btn-sm btn-dark"><i class="bi bi-graph-up me-1"></i> {{ _('View History') }}</a>
+    </div>
+    {% endif %}
+
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card border-0 shadow-sm">
@@ -129,12 +143,15 @@
     </div>
     {% endif %}
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Reservation Ledger') }}</h4>
-        <a href="{{ url_for('routes.admin_receipts') }}" class="btn btn-sm btn-dark"><i class="bi bi-receipt me-1"></i> {{ _('Ricevute') }}</a>
-        <div id="bulk-actions" style="display: none;">
-            <button type="button" class="btn btn-sm btn-danger" id="bulk-delete-btn" onclick="bulkDelete()">{{ _('Delete Selected') }}</button>
-            <button type="button" class="btn btn-sm btn-secondary" id="bulk-cancel-btn">{{ _('Cancel Selection') }}</button>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h4 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Reservation Ledger') }} <small class="text-muted fw-normal text-lowercase">({{ _('upcoming & in-house only') }})</small></h4>
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{{ url_for('routes.admin_history') }}" class="btn btn-sm btn-outline-dark"><i class="bi bi-clock-history me-1"></i> {{ _('History') }} {% if data.past_count %}({{ data.past_count }}){% endif %}</a>
+            <a href="{{ url_for('routes.admin_receipts') }}" class="btn btn-sm btn-dark"><i class="bi bi-receipt me-1"></i> {{ _('Ricevute') }}</a>
+            <div id="bulk-actions" style="display: none;">
+                <button type="button" class="btn btn-sm btn-danger" id="bulk-delete-btn" onclick="bulkDelete()">{{ _('Delete Selected') }}</button>
+                <button type="button" class="btn btn-sm btn-secondary" id="bulk-cancel-btn">{{ _('Cancel Selection') }}</button>
+            </div>
         </div>
     </div>
 
@@ -179,7 +196,16 @@
                         <td>{{ r.check_in }}</td>
                         <td>{{ r.check_out }}</td>
                         <td>{{ r.nights }}</td>
-                        <td>{% if r.total_price > 0 %}€{{ "%.2f"|format(r.total_price) }}{% else %}—{% endif %}</td>
+                        <td>
+                            <span class="font-monospace">{% if r.total_price > 0 %}€{{ "%.2f"|format(r.total_price) }}{% else %}—{% endif %}</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-1" style="font-size:.75rem;line-height:1;"
+                                    title="{{ _('Edit revenue / payment') }}"
+                                    data-bs-toggle="modal" data-bs-target="#financeModal"
+                                    data-action="{{ url_for('routes.admin_update_finance', res_id=r.id) }}"
+                                    data-price="{{ "%.2f"|format(r.total_price) }}"
+                                    data-paid="{{ "%.2f"|format(r.amount_paid or 0) }}"
+                                    data-status="{{ r.payment_status }}">✏️</button>
+                        </td>
                         <td>
                             {% if r.payment_status == 'paid' %}
                                 <span class="badge bg-success">{{ _('Paid') }}</span>
@@ -192,6 +218,13 @@
                             {% else %}
                                 <span class="badge bg-secondary">{{ r.payment_status }}</span>
                             {% endif %}
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-1" style="font-size:.70rem;line-height:1;"
+                                    title="{{ _('Edit payment') }}"
+                                    data-bs-toggle="modal" data-bs-target="#financeModal"
+                                    data-action="{{ url_for('routes.admin_update_finance', res_id=r.id) }}"
+                                    data-price="{{ "%.2f"|format(r.total_price) }}"
+                                    data-paid="{{ "%.2f"|format(r.amount_paid or 0) }}"
+                                    data-status="{{ r.payment_status }}">✏️</button>
                         </td>
                         <td>
                             <div class="d-flex gap-1">
@@ -214,10 +247,6 @@
                                             <button type="submit" class="btn btn-sm btn-danger">{{ _('Cancel') }}</button>
                                         </form>
                                     {% endif %}
-                                    <form action="{{ url_for('routes.admin_delete_reservation', res_id=r.id) }}" method="POST" onsubmit="return confirm('{{ _('Delete this reservation permanently? This cannot be undone.') }}')">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete') }}">🗑</button>
-                                    </form>
                                 {% endif %}
                                 {% if r.source not in ['direct', 'stripe'] %}
                                     <button type="button"
@@ -264,7 +293,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="10" class="text-center text-muted py-4">{{ _('No reservations.') }}</td></tr>
+                    <tr><td colspan="10" class="text-center text-muted py-4">{{ _('No upcoming reservations.') }} <a href="{{ url_for('routes.admin_history') }}">{{ _('View past stays in History') }}</a></td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -314,6 +343,46 @@
     </div>
 </div>
 
+<div class="modal fade" id="financeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="" id="financeForm" class="modal-content border-0 shadow-sm" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cash-coin me-1"></i> {{ _('Edit revenue & payment') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="fin_total_price" class="form-label fw-semibold">{{ _('Revenue (total price) €') }}</label>
+                    <input type="number" step="0.01" min="0" class="form-control font-monospace" name="total_price" id="fin_total_price" required>
+                    <div class="form-text">{{ _('Stay amount charged to guest (drives reports & ricevuta).') }}</div>
+                </div>
+                <div class="mb-3">
+                    <label for="fin_amount_paid" class="form-label fw-semibold">{{ _('Amount paid €') }} <small class="text-muted">({{ _('optional') }})</small></label>
+                    <input type="number" step="0.01" min="0" class="form-control font-monospace" name="amount_paid" id="fin_amount_paid" placeholder="{{ _('leave blank to auto-sync') }}">
+                    <div class="form-text">{{ _('Leave blank to auto-set from status: Paid → total, Unpaid → 0, Deposit → 30%%.') }}</div>
+                </div>
+                <div class="mb-3">
+                    <label for="fin_payment_status" class="form-label fw-semibold">{{ _('Payment status') }}</label>
+                    <select class="form-select" name="payment_status" id="fin_payment_status" required>
+                        <option value="unpaid">{{ _('Unpaid') }}</option>
+                        <option value="deposit_paid">{{ _('Deposit paid') }}</option>
+                        <option value="paid">{{ _('Paid') }}</option>
+                        <option value="refunded">{{ _('Refunded') }}</option>
+                    </select>
+                </div>
+                <div class="alert alert-light border small mb-0">
+                    <i class="bi bi-info-circle me-1"></i> {{ _('Saving with') }} <code>Paid</code> {{ _('marks the amount as fully paid and confirms a pending booking.') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="submit" class="btn btn-dark">{{ _('Save') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const editModal = document.getElementById('editResModal');
@@ -325,6 +394,19 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('edit_res_check_in').value = btn.dataset.checkin || '';
             document.getElementById('edit_res_check_out').value = btn.dataset.checkout || '';
             document.getElementById('edit_res_guests').value = btn.dataset.guests || '1';
+        });
+    }
+    const finModal = document.getElementById('financeModal');
+    if (finModal) {
+        finModal.addEventListener('show.bs.modal', function(event) {
+            const btn = event.relatedTarget;
+            if (!btn || !btn.dataset.action) return;
+            document.getElementById('financeForm').action = btn.dataset.action;
+            document.getElementById('fin_total_price').value = btn.dataset.price || '0.00';
+            document.getElementById('fin_amount_paid').value = btn.dataset.paid || '';
+            const st = btn.dataset.status || 'unpaid';
+            const sel = document.getElementById('fin_payment_status');
+            if (sel) sel.value = ['unpaid','deposit_paid','paid','refunded'].includes(st) ? st : 'unpaid';
         });
     }
 

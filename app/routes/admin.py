@@ -117,14 +117,16 @@ def admin_dashboard() -> Response | str:
     year_start = today.replace(month=1, day=1)
     occupancy_end = _add_months(today, 3)
 
-    # Cancelled reservations are excluded from the ledger and all operational
-    # lists (kept in the DB for audit/compliance, just never displayed).
+    # Operational ledger: only upcoming/current reservations (check_out >= today).
+    # Past stays (check_out < today) are moved to /admin/history to keep the
+    # dashboard focused on what needs action. Cancelled are never displayed.
     reservations = (
-        Reservation.query.filter(Reservation.status != 'cancelled')
-        .order_by(Reservation.check_in.desc())
+        Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out >= today)
+        .order_by(Reservation.check_in.asc())
         .all()
     )
 
+    # For occupancy we still want confirmed stays in the forward window only.
     confirmed = [r for r in reservations if r.status == 'confirmed']
     cancelled_count = Reservation.query.filter_by(status='cancelled').count()
     pending = [r for r in reservations if r.status == 'pending']
@@ -153,6 +155,14 @@ def admin_dashboard() -> Response | str:
 
     occupancy_rate = _occupancy_rate(reservations, today, occupancy_end)
 
+    # Past stays count for the History link badge
+    past_count = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out < today).count()
+    past_revenue = sum(
+        r.total_price
+        for r in Reservation.query.filter(Reservation.status == 'confirmed', Reservation.check_out < today).all()
+        if not r.is_block
+    )
+
     dashboard_data = {
         'total': len(reservations),
         'confirmed': len(confirmed),
@@ -167,6 +177,8 @@ def admin_dashboard() -> Response | str:
         'today_checkouts': len(today_checkouts),
         'in_house': len(in_house),
         'pending_questura': pending_questura,
+        'past_count': past_count,
+        'past_revenue': past_revenue,
     }
 
     now = datetime.utcnow()
@@ -178,6 +190,129 @@ def admin_dashboard() -> Response | str:
         now=now,
         upcoming=upcoming,
         in_house=in_house,
+    )
+
+
+@bp.route('/admin/history')
+@bp.route('/admin/analytics')
+@login_required
+def admin_history() -> Response | str:
+    if not current_user.is_admin:
+        abort(403)
+
+    today = date.today()
+    page = request.args.get('page', 1, type=int)
+    source_filter = request.args.get('source', 'all')
+    year_filter = request.args.get('year', type=int)
+
+    # Base query: past stays only (check_out < today), cancelled excluded by default
+    base_q = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out < today)
+
+    # Distinct years for filter dropdown (from all past reservations)
+    all_past_for_years = base_q.all()
+    years = sorted({r.check_in.year for r in all_past_for_years}, reverse=True)
+
+    # Distinct sources for filter dropdown
+    sources = sorted({(r.source or 'direct') for r in all_past_for_years})
+
+    # Apply filters
+    filtered_q = base_q
+    if source_filter != 'all':
+        filtered_q = filtered_q.filter(Reservation.source == source_filter)
+    if year_filter:
+        year_start = date(year_filter, 1, 1)
+        year_end = date(year_filter + 1, 1, 1)
+        filtered_q = filtered_q.filter(Reservation.check_in >= year_start, Reservation.check_in < year_end)
+
+    pagination = filtered_q.order_by(Reservation.check_in.desc()).paginate(page=page, per_page=25, error_out=False)
+
+    # ── Aggregates for the filtered set ──────────────────────────────────
+    # For accurate financial stats we exclude calendar blocks (is_block=True) — they have no revenue.
+    all_filtered = filtered_q.all()
+    all_filtered_confirmed = [r for r in all_filtered if r.status == 'confirmed' and not r.is_block]
+
+    filtered_revenue = sum(r.total_price for r in all_filtered_confirmed)
+    filtered_nights = sum(r.nights for r in all_filtered_confirmed)
+    filtered_avg_nightly = round(filtered_revenue / filtered_nights, 2) if filtered_nights else 0
+    filtered_avg_stay = round(filtered_nights / len(all_filtered_confirmed), 1) if all_filtered_confirmed else 0
+
+    # ── Global past aggregates (unfiltered, for the top cards) ────────────
+    all_past = Reservation.query.filter(Reservation.status != 'cancelled', Reservation.check_out < today).all()
+    all_confirmed = [r for r in all_past if r.status == 'confirmed' and not r.is_block]
+    total_revenue = sum(r.total_price for r in all_confirmed)
+    total_nights = sum(r.nights for r in all_confirmed)
+    avg_nightly = round(total_revenue / total_nights, 2) if total_nights else 0
+    avg_stay = round(total_nights / len(all_confirmed), 1) if all_confirmed else 0
+    total_paid = sum(1 for r in all_confirmed if r.payment_status == 'paid')
+    total_unpaid = len(all_confirmed) - total_paid
+
+    # Occupancy over the last 12 months (or from earliest check_in to today if shorter)
+    if all_confirmed:
+        earliest = min(r.check_in for r in all_confirmed)
+        twelve_months_ago = _add_months(today, -12)
+        occ_start = max(earliest, twelve_months_ago)
+        occupancy_12m = _occupancy_rate(all_past, occ_start, today)
+        # Overall occupancy from earliest to today
+        occupancy_all = _occupancy_rate(all_past, earliest, today)
+    else:
+        occupancy_12m = 0
+        occupancy_all = 0
+
+    # Source breakdown for all past
+    source_counts = {}
+    for r in all_confirmed:
+        src = r.source or 'direct'
+        source_counts[src] = source_counts.get(src, 0) + 1
+    source_revenue = {}
+    for r in all_confirmed:
+        src = r.source or 'direct'
+        source_revenue[src] = source_revenue.get(src, 0) + (r.total_price or 0)
+
+    # Monthly breakdown (last 12 months or filtered year)
+    from collections import defaultdict
+
+    monthly_data = defaultdict(lambda: {'count': 0, 'nights': 0, 'revenue': 0.0})
+    for r in all_filtered_confirmed:
+        key = r.check_in.strftime('%Y-%m')
+        monthly_data[key]['count'] += 1
+        monthly_data[key]['nights'] += r.nights
+        monthly_data[key]['revenue'] += r.total_price or 0
+
+    monthly_breakdown = []
+    for month_key in sorted(monthly_data.keys(), reverse=True):
+        d = monthly_data[month_key]
+        monthly_breakdown.append({
+            'month': month_key,
+            'count': d['count'],
+            'nights': d['nights'],
+            'revenue': round(d['revenue'], 2),
+            'avg_nightly': round(d['revenue'] / d['nights'], 2) if d['nights'] else 0,
+        })
+
+    return render_template(
+        'admin_history.html',
+        reservations=pagination,
+        filtered_revenue=filtered_revenue,
+        filtered_nights=filtered_nights,
+        filtered_avg_nightly=filtered_avg_nightly,
+        filtered_avg_stay=filtered_avg_stay,
+        filtered_count=len(all_filtered_confirmed),
+        total_revenue=total_revenue,
+        total_nights=total_nights,
+        avg_nightly=avg_nightly,
+        avg_stay=avg_stay,
+        total_paid=total_paid,
+        total_unpaid=total_unpaid,
+        occupancy_12m=occupancy_12m,
+        occupancy_all=occupancy_all,
+        source_counts=source_counts,
+        source_revenue=source_revenue,
+        monthly_breakdown=monthly_breakdown,
+        years=years,
+        sources=sources,
+        source_filter=source_filter,
+        year_filter=year_filter,
+        today=today,
     )
 
 
@@ -908,6 +1043,83 @@ def admin_edit_reservation(res_id: int) -> Response | str:
     return redirect(url_for('routes.admin_dashboard'))
 
 
+@bp.route('/admin/reservations/<int:res_id>/finance', methods=['POST'])
+@login_required
+def admin_update_finance(res_id: int) -> Response | str:
+    """Edit revenue (total_price) and paid status for any reservation.
+
+    Accessible from Dashboard and History tables. Updates total_price,
+    payment_status and keeps amount_paid in sync.
+    """
+    if not current_user.is_admin:
+        abort(403)
+
+    res = Reservation.query.get_or_404(res_id)
+    raw_price = request.form.get('total_price', '').strip()
+    raw_status = request.form.get('payment_status', '').strip()
+    raw_amount_paid = request.form.get('amount_paid', '').strip()
+
+    # ── total_price ───────────────────────────────────────────────────
+    if raw_price != '':
+        try:
+            new_price = round(float(raw_price), 2)
+            if new_price < 0:
+                raise ValueError()
+        except ValueError:
+            flash('Invalid revenue amount.', 'danger')
+            return redirect(request.referrer or url_for('routes.admin_dashboard'))
+        old_price = res.total_price
+        res.total_price = new_price
+    else:
+        old_price = res.total_price
+
+    # ── amount_paid (optional override) ───────────────────────────────
+    amount_paid_explicit = False
+    if raw_amount_paid != '':
+        try:
+            new_paid = round(float(raw_amount_paid), 2)
+            if new_paid < 0:
+                raise ValueError()
+            res.amount_paid = new_paid
+            amount_paid_explicit = True
+        except ValueError:
+            flash('Invalid amount paid.', 'danger')
+            return redirect(request.referrer or url_for('routes.admin_dashboard'))
+
+    # ── payment_status ────────────────────────────────────────────────
+    allowed = {'unpaid', 'paid', 'deposit_paid', 'refunded'}
+    if raw_status:
+        if raw_status not in allowed:
+            flash('Invalid payment status.', 'danger')
+            return redirect(request.referrer or url_for('routes.admin_dashboard'))
+        res.payment_status = raw_status
+        # Auto-sync amount_paid ↔ total_price when not explicitly set
+        if not amount_paid_explicit:
+            if raw_status == 'paid':
+                res.amount_paid = res.total_price
+                if res.status == 'pending':
+                    res.status = 'confirmed'
+            elif raw_status == 'unpaid':
+                res.amount_paid = 0.0
+            elif raw_status == 'deposit_paid' and not res.amount_paid:
+                res.amount_paid = round(res.total_price * 0.3, 2)
+            elif raw_status == 'refunded':
+                # keep amount_paid as is for refund record
+                pass
+
+    # Guard: amount_paid should not exceed total_price unless refunded
+    if res.payment_status != 'refunded' and res.amount_paid and res.amount_paid > res.total_price:
+        res.amount_paid = res.total_price
+
+    db.session.commit()
+    admin_audit_log(
+        'update_finance', 'Reservation', res_id,
+        f'price {old_price} → {res.total_price}, status {raw_status or res.payment_status}, paid {res.amount_paid}',
+    )
+    flash(f'Reservation #{res_id} — revenue €{res.total_price:.2f} / {res.payment_status} saved.', 'success')
+    return redirect(request.referrer or url_for('routes.admin_dashboard'))
+
+
 @bp.route('/admin/reservations/<int:res_id>/delete', methods=['POST'])
 @login_required
 def admin_delete_reservation(res_id: int) -> Response | str:
@@ -915,6 +1127,11 @@ def admin_delete_reservation(res_id: int) -> Response | str:
         abort(403)
 
     res = Reservation.query.get_or_404(res_id)
+    # Hard delete is only for external (OTA) reservations — direct bookings
+    # should be cancelled (refund flow) to preserve revenue/compliance history.
+    if not _is_external_reservation(res):
+        flash('Direct bookings cannot be hard-deleted. Use Cancel to refund and archive — they will appear in History.', 'warning')
+        return redirect(url_for('routes.admin_dashboard'))
 
     from app.models import QuesturaLog, Ross1000Log
 
@@ -942,14 +1159,26 @@ def admin_bulk_delete_reservations() -> Response | str:
 
     reservations = Reservation.query.filter(Reservation.id.in_(selected_ids)).all()
 
+    deleted = 0
+    skipped_direct = 0
     for res in reservations:
+        if not _is_external_reservation(res):
+            skipped_direct += 1
+            continue
         QuesturaLog.query.filter_by(reservation_id=res.id).delete()
         Ross1000Log.query.filter_by(reservation_id=res.id).delete()
         db.session.delete(res)
+        deleted += 1
 
     db.session.commit()
-    admin_audit_log('bulk_delete_reservations', 'Reservation', None, f'Deleted {len(reservations)} reservations')
-    flash(f'{len(reservations)} reservation(s) deleted.', 'success')
+    if deleted:
+        admin_audit_log('bulk_delete_reservations', 'Reservation', None, f'Deleted {deleted} reservations')
+        msg = f'{deleted} reservation(s) deleted.'
+        if skipped_direct:
+            msg += f' {skipped_direct} direct booking(s) skipped (use Cancel).'
+        flash(msg, 'success' if not skipped_direct else 'warning')
+    else:
+        flash('No external reservations selected — direct bookings cannot be hard-deleted (use Cancel).', 'warning')
     return redirect(url_for('routes.admin_dashboard'))
 
 
