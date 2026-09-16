@@ -1823,7 +1823,7 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     # ── Split templates ────────────────────────────────────────────────
     # Part 1: Questura / Online Check-in — to be sent right after booking.
     # Part 2: Access / Gate & Door — to be sent closer to arrival.
-    message_it_checkin = f"""Benvenuto a {apt_name} ({guest_label}),
+    message_it_checkin = f"""Benvenuto a {apt_name}, {guest_label}.
 
 Grazie per aver scelto il nostro appartamento.
 
@@ -1838,7 +1838,7 @@ Grazie per aver scelto il nostro appartamento.
 A presto,
 {apt_name}"""
 
-    message_en_checkin = f"""Welcome to {apt_name} ({guest_label}),
+    message_en_checkin = f"""Welcome to {apt_name}, {guest_label}.
 
 Thank you for choosing our apartment.
 
@@ -1853,7 +1853,7 @@ Thank you for choosing our apartment.
 See you soon,
 {apt_name}"""
 
-    message_it_access = f"""Benvenuto a {apt_name} ({guest_label}),
+    message_it_access = f"""Benvenuto a {apt_name}, {guest_label}.
 
 Ecco le istruzioni per accedere all'appartamento.
 
@@ -1877,7 +1877,7 @@ Ecco le istruzioni per accedere all'appartamento.
 A presto,
 {apt_name}"""
 
-    message_en_access = f"""Welcome to {apt_name} ({guest_label}),
+    message_en_access = f"""Welcome to {apt_name}, {guest_label}.
 
 Here are the instructions to access the apartment.
 
