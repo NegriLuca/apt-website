@@ -147,25 +147,88 @@
         </div>
 
         <div class="col-lg-7">
-            <div class="card border-0 shadow-sm mb-4">
+            <!-- ════════════════════ Part 1 — Check-in / Questura ════════════════════ -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-primary fs-6">1 / 2</span>
+                <h5 class="mb-0">{{ _('Check-in — Questura') }}</h5>
+                <small class="text-muted ms-2">{{ _('to send right after booking') }}</small>
+            </div>
+            <div class="alert alert-info py-2 small mb-3">
+                <i class="bi bi-send me-1"></i>{{ _('Send this first message immediately after booking. It contains only the check-in link for the police registration.') }}
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ _('Message') }} — {{ _('Italian') }}</h5>
-                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-it" type="button">📋 {{ _('Copy') }}</button>
+                    <h6 class="mb-0">{{ _('Message') }} — {{ _('Italian') }} — {{ _('Check-in') }}</h6>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-it-checkin" type="button">📋 {{ _('Copy') }}</button>
                 </div>
                 <div class="card-body">
-                    <textarea id="msg-it" class="form-control font-monospace" rows="14">{{ message_it }}</textarea>
+                    <textarea id="msg-it-checkin" class="form-control font-monospace" rows="10">{{ message_it_checkin }}</textarea>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ _('Message') }} — {{ _('English') }}</h5>
-                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-en" type="button">📋 {{ _('Copy') }}</button>
+                    <h6 class="mb-0">{{ _('Message') }} — {{ _('English') }} — {{ _('Check-in') }}</h6>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-en-checkin" type="button">📋 {{ _('Copy') }}</button>
                 </div>
                 <div class="card-body">
-                    <textarea id="msg-en" class="form-control font-monospace" rows="14">{{ message_en }}</textarea>
+                    <textarea id="msg-en-checkin" class="form-control font-monospace" rows="10">{{ message_en_checkin }}</textarea>
                 </div>
             </div>
+
+            <!-- ════════════════════ Part 2 — Access / Gate & Door ════════════════════ -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-success fs-6">2 / 2</span>
+                <h5 class="mb-0">{{ _('Access — Gate & Door') }}</h5>
+                <small class="text-muted ms-2">{{ _('to send close to arrival') }}</small>
+            </div>
+            <div class="alert alert-success py-2 small mb-3">
+                <i class="bi bi-key me-1"></i>{{ _('Send this second message a day or two before arrival. It contains the gate/door links, keypad code and self check-in guide.') }}
+            </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ _('Message') }} — {{ _('Italian') }} — {{ _('Access') }}</h6>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-it-access" type="button">📋 {{ _('Copy') }}</button>
+                </div>
+                <div class="card-body">
+                    <textarea id="msg-it-access" class="form-control font-monospace" rows="14">{{ message_it_access }}</textarea>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{ _('Message') }} — {{ _('English') }} — {{ _('Access') }}</h6>
+                    <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-en-access" type="button">📋 {{ _('Copy') }}</button>
+                </div>
+                <div class="card-body">
+                    <textarea id="msg-en-access" class="form-control font-monospace" rows="14">{{ message_en_access }}</textarea>
+                </div>
+            </div>
+
+            <!-- Legacy combined (collapsed, for reference) -->
+            <details class="mt-2">
+                <summary class="small text-muted" style="cursor:pointer">{{ _('Show combined legacy messages (for reference)') }}</summary>
+                <div class="card border-0 shadow-sm mt-2 mb-2">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 small">{{ _('Message') }} — {{ _('Italian') }} — {{ _('Combined') }}</h6>
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-it" type="button">📋 {{ _('Copy') }}</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="msg-it" class="form-control font-monospace" rows="10">{{ message_it }}</textarea>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 small">{{ _('Message') }} — {{ _('English') }} — {{ _('Combined') }}</h6>
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="msg-en" type="button">📋 {{ _('Copy') }}</button>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="msg-en" class="form-control font-monospace" rows="10">{{ message_en }}</textarea>
+                    </div>
+                </div>
+            </details>
         </div>
     </div>
 </div>

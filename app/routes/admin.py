@@ -1820,17 +1820,46 @@ def admin_guest_message(reservation_id: int) -> Response | str:
     attractions_url = url_for('routes.attractions', _external=True)
     house_rules_url = url_for('routes.house_rules', _external=True)
 
-    message_it = f"""Benvenuto a {apt_name} ({guest_label}),
+    # ── Split templates ────────────────────────────────────────────────
+    # Part 1: Questura / Online Check-in — to be sent right after booking.
+    # Part 2: Access / Gate & Door — to be sent closer to arrival.
+    message_it_checkin = f"""Benvenuto a {apt_name} ({guest_label}),
 
 Grazie per aver scelto il nostro appartamento.
 
 \U0001f6cd Soggiorno: dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')} ({res.nights} notti)
 \U0001f465 Ospiti: {res.num_guests}
 
-\U0001f4cb CHECK-IN ONLINE (obbligatorio per legge):
+\U0001f4cb CHECK-IN ONLINE (obbligatorio per legge italiana — registrazione in Questura):
 {checkin_url}
 
-\U0001f6aa APRI CANCELLO E PORTA (durante il soggiorno):
+\u26a0\ufe0f Ti preghiamo di compilare il modulo con i dati di tutti gli ospiti oppure, in alternativa, di inviarci un documento d'identit\u00e0 valido per ciascuna persona che soggiorner\u00e0.
+
+A presto,
+{apt_name}"""
+
+    message_en_checkin = f"""Welcome to {apt_name} ({guest_label}),
+
+Thank you for choosing our apartment.
+
+\U0001f6cd Stay: from {res.check_in.strftime('%b %d, %Y')} to {res.check_out.strftime('%b %d, %Y')} ({res.nights} nights)
+\U0001f465 Guests: {res.num_guests}
+
+\U0001f4cb ONLINE CHECK-IN (required by Italian law — Questura registration):
+{checkin_url}
+
+\u26a0\ufe0f Please fill in the form with the details of all guests or, alternatively, send us a valid ID document for each person staying.
+
+See you soon,
+{apt_name}"""
+
+    message_it_access = f"""Benvenuto a {apt_name} ({guest_label}),
+
+Ecco le istruzioni per accedere all'appartamento.
+
+\U0001f6cd Soggiorno: dal {res.check_in.strftime('%d/%m/%Y')} al {res.check_out.strftime('%d/%m/%Y')} ({res.nights} notti)
+
+\U0001f6aa APRI CANCELLO E PORTA (valido durante il soggiorno):
 {access_url}{keypad_block}{tax_block}
 
 \U0001f5fa COME RAGGIUNGERE L'APPARTAMENTO — guida al self check-in:
@@ -1848,17 +1877,13 @@ Grazie per aver scelto il nostro appartamento.
 A presto,
 {apt_name}"""
 
-    message_en = f"""Welcome to {apt_name} ({guest_label}),
+    message_en_access = f"""Welcome to {apt_name} ({guest_label}),
 
-Thank you for choosing our apartment.
+Here are the instructions to access the apartment.
 
 \U0001f6cd Stay: from {res.check_in.strftime('%b %d, %Y')} to {res.check_out.strftime('%b %d, %Y')} ({res.nights} nights)
-\U0001f465 Guests: {res.num_guests}
 
-\U0001f4cb ONLINE CHECK-IN (required by Italian law):
-{checkin_url}
-
-\U0001f6aa OPEN GATE & DOOR (during your stay):
+\U0001f6aa OPEN GATE & DOOR (valid during your stay):
 {access_url}{keypad_block}{tax_block_en}
 
 \U0001f5fa SELF CHECK-IN GUIDE — how to reach the apartment:
@@ -1876,11 +1901,19 @@ Thank you for choosing our apartment.
 See you soon,
 {apt_name}"""
 
+    # Legacy combined templates (kept for backwards compatibility / reference)
+    message_it = f"{message_it_checkin}\n\n---\n\n{message_it_access}"
+    message_en = f"{message_en_checkin}\n\n---\n\n{message_en_access}"
+
     return render_template(
         'admin_guest_message.html',
         reservation=res,
         message_it=message_it,
         message_en=message_en,
+        message_it_checkin=message_it_checkin,
+        message_en_checkin=message_en_checkin,
+        message_it_access=message_it_access,
+        message_en_access=message_en_access,
         keypad_status=keypad_status,
         tax_amount=tax_amount,
         city_tax_enabled=city_tax_enabled,
