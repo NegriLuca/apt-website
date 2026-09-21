@@ -135,6 +135,10 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
     live_uids: set[str] = set()
     live_date_pairs: set[tuple[date, date]] = set()
     to_add = []
+    # In-memory dedup for this run — prevents UNIQUE violations when the feed
+    # contains the same UID/dates twice or when a cancelled row is resurrected
+    pending_uids: set[str] = set()
+    pending_date_pairs: set[tuple[date, date]] = set()
 
     for component in cal.walk('VEVENT'):
         uid = str(component.get('UID', ''))
@@ -180,28 +184,69 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
             log.info('iCal sync [%s]: skipping closure %s (%s → %s)', display_source, uid, start, end)
             continue
 
-        # ── DUP CHECK 1: Query by unique iCal UID string ──────────────────────
-        existing_by_uid = None
-        if uid:
-            existing_by_uid = Reservation.query.filter_by(external_uid=uid, status='confirmed').first()
-
-        # ── DUP CHECK 2: Fallback query by exact dates (For existing rows/manual blocks) ──
-        existing_by_date = Reservation.query.filter_by(check_in=start, check_out=end, status='confirmed').first()
-
-        # If it matches either check, skip it entirely (No-Op) — but repair any
-        # legacy row that was previously tagged as a calendar block. The old
-        # classifier marked Booking.com's "CLOSED - Not available" real
-        # reservations as blocks; re-syncing now flips those to reservations.
-        if existing_by_uid or existing_by_date:
-            existing = existing_by_uid or existing_by_date
-            # If the row exists but lacks a UID, update it in place so it's tracked correctly next time
-            if existing_by_date and not existing_by_date.external_uid and uid:
-                existing_by_date.external_uid = uid
-            if existing.is_block:
-                existing.is_block = False
-                existing.source = display_source
-                log.info('iCal sync [%s]: repaired legacy block #%s → real reservation (%s → %s)', display_source, existing.id, start, end)
+        # ── In-feed dedup: same UID or same dates already queued this run ──
+        if uid and uid in pending_uids:
+            log.info('iCal sync [%s]: skipping duplicate UID in feed %s (%s → %s)', display_source, uid, start, end)
             continue
+        if (start, end) in pending_date_pairs:
+            log.info('iCal sync [%s]: skipping duplicate dates in feed %s (%s → %s)', display_source, uid, start, end)
+            continue
+
+        # ── DUP CHECK 1: Query by unique iCal UID string ──────────────────────
+        # Use no_autoflush so pending to_add rows don't trigger a flush that
+        # would raise UNIQUE constraint before we can dedup. Search *any*
+        # status (including cancelled) to avoid IntegrityError on unique
+        # external_uid and to allow resurrecting orphan-cancelled rows.
+        with db.session.no_autoflush:
+            existing_by_uid = None
+            if uid:
+                existing_by_uid = Reservation.query.filter_by(external_uid=uid).first()
+            if existing_by_uid:
+                # Resurrect a previously cancelled reservation that re-appeared
+                if existing_by_uid.status == 'cancelled':
+                    existing_by_uid.status = 'confirmed'
+                    existing_by_uid.is_block = False
+                    existing_by_uid.source = display_source
+                    existing_by_uid.check_in = start
+                    existing_by_uid.check_out = end
+                    log.info('iCal sync [%s]: resurrecting cancelled %s (%s → %s)', display_source, uid, start, end)
+                    # Repair legacy block flag if it was mis-classified before
+                    if uid:
+                        pending_uids.add(uid)
+                    pending_date_pairs.add((start, end))
+                    continue
+                # Existing confirmed/pending — idempotent, repair legacy block
+                if existing_by_uid.status in ('confirmed', 'pending'):
+                    if existing_by_uid.is_block:
+                        existing_by_uid.is_block = False
+                        existing_by_uid.source = display_source
+                        log.info('iCal sync [%s]: repaired legacy block #%s → real reservation (%s → %s)', display_source, existing_by_uid.id, start, end)
+                    if uid:
+                        pending_uids.add(uid)
+                    pending_date_pairs.add((start, end))
+                    continue
+                # Any other status (e.g. cancelled already handled) — still dedup
+                if uid:
+                    pending_uids.add(uid)
+                pending_date_pairs.add((start, end))
+                continue
+
+            # ── DUP CHECK 2: Fallback query by exact dates (For existing rows/manual blocks) ──
+            # Only confirmed blocks re-use by dates; cancelled on same dates is
+            # considered free and should allow a new booking (new UID).
+            existing_by_date = Reservation.query.filter_by(check_in=start, check_out=end, status='confirmed').first()
+            if existing_by_date:
+                # If the row exists but lacks a UID, update it in place so it's tracked correctly next time
+                if not existing_by_date.external_uid and uid:
+                    existing_by_date.external_uid = uid
+                if existing_by_date.is_block:
+                    existing_by_date.is_block = False
+                    existing_by_date.source = display_source
+                    log.info('iCal sync [%s]: repaired legacy block #%s → real reservation (%s → %s)', display_source, existing_by_date.id, start, end)
+                if uid:
+                    pending_uids.add(uid)
+                pending_date_pairs.add((start, end))
+                continue
 
         # Build a readable guest name from the platform + HM code (Airbnb) or
         # the feed UID fragment.
@@ -225,6 +270,9 @@ def sync_feed(feed: ICalFeed) -> tuple[int, int]:
                 payment_method='automatic',
             )
         )
+        if uid:
+            pending_uids.add(uid)
+        pending_date_pairs.add((start, end))
         log.info('iCal sync [%s]: adding %s (%s → %s)', display_source, uid, start, end)
 
     for r in to_add:
@@ -298,6 +346,7 @@ def sync_all_feeds() -> tuple[int, int, list]:
             total_cancelled += cancelled
             log.info('iCal sync [%s]: +%d / -%d', feed.source, added, cancelled)
         except Exception as exc:
+            db.session.rollback()
             msg = f'{feed.source}: {exc}'
             errors.append(msg)
             log.error('iCal sync failed — %s', msg)
