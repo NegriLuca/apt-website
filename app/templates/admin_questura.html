@@ -19,6 +19,92 @@
         </div>
     </div>
 
+    <!-- Compiled overview + quick filters -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <a href="{{ url_for('routes.questura_list', status=status_filter, q=q, form='all') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 {% if form_filter == 'all' %}border border-primary{% endif %}">
+                    <div class="card-body text-center py-3">
+                        <div class="display-6">{{ total_count }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">{{ _('All') }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('routes.questura_list', status=status_filter, q=q, form='compiled') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 {% if form_filter == 'compiled' %}border border-success{% else %}bg-success bg-opacity-10{% endif %}">
+                    <div class="card-body text-center py-3">
+                        <div class="display-6 text-success">{{ compiled_count }}</div>
+                        <div class="text-success small text-uppercase fw-bold"><i class="bi bi-check-circle me-1"></i>{{ _('Compiled') }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('routes.questura_list', status=status_filter, q=q, form='not_compiled') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 {% if form_filter == 'not_compiled' %}border border-secondary{% endif %}">
+                    <div class="card-body text-center py-3">
+                        <div class="display-6 text-secondary">{{ not_compiled_count }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">{{ _('Not compiled') }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('routes.questura_list', status=status_filter, q=q, form='ready') }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 {% if form_filter == 'ready' %}border border-success{% endif %}">
+                    <div class="card-body text-center py-3">
+                        <div class="display-6 text-success">{{ ready_count }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">{{ _('Questura ready') }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Green section: recently compiled -->
+    {% if compiled_recent %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-check-circle me-2"></i>{{ _('Recently compiled — ready to send / recover') }} ({{ compiled_count }})</span>
+                    <a href="{{ url_for('routes.questura_list', status=status_filter, q=q, form='compiled') }}" class="btn btn-sm btn-light">{{ _('View all compiled') }} →</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 small align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>{{ _('Guest') }}</th>
+                                    <th>{{ _('Stay') }}</th>
+                                    <th>{{ _('Compiled at') }}</th>
+                                    <th>{{ _('Questura') }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in compiled_recent %}
+                                <tr>
+                                    <td><strong>#{{ r.id }}</strong></td>
+                                    <td>{{ r.guest_name }}<br><small class="text-muted">{{ r.guest_surname or '' }} {{ r.guest_first_name or '' }} {{ r.guest_document_number or '' }}</small></td>
+                                    <td>{{ r.check_in.strftime('%d/%m/%Y') }} → {{ r.check_out.strftime('%d/%m/%Y') }}</td>
+                                    <td><span class="badge bg-success">{{ r.checkin_completed_at.strftime('%d/%m/%Y %H:%M') }}</span></td>
+                                    <td><span class="badge bg-{{ 'success' if r.questura_status == 'accepted' else 'warning' if r.questura_status in ['pending','sent'] else 'secondary' }}">{{ r.questura_status or _('to send') }}</span></td>
+                                    <td><a href="{{ url_for('routes.questura_guest_data', res_id=r.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-lines-fill me-1"></i>{{ _('Data') }}</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Filters -->
     <div class="row mb-3">
         <div class="col-12">

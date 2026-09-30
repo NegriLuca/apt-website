@@ -119,6 +119,20 @@ def questura_list() -> Response | str:
             )
         )
 
+    # ── stats for the "Compiled" section (counts before form filtering, but after status/search)
+    base_stats_q = query
+    total_count = base_stats_q.count()
+    compiled_count = base_stats_q.filter(Reservation.checkin_completed_at.isnot(None)).count()
+    not_compiled_count = base_stats_q.filter(Reservation.checkin_completed_at.is_(None)).count()
+    ready_count = base_stats_q.filter(
+        Reservation.guest_surname.isnot(None),
+        Reservation.guest_first_name.isnot(None),
+        Reservation.guest_birth_date.isnot(None),
+        Reservation.guest_document_number.isnot(None),
+    ).count()
+    # distinct list of recently compiled (for the green section)
+    compiled_recent = base_stats_q.filter(Reservation.checkin_completed_at.isnot(None)).order_by(Reservation.checkin_completed_at.desc()).limit(5).all()
+
     if form_filter == 'compiled':
         query = query.filter(Reservation.checkin_completed_at.isnot(None))
     elif form_filter == 'not_compiled':
@@ -141,7 +155,18 @@ def questura_list() -> Response | str:
         )
 
     reservations = query.paginate(page=page, per_page=25, error_out=False)
-    return render_template('admin_questura.html', reservations=reservations, status_filter=status_filter, q=q, form_filter=form_filter)
+    return render_template(
+        'admin_questura.html',
+        reservations=reservations,
+        status_filter=status_filter,
+        q=q,
+        form_filter=form_filter,
+        total_count=total_count,
+        compiled_count=compiled_count,
+        not_compiled_count=not_compiled_count,
+        ready_count=ready_count,
+        compiled_recent=compiled_recent,
+    )
 
 
 @bp.route('/admin/compliance/questura/<int:res_id>/guest-data')
