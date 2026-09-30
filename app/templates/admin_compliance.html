@@ -1,220 +1,67 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Compliance Dashboard') }}{% endblock %}
+{% block title %}{{ _('Compliance') }}{% endblock %}
 
 {% block content %}
 <div class="main-content">
     {% include 'admin_header.html' %}
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="page-title"><i class="bi bi-shield-lock me-2"></i>{{ _('Italian Compliance Dashboard') }}</h1>
-            <p class="text-muted">Monitoraggio adempimenti normativi: Questura, Tassa Soggiorno, ROSS1000</p>
+            <h1 class="page-title"><i class="bi bi-shield-lock me-2"></i>{{ _('Compliance') }}</h1>
+            <p class="text-muted small mb-0">{{ _('Only Questura and Tourist Tax — as requested.') }}</p>
         </div>
     </div>
 
-    <!-- Questura Status Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-warning">{{ questura_pending }}</div>
-                    <div class="text-muted small">{{ _('To be sent to Questura') }}</div>
-                    <a href="{{ url_for('routes.questura_list', status='pending') }}" class="btn btn-sm btn-outline-warning mt-2">{{ _('View') }}</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-danger">{{ questura_rejected }}</div>
-                    <div class="text-muted small">{{ _('Rejected / With errors') }}</div>
-                    <a href="{{ url_for('routes.questura_list', status='rejected') }}" class="btn btn-sm btn-outline-danger mt-2">{{ _('View') }}</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-success">{{ questura_accepted }}</div>
-                    <div class="text-muted small">{{ _('Accepted') }}</div>
-                    <a href="{{ url_for('routes.questura_list', status='accepted') }}" class="btn btn-sm btn-outline-success mt-2">{{ _('View') }}</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-info">€{{ "%.2f"|format(current_month_tax) }}</div>
-                    <div class="text-muted small">{{ _('Current Month Tourist Tax') }}</div>
-                    <a href="{{ url_for('routes.tourist_tax') }}" class="btn btn-sm btn-outline-info mt-2">{{ _('Manage') }}</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ROSS1000 Status Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-warning">{{ ross1000_pending }}</div>
-                    <div class="text-muted small">{{ _('ROSS1000 To be sent') }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-danger">{{ ross1000_rejected }}</div>
-                    <div class="text-muted small">{{ _('ROSS1000 Rejected') }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 text-success">{{ ross1000_accepted }}</div>
-                    <div class="text-muted small">{{ _('ROSS1000 Accepted') }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="text-center py-2">
-                        <a href="{{ url_for('routes.ross1000_list') }}" class="btn btn-outline-primary btn-sm">{{ _('Manage ROSS1000') }}</a>
-                        <a href="{{ url_for('routes.ross1000_logs') }}" class="btn btn-outline-secondary btn-sm mt-1">{{ _('View Logs') }}</a>
-                        <form method="POST" action="{{ url_for('routes.ross1000_test') }}" class="mt-1">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-plug me-1"></i>{{ _('Test Connection') }}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>{{ _('Quick Actions') }}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex flex-wrap gap-2">
-                        <form method="POST" action="{{ url_for('routes.questura_run_daily') }}">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Run Daily Questura Submission') }}
-                            </button>
-                        </form>
-                        <form method="POST" action="{{ url_for('routes.tourist_tax_generate') }}">
-                            <button type="submit" class="btn btn-info">
-                                <i class="bi bi-file-earmark-text me-1"></i>{{ _('Generate Tourist Tax Report') }}
-                            </button>
-                        </form>
-                        <a href="{{ url_for('routes.compliance_config') }}" class="btn btn-secondary">
-                            <i class="bi bi-gear me-1"></i>{{ _('Credentials Configuration') }}
-                        </a>
-                        <a href="{{ url_for('routes.questura_logs') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-journal-text me-1"></i>{{ _('Questura Log') }}
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Upcoming Check-ins Needing Data -->
-    {% if needing_data %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-warning shadow-sm">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ _('Upcoming Check-ins Without Questura Data') }}</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small">Le seguenti prenotazioni fanno check-in nei prossimi 7 giorni ma mancano dati per Questura:</p>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{ _('Guest') }}</th>
-                                    <th>{{ _('Check-in') }}</th>
-                                    <th>{{ _('Status') }}</th>
-                                    <th>{{ _('Missing Fields') }}</th>
-                                    <th>{{ _('Action') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for r in needing_data %}
-                                <tr class="{{ 'table-warning' if r.check_in == today else '' }}">
-                                    <td>#{{ r.id }}</td>
-                                    <td>{{ r.guest_name }}</td>
-                                    <td>{{ r.check_in.strftime('%d/%m/%Y') }}</td>
-                                    <td><span class="badge bg-{{ 'warning' if r.questura_status in [None, 'pending'] else 'danger' }}">{{ r.questura_status or 'da inviare' }}</span></td>
-                                    <td class="text-muted small">{{ r.questura_ready() and 'Completo' or 'Dati ospite mancanti' }}</td>
-                                    <td>
-                                        <a href="{{ url_for('routes.guest_self_checkin', token=r.checkin_token) if r.checkin_token else '#' }}" class="btn btn-sm btn-primary">{{ _('Enter Data') }}</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Configuration Status -->
-    <div class="row">
+    <div class="row g-4">
+        <!-- Questura — Guest Forms -->
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>{{ _('Questura Configuration Status') }}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr><th>{{ _('Parameter') }}</th><th>{{ _('Status') }}</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for key, configured in config_status.items() %}
-                                <tr>
-                                    <td><code>{{ key }}</code></td>
-                                    <td>
-                                        {% if configured %}
-                                            <span class="badge bg-success">{{ _('Configured') }}</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">{{ _('Missing') }}</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded me-3"><i class="bi bi-shield-lock fs-3 text-warning"></i></div>
+                        <div>
+                            <h4 class="mb-1">{{ _('Questura — Guest Forms') }}</h4>
+                            <div class="text-muted small">{{ _('All check-in forms, documents & companions — recover any guest data') }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mb-3 small">
+                        <span class="badge bg-warning text-dark">{{ questura_pending }} {{ _('to send') }}</span>
+                        <span class="badge bg-success">{{ questura_accepted }} {{ _('accepted') }}</span>
+                        {% if questura_rejected %}<span class="badge bg-danger">{{ questura_rejected }} {{ _('rejected') }}</span>{% endif %}
+                    </div>
+                    <div class="mt-auto d-grid gap-2">
+                        <a href="{{ url_for('routes.questura_list', status='all') }}" class="btn btn-warning">
+                            <i class="bi bi-person-lines-fill me-1"></i>{{ _('Open Questura') }} — /admin/compliance/questura?status=all
+                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('routes.questura_list', status='pending') }}" class="btn btn-outline-warning btn-sm flex-fill">{{ _('Pending') }}</a>
+                            <a href="{{ url_for('routes.questura_list', status='accepted') }}" class="btn btn-outline-success btn-sm flex-fill">{{ _('Accepted') }}</a>
+                            <a href="{{ url_for('routes.questura_logs') }}" class="btn btn-outline-secondary btn-sm flex-fill">{{ _('Logs') }}</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Tourist Tax -->
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{{ _('Regulatory Requirements') }}</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled small mb-0">
-                        <li class="mb-2"><strong>Questura (AlloggiatiWeb):</strong> Invio entro 24h dal check-in. Obbligatorio per tutti gli ospiti.</li>
-                        <li class="mb-2"><strong>Tassa Soggiorno Roma:</strong> Dichiarazione mensile entro il 15 del mese successivo.</li>
-                        <li class="mb-2"><strong>CIN (Codice Identificativo Nazionale):</strong> Da esporre su tutti gli annunci e sito web.</li>
-                        <li class="mb-2"><strong>ROSS1000 Lazio:</strong> Registro strutture ricettive regionale.</li>
-                        <li class="mb-2"><strong>SCIA:</strong> Segnalazione Inizio Attività (già presentata).</li>
-                    </ul>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 p-3 rounded me-3"><i class="bi bi-currency-euro fs-3 text-info"></i></div>
+                        <div>
+                            <h4 class="mb-1">{{ _('Tourist Tax') }}</h4>
+                            <div class="text-muted small">{{ _('Monthly reports — full and paid-only') }} · €{{ "%.2f"|format(current_month_tax) }} {{ _('this month') }}</div>
+                        </div>
+                    </div>
+                    <div class="mt-auto d-grid gap-2">
+                        <a href="{{ url_for('routes.tourist_tax') }}" class="btn btn-info">
+                            <i class="bi bi-file-earmark-text me-1"></i>{{ _('Open Tourist Tax') }} — /admin/compliance/tourist-tax
+                        </a>
+                        <a href="{{ url_for('routes.tourist_tax_paid') }}" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i>{{ _('Paid-only report') }} — /admin/compliance/tourist-tax/paid
+                        </a>
+                        <div class="form-text small">{{ _('Paid-only shows only reservations with tourist_tax_paid = true.') }}</div>
+                    </div>
                 </div>
             </div>
         </div>
