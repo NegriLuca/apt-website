@@ -1414,32 +1414,20 @@ def admin_send_access_link() -> Response | str:
     subject = f"Accesso all'appartamento \u2014 {res.guest_name}"
     html = render_template('email_access_link.html', reservation=res, access_url=access_url, checkin_url=checkin_url)
 
-    brevo_api_key = current_app.config.get('MAIL_PASSWORD')
-    payload = {
-        'sender': {'name': 'Lotto235 Garbatella', 'email': 'lotto235roma@gmail.com'},
-        'to': [{'email': res.guest_email}],
-        'subject': subject,
-        'htmlContent': html,
-    }
-
-    import requests
-
     if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
         current_app.logger.info('Email suppressed (TESTING): access link for #%s', res.id)
-        flash('Email suppressed (test mode) — not sent to Brevo.', 'info')
+        flash('Email suppressed (test mode) — not sent.', 'info')
         return redirect(url_for('routes.admin_dashboard'))
 
     try:
-        r = requests.post(
-            'https://api.brevo.com/v3/smtp/email',
-            headers={'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key},
-            data=json.dumps(payload),
-        )
-        if r.status_code in [200, 201, 202]:
-            flash('Access link sent to guest email.', 'success')
-        else:
-            flash(f'Failed to send email ({r.status_code}).', 'danger')
+        from app import mail
+        from flask_mail import Message
+        sender_addr = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or 'lotto235roma@gmail.com'
+        msg = Message(subject=subject, recipients=[res.guest_email], html=html, sender=('Lotto235 Garbatella', sender_addr))
+        mail.send(msg)
+        flash('Access link sent via Gmail SMTP.', 'success')
     except Exception as e:
+        current_app.logger.error('Access link SMTP failed: %s', e)
         flash(f'Error sending email: {e}', 'danger')
 
     return redirect(url_for('routes.admin_dashboard'))

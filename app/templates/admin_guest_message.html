@@ -142,6 +142,30 @@
                         </form>
                         {% endif %}
                     </div>
+
+                    <!-- Questura Guest Data -->
+                    <hr>
+                    <h6 class="fw-bold mb-2"><i class="bi bi-shield-lock me-1"></i>{{ _('Questura — Guest Form') }}</h6>
+                    {% if reservation.checkin_completed_at %}
+                        <div class="mb-2"><span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ _('Form compiled') }} {{ reservation.checkin_completed_at.strftime('%d/%m/%Y %H:%M') }}</span></div>
+                    {% else %}
+                        <div class="mb-2"><span class="badge bg-secondary">{{ _('Form not yet compiled') }}</span></div>
+                    {% endif %}
+                    {% if reservation.guest_surname or reservation.guest_first_name %}
+                        <div class="small mb-1"><strong>{{ reservation.guest_surname or '' }} {{ reservation.guest_first_name or '' }}</strong>
+                        {% if reservation.guest_birth_date %} · {{ reservation.guest_birth_date.strftime('%d/%m/%Y') }}{% endif %}
+                        {% if reservation.guest_birth_place %} · {{ reservation.guest_birth_place }}{% endif %}</div>
+                        <div class="small text-muted mb-1">{{ reservation.guest_document_type or '—' }} {{ reservation.guest_document_number or '' }} {% if reservation.guest_document_country %}({{ reservation.guest_document_country }}){% endif %} · {{ reservation.guest_nationality or '' }} · {{ reservation.guest_gender or '' }}</div>
+                        {% if reservation.companions %}
+                            <div class="small text-muted mb-2"><i class="bi bi-people me-1"></i>{{ reservation.companions|length }} {{ _('companions') }}: {% for c in reservation.companions %}{{ c.get('surname','') }} {{ c.get('first_name','') }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="small text-muted mb-2">{{ _('No guest document data yet — guest has not completed the online check-in.') }}</div>
+                    {% endif %}
+                    <a href="{{ url_for('routes.questura_guest_data', res_id=reservation.id) }}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-person-lines-fill me-1"></i>{{ _('View full Guest Data') }} — /admin/compliance/questura/{{ reservation.id }}/guest-data
+                    </a>
+                    <div class="form-text mt-1">{{ _('Full Questura schedina with all companions, ready for AlloggiatiWeb submission.') }}</div>
                 </div>
             </div>
         </div>

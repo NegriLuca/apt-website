@@ -1,30 +1,36 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Questura Submissions') }}{% endblock %}
+{% block title %}{{ _('Questura — Guest Forms') }}{% endblock %}
 
 {% block content %}
 <div class="main-content">
     {% include 'admin_header.html' %}
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="page-title mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Questura Submissions Management') }}</h1>
-                <div>
-                    <a href="{{ url_for('routes.compliance_dashboard') }}" class="btn btn-outline-secondary me-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h1 class="page-title mb-0"><i class="bi bi-shield-lock me-2"></i>{{ _('Questura — Guest Forms') }}</h1>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('routes.compliance_dashboard') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i>{{ _('Back to Dashboard') }}
                     </a>
+                    <a href="{{ url_for('routes.questura_logs') }}" class="btn btn-outline-secondary btn-sm">{{ _('Logs') }}</a>
                 </div>
             </div>
+            <p class="text-muted small mb-0 mt-1">{{ _('Single page — all guest check-in forms. Recover any form, document or companion data from here.') }}</p>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="row mb-4">
+    <div class="row mb-3">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
-                    <form method="GET" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">{{ _('Status') }}</label>
+                    <form method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small text-uppercase fw-bold">{{ _('Search') }}</label>
+                            <input type="text" name="q" value="{{ q or '' }}" placeholder="{{ _('Name, email, doc, code') }}" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-uppercase fw-bold">{{ _('Status') }}</label>
                             <select name="status" class="form-select" onchange="this.form.submit()">
                                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ _('All') }}</option>
                                 <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>{{ _('Accepted') }}</option>
@@ -33,15 +39,25 @@
                                 <option value="None" {% if status_filter == 'None' %}selected{% endif %}>{{ _('Not sent') }}</option>
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">{{ _('Bulk Actions') }}</label>
+                        <div class="col-md-2">
+                            <label class="form-label small text-uppercase fw-bold">{{ _('Form') }}</label>
+                            <select name="form" class="form-select" onchange="this.form.submit()">
+                                <option value="all" {% if form_filter == 'all' %}selected{% endif %}>{{ _('All') }}</option>
+                                <option value="compiled" {% if form_filter == 'compiled' %}selected{% endif %}>{{ _('Compiled') }}</option>
+                                <option value="not_compiled" {% if form_filter == 'not_compiled' %}selected{% endif %}>{{ _('Not compiled') }}</option>
+                                <option value="ready" {% if form_filter == 'ready' %}selected{% endif %}>{{ _('Questura ready') }}</option>
+                                <option value="not_ready" {% if form_filter == 'not_ready' %}selected{% endif %}>{{ _('Not ready') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>{{ _('Filter') }}</button>
+                        </div>
+                        <div class="col-md-3">
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-warning" id="btnSubmitSelected" disabled>
+                                <button type="button" class="btn btn-warning flex-fill" id="btnSubmitSelected" disabled>
                                     <i class="bi bi-send me-1"></i>{{ _('Send Selected') }}
                                 </button>
-                                <button type="button" class="btn btn-secondary" id="btnRetryFailed" disabled>
-                                    <i class="bi bi-arrow-clockwise me-1"></i>{{ _('Retry Failed') }}
-                                </button>
+                                <a href="{{ url_for('routes.questura_list', status='all') }}" class="btn btn-outline-secondary">{{ _('Reset') }}</a>
                             </div>
                         </div>
                     </form>
@@ -56,73 +72,97 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="questuraTable">
+                        <table class="table table-hover mb-0 small align-middle" id="questuraTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 50px;">
-                                        <input type="checkbox" id="selectAll" class="form-check-input">
-                                    </th>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAll" class="form-check-input"></th>
                                     <th>{{ _('ID') }}</th>
                                     <th>{{ _('Guest') }}</th>
-                                    <th>{{ _('Check-in') }}</th>
-                                    <th>{{ _('Check-out') }}</th>
-                                    <th>{{ _('Questura Status') }}</th>
-                                    <th>{{ _('Last Submission') }}</th>
-                                    <th>{{ _('Action') }}</th>
+                                    <th>{{ _('Stay') }}</th>
+                                    <th>{{ _('Form') }}</th>
+                                    <th>{{ _('Main Guest Document') }}</th>
+                                    <th>{{ _('Companions') }}</th>
+                                    <th>{{ _('Questura') }}</th>
+                                    <th style="width: 160px;">{{ _('Actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for r in reservations.items %}
                                 <tr data-id="{{ r.id }}" data-status="{{ r.questura_status or '' }}">
+                                    <td><input type="checkbox" class="form-check-input rowSelect" value="{{ r.id }}" {% if not r.questura_ready() %}disabled{% endif %}></td>
+                                    <td><strong>#{{ r.id }}</strong><br><small class="text-muted">{{ r.source or 'direct' }}</small></td>
                                     <td>
-                                        <input type="checkbox" class="form-check-input rowSelect" value="{{ r.id }}" {% if not r.questura_ready() %}disabled{% endif %}>
+                                        <div class="fw-bold">{{ r.guest_name }}</div>
+                                        {% if r.guest_email %}<div class="text-muted" style="font-size:0.8em">{{ r.guest_email }}</div>{% endif %}
+                                        <div class="text-muted" style="font-size:0.8em">{{ r.num_guests }} {{ _('guests') }} · {{ r.nights }} {{ _('nights') }}</div>
                                     </td>
-                                    <td><strong>#{{ r.id }}</strong></td>
-                                    <td>{{ r.guest_name }}</td>
-                                    <td>{{ r.check_in.strftime('%d/%m/%Y') }}</td>
-                                    <td>{{ r.check_out.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ r.check_in.strftime('%d/%m/%Y') }}<br><span class="text-muted">→ {{ r.check_out.strftime('%d/%m/%Y') }}</span></td>
                                     <td>
-                                        {% set status = r.questura_status or 'none' %}
-                                        <span class="badge bg-{{ 
-                                            'success' if status == 'accepted' else
-                                            'warning' if status in ['pending', 'sent'] else
-                                            'danger' if status == 'rejected' else
-                                            'secondary' }}">
-                                            {% if status == 'accepted' %}{{ _('Accepted') }}
-                                            {% elif status in ['pending', 'sent'] %}{{ _('Pending') }}
-                                            {% elif status == 'rejected' %}{{ _('Rejected') }}
-                                            {% else %}{{ _('To be sent') }}{% endif %}
-                                        </span>
+                                        {% if r.checkin_completed_at %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>{{ _('Compiled') }}</span><br>
+                                            <small class="text-muted">{{ r.checkin_completed_at.strftime('%d/%m %H:%M') }}</small>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ _('Not compiled') }}</span>
+                                        {% endif %}
+                                        <br>
+                                        {% if r.questura_ready() %}
+                                            <span class="badge bg-success mt-1">{{ _('Ready') }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark mt-1">{{ _('Incomplete') }}</span>
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        {% if r.questura_submitted_at %}
-                                            {{ r.questura_submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                                        {% if r.guest_surname or r.guest_first_name %}
+                                            <div class="fw-semibold">{{ r.guest_surname or '' }} {{ r.guest_first_name or '' }}</div>
+                                            <div class="text-muted" style="font-size:0.8em">
+                                                {% if r.guest_birth_date %}{{ r.guest_birth_date.strftime('%d/%m/%Y') }}{% endif %}
+                                                {% if r.guest_birth_place %} · {{ r.guest_birth_place }}{% endif %}
+                                                {% if r.guest_nationality %}<br>{{ r.guest_nationality }}{% endif %}
+                                                {% if r.guest_gender %}<br>{{ _('Gender') }}: {{ r.guest_gender }}{% endif %}
+                                            </div>
+                                            <div class="text-muted" style="font-size:0.8em">
+                                                {% if r.guest_document_type %}{{ r.guest_document_type }}{% endif %}
+                                                {% if r.guest_document_number %} {{ r.guest_document_number }}{% endif %}
+                                                {% if r.guest_document_country %} ({{ r.guest_document_country }}){% endif %}
+                                            </div>
                                         {% else %}
                                             <span class="text-muted">—</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('routes.questura_guest_data', res_id=r.id) }}" class="btn btn-outline-primary" title="{{ _('Guest Data') }}">
-                                                <i class="bi bi-person"></i>
+                                        {% if r.companions %}
+                                            <span class="badge bg-info">{{ r.companions|length }} {{ _('companions') }}</span>
+                                            <div class="text-muted mt-1" style="font-size:0.8em; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                {% for c in r.companions %}{{ c.get('surname','') }} {{ c.get('first_name','') }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set status = r.questura_status or 'none' %}
+                                        <span class="badge bg-{{ 'success' if status == 'accepted' else 'warning' if status in ['pending','sent'] else 'danger' if status == 'rejected' else 'secondary' }}">
+                                            {% if status == 'accepted' %}{{ _('Accepted') }}{% elif status in ['pending','sent'] %}{{ _('Pending') }}{% elif status == 'rejected' %}{{ _('Rejected') }}{% else %}{{ _('To be sent') }}{% endif %}
+                                        </span>
+                                        {% if r.questura_submitted_at %}<br><small class="text-muted">{{ r.questura_submitted_at.strftime('%d/%m %H:%M') }}</small>{% endif %}
+                                        {% if r.questura_error %}<br><small class="text-danger" title="{{ r.questura_error }}">{{ r.questura_error[:40] }}</small>{% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm flex-wrap gap-1">
+                                            <a href="{{ url_for('routes.questura_guest_data', res_id=r.id) }}" class="btn btn-outline-primary" title="{{ _('Full Guest Data — recover form') }}">
+                                                <i class="bi bi-person-lines-fill"></i> {{ _('Data') }}
+                                            </a>
+                                            <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-outline-secondary" title="{{ _('Guest messages') }}">
+                                                <i class="bi bi-chat-dots"></i>
                                             </a>
                                             {% if r.questura_ready() and status != 'accepted' %}
-                                            <button type="button" class="btn btn-warning btnSubmitSingle" data-id="{{ r.id }}" title="{{ _('Send to Questura') }}">
-                                                <i class="bi bi-send"></i>
-                                            </button>
-                                            {% endif %}
-                                            {% if status == 'rejected' %}
-                                            <button type="button" class="btn btn-outline-secondary btnRetry" data-id="{{ r.id }}" title="{{ _('Retry') }}">
-                                                <i class="bi bi-arrow-clockwise"></i>
-                                            </button>
+                                            <button type="button" class="btn btn-warning btnSubmitSingle" data-id="{{ r.id }}" title="{{ _('Send to Questura') }}"><i class="bi bi-send"></i></button>
                                             {% endif %}
                                         </div>
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr>
-                                    <td colspan="8" class="text-center py-4 text-muted">{{ _('No reservations found') }}</td>
-                                </tr>
+                                <tr><td colspan="9" class="text-center py-4 text-muted">{{ _('No reservations found') }}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -133,17 +173,17 @@
                     <nav aria-label="{{ _('Pagination') }}">
                         <ul class="pagination justify-content-center mb-0">
                             {% if reservations.has_prev %}
-                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_list', page=reservations.prev_num, status=status_filter) }}">&laquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_list', page=reservations.prev_num, status=status_filter, q=q, form=form_filter) }}">&laquo;</a></li>
                             {% endif %}
                             {% for p in reservations.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
                                 {% if p %}
-                                    <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.questura_list', page=p, status=status_filter) }}">{{ p }}</a></li>
+                                    <li class="page-item {% if p == reservations.page %}active{% endif %}"><a class="page-link" href="{{ url_for('routes.questura_list', page=p, status=status_filter, q=q, form=form_filter) }}">{{ p }}</a></li>
                                 {% else %}
                                     <li class="page-item disabled"><span class="page-link">…</span></li>
                                 {% endif %}
                             {% endfor %}
                             {% if reservations.has_next %}
-                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_list', page=reservations.next_num, status=status_filter) }}">&raquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ url_for('routes.questura_list', page=reservations.next_num, status=status_filter, q=q, form=form_filter) }}">&raquo;</a></li>
                             {% endif %}
                         </ul>
                     </nav>
@@ -159,91 +199,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectAll = document.getElementById('selectAll');
     const rowSelects = document.querySelectorAll('.rowSelect');
     const btnSubmitSelected = document.getElementById('btnSubmitSelected');
-    const btnRetryFailed = document.getElementById('btnRetryFailed');
-    const questuraTable = document.getElementById('questuraTable');
-
-    // Select all
-    selectAll.addEventListener('change', function() {
-        rowSelects.forEach(cb => {
-            if (!cb.disabled) cb.checked = this.checked;
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            rowSelects.forEach(cb => { if (!cb.disabled) cb.checked = this.checked; });
+            updateBulkButtons();
         });
-        updateBulkButtons();
-    });
-
-    rowSelects.forEach(cb => {
-        cb.addEventListener('change', updateBulkButtons);
-    });
-
+    }
+    rowSelects.forEach(cb => { cb.addEventListener('change', updateBulkButtons); });
     function updateBulkButtons() {
         const selected = document.querySelectorAll('.rowSelect:checked').length;
-        btnSubmitSelected.disabled = selected === 0;
-        btnRetryFailed.disabled = selected === 0;
+        if (btnSubmitSelected) btnSubmitSelected.disabled = selected === 0;
     }
-
-    // Single submit
     document.querySelectorAll('.btnSubmitSingle').forEach(btn => {
-        btn.addEventListener('click', function() {
-            submitToQuestura([this.dataset.id]);
+        btn.addEventListener('click', function() { submitToQuestura([this.dataset.id]); });
+    });
+    if (btnSubmitSelected) {
+        btnSubmitSelected.addEventListener('click', function() {
+            const ids = Array.from(document.querySelectorAll('.rowSelect:checked')).map(cb => cb.value);
+            submitToQuestura(ids);
         });
-    });
-
-    // Bulk submit
-    btnSubmitSelected.addEventListener('click', function() {
-        const ids = Array.from(document.querySelectorAll('.rowSelect:checked')).map(cb => cb.value);
-        submitToQuestura(ids);
-    });
-
-    // Retry failed
-    btnRetryFailed.addEventListener('click', function() {
-        const ids = Array.from(document.querySelectorAll('.rowSelect:checked')).map(cb => cb.value);
-        retryQuestura(ids);
-    });
-
-    // Row retry
-    document.querySelectorAll('.btnRetry').forEach(btn => {
-        btn.addEventListener('click', function() {
-            retryQuestura([this.dataset.id]);
-        });
-    });
-
+    }
     function submitToQuestura(ids) {
         if (!ids.length) return;
         if (!confirm(`Inviare ${ids.length} prenotazione(i) a Questura?`)) return;
-
-        fetch('/admin/compliance/questura/submit', {
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        fetch('{{ url_for("routes.questura_submit") }}', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({reservation_ids: ids})
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.task_id) {
-                alert(`Inviato! Task ID: ${data.task_id}`);
-                setTimeout(() => location.reload(), 3000);
-            } else {
-                alert('Errore: ' + (data.error || 'Unknown'));
-            }
-        });
-    }
-
-    function retryQuestura(ids) {
-        if (!ids.length) return;
-        if (!confirm(`Riprova invio per ${ids.length} prenotazione(i)?`)) return;
-
-        fetch('/admin/compliance/questura/submit', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({reservation_ids: ids})
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.task_id) {
-                alert(`Riprova avviata! Task ID: ${data.task_id}`);
-                setTimeout(() => location.reload(), 3000);
-            } else {
-                alert('Errore: ' + (data.error || 'Unknown'));
-            }
-        });
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'csrf_token=' + encodeURIComponent(csrf) + '&reservation_id=' + encodeURIComponent(ids[0])
+        }).then(() => location.reload());
     }
 });
 </script>

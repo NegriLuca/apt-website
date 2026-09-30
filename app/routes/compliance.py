@@ -95,6 +95,8 @@ def questura_list() -> Response | str:
 
     status_filter = request.args.get('status', 'all')
     page = request.args.get('page', 1, type=int)
+    q = request.args.get('q', '').strip()
+    form_filter = request.args.get('form', 'all')  # all | compiled | not_compiled | ready | not_ready
 
     query = Reservation.query.filter(Reservation.status != 'cancelled').order_by(Reservation.check_in.desc())
     if status_filter == 'pending':
@@ -104,8 +106,42 @@ def questura_list() -> Response | str:
     elif status_filter != 'all':
         query = query.filter(Reservation.questura_status == status_filter)
 
+    if q:
+        like = f'%{q}%'
+        query = query.filter(
+            db.or_(
+                Reservation.guest_name.ilike(like),
+                Reservation.guest_email.ilike(like),
+                Reservation.guest_surname.ilike(like),
+                Reservation.guest_first_name.ilike(like),
+                Reservation.guest_document_number.ilike(like),
+                Reservation.external_uid.ilike(like),
+            )
+        )
+
+    if form_filter == 'compiled':
+        query = query.filter(Reservation.checkin_completed_at.isnot(None))
+    elif form_filter == 'not_compiled':
+        query = query.filter(Reservation.checkin_completed_at.is_(None))
+    elif form_filter == 'ready':
+        query = query.filter(
+            Reservation.guest_surname.isnot(None),
+            Reservation.guest_first_name.isnot(None),
+            Reservation.guest_birth_date.isnot(None),
+            Reservation.guest_document_number.isnot(None),
+        )
+    elif form_filter == 'not_ready':
+        query = query.filter(
+            db.or_(
+                Reservation.guest_surname.is_(None),
+                Reservation.guest_first_name.is_(None),
+                Reservation.guest_birth_date.is_(None),
+                Reservation.guest_document_number.is_(None),
+            )
+        )
+
     reservations = query.paginate(page=page, per_page=25, error_out=False)
-    return render_template('admin_questura.html', reservations=reservations, status_filter=status_filter)
+    return render_template('admin_questura.html', reservations=reservations, status_filter=status_filter, q=q, form_filter=form_filter)
 
 
 @bp.route('/admin/compliance/questura/<int:res_id>/guest-data')
@@ -172,13 +208,42 @@ def tourist_tax() -> Response | str:
     apt = get_apartment()
     year = request.args.get('year', date.today().year, type=int)
     month = request.args.get('month', date.today().month, type=int)
+    paid_only = request.args.get('paid_only') == '1'
 
     from app.services.tourist_tax import get_tax_service
 
     service = get_tax_service(apt)
     report = service.generate_detailed_report(year, month)
+    if paid_only:
+        report['reservations'] = [r for r in report['reservations'] if r.get('tax_paid')]
+        report['total_tax'] = sum(r.get('tax', 0) for r in report['reservations'])
+        report['total_reservations'] = len(report['reservations'])
+        report['total_nights'] = sum(r.get('nights', 0) for r in report['reservations'])
+        report['total_guests'] = sum(r.get('guests', 0) for r in report['reservations'])
 
-    return render_template('admin_tourist_tax.html', apt=apt, report=report, year=year, month=month)
+    return render_template('admin_tourist_tax.html', apt=apt, report=report, year=year, month=month, paid_only=paid_only)
+
+
+@bp.route('/admin/compliance/tourist-tax/paid')
+@login_required
+def tourist_tax_paid() -> Response | str:
+    """Dedicated paid-only report: only reservations with tourist_tax_paid=True."""
+    if not current_user.is_admin:
+        abort(403)
+    apt = get_apartment()
+    year = request.args.get('year', date.today().year, type=int)
+    month = request.args.get('month', date.today().month, type=int)
+    from app.services.tourist_tax import get_tax_service
+    service = get_tax_service(apt)
+    report = service.generate_detailed_report(year, month)
+    # Keep only paid
+    paid_rows = [r for r in report['reservations'] if r.get('tax_paid')]
+    report['reservations'] = paid_rows
+    report['total_tax'] = sum(r.get('tax', 0) for r in paid_rows)
+    report['total_reservations'] = len(paid_rows)
+    report['total_nights'] = sum(r.get('nights', 0) for r in paid_rows)
+    report['total_guests'] = sum(r.get('guests', 0) for r in paid_rows)
+    return render_template('admin_tourist_tax.html', apt=apt, report=report, year=year, month=month, paid_only=True)
 
 
 @bp.route('/admin/compliance/tourist-tax/save-config', methods=['POST'])
@@ -206,18 +271,49 @@ def tourist_tax_export() -> Response | str:
 
     year = request.args.get('year', type=int) or date.today().year
     month = request.args.get('month', type=int) or date.today().month
+    paid_only = request.args.get('paid_only') == '1'
 
     from app.services.tourist_tax import get_tax_service
 
     service = get_tax_service(get_apartment())
     csv_data = service.export_monthly_csv(year, month)
+    # For paid-only export, filter CSV rows to paid only
+    if paid_only:
+        import csv, io
+        from app.models import Reservation
+        apt = get_apartment()
+        from app.services.tourist_tax import get_tax_service as _gts
+        tax_service = _gts(apt)
+        start = date(year, month, 1)
+        if month == 12:
+            end = date(year + 1, 1, 1)
+        else:
+            end = date(year, month + 1, 1)
+        paid_res = Reservation.query.filter(
+            Reservation.status == 'confirmed',
+            Reservation.tourist_tax_paid.is_(True),
+            Reservation.tourist_tax_excluded != True,
+            Reservation.check_in >= start,
+            Reservation.check_in < end,
+        ).order_by(Reservation.check_in).all()
+        output = io.StringIO()
+        writer = csv.writer(output, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(tax_service._get_csv_headers())
+        total = 0.0
+        for r in paid_res:
+            row = tax_service.calculate_for_reservation(r)
+            writer.writerow(tax_service._row_to_csv(row))
+            total += row.total_tax
+        writer.writerow(['', '', '', '', '', '', '', f'{total:.2f}', '', '', ''])
+        csv_data = output.getvalue()
 
+    suffix = '_paid' if paid_only else ''
     return (
         csv_data,
         200,
         {
             'Content-Type': 'text/csv; charset=utf-8',
-            'Content-Disposition': f'attachment; filename="tourist_tax_{year:04d}-{month:02d}.csv"',
+            'Content-Disposition': f'attachment; filename="tourist_tax{suffix}_{year:04d}-{month:02d}.csv"',
         },
     )
 
@@ -464,34 +560,25 @@ def send_checkin_link() -> Response | str:
 
     checkin_url = url_for('routes.guest_self_checkin', token=res.checkin_token, _external=True)
 
-    brevo_api_key = current_app.config.get('MAIL_PASSWORD')
-    payload = {
-        'sender': {'name': 'Lotto235 Garbatella', 'email': 'lotto235roma@gmail.com'},
-        'to': [{'email': res.guest_email}],
-        'subject': 'Check-in Link \u2014 Lotto 235 Garbatella',
-        'htmlContent': render_template('email_checkin_link.html', reservation=res, checkin_url=checkin_url),
-    }
-
-    import json
-
-    import requests
-
     if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
         current_app.logger.info('Email suppressed (TESTING): check-in link for #%s', res.id)
-        flash('Email suppressed (test mode) — not sent to Brevo.', 'info')
+        flash('Email suppressed (test mode) — not sent.', 'info')
         return redirect(url_for('routes.compliance_dashboard'))
 
     try:
-        r = requests.post(
-            'https://api.brevo.com/v3/smtp/email',
-            headers={'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key},
-            data=json.dumps(payload),
+        from app import mail
+        from flask_mail import Message
+        sender_addr = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or 'lotto235roma@gmail.com'
+        msg = Message(
+            subject='Check-in Link — Lotto 235 Garbatella',
+            recipients=[res.guest_email],
+            html=render_template('email_checkin_link.html', reservation=res, checkin_url=checkin_url),
+            sender=('Lotto235 Garbatella', sender_addr),
         )
-        if r.status_code in [200, 201, 202]:
-            flash('Check-in link sent.', 'success')
-        else:
-            flash(f'Failed ({r.status_code}).', 'danger')
+        mail.send(msg)
+        flash('Check-in link sent via Gmail SMTP.', 'success')
     except Exception as e:
+        current_app.logger.error('Check-in link SMTP failed: %s', e)
         flash(f'Error: {e}', 'danger')
 
     return redirect(url_for('routes.compliance_dashboard'))

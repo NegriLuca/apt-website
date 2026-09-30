@@ -102,6 +102,7 @@ def calculate_city_tax(check_in, check_out, num_adults=2, apartment=None) -> flo
 
 
 def _send_brevo_email(payload):
+    """Send email via Flask-Mail Gmail SMTP (keeps Brevo name for compat)."""
     if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
         current_app.logger.info('Email suppressed (TESTING): %s', payload.get('subject'))
         class _MockResp:  # mimic success response
@@ -109,10 +110,42 @@ def _send_brevo_email(payload):
             text = 'suppressed'
             def json(self): return {}
         return _MockResp()
-    brevo_api_key = current_app.config.get('MAIL_PASSWORD')
-    url = 'https://api.brevo.com/v3/smtp/email'
-    headers = {'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key}
-    return requests.post(url, headers=headers, data=json.dumps(payload))
+    from flask_mail import Message
+    from app import mail
+
+    sender = payload.get('sender', {})
+    sender_name = sender.get('name') or 'Lotto235 Garbatella'
+    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or sender.get('email') or 'lotto235roma@gmail.com'
+    recipients = [r['email'] for r in payload.get('to', [])]
+    reply_to = None
+    if payload.get('replyTo'):
+        reply_to = payload['replyTo'].get('email')
+    cc = [r['email'] for r in payload.get('cc', [])] if payload.get('cc') else None
+    bcc = [r['email'] for r in payload.get('bcc', [])] if payload.get('bcc') else None
+    try:
+        msg = Message(
+            subject=payload.get('subject', ''),
+            recipients=recipients,
+            html=payload.get('htmlContent') or payload.get('html_content') or '',
+            sender=(sender_name, sender_email),
+            reply_to=reply_to,
+            cc=cc,
+            bcc=bcc,
+        )
+        mail.send(msg)
+        current_app.logger.info('SMTP email sent to %s: %s', recipients, payload.get('subject'))
+        class _OkResp:
+            status_code = 201
+            text = 'sent'
+            def json(self): return {}
+        return _OkResp()
+    except Exception as e:
+        current_app.logger.error('SMTP send failed to %s: %s', recipients, e)
+        class _ErrResp:
+            status_code = 500
+            text = str(e)
+            def json(self): return {'error': str(e)}
+        return _ErrResp()
 
 
 def _send_confirmation_emails(reservation):

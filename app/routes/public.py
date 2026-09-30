@@ -109,17 +109,7 @@ def contact() -> Response | str:
         email = form.email.data
         message_text = form.message.data
 
-        brevo_api_key = current_app.config.get('MAIL_PASSWORD')
-        sender_email = 'lotto235roma@gmail.com'
         admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
-
-        payload = {
-            'sender': {'name': name, 'email': sender_email},
-            'to': [{'email': admin_recipient}],
-            'replyTo': {'email': email, 'name': name},
-            'subject': f'\U0001f4ec Contact Form: {name}',
-            'htmlContent': f'<p><strong>Name:</strong> {name}</p><p><strong>Email:</strong> {email}</p><p><strong>Message:</strong><br>{message_text}</p>',
-        }
 
         if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
             current_app.logger.info('Email suppressed (TESTING): contact from %s', email)
@@ -127,15 +117,22 @@ def contact() -> Response | str:
             return redirect(url_for('routes.contact'))
 
         try:
-            url = 'https://api.brevo.com/v3/smtp/email'
-            headers = {'accept': 'application/json', 'content-type': 'application/json', 'api-key': brevo_api_key}
-            response = requests.post(url, headers=headers, data=json.dumps(payload))
-            if response.status_code in [200, 201, 202]:
-                flash(_('Thank you! Your message has been sent.'), 'success')
-            else:
-                flash(_('Failed to send message. Please try again later.'), 'danger')
-        except Exception:
-            flash(_('Network error. Please try again later.'), 'danger')
+            from app import mail
+            from flask_mail import Message
+            sender_addr = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or 'lotto235roma@gmail.com'
+            msg = Message(
+                subject=f'📬 Contact Form: {name}',
+                recipients=[admin_recipient],
+                html=f'<p><strong>Name:</strong> {name}</p><p><strong>Email:</strong> {email}</p><p><strong>Message:</strong><br>{message_text}</p>',
+                sender=(name, sender_addr),
+                reply_to=email,
+            )
+            mail.send(msg)
+            current_app.logger.info('Contact SMTP sent from %s to %s', email, admin_recipient)
+            flash(_('Thank you! Your message has been sent.'), 'success')
+        except Exception as e:
+            current_app.logger.error('Contact SMTP failed: %s', e)
+            flash(_('Failed to send message. Please try again later.'), 'danger')
 
         return redirect(url_for('routes.contact'))
 

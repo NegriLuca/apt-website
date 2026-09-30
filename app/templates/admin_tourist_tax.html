@@ -72,7 +72,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <form method="GET" class="row g-3 align-items-end">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">{{ _('Year') }}</label>
                             <select class="form-select" name="year">
                                 {% for y in range(2023, 2028) %}
@@ -80,7 +80,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">{{ _('Month') }}</label>
                             <select class="form-select" name="month">
                                 {% for m in range(1, 13) %}
@@ -88,15 +88,32 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label class="form-label">{{ _('Filter') }}</label>
+                            <select class="form-select" name="paid_only" onchange="this.form.submit()">
+                                <option value="0" {% if not paid_only %}selected{% endif %}>{{ _('All') }}</option>
+                                <option value="1" {% if paid_only %}selected{% endif %}>{{ _('Paid only') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">{{ _('View Report') }}</button>
                         </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('routes.tourist_tax_export', year=year, month=month) }}" class="btn btn-success w-100">
-                                <i class="bi bi-download me-1"></i>{{ _('Download CSV Rome') }}
+                        <div class="col-md-2">
+                            <a href="{{ url_for('routes.tourist_tax_export', year=year, month=month, paid_only=1 if paid_only else 0) }}" class="btn btn-success w-100">
+                                <i class="bi bi-download me-1"></i>{{ _('Download CSV') }}{% if paid_only %} {{ _('Paid') }}{% else %} Rome{% endif %}
                             </a>
                         </div>
+                        <div class="col-md-2">
+                            {% if not paid_only %}
+                            <a href="{{ url_for('routes.tourist_tax_paid', year=year, month=month) }}" class="btn btn-outline-success w-100"><i class="bi bi-check-circle me-1"></i>{{ _('Paid report') }}</a>
+                            {% else %}
+                            <a href="{{ url_for('routes.tourist_tax', year=year, month=month) }}" class="btn btn-outline-secondary w-100">{{ _('All report') }}</a>
+                            {% endif %}
+                        </div>
                     </form>
+                    {% if paid_only %}
+                    <div class="alert alert-success mt-3 mb-0 py-2 small"><i class="bi bi-check-circle me-1"></i>{{ _('Showing only reservations with tourist tax paid.') }} <a href="{{ url_for('routes.tourist_tax', year=year, month=month) }}" class="alert-link">{{ _('Show all') }}</a></div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -143,8 +160,9 @@
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">{{ _('Detail per Reservation') }}</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ _('Detail per Reservation') }} {% if paid_only %}<span class="badge bg-success ms-2">{{ _('Paid only') }}</span>{% endif %}</h5>
+                    {% if paid_only %}<small class="text-muted">{{ report.total_reservations }} {{ _('paid reservations') }}</small>{% endif %}
                 </div>
                 <div class="card-body p-0">
                         <div class="table-responsive">
