@@ -528,11 +528,24 @@ def admin_earnings() -> Response | str:
 
         if raw is not None and not error:
             try:
-                from app.services.airbnb_earnings import parse_earnings_csv
-                result = parse_earnings_csv(raw)
+                # Auto-detect platform from CSV headers
+                text_sample = raw[:2000].decode('utf-8', errors='ignore') if isinstance(raw, bytes) else raw[:2000]
+                is_booking = 'Tipologia' in text_sample or 'Numero prenotazione' in text_sample
+                is_airbnb = 'Confirmation code' in text_sample or 'Gross earnings' in text_sample
+
+                if is_booking:
+                    from app.services.booking_earnings import parse_earnings_csv as parse_booking_csv
+                    result = parse_booking_csv(raw)
+                    platform = 'booking'
+                else:
+                    from app.services.airbnb_earnings import parse_earnings_csv as parse_airbnb_csv
+                    result = parse_airbnb_csv(raw)
+                    platform = 'airbnb'
+
                 result['filename'] = filename
+                result['platform'] = platform
                 if result['totals']['count'] == 0:
-                    error = 'No reservations found — check the CSV format (Airbnb Earnings export).'
+                    error = 'No reservations found — check the CSV format (Airbnb or Booking.com Earnings export).'
                     result = None
                 else:
                     # store to DB + auto-sync to Reservation
@@ -542,8 +555,6 @@ def admin_earnings() -> Response | str:
                         synced_new = 0
                         for entry in result['per_code']:
                             code = entry['code']
-                            # platform auto-detect: Airbnb codes are HMS* etc., Booking are numeric — for now airbnb
-                            platform = 'airbnb'
                             # try find existing
                             earn = Earning.query.filter_by(platform=platform, confirmation_code=code).first()
                             if not earn:
@@ -551,26 +562,42 @@ def admin_earnings() -> Response | str:
                                 db.session.add(earn)
                                 stored_new += 1
                             earn.guest_name = entry.get('guest')
-                            earn.listing = (entry.get('reservation') or {}).get('listing') or entry.get('listing')
+                            earn.listing = entry.get('listing') or ''
                             earn.start_date = entry.get('start')
                             earn.end_date = entry.get('end')
-                            earn.payout_date = (entry.get('reservation') or {}).get('payout_date') or entry.get('start')
-                            earn.booking_date = (entry.get('reservation') or {}).get('booking_date')  # may be None
-                            # booking_date from raw if available
-                            try:
-                                from app.services.airbnb_earnings import _parse_date as _pd
-                                earn.booking_date = _pd((entry.get('reservation') or {}).get('raw', {}).get('Booking date', ''))
-                            except Exception:
-                                pass
+                            earn.payout_date = entry.get('payout_date') or entry.get('start')
+                            earn.booking_date = entry.get('booking_date')
                             earn.nights = entry.get('nights')
-                            earn.currency = (entry.get('reservation') or {}).get('currency', 'EUR') or 'EUR'
-                            earn.amount = entry.get('amount', 0) or 0
-                            earn.service_fee = entry.get('service', 0) or 0
-                            earn.cleaning_fee = entry.get('cleaning', 0) or 0
-                            earn.gross_earnings = entry.get('gross', 0) or 0
-                            earn.airbnb_tax = entry.get('airbnb_tax', 0) or 0
-                            earn.withholding = entry.get('withholding', 0) or 0
-                            earn.net = entry.get('net', 0) or 0
+                            earn.currency = entry.get('currency', 'EUR') or 'EUR'
+
+                            if platform == 'airbnb':
+                                earn.amount = entry.get('amount', 0) or 0
+                                earn.service_fee = entry.get('service', 0) or 0
+                                earn.cleaning_fee = entry.get('cleaning', 0) or 0
+                                earn.gross_earnings = entry.get('gross', 0) or 0
+                                earn.airbnb_tax = entry.get('airbnb_tax', 0) or 0
+                                earn.withholding = entry.get('withholding', 0) or 0
+                                earn.net = entry.get('net', 0) or 0
+                            else:  # booking
+                                earn.amount = entry.get('gross', 0) or 0  # gross = Importo
+                                earn.service_fee = abs(entry.get('commission', 0)) or 0
+                                earn.cleaning_fee = 0
+                                earn.gross_earnings = entry.get('gross', 0) or 0
+                                earn.airbnb_tax = 0
+                                earn.withholding = entry.get('withholding', 0) or 0
+                                earn.net = entry.get('net', 0) or 0
+
+                            # JSON-safe raw (dates -> ISO strings)
+                            def _j(v):
+                                from datetime import date as _d, datetime as _dt
+                                if isinstance(v, (_d, _dt)):
+                                    return v.isoformat()
+                                if isinstance(v, dict):
+                                    return {k: _j(x) for k, x in v.items()}
+                                if isinstance(v, list):
+                                    return [_j(x) for x in v]
+                                return v
+                            earn.raw_json = _j(entry)
                             # JSON-safe raw (dates → ISO strings)
                             def _j(v):
                                 from datetime import date as _d, datetime as _dt
