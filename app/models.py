@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any, Optional
 
 from flask_login import UserMixin
@@ -349,9 +349,8 @@ class Reservation(db.Model):
 
     def get_access_window_utc(self):
         """Same window converted to UTC (for Nuki API)."""
-        from datetime import timezone as _tz
         start, end = self.get_access_window()
-        return start.astimezone(_tz.utc), end.astimezone(_tz.utc)
+        return start.astimezone(UTC), end.astimezone(UTC)
 
     def access_window_display(self) -> str:
         """Human string e.g. '13:00 24/08 → 11:00 27/08 (Rome)' for UI/flash."""
@@ -473,6 +472,29 @@ class ICalFeed(db.Model):
     url = db.Column(db.Text, nullable=False)
     last_synced_at = db.Column(db.DateTime)
     active = db.Column(db.Boolean, default=True)
+
+
+class RunningCost(db.Model):
+    """Manual running cost entry (internet, cleaning, electricity, IMU, other).
+
+    Aggregated by month/year on the Finance page and deducted in the
+    Gross → Net Sankey. ``category='imu'`` is shown only in the yearly
+    view (yearly tax, not a monthly operating cost).
+    """
+
+    __tablename__ = 'running_costs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    cost_date = db.Column(db.Date, nullable=False, index=True, comment='Date the cost refers to')
+    category = db.Column(db.String(30), nullable=False, default='other', index=True)
+    amount = db.Column(db.Float, nullable=False, default=0.0, comment='Positive euro amount')
+    note = db.Column(db.String(250), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    CATEGORIES = ('internet', 'cleaning', 'electricity', 'imu', 'other')
+
+    def __repr__(self) -> str:
+        return f'<RunningCost {self.category} {self.cost_date} €{self.amount:.2f}>'
 
 
 class Coupon(db.Model):
