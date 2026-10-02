@@ -18,15 +18,19 @@ class Config:
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace("postgres://", "postgresql://", 1)
         
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # ── Email (Gmail SMTP — set via Railway Variables, see .env.example) ─────
-    MAIL_SERVER  = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    MAIL_PORT    = int(os.environ.get('MAIL_PORT', '587'))
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
-    TESTING      = False
-    MAIL_USERNAME       = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD       = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or os.environ.get('ADMIN_EMAIL') or os.environ.get('MAIL_USERNAME')
+    # ── Email (Brevo HTTPS API — SMTP ports are blocked on Railway) ─────────
+    # Get a free API key at app.brevo.com → SMTP & API → API Keys (300 mails/day free).
+    # IMPORTANT: register MAIL_DEFAULT_SENDER as a validated sender in Brevo
+    # (Senders → Add) or Brevo rejects every request.
+    # Legacy Gmail SMTP vars (MAIL_SERVER/MAIL_PORT/MAIL_USERNAME/MAIL_PASSWORD)
+    # are no longer used by the app and can be removed from Railway Variables.
+    BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or os.environ.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
+
+    # ── Slack admin alerts (Incoming Webhook — also HTTPS, always works) ─────
+    # Slack → Apps → Incoming Webhooks → add to a channel → paste URL here.
+    # Empty = Slack alerts disabled (emails still go through Brevo).
+    SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL', '')
 
     # Host e-mail for admin notifications
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL') or os.environ.get('MAIL_USERNAME')

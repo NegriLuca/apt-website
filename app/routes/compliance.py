@@ -591,19 +591,19 @@ def send_checkin_link() -> Response | str:
         return redirect(url_for('routes.compliance_dashboard'))
 
     try:
-        from app import mail
-        from flask_mail import Message
-        sender_addr = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or 'lotto235roma@gmail.com'
-        msg = Message(
-            subject='Check-in Link — Lotto 235 Garbatella',
-            recipients=[res.guest_email],
-            html=render_template('email_checkin_link.html', reservation=res, checkin_url=checkin_url),
-            sender=('Lotto235 Garbatella', sender_addr),
+        from app.services.email_service import send_email
+
+        ok = send_email(
+            [res.guest_email],
+            'Check-in Link — Lotto 235 Garbatella',
+            render_template('email_checkin_link.html', reservation=res, checkin_url=checkin_url),
         )
-        mail.send(msg)
-        flash('Check-in link sent via Gmail SMTP.', 'success')
+        if ok:
+            flash('Check-in link sent by email.', 'success')
+        else:
+            flash('Email delivery failed (check BREVO_API_KEY) — copy the check-in link manually instead.', 'warning')
     except Exception as e:
-        current_app.logger.error('Check-in link SMTP failed: %s', e)
+        current_app.logger.error('Check-in link email failed: %s', e)
         flash(f'Error: {e}', 'danger')
 
     return redirect(url_for('routes.compliance_dashboard'))

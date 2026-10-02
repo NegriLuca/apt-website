@@ -49,7 +49,7 @@ See `config.py` and `.env.example` for the full list. Key vars:
 
 - **Required:** `SECRET_KEY` (warns at `app/__init__.py:60` if insecure), `ADMIN_PASSWORD` (creates/updates `admin` user on every boot in `run.py`).
 - **DB:** `DATABASE_URL` (defaults to `sqlite:///app.db` in `instance/`; `postgres://` → `postgresql://` in `config.py:17`; retried 5× in `run.py`).
-- **Email:** `MAIL_USERNAME`/`MAIL_PASSWORD` (Brevo **API key**, not SMTP) / `ADMIN_EMAIL`; sender is hardcoded `lotto235roma@gmail.com`.
+- **Email:** `BREVO_API_KEY` / `ADMIN_EMAIL`; sender from `MAIL_DEFAULT_SENDER` (must be a validated sender in Brevo).
 - **Stripe:** `STRIPE_SECRET_KEY`/`STRIPE_PUBLISHABLE_KEY`/`STRIPE_WEBHOOK_SECRET`, `BASE_URL` for redirect URLs.
 - **Compliance:** `CIN_CODE`/`CIR_CODE` (`IT058091C2TXZ44TA6` / `058091-LOC-19856`), `HOST_FULL_NAME`/`HOST_CODICE_FISCALE`/`HOST_ADDRESS`/`HOST_VAT_MODE`, `ROSS1000_*` (`ROSS1000_ENDPOINT` defaults to `https://lazioturismo.ross1000.it/ws/checkinV2`), `QUESTURA_*` (`QUESTURA_ENDPOINT` defaults to `https://alloggiatiweb.poliziadistato.it/service/service.asmx`; env overrides `ComplianceConfig` DB).
 - **Smart access:** `SHELLY_CLOUD_SERVER`/`SHELLY_CLOUD_KEY`/`SHELLY_DEVICE_ID`, `SHELLY_BOILER_DEVICE_ID`/`SHELLY_BOILER_CHANNEL`/`SHELLY_BOILER_HOST`, `NUKI_SMARTLOCK_ID`/`NUKI_WEB_TOKEN`/`NUKI_WEB_BASE_URL`/`NUKI_UNLOCK_ACTION` (`unlatch` vs `unlock`) — all sync to `Apartment` on startup (`run.py`).
@@ -86,7 +86,7 @@ Celery Beat equivalents live in `app/tasks/compliance.py:CELERY_BEAT_SCHEDULE`.
 
 ## Quirks & gotchas
 
-- **Email uses Brevo REST API, not SMTP:** `MAIL_PASSWORD` is the Brevo API key; `Flask-Mail` is initialised but unused. Sender `lotto235roma@gmail.com` is hardcoded in `email_service.py` / `helpers.py` / `public.py`.
+- **Email uses Brevo HTTPS API, not SMTP:** Railway blocks SMTP ports, so Gmail can never work in production. **Brevo is guests-only** — sends go to `POST https://api.brevo.com/v3/smtp/email` (`app/services/email_service.py:send_email`, `app/routes/helpers.py:_send_brevo_email`) with 10s timeout, never raising; key from `BREVO_API_KEY`. **Admin side is Slack** (`SLACK_WEBHOOK_URL` → instant pings on booking/cancel/payment/check-in/contact, `app/services/slack.py`, also never raising); contact form additionally lands in the in-app inbox (`Notification`).
 - **CSRF:** `WTF_CSRF_SSL_STRICT=False`, `WTF_CSRF_TIME_LIMIT=86400` (24h) in `config.py`.
 - **Single apartment:** `Apartment.query.first()` is injected globally (`app/__init__.py:inject_apartment`); multi-property would require refactoring route assumptions.
 - **Access window:** `Reservation.access_checkin_time`/`access_checkout_time` are `HH:MM` (Rome tz, default `13:00→13:00`, stored on the row). Guest access (`/access/<token>`, `/api/access/*`) is 403 outside the window; `/checkin-guide/<token>` is intentionally not. Nuki API windows are converted to UTC (`get_access_window_utc()`).

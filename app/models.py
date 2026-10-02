@@ -61,13 +61,19 @@ class Apartment(db.Model):
 
     # Boiler Shelly (hot water) — second Shelly on same cloud account
     boiler_shelly_enabled = db.Column(db.Boolean, default=False, comment='Enable boiler auto ON/OFF')
-    boiler_shelly_device_id = db.Column(db.String(100), nullable=True, comment='Shelly device ID for boiler (e.g., 206ef104b850)')
+    boiler_shelly_device_id = db.Column(
+        db.String(100), nullable=True, comment='Shelly device ID for boiler (e.g., 206ef104b850)'
+    )
     boiler_shelly_channel = db.Column(db.Integer, default=0, comment='Relay channel for boiler (0 for Shelly 1 Mini)')
-    boiler_shelly_host = db.Column(db.String(100), nullable=True, comment='Optional fallback host/IP for boiler Shelly (local mode)')
+    boiler_shelly_host = db.Column(
+        db.String(100), nullable=True, comment='Optional fallback host/IP for boiler Shelly (local mode)'
+    )
 
     # Nuki Smart Lock Ultra (Apartment Door)
     nuki_enabled = db.Column(db.Boolean, default=False)
-    nuki_show_door_button = db.Column(db.Boolean, default=True, comment='Show the door button on the guest page (else guests use the keypad only)')
+    nuki_show_door_button = db.Column(
+        db.Boolean, default=True, comment='Show the door button on the guest page (else guests use the keypad only)'
+    )
     nuki_smartlock_id = db.Column(db.String(50), nullable=True, comment='Nuki Smart Lock ID (decimal)')
     nuki_web_token = db.Column(db.String(200), nullable=True, comment='Nuki Web API token (Bearer)')
     nuki_web_base_url = db.Column(db.String(100), default='https://api.nuki.io', comment='Nuki Web API base URL')
@@ -150,7 +156,13 @@ class Apartment(db.Model):
             return None
 
         def _escape(value: str) -> str:
-            return value.replace('\\', '\\\\').replace(';', '\\;').replace(',', '\\,').replace(':', '\\:').replace('"', '\\"')
+            return (
+                value.replace('\\', '\\\\')
+                .replace(';', '\\;')
+                .replace(',', '\\,')
+                .replace(':', '\\:')
+                .replace('"', '\\"')
+            )
 
         security = (self.wifi_security or 'WPA').upper()
         if security == 'NONE':
@@ -173,7 +185,7 @@ class Apartment(db.Model):
         payload = self.wifi_payload()
         if not payload:
             return None
-        return 'wifi:' + payload[len('WIFI:'):]
+        return 'wifi:' + payload[len('WIFI:') :]
 
 
 class Reservation(db.Model):
@@ -186,10 +198,17 @@ class Reservation(db.Model):
     check_out = db.Column(db.Date, nullable=False)
     num_guests = db.Column(db.Integer, nullable=False, default=1)
     num_adults = db.Column(db.Integer, nullable=True, comment='Number of adults (taxable for city tax)')
-    num_children = db.Column(db.Integer, nullable=True, default=0, comment='Number of children aged 3-9 (exempt from city tax)')
+    num_children = db.Column(
+        db.Integer, nullable=True, default=0, comment='Number of children aged 3-9 (exempt from city tax)'
+    )
     status = db.Column(db.String(20), nullable=False, default='pending')
     source = db.Column(db.String(20), default='direct')
-    is_block = db.Column(db.Boolean, nullable=False, default=False, comment='True when imported from iCal as a calendar block (not a real reservation)')
+    is_block = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        comment='True when imported from iCal as a calendar block (not a real reservation)',
+    )
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     cancel_token = db.Column(db.String(128), unique=True, index=True)
     external_uid = db.Column(db.String(128), unique=True, index=True)
@@ -205,7 +224,9 @@ class Reservation(db.Model):
     # Deposit / partial payment tracking
     amount_paid = db.Column(db.Float, nullable=True, default=0.0, comment='Amount actually charged so far')
     balance_payment_intent_id = db.Column(db.String(128), nullable=True, unique=True, index=True)
-    balance_invoice_sent_at = db.Column(db.DateTime, nullable=True, comment='When the balance invoice reminder email was sent')
+    balance_invoice_sent_at = db.Column(
+        db.DateTime, nullable=True, comment='When the balance invoice reminder email was sent'
+    )
 
     # ── Italian Compliance (Questura Alloggiati) ─────────────────────────────
     guest_surname = db.Column(db.String(100), nullable=True)
@@ -218,7 +239,11 @@ class Reservation(db.Model):
     guest_document_expiry = db.Column(db.Date, nullable=True)
     guest_document_country = db.Column(db.String(3), nullable=True, comment='ISO 3166-1 alpha-3')
     guest_gender = db.Column(db.String(1), nullable=True, comment='M/F')
-    companions = db.Column(db.JSON, nullable=True, comment='List of additional guest dicts (surname, first_name, birth_date, birth_place, nationality, gender, document_type, document_number, document_expiry, document_country)')
+    companions = db.Column(
+        db.JSON,
+        nullable=True,
+        comment='List of additional guest dicts (surname, first_name, birth_date, birth_place, nationality, gender, document_type, document_number, document_expiry, document_country)',
+    )
 
     # Guest self-service check-in
     checkin_token = db.Column(db.String(128), unique=True, index=True, nullable=True)
@@ -248,8 +273,12 @@ class Reservation(db.Model):
 
     # Smart access window overrides — hours only, dates stay fixed to check_in/check_out.
     # NULL means default 13:00 (kept for backward compat). Stored as HH:MM strings "13:00".
-    access_checkin_time = db.Column(db.String(5), nullable=True, comment='HH:MM on check-in day, Rome time (default 13:00)')
-    access_checkout_time = db.Column(db.String(5), nullable=True, comment='HH:MM on check-out day, Rome time (default 13:00)')
+    access_checkin_time = db.Column(
+        db.String(5), nullable=True, comment='HH:MM on check-in day, Rome time (default 13:00)'
+    )
+    access_checkout_time = db.Column(
+        db.String(5), nullable=True, comment='HH:MM on check-out day, Rome time (default 13:00)'
+    )
 
     # Tourist tax
     tourist_tax_amount = db.Column(db.Float, nullable=True, default=0.0)
@@ -336,9 +365,11 @@ class Reservation(db.Model):
         """
         try:
             from zoneinfo import ZoneInfo
+
             rome = ZoneInfo('Europe/Rome')
         except Exception:
             from datetime import timedelta, timezone
+
             m = date.today().month
             rome = timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
         sh, sm = self._parse_hhmm(getattr(self, 'access_checkin_time', None), '13:00')
@@ -356,15 +387,17 @@ class Reservation(db.Model):
         """Human string e.g. '13:00 24/08 → 11:00 27/08 (Rome)' for UI/flash."""
         sh, sm = self._parse_hhmm(getattr(self, 'access_checkin_time', None), '13:00')
         eh, em = self._parse_hhmm(getattr(self, 'access_checkout_time', None), '13:00')
-        return f"{sh:02d}:{sm:02d} {self.check_in.strftime('%d/%m/%Y')} → {eh:02d}:{em:02d} {self.check_out.strftime('%d/%m/%Y')} (Rome)"
+        return f'{sh:02d}:{sm:02d} {self.check_in.strftime("%d/%m/%Y")} → {eh:02d}:{em:02d} {self.check_out.strftime("%d/%m/%Y")} (Rome)'
 
     def is_access_valid(self) -> bool:
         """Check if now (Rome) is inside the access window."""
         try:
             from zoneinfo import ZoneInfo
+
             rome = ZoneInfo('Europe/Rome')
         except Exception:
             from datetime import timedelta, timezone
+
             m = date.today().month
             rome = timezone(timedelta(hours=2 if 3 <= m <= 10 else 1))
         now = datetime.now(rome)
@@ -393,7 +426,9 @@ class Earning(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     platform = db.Column(db.String(20), nullable=False, default='airbnb', comment='airbnb / booking / vrbo')
-    confirmation_code = db.Column(db.String(64), nullable=False, index=True, comment='Airbnb confirmation code or Booking reservation id')
+    confirmation_code = db.Column(
+        db.String(64), nullable=False, index=True, comment='Airbnb confirmation code or Booking reservation id'
+    )
     guest_name = db.Column(db.String(120), nullable=True)
     listing = db.Column(db.String(200), nullable=True)
     start_date = db.Column(db.Date, nullable=True)
@@ -402,7 +437,12 @@ class Earning(db.Model):
     booking_date = db.Column(db.Date, nullable=True)
     nights = db.Column(db.Integer, nullable=True)
     currency = db.Column(db.String(10), nullable=False, default='EUR')
-    amount = db.Column(db.Float, nullable=False, default=0.0, comment='CSV Amount (host payout before withholding, already net of service)')
+    amount = db.Column(
+        db.Float,
+        nullable=False,
+        default=0.0,
+        comment='CSV Amount (host payout before withholding, already net of service)',
+    )
     service_fee = db.Column(db.Float, nullable=False, default=0.0)
     cleaning_fee = db.Column(db.Float, nullable=False, default=0.0)
     gross_earnings = db.Column(db.Float, nullable=False, default=0.0)
@@ -416,9 +456,7 @@ class Earning(db.Model):
 
     reservation = db.relationship('Reservation', backref=db.backref('earnings', lazy='dynamic'))
 
-    __table_args__ = (
-        db.UniqueConstraint('platform', 'confirmation_code', name='uq_earning_platform_code'),
-    )
+    __table_args__ = (db.UniqueConstraint('platform', 'confirmation_code', name='uq_earning_platform_code'),)
 
     def __repr__(self) -> str:
         return f'<Earning {self.platform}:{self.confirmation_code} {self.guest_name} {self.net:.2f}>'
@@ -477,15 +515,17 @@ class ICalFeed(db.Model):
 class RunningCost(db.Model):
     """Manual running cost entry (internet, cleaning, electricity, IMU, other).
 
-    Aggregated by month/year on the Finance page and deducted in the
-    Gross → Net Sankey. ``category='imu'`` is shown only in the yearly
-    view (yearly tax, not a monthly operating cost).
+    Booked per period, not per day: ``month`` 1-12 for monthly costs,
+    ``None`` for whole-year costs (IMU). Aggregated by month/year on the
+    Finance page and deducted in the Gross → Net Sankey. ``category='imu'``
+    is shown only in the yearly view (yearly tax, not a monthly cost).
     """
 
     __tablename__ = 'running_costs'
 
     id = db.Column(db.Integer, primary_key=True)
-    cost_date = db.Column(db.Date, nullable=False, index=True, comment='Date the cost refers to')
+    year = db.Column(db.Integer, nullable=False, index=True, comment='Year the cost refers to')
+    month = db.Column(db.Integer, nullable=True, index=True, comment='1-12 for monthly costs, None = whole year (IMU)')
     category = db.Column(db.String(30), nullable=False, default='other', index=True)
     amount = db.Column(db.Float, nullable=False, default=0.0, comment='Positive euro amount')
     note = db.Column(db.String(250), nullable=True)
@@ -493,8 +533,15 @@ class RunningCost(db.Model):
 
     CATEGORIES = ('internet', 'cleaning', 'electricity', 'imu', 'other')
 
+    @property
+    def period_label(self) -> str:
+        """Human label: '08/2026' for monthly, '2026' for yearly."""
+        if self.month:
+            return f'{self.month:02d}/{self.year}'
+        return str(self.year)
+
     def __repr__(self) -> str:
-        return f'<RunningCost {self.category} {self.cost_date} €{self.amount:.2f}>'
+        return f'<RunningCost {self.category} {self.period_label} €{self.amount:.2f}>'
 
 
 class Coupon(db.Model):
@@ -718,7 +765,9 @@ class Receipt(db.Model):
     bollo_required = db.Column(db.Boolean, default=False)
     bollo_amount = db.Column(db.Float, default=0.0, comment='2.00 se required altrimenti 0')
     bollo_id = db.Column(db.String(30), nullable=True, comment='14 cifre marca da bollo su copia cartacea')
-    bollo_image_path = db.Column(db.String(300), nullable=True, comment='Path immagine marca (per-ricevuta, sovrascrive template globale)')
+    bollo_image_path = db.Column(
+        db.String(300), nullable=True, comment='Path immagine marca (per-ricevuta, sovrascrive template globale)'
+    )
 
     # Snapshot emittente
     host_full_name = db.Column(db.String(150), nullable=True)

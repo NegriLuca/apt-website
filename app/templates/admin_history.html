@@ -183,7 +183,7 @@
     <!-- Past reservations table -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0 text-uppercase small tracking-wider fw-bold">{{ _('Past Reservations') }}</h5>
-        <small class="text-muted">{{ _('Click ✏️ to edit revenue or payment status') }}</small>
+        <small class="text-muted">{{ _('Click ✏️ to edit revenue or the trash icon to permanently remove a row') }}</small>
     </div>
 
     <div class="card border-0 shadow-sm mb-4">
@@ -278,6 +278,10 @@
                                 {% if r.source in ['direct','stripe'] and r.receipt %}
                                     <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=r.receipt.id) }}" class="btn btn-sm btn-dark" title="Ricevuta {{ r.receipt.receipt_number }}">🧾</a>
                                 {% endif %}
+                                <form method="POST" action="{{ url_for('routes.admin_history_delete', res_id=r.id, status=status_filter, source=source_filter, year=year_filter, page=reservations.page) }}" class="d-inline" onsubmit="return confirm('{{ _('Permanently delete this past stay? Payout data (Earnings) is kept, only the reservation row is removed.') }}')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('Delete this past stay') }}"><i class="bi bi-trash"></i></button>
+                                </form>
                             </div>
                         </td>
                     </tr>

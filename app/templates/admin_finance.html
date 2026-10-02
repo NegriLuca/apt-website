@@ -1,6 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Finance{% endblock %}
 
+{% macro flowchip(label, value, sub='', tone='dark') %}
+<div class="flow-chip card border-0 shadow-sm flex-fill text-center px-2 py-3">
+    <small class="text-muted text-uppercase fw-bold d-block" style="font-size:.68rem;">{{ label }}</small>
+    <div class="font-monospace fw-bold fs-5 text-{{ tone }} mb-0">€{{ '%.2f'|format(value) }}</div>
+    {% if sub %}<small class="text-muted d-block" style="font-size:.72rem;">{{ sub }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro flowarrow() %}
+<div class="flow-arrow align-self-center text-muted fs-4 px-1 d-none d-md-block"><i class="bi bi-arrow-right"></i></div>
+{% endmacro %}
+
 {% block content %}
 <div class="main-content">
     {% include 'admin_header.html' %}
@@ -8,7 +20,7 @@
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
             <h1 class="page-title mb-1"><i class="bi bi-diagram-3 me-2 text-success"></i>Finance — Costs & Net Revenue</h1>
-            <p class="lead text-muted mb-0">Track running costs and follow Gross → Net in the Sankey diagrams (monthly + yearly).</p>
+            <p class="lead text-muted mb-0">Track running costs per month (IMU per year) and follow Gross → Net in the Sankey diagrams.</p>
         </div>
         <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
     </div>
@@ -28,8 +40,8 @@
                 <div class="col-auto">
                     <label class="form-label small text-uppercase fw-bold mb-1">Month</label>
                     <select name="month" class="form-select form-select-sm">
-                        {% for m in range(1, 13) %}
-                        <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+                        {% for m, mname in months %}
+                        <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ mname }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -43,128 +55,250 @@
         </div>
     </div>
 
-    <!-- Monthly summary -->
-    <h5 class="fw-bold mb-3"><i class="bi bi-calendar-month me-1"></i> {{ month_name }} — Gross → Net</h5>
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Gross</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(monthly.gross) }}</h4><small class="text-muted">OTA €{{ '%.2f'|format(monthly.ota.gross) }} + direct €{{ '%.2f'|format(monthly.direct.gross) }}</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Fees</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(monthly.fees) }}</h4><small class="text-muted">OTA €{{ '%.2f'|format(monthly.ota.fees) }} + Stripe €{{ '%.2f'|format(monthly.direct.stripe_fees) }}</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Payout</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(monthly.payout) }}</h4><small class="text-muted">gross − fees</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Cedolare 21%</small><h4 class="mb-0 font-monospace text-warning">€{{ '%.2f'|format(monthly.cedolare) }}</h4><small class="text-muted">withheld €{{ '%.2f'|format(monthly.cedolare_ota) }} + direct est. €{{ '%.2f'|format(monthly.cedolare_direct) }}</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Running</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(monthly.running_total) }}</h4><small class="text-muted">excl. IMU</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100 border-top border-success border-3"><small class="text-muted text-uppercase fw-bold">Net</small><h4 class="mb-0 font-monospace text-success">€{{ '%.2f'|format(monthly.net) }}</h4><small class="text-muted">after tax − running</small></div></div>
-    </div>
+    <!-- Tabs -->
+    <ul class="nav nav-pills gap-2 mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-0" data-bs-toggle="pill" data-bs-target="#tab-monthly" type="button" role="tab"><i class="bi bi-calendar-month me-1"></i>{{ month_name }}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-0" data-bs-toggle="pill" data-bs-target="#tab-yearly" type="button" role="tab"><i class="bi bi-calendar3 me-1"></i>Year {{ year }}</button>
+        </li>
+    </ul>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-diagram-3 me-1"></i> Monthly Sankey — {{ month_name }}</h5></div>
-        <div class="card-body p-3">
-            <div id="sankeyMonthly" style="width:100%;min-height:420px;"></div>
-            <div class="small text-muted mt-2">Gross → fees → payout → cedolare → running costs → net. Direct bookings carry a 21% cedolare estimate (paid via tax return, not withheld).</div>
-        </div>
-    </div>
-
-    <!-- Yearly summary -->
-    <h5 class="fw-bold mb-3"><i class="bi bi-calendar3 me-1"></i> Year {{ year }} — Gross → Net (incl. IMU)</h5>
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Gross</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(yearly.gross) }}</h4><small class="text-muted">{{ yearly.ota.count }} OTA + {{ yearly.direct.count }} direct</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Fees</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(yearly.fees) }}</h4><small class="text-muted">OTA + Stripe</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Payout</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(yearly.payout) }}</h4><small class="text-muted">gross − fees</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Cedolare</small><h4 class="mb-0 font-monospace text-warning">€{{ '%.2f'|format(yearly.cedolare) }}</h4><small class="text-muted">after-tax €{{ '%.2f'|format(yearly.after_tax) }}</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100"><small class="text-muted text-uppercase fw-bold">Costs + IMU</small><h4 class="mb-0 font-monospace">€{{ '%.2f'|format(yearly.running_total) }}</h4><small class="text-muted">operating €{{ '%.2f'|format(yearly.operating) }} + IMU €{{ '%.2f'|format(yearly.imu) }}</small></div></div>
-        <div class="col-6 col-md-2"><div class="card border-0 shadow-sm text-center p-3 h-100 border-top border-success border-3"><small class="text-muted text-uppercase fw-bold">Net</small><h4 class="mb-0 font-monospace text-success">€{{ '%.2f'|format(yearly.net) }}</h4><small class="text-muted">{{ year }} profit</small></div></div>
-    </div>
-
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-diagram-3 me-1"></i> Yearly Sankey — {{ year }}</h5></div>
-        <div class="card-body p-3">
-            <div id="sankeyYearly" style="width:100%;min-height:420px;"></div>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <!-- Add cost -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-plus-circle me-1"></i> Add running cost</h5></div>
-                <div class="card-body p-4">
-                    <form method="POST" action="{{ url_for('routes.admin_finance', year=year, month=month) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="hidden" name="action" value="add"/>
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold">Date</label>
-                            <input type="date" name="cost_date" class="form-control" value="{{ today.isoformat() }}" required/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold">Category</label>
-                            <select name="category" class="form-select">
-                                {% for c in categories %}
-                                <option value="{{ c }}">{{ c }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text"><code>imu</code> counts in the yearly view only.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold">Amount (€)</label>
-                            <input type="number" name="amount" class="form-control font-monospace" step="0.01" min="0.01" max="1000000" placeholder="e.g. 29.99" required/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-uppercase fw-bold">Note (optional)</label>
-                            <input type="text" name="note" class="form-control" maxlength="250" placeholder="e.g. Fastweb fibra"/>
-                        </div>
-                        <button type="submit" class="btn btn-dark w-100"><i class="bi bi-plus me-1"></i> Add cost</button>
-                    </form>
-                </div>
+    <div class="tab-content">
+        <!-- ══════════ MONTHLY ══════════ -->
+        <div class="tab-pane fade show active" id="tab-monthly" role="tabpanel">
+            <div class="d-flex gap-2 align-items-stretch mb-4 flex-wrap">
+                {{ flowchip('Gross', monthly.gross, 'OTA €%.2f + direct €%.2f'|format(monthly.ota.gross, monthly.direct.gross)) }}
+                {{ flowarrow() }}
+                {{ flowchip('Fees', monthly.fees, 'OTA + Stripe', 'danger') }}
+                {{ flowarrow() }}
+                {{ flowchip('Payout', monthly.payout, 'gross − fees') }}
+                {{ flowarrow() }}
+                {{ flowchip('Cedolare 21%', monthly.cedolare, 'withheld + direct est.', 'warning') }}
+                {{ flowarrow() }}
+                {{ flowchip('Running', monthly.running_total, 'excl. IMU', 'warning') }}
+                {{ flowarrow() }}
+                {{ flowchip('Net', monthly.net, 'after tax − running', 'success') }}
             </div>
-        </div>
-        <!-- Month costs -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm h-100">
+
+            <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-receipt me-1"></i> Costs — {{ month_name }}</h5>
-                    <span class="badge bg-dark">{{ month_costs|length }} entries · €{{ '%.2f'|format(monthly.running_total) }}</span>
+                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-1"></i>Where the money goes — {{ month_name }}</h5>
+                    <small class="text-muted">hover for amounts</small>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead class="table-light"><tr><th>Date</th><th>Category</th><th>Note</th><th class="text-end">Amount</th><th></th></tr></thead>
-                        <tbody>
-                            {% for c in month_costs %}
-                            <tr>
-                                <td class="small">{{ c.cost_date.strftime('%d/%m/%Y') }}</td>
-                                <td><span class="badge bg-{{ 'info' if c.category=='internet' else ('warning' if c.category=='cleaning' else ('primary' if c.category=='electricity' else ('dark' if c.category=='imu' else 'secondary'))) }}">{{ c.category }}</span>{% if c.category == 'imu' %} <small class="text-muted">yearly-only</small>{% endif %}</td>
-                                <td class="small text-muted">{{ c.note or '—' }}</td>
-                                <td class="text-end font-monospace">€{{ '%.2f'|format(c.amount) }}</td>
-                                <td class="text-end">
-                                    <form method="POST" action="{{ url_for('routes.admin_finance', year=year, month=month) }}" class="d-inline" onsubmit="return confirm('Delete this cost?');">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <input type="hidden" name="action" value="delete"/>
-                                        <input type="hidden" name="cost_id" value="{{ c.id }}"/>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="5" class="text-center text-muted py-4">No costs recorded for {{ month_name }} yet — add internet, cleaning or electricity on the left.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-body small text-muted border-top">
-                    <strong>{{ year }} totals:</strong>
-                    internet €{{ '%.2f'|format(yearly.costs.internet) }} ·
-                    cleaning €{{ '%.2f'|format(yearly.costs.cleaning) }} ·
-                    electricity €{{ '%.2f'|format(yearly.costs.electricity) }} ·
-                    other €{{ '%.2f'|format(yearly.costs.other) }} ·
-                    IMU €{{ '%.2f'|format(yearly.costs.imu) }}
+                <div class="card-body p-2">
+                    <div id="sankeyMonthly" style="width:100%;min-height:440px;"></div>
                 </div>
             </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-pie-chart me-1"></i>Cost breakdown</h5></div>
+                        <div class="card-body">
+                            {% set mop = monthly.operating %}
+                            {% for cat, val, cls in [('internet', monthly.costs.internet, 'info'), ('cleaning', monthly.costs.cleaning, 'warning'), ('electricity', monthly.costs.electricity, 'success'), ('other', monthly.costs.other, 'secondary')] %}
+                            <div class="d-flex justify-content-between small mb-1"><span class="text-capitalize fw-semibold">{{ cat }}</span><span class="font-monospace">€{{ '%.2f'|format(val) }}</span></div>
+                            <div class="progress mb-3" style="height:8px;">
+                                <div class="progress-bar bg-{{ cls }}" style="width: {{ '%.1f'|format(val / mop * 100) if mop else 0 }}%"></div>
+                            </div>
+                            {% endfor %}
+                            <hr>
+                            <div class="d-flex justify-content-between"><strong>Total running</strong><strong class="font-monospace">€{{ '%.2f'|format(monthly.running_total) }}</strong></div>
+                            <div class="small text-muted mt-2">Direct cedolare estimate (21%): €{{ '%.2f'|format(monthly.cedolare_direct) }} · OTA withheld: €{{ '%.2f'|format(monthly.cedolare_ota) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-receipt me-1"></i>Costs — {{ month_name }}</h5>
+                            <span class="badge bg-dark">{{ month_costs|length }} entries · €{{ '%.2f'|format(monthly.running_total) }}</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light"><tr><th>Category</th><th>Note</th><th class="text-end">Amount</th><th></th></tr></thead>
+                                <tbody>
+                                    {% for c in month_costs %}
+                                    <tr>
+                                        <td><span class="badge bg-{{ 'info' if c.category=='internet' else ('warning' if c.category=='cleaning' else ('primary' if c.category=='electricity' else 'secondary')) }}">{{ c.category }}</span></td>
+                                        <td class="small text-muted">{{ c.note or '—' }}</td>
+                                        <td class="text-end font-monospace">€{{ '%.2f'|format(c.amount) }}</td>
+                                        <td class="text-end">
+                                            <form method="POST" action="{{ url_for('routes.admin_finance', year=year, month=month) }}" class="d-inline" onsubmit="return confirm('Delete this cost?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <input type="hidden" name="action" value="delete"/>
+                                                <input type="hidden" name="cost_id" value="{{ c.id }}"/>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No costs for {{ month_name }} yet — add internet, cleaning or electricity below.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════ YEARLY ══════════ -->
+        <div class="tab-pane fade" id="tab-yearly" role="tabpanel">
+            <div class="d-flex gap-2 align-items-stretch mb-4 flex-wrap">
+                {{ flowchip('Gross', yearly.gross, '%d OTA + %d direct'|format(yearly.ota.count, yearly.direct.count)) }}
+                {{ flowarrow() }}
+                {{ flowchip('Fees', yearly.fees, 'OTA + Stripe', 'danger') }}
+                {{ flowarrow() }}
+                {{ flowchip('Payout', yearly.payout, 'gross − fees') }}
+                {{ flowarrow() }}
+                {{ flowchip('Cedolare 21%', yearly.cedolare, 'after-tax €%.2f'|format(yearly.after_tax), 'warning') }}
+                {{ flowarrow() }}
+                {{ flowchip('Costs + IMU', yearly.running_total, 'operating €%.2f + IMU €%.2f'|format(yearly.operating, yearly.imu), 'warning') }}
+                {{ flowarrow() }}
+                {{ flowchip('Net', yearly.net, year ~ ' profit', 'success') }}
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-1"></i>Where the money goes — {{ year }}</h5>
+                    <small class="text-muted">incl. IMU</small>
+                </div>
+                <div class="card-body p-2">
+                    <div id="sankeyYearly" style="width:100%;min-height:440px;"></div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-pie-chart me-1"></i>{{ year }} cost breakdown</h5></div>
+                        <div class="card-body">
+                            {% set yop = yearly.running_total %}
+                            {% for cat, val, cls in [('internet', yearly.costs.internet, 'info'), ('cleaning', yearly.costs.cleaning, 'warning'), ('electricity', yearly.costs.electricity, 'success'), ('other', yearly.costs.other, 'secondary'), ('imu', yearly.costs.imu, 'dark')] %}
+                            <div class="d-flex justify-content-between small mb-1"><span class="text-capitalize fw-semibold">{{ cat }}</span><span class="font-monospace">€{{ '%.2f'|format(val) }}</span></div>
+                            <div class="progress mb-3" style="height:8px;">
+                                <div class="progress-bar bg-{{ cls }}" style="width: {{ '%.1f'|format(val / yop * 100) if yop else 0 }}%"></div>
+                            </div>
+                            {% endfor %}
+                            <hr>
+                            <div class="d-flex justify-content-between"><strong>Total</strong><strong class="font-monospace">€{{ '%.2f'|format(yearly.running_total) }}</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-bank me-1"></i>Yearly costs — {{ year }} (IMU)</h5>
+                            <span class="badge bg-dark">{{ year_costs|length }} entries · €{{ '%.2f'|format(yearly.imu) }}</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light"><tr><th>Category</th><th>Note</th><th class="text-end">Amount</th><th></th></tr></thead>
+                                <tbody>
+                                    {% for c in year_costs %}
+                                    <tr>
+                                        <td><span class="badge bg-dark">{{ c.category }}</span> <small class="text-muted">{{ c.period_label }}</small></td>
+                                        <td class="small text-muted">{{ c.note or '—' }}</td>
+                                        <td class="text-end font-monospace">€{{ '%.2f'|format(c.amount) }}</td>
+                                        <td class="text-end">
+                                            <form method="POST" action="{{ url_for('routes.admin_finance', year=year, month=month) }}" class="d-inline" onsubmit="return confirm('Delete this cost?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <input type="hidden" name="action" value="delete"/>
+                                                <input type="hidden" name="cost_id" value="{{ c.id }}"/>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No yearly costs for {{ year }} — add the IMU below (pick category <code>imu</code>, month is ignored).</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add cost -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-plus-circle me-1"></i>Add running cost</h5></div>
+        <div class="card-body p-3">
+            <form method="POST" action="{{ url_for('routes.admin_finance', year=year, month=month) }}" class="row g-2 align-items-end" id="addCostForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add"/>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-uppercase fw-bold mb-1">Category</label>
+                    <select name="category" class="form-select" id="costCategory">
+                        {% for c in categories %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-uppercase fw-bold mb-1">Year</label>
+                    <select name="year" class="form-select">
+                        {% for y in years %}
+                        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2" id="costMonthWrap">
+                    <label class="form-label small text-uppercase fw-bold mb-1">Month</label>
+                    <select name="month" class="form-select">
+                        {% for m, mname in months %}
+                        <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ mname }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small text-uppercase fw-bold mb-1">Amount (€)</label>
+                    <input type="number" name="amount" class="form-control font-monospace" step="0.01" min="0.01" max="1000000" placeholder="29.99" required/>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-uppercase fw-bold mb-1">Note</label>
+                    <input type="text" name="note" class="form-control" maxlength="250" placeholder="e.g. Fastweb fibra"/>
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-dark"><i class="bi bi-plus me-1"></i>Add</button>
+                </div>
+            </form>
+            <div class="small text-muted mt-2" id="costScopeHint">Booked to <strong>{{ month_name }}</strong>. Pick <code>imu</code> for the yearly tax — the month is ignored and it lands in the Year view.</div>
         </div>
     </div>
 </div>
+
+<style>
+.flow-chip { min-width: 130px; }
+@media (max-width: 768px) { .flow-chip { min-width: calc(50% - .5rem); } }
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script>
 (function(){
+    const NODE_COLORS = {
+        'Gross revenue': '#212529',
+        'OTA + Stripe fees': '#dc3545',
+        'Payout': '#0d6efd',
+        'Cedolare secca 21%': '#fd7e14',
+        'After tax': '#6f42c1',
+        'Internet': '#0dcaf0',
+        'Cleaning': '#ffc107',
+        'Electricity': '#20c997',
+        'Other costs': '#adb5bd',
+        'IMU': '#6c757d',
+        'Net profit': '#198754'
+    };
+    function hexA(hex, a){
+        const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r},${g},${b},${a})`;
+    }
     function draw(id, data){
         const el = document.getElementById(id);
         if (!el || !window.Plotly) return;
@@ -172,15 +306,62 @@
             el.innerHTML = '<div class="text-center text-muted py-5">No revenue or costs in this period yet.</div>';
             return;
         }
+        const nodeColors = data.labels.map(l => NODE_COLORS[l] || '#6c757d');
+        const linkColors = data.sources.map(s => hexA(nodeColors[s] || '#6c757d', 0.35));
         Plotly.newPlot(el, [{
             type: 'sankey',
+            arrangement: 'snap',
             orientation: 'h',
-            node: { label: data.labels, pad: 15, thickness: 20, line: { color: 'rgba(0,0,0,0.2)', width: 1 } },
-            link: { source: data.sources, target: data.targets, value: data.values }
-        }], { margin: { l: 10, r: 10, t: 10, b: 10 } }, { responsive: true, displayModeBar: false });
+            node: {
+                label: data.labels,
+                color: nodeColors,
+                pad: 18,
+                thickness: 22,
+                line: { color: '#dee2e6', width: 1 },
+                hovertemplate: '%{label}<br><b>€%{value:,.2f}</b><extra></extra>'
+            },
+            link: {
+                source: data.sources,
+                target: data.targets,
+                value: data.values,
+                color: linkColors,
+                hovertemplate: '%{source.label} → %{target.label}<br><b>€%{value:,.2f}</b><extra></extra>'
+            }
+        }], {
+            margin: { l: 8, r: 8, t: 8, b: 8 },
+            font: { family: 'Inter, system-ui, sans-serif', size: 12 }
+        }, { responsive: true, displayModeBar: false });
     }
-    draw('sankeyMonthly', {{ sankey_monthly | tojson }});
-    draw('sankeyYearly', {{ sankey_yearly | tojson }});
+    const monthlyData = {{ sankey_monthly | tojson }};
+    const yearlyData = {{ sankey_yearly | tojson }};
+    draw('sankeyMonthly', monthlyData);
+    let yearlyDrawn = false;
+    function ensureYearly(){
+        if (!yearlyDrawn){
+            yearlyDrawn = true;
+            // visible container now — Plotly measures correctly
+            setTimeout(() => draw('sankeyYearly', yearlyData), 30);
+        }
+    }
+    document.querySelectorAll('[data-bs-target="#tab-yearly"]').forEach(btn => {
+        btn.addEventListener('shown.bs.tab', ensureYearly);
+    });
+    if (document.querySelector('#tab-yearly.show.active')) ensureYearly();
+
+    // Add-cost form: IMU is yearly — hide the month picker.
+    const cat = document.getElementById('costCategory');
+    const monthWrap = document.getElementById('costMonthWrap');
+    const hint = document.getElementById('costScopeHint');
+    const yearSel = document.querySelector('#addCostForm select[name="year"]');
+    function syncScope(){
+        const isImu = cat.value === 'imu';
+        monthWrap.style.display = isImu ? 'none' : '';
+        const y = yearSel ? yearSel.value : '{{ year }}';
+        hint.innerHTML = isImu
+            ? `Booked to whole year <strong>${y}</strong> (IMU — shown in the Year view only).`
+            : 'Booked to a single month. Pick <code>imu</code> for the yearly tax — the month is ignored.';
+    }
+    if (cat){ cat.addEventListener('change', syncScope); yearSel.addEventListener('change', syncScope); syncScope(); }
 })();
 </script>
 {% endblock %}

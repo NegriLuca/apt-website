@@ -121,13 +121,13 @@ All config lives in `config.py:Config` (loaded by `create_app`) and is overridde
 |---|---|---|
 | `DATABASE_URL` | `sqlite:///app.db` | Supports `postgres://` and `postgresql://`. Retried 5× with 3s delay in `run.py`. |
 
-### Email (Brevo)
+### Email (Brevo HTTPS API — SMTP is blocked on Railway)
 
 | Var | Notes |
 |---|---|
-| `MAIL_USERNAME` / `ADMIN_EMAIL` | Admin recipient; `ADMIN_EMAIL` falls back to `MAIL_USERNAME`. |
-| `MAIL_PASSWORD` | **Brevo API key** (not SMTP password). All sends go to `POST https://api.brevo.com/v3/smtp/email`. |
-| Sender | Hardcoded `lotto235roma@gmail.com` in `app/services/email_service.py` and `app/routes/helpers.py` / `app/routes/public.py`. |
+| `BREVO_API_KEY` | Brevo API key. All sends go to `POST https://api.brevo.com/v3/smtp/email` with 10s timeout. |
+| `MAIL_DEFAULT_SENDER` / `ADMIN_EMAIL` | Sender (must be a validated sender in Brevo) / admin recipient. |
+| `SLACK_WEBHOOK_URL` | Incoming-webhook URL for instant admin pings (new booking, cancellation, payment, check-in, contact form). Empty = disabled. |
 
 ### Stripe
 
@@ -408,7 +408,7 @@ SOAP service for Lazio (`https://lazioturismo.ross1000.it/ws/checkinV2`, `ROSS10
 
 ## Emails
 
-All via Brevo REST (`POST https://api.brevo.com/v3/smtp/email`, sender `lotto235roma@gmail.com`, admin `ADMIN_EMAIL` fallback). Suppressed when `TESTING` or `MAIL_SUPPRESS_SEND` (`tests/conftest.py` enables this). See `EMAILS.md` for the full table; helpers in `app/routes/helpers.py` and `app/services/email_service.py`.
+All via Brevo REST (`POST https://api.brevo.com/v3/smtp/email`, sender `MAIL_DEFAULT_SENDER`, admin `ADMIN_EMAIL` fallback). Suppressed when `TESTING` or `MAIL_SUPPRESS_SEND` (`tests/conftest.py` enables this). See `EMAILS.md` for the full table; helpers in `app/routes/helpers.py` and `app/services/email_service.py`.
 
 | # | Flow | Recipients | Trigger |
 |---|---|---|---|
@@ -512,7 +512,7 @@ ruff format .
 
 ## Quirks & Gotchas
 
-- **Brevo, not SMTP:** `MAIL_PASSWORD` is the Brevo API key; `Flask-Mail` is initialised but unused. Sender is hardcoded `lotto235roma@gmail.com`.
+- **Brevo, not SMTP:** `BREVO_API_KEY` is the Brevo API key (Railway blocks SMTP ports, so Gmail can never work in production); `Flask-Mail` is initialised but unused. **Brevo is guests-only** — admin alerts go to Slack (`SLACK_WEBHOOK_URL`), contact form to the in-app inbox + Slack. Sender comes from `MAIL_DEFAULT_SENDER` (must be validated in Brevo).
 - **Single apartment:** `Apartment.query.first()` is injected everywhere (`app/__init__.py:inject_apartment`); the app is single-property despite `Apartment` being a table.
 - **Access window:** `Reservation.access_checkin_time` / `access_checkout_time` are `HH:MM` strings (Rome tz) defaulting to `13:00`; Nuki windows are converted to UTC. Guest access (`/access/<token>`, `/api/access/*`) is 403 outside the window; `/checkin-guide/<token>` is intentionally not.
 - **Booking sources:** `direct`/`stripe` are direct; `airbnb`/`booking_com`/`vrbo` are OTA (`is_block` distinguishes real stays vs calendar blocks before cleanup).

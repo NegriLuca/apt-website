@@ -1,7 +1,9 @@
 # Apt_Website — Email Communications
 
-All emails are sent via **Brevo REST API** (`POST https://api.brevo.com/v3/smtp/email`).
-Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env var, falls back to `lotto235roma@gmail.com`.
+All guest emails are sent via **Brevo REST API** (`POST https://api.brevo.com/v3/smtp/email`).
+Sender: `MAIL_DEFAULT_SENDER` env var (must be a validated sender in Brevo, default `lotto235roma@gmail.com`).
+
+> **Rule: Brevo is guests-only.** Admin-side notifications never use email — they go to **Slack** (`SLACK_WEBHOOK_URL` incoming webhook, `app/services/slack.py`) and, for the contact form, to the in-app admin inbox (`Notification`, `/admin/notifications`).
 
 ---
 
@@ -10,12 +12,11 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 **When:** After successful Stripe payment (webhook or `payment_success` redirect)
 **Trigger:** `_send_confirmation_emails()` in `app/routes/helpers.py:89`
 **Template (guest):** `email_confirmation.html`
-**Template (admin):** `email_admin_alert.html`
+**Admin:** Slack ping `🔔 New booking` with reservation summary + admin link (no email)
 
 | Recipient | Subject | Content |
 |---|---|---|
 | **Guest** | `Booking confirmation — Lotto 235 Garbatella` | Booking summary (dates, nights, total), cancel link, payment status |
-| **Admin** | `🔔 New Booking Alert: {guest_name}` | Guest details, dates, payment summary, admin cancel link |
 
 ---
 
@@ -24,12 +25,11 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 **When:** Guest chooses "Bank Transfer" on checkout
 **Trigger:** `send_pending_payment_email()` in `app/routes/helpers.py:165`
 **Template (guest):** `email_pending_payment.html`
-**Template (admin):** `email_admin_alert.html` (same as #1)
+**Admin:** Slack ping `🔔 New booking (wire-transfer, pending payment)` (no email)
 
 | Recipient | Subject | Content |
 |---|---|---|
 | **Guest** | `Booking received — Lotto 235 Garbatella` | Booking summary, check-in link, cancel link, payment instructions |
-| **Admin** | `🆕 New Pending Booking: {guest_name}` | Guest details, dates, payment status = unpaid |
 
 ---
 
@@ -38,12 +38,11 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 **When:** Admin marks payment as received
 **Trigger:** `send_payment_verified_email()` in `app/routes/helpers.py:132`
 **Template (guest):** `email_payment_verified.html`
-**Template (admin):** `email_admin_payment_confirmed.html`
+**Admin:** Slack ping `✅ Payment confirmed` (no email)
 
 | Recipient | Subject | Content |
 |---|---|---|
 | **Guest** | `✅ Pagamento Verificato e Confermato — #{id}` | Payment confirmed, booking is now active |
-| **Admin** | `✅ Payment Confirmed: {guest_name} — #{id}` | Confirmation that payment was processed |
 
 ---
 
@@ -52,12 +51,11 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 **When:** Guest cancels via cancel link OR admin cancels from dashboard
 **Trigger:** `send_cancellation_emails()` in `app/routes/helpers.py:213`
 **Template (guest):** `email_cancellation.html`
-**Template (admin):** `email_admin_cancellation.html`
+**Admin:** Slack ping `❌ Cancelled` with refund info (no email)
 
 | Recipient | Subject | Content |
 |---|---|---|
 | **Guest** | `Your reservation has been cancelled — Lotto 235 Garbatella` | Cancellation notice, refund percentage/amount, refund failure warning if applicable |
-| **Admin** | `Reservation Cancelled: {guest_name} [REFUND {status}]` | Guest details, refund status (✅ processed / ⚠️ manual check) |
 
 ---
 
@@ -97,15 +95,11 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 
 ---
 
-## 8. Admin Check-in Notification
+## 8. Admin Check-in Notification (Slack-only, no email)
 
 **When:** Guest completes online check-in form
-**Trigger:** `send_admin_checkin_notification()` in `app/services/email_service.py:96`
-**Template (admin):** `email_admin_checkin_completed.html`
-
-| Recipient | Subject | Content |
-|---|---|---|
-| **Admin** | `✅ Guest Check-in Completed: {guest_name} — #{id}` | Guest data submitted, confirmation that Questura data is ready |
+**Trigger:** `send_admin_checkin_notification()` in `app/services/email_service.py`
+**Admin:** Slack ping `🔑 Guest check-in completed` with reservation summary + admin link
 
 ---
 
@@ -121,15 +115,11 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 
 ---
 
-## 10. Contact Form Inquiry
+## 10. Contact Form Inquiry (inbox + Slack, no email)
 
 **When:** Guest submits contact form at `/contact`
-**Trigger:** `contact()` in `app/routes/public.py:102`
-**Template (admin):** inline HTML (no template file)
-
-| Recipient | Subject | Content |
-|---|---|---|
-| **Admin** | `📬 Contact Form: {name}` | Guest name, email, and message body |
+**Trigger:** `contact()` in `app/routes/public.py`
+**Admin:** in-app inbox entry (`Notification`, category `contact`, badge in admin header) + Slack ping `📬 Contact form`
 
 ---
 
@@ -137,16 +127,16 @@ Sender: `lotto235roma@gmail.com` (hardcoded). Admin recipient: `ADMIN_EMAIL` env
 
 | # | Email | Recipient | Trigger | Template |
 |---|---|---|---|---|
-| 1 | Booking Confirmation | Guest + Admin | Stripe payment success | `email_confirmation.html`, `email_admin_alert.html` |
-| 2 | Pending Payment | Guest + Admin | Wire transfer chosen | `email_pending_payment.html`, `email_admin_alert.html` |
-| 3 | Payment Verified | Guest + Admin | Admin confirms payment | `email_payment_verified.html`, `email_admin_payment_confirmed.html` |
-| 4 | Cancellation | Guest + Admin | Cancel link or admin action | `email_cancellation.html`, `email_admin_cancellation.html` |
+| 1 | Booking Confirmation | Guest (email) + Admin (Slack) | Stripe payment success | `email_confirmation.html` |
+| 2 | Pending Payment | Guest (email) + Admin (Slack) | Wire transfer chosen | `email_pending_payment.html` |
+| 3 | Payment Verified | Guest (email) + Admin (Slack) | Admin confirms payment | `email_payment_verified.html` |
+| 4 | Cancellation | Guest (email) + Admin (Slack) | Cancel link or admin action | `email_cancellation.html` |
 | 5 | Check-in Link | Guest | Admin manual send | `email_checkin_link.html` |
 | 6 | Check-in Email | Guest | Automated after booking | `email_guest_checkin.html` |
 | 7 | Access Link | Guest | Automated | `email_guest_access.html` |
-| 8 | Check-in Notification | Admin | Guest completes check-in | `email_admin_checkin_completed.html` |
+| 8 | Check-in Notification | Admin (Slack only) | Guest completes check-in | — (Slack `app/services/slack.py`) |
 | 9 | Review Request | Guest | Admin manual/bulk | `email_review_request.html` |
-| 10 | Contact Inquiry | Admin | Contact form submission | inline HTML |
+| 10 | Contact Inquiry | Admin (inbox + Slack) | Contact form submission | — (no email) |
 
 **Notes:**
 - All templates exist and are verified. No missing email files.

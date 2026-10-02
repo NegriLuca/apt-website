@@ -109,29 +109,35 @@ def contact() -> Response | str:
         email = form.email.data
         message_text = form.message.data
 
-        admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
-
-        if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
-            current_app.logger.info('Email suppressed (TESTING): contact from %s', email)
-            flash(_('Thank you! Your message has been sent. (suppressed in test mode)'), 'success')
-            return redirect(url_for('routes.contact'))
-
+        # Contact messages never touch Brevo (guests-only): they land in the
+        # in-app admin inbox and ping Slack.
         try:
-            from app import mail
-            from flask_mail import Message
-            sender_addr = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or 'lotto235roma@gmail.com'
-            msg = Message(
-                subject=f'📬 Contact Form: {name}',
-                recipients=[admin_recipient],
-                html=f'<p><strong>Name:</strong> {name}</p><p><strong>Email:</strong> {email}</p><p><strong>Message:</strong><br>{message_text}</p>',
-                sender=(name, sender_addr),
-                reply_to=email,
+            from app.models import Notification
+            from app.services.slack import notify_contact
+
+            from app import db
+
+            db.session.add(
+                Notification(
+                    title=f'Contact form: {name} ({email})',
+                    message=message_text,
+                    category='contact',
+                )
             )
-            mail.send(msg)
-            current_app.logger.info('Contact SMTP sent from %s to %s', email, admin_recipient)
-            flash(_('Thank you! Your message has been sent.'), 'success')
+            db.session.commit()
+            slack_ok = notify_contact(name, email, message_text)
+            current_app.logger.info('Contact from %s stored in inbox; Slack ping: %s', email, slack_ok)
+            if slack_ok:
+                flash(_('Thank you! Your message has been sent.'), 'success')
+            else:
+                flash(
+                    _(
+                        'Thank you! Your message was received — we reply within a day. For urgent matters contact us via WhatsApp.'
+                    ),
+                    'success',
+                )
         except Exception as e:
-            current_app.logger.error('Contact SMTP failed: %s', e)
+            current_app.logger.error('Contact handling failed: %s', e)
             flash(_('Failed to send message. Please try again later.'), 'danger')
 
         return redirect(url_for('routes.contact'))

@@ -95,11 +95,9 @@ def compute_finance(year: int, month: int | None = None) -> dict[str, Any]:
     cedolare = round(cedolare_ota + cedolare_direct, 2)
     after_tax = round(payout - cedolare, 2)
 
-    costs_q = RunningCost.query
-    if month is None:
-        costs = [c for c in costs_q.all() if c.cost_date and c.cost_date.year == year]
-    else:
-        costs = [c for c in costs_q.all() if c.cost_date and c.cost_date.year == year and c.cost_date.month == month]
+    year_costs = RunningCost.query.filter_by(year=year).all()
+    # Monthly view: only entries booked to that month (yearly rows have month NULL).
+    costs = year_costs if month is None else [c for c in year_costs if c.month == month]
     by_category: dict[str, float] = {'internet': 0.0, 'cleaning': 0.0, 'electricity': 0.0, 'imu': 0.0, 'other': 0.0}
     for c in costs:
         cat = (c.category or 'other') if (c.category or 'other') in by_category else 'other'
@@ -214,8 +212,8 @@ def available_years() -> list[int]:
         if r.check_in:
             years.add(r.check_in.year)
     for c in RunningCost.query.all():
-        if c.cost_date:
-            years.add(c.cost_date.year)
+        if c.year:
+            years.add(c.year)
     if not years:
         years.add(date.today().year)
     return sorted(years, reverse=True)

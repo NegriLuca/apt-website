@@ -101,50 +101,86 @@ def calculate_city_tax(check_in, check_out, num_adults=2, apartment=None) -> flo
     return round(nights * max(int(num_adults), 1) * rate, 2)
 
 
+BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email'
+BREVO_TIMEOUT = 10
+
+
 def _send_brevo_email(payload):
-    """Send email via Flask-Mail Gmail SMTP (keeps Brevo name for compat)."""
+    """Send email via the Brevo HTTPS API (works on Railway; SMTP ports are blocked there).
+
+    Keeps the original ``payload`` dict contract (sender/to/subject/htmlContent,
+    optional cc/bcc/replyTo) and returns an object with ``status_code`` so all
+    existing callers keep working. Never raises, never hangs (10s timeout).
+    """
     if current_app.config.get('MAIL_SUPPRESS_SEND') or current_app.config.get('TESTING'):
         current_app.logger.info('Email suppressed (TESTING): %s', payload.get('subject'))
+
         class _MockResp:  # mimic success response
             status_code = 201
             text = 'suppressed'
-            def json(self): return {}
-        return _MockResp()
-    from flask_mail import Message
-    from app import mail
 
+            def json(self):
+                return {}
+
+        return _MockResp()
+    api_key = current_app.config.get('BREVO_API_KEY')
+    recipients = [r['email'] for r in payload.get('to', [])]
+    if not api_key:
+        current_app.logger.warning('Email NOT sent (no BREVO_API_KEY): %s -> %s', payload.get('subject'), recipients)
+
+        class _NoKeyResp:
+            status_code = 500
+            text = 'missing BREVO_API_KEY'
+
+            def json(self):
+                return {'error': 'missing BREVO_API_KEY'}
+
+        return _NoKeyResp()
     sender = payload.get('sender', {})
     sender_name = sender.get('name') or 'Lotto235 Garbatella'
-    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or sender.get('email') or 'lotto235roma@gmail.com'
-    recipients = [r['email'] for r in payload.get('to', [])]
-    reply_to = None
+    sender_email = current_app.config.get('MAIL_DEFAULT_SENDER') or sender.get('email') or 'lotto235roma@gmail.com'
+    body = {
+        'sender': {'name': sender_name, 'email': sender_email},
+        'to': [{'email': r['email']} for r in payload.get('to', [])],
+        'subject': payload.get('subject', ''),
+        'htmlContent': payload.get('htmlContent') or payload.get('html_content') or '',
+    }
+    if payload.get('cc'):
+        body['cc'] = [{'email': r['email']} for r in payload.get('cc', [])]
+    if payload.get('bcc'):
+        body['bcc'] = [{'email': r['email']} for r in payload.get('bcc', [])]
     if payload.get('replyTo'):
-        reply_to = payload['replyTo'].get('email')
-    cc = [r['email'] for r in payload.get('cc', [])] if payload.get('cc') else None
-    bcc = [r['email'] for r in payload.get('bcc', [])] if payload.get('bcc') else None
+        body['replyTo'] = {'email': payload['replyTo'].get('email')}
     try:
-        msg = Message(
-            subject=payload.get('subject', ''),
-            recipients=recipients,
-            html=payload.get('htmlContent') or payload.get('html_content') or '',
-            sender=(sender_name, sender_email),
-            reply_to=reply_to,
-            cc=cc,
-            bcc=bcc,
+        resp = requests.post(
+            BREVO_API_URL,
+            json=body,
+            headers={'api-key': api_key, 'Content-Type': 'application/json', 'Accept': 'application/json'},
+            timeout=BREVO_TIMEOUT,
         )
-        mail.send(msg)
-        current_app.logger.info('SMTP email sent to %s: %s', recipients, payload.get('subject'))
-        class _OkResp:
-            status_code = 201
-            text = 'sent'
-            def json(self): return {}
-        return _OkResp()
+        current_app.logger.info('Brevo email %s to %s: %s', resp.status_code, recipients, payload.get('subject'))
+
+        class _Resp:
+            status_code = resp.status_code
+            text = resp.text[:300]
+
+            def json(self):
+                try:
+                    return resp.json()
+                except Exception:
+                    return {}
+
+        return _Resp()
     except Exception as e:
-        current_app.logger.error('SMTP send failed to %s: %s', recipients, e)
+        current_app.logger.error('Brevo send failed to %s: %s', recipients, e)
+
         class _ErrResp:
             status_code = 500
             text = str(e)
-            def json(self): return {'error': str(e)}
+
+            def json(self):
+                return {'error': str(e)}
+
         return _ErrResp()
 
 
@@ -175,20 +211,10 @@ def _send_confirmation_emails(reservation):
         }
         _send_brevo_email(guest_payload)
 
-        admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
-        admin_cancel_url = url_for('routes.admin_cancel_via_token', token=reservation.cancel_token, _external=True)
-        admin_payload = {
-            'sender': {'name': 'Booking Engine', 'email': sender_email},
-            'to': [{'email': admin_recipient}],
-            'subject': f'🔔 New Booking Alert: {reservation.guest_name}',
-            'htmlContent': render_template(
-                'email_admin_alert.html',
-                reservation=reservation,
-                payment_summary=payment_summary,
-                admin_cancel_url=admin_cancel_url,
-            ),
-        }
-        _send_brevo_email(admin_payload)
+        # Admin side is Slack-only (Brevo is reserved for guest emails).
+        from app.services.slack import notify_new_booking
+
+        notify_new_booking(reservation)
 
     except Exception as exc:
         print('!!! BREVO API FAILURE !!!', flush=True)
@@ -207,16 +233,12 @@ def send_payment_verified_email(reservation):
         }
         r1 = _send_brevo_email(guest_payload)
 
-        admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
-        admin_payload = {
-            'sender': {'name': 'Booking Engine', 'email': sender_email},
-            'to': [{'email': admin_recipient}],
-            'subject': f'✅ Payment Confirmed: {reservation.guest_name} — Reservation #{reservation.id}',
-            'htmlContent': render_template('email_admin_payment_confirmed.html', reservation=reservation),
-        }
-        r2 = _send_brevo_email(admin_payload)
+        # Admin side is Slack-only (Brevo is reserved for guest emails).
+        from app.services.slack import notify_payment_confirmed
 
-        return r1.status_code in [200, 201, 202] and r2.status_code in [200, 201, 202]
+        notify_payment_confirmed(reservation)
+
+        return r1.status_code in [200, 201, 202]
     except Exception as e:
         current_app.logger.error(f'!!! BREVO API FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}')
         return False
@@ -251,18 +273,12 @@ def send_pending_payment_email(reservation):
         }
         r1 = _send_brevo_email(guest_payload)
 
-        admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
-        admin_payload = {
-            'sender': {'name': 'Booking Engine', 'email': sender_email},
-            'to': [{'email': admin_recipient}],
-            'subject': f'🆕 New Pending Booking: {reservation.guest_name}',
-            'htmlContent': render_template(
-                'email_admin_alert.html', reservation=reservation, payment_summary=payment_summary
-            ),
-        }
-        r2 = _send_brevo_email(admin_payload)
+        # Admin side is Slack-only (Brevo is reserved for guest emails).
+        from app.services.slack import notify_new_booking
 
-        return r1.status_code in [200, 201, 202] and r2.status_code in [200, 201, 202]
+        notify_new_booking(reservation, pending=True)
+
+        return r1.status_code in [200, 201, 202]
     except Exception as e:
         current_app.logger.error(f'!!! BREVO PENDING PAYMENT EMAIL FAILURE FOR #{reservation.id} !!!: {str(e)}')
         return False
@@ -271,7 +287,6 @@ def send_pending_payment_email(reservation):
 def send_cancellation_emails(reservation, refund_failed_warning=False, refund_percentage=1.0, refund_amount=None):
     try:
         sender_email = 'lotto235roma@gmail.com'
-        admin_recipient = current_app.config.get('ADMIN_EMAIL') or 'lotto235roma@gmail.com'
 
         if refund_percentage == 1.0:
             refund_text = '100% (full refund)'
@@ -302,23 +317,12 @@ def send_cancellation_emails(reservation, refund_failed_warning=False, refund_pe
         }
         r1 = _send_brevo_email(guest_payload)
 
-        refund_status = '⚠️ FAILED / MANUAL CHECK REQUIRED' if refund_failed_warning else f'✅ {refund_text}'
-        admin_payload = {
-            'sender': {'name': 'Booking Engine', 'email': sender_email},
-            'to': [{'email': admin_recipient}],
-            'subject': f'Reservation Cancelled: {reservation.guest_name} [REFUND {refund_status}]',
-            'htmlContent': render_template(
-                'email_admin_cancellation.html',
-                reservation=reservation,
-                refund_failed=refund_failed_warning,
-                refund_status=refund_status,
-                refund_percentage=refund_percentage,
-                refund_amount=refund_amount,
-            ),
-        }
-        r2 = _send_brevo_email(admin_payload)
+        # Admin side is Slack-only (Brevo is reserved for guest emails).
+        from app.services.slack import notify_cancellation
 
-        return r1.status_code in [200, 201, 202] and r2.status_code in [200, 201, 202]
+        notify_cancellation(reservation, refund_text)
+
+        return r1.status_code in [200, 201, 202]
     except Exception as e:
         current_app.logger.error(
             f'!!! BREVO CANCELLATION EMAIL FAILURE FOR RESERVATION #{reservation.id} !!!: {str(e)}'
@@ -390,8 +394,7 @@ def create_balance_payment_session(reservation):
                 }
             ],
             mode='payment',
-            success_url=url_for('routes.balance_payment_success', _external=True)
-            + '?session_id={CHECKOUT_SESSION_ID}',
+            success_url=url_for('routes.balance_payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=url_for('routes.home', _external=True),
             customer_email=reservation.guest_email,
             metadata={
@@ -400,7 +403,9 @@ def create_balance_payment_session(reservation):
             },
         )
     except Exception as exc:
-        current_app.logger.error('Failed to create balance payment session for reservation #%s: %s', reservation.id, exc)
+        current_app.logger.error(
+            'Failed to create balance payment session for reservation #%s: %s', reservation.id, exc
+        )
         return None
 
 

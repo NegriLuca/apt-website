@@ -387,6 +387,58 @@ def admin_history_restore_all() -> Response | str:
     return redirect(url_for('routes.admin_history'))
 
 
+@bp.route('/admin/history/delete/<int:res_id>', methods=['POST'])
+@login_required
+def admin_history_delete(res_id: int) -> Response | str:
+    """Permanently delete a single past stay from History (any source).
+
+    Unlike the dashboard delete (OTA-only), this allows cleaning test,
+    duplicate or junk rows — including direct ones — so the list shows
+    only real reservations. Guards:
+    - only past stays (check_out < today); upcoming ones use Cancel/Delete on the dashboard.
+    - stays with an issued fiscal receipt (ricevuta) cannot be deleted.
+    - linked payout rows (Earning) are kept for Finance but unlinked.
+    """
+    if not current_user.is_admin:
+        abort(403)
+
+    def _back():
+        args = {'status': request.args.get('status', 'all')}
+        if request.args.get('source'):
+            args['source'] = request.args.get('source')
+        if request.args.get('year'):
+            args['year'] = request.args.get('year')
+        if request.args.get('page'):
+            args['page'] = request.args.get('page')
+        return redirect(url_for('routes.admin_history', **args))
+
+    res = Reservation.query.get_or_404(res_id)
+    if res.check_out >= date.today():
+        flash('Only past stays can be deleted from History. Use Cancel/Delete on the dashboard for upcoming ones.', 'warning')
+        return _back()
+
+    if res.receipt:
+        flash(
+            f"Cannot delete #{res_id}: fiscal receipt {res.receipt.receipt_number} was issued — "
+            'receipts must be kept for tax records.',
+            'danger',
+        )
+        return _back()
+
+    from app.models import CleaningAccess, Earning, QuesturaLog, Ross1000Log
+
+    QuesturaLog.query.filter_by(reservation_id=res_id).delete()
+    Ross1000Log.query.filter_by(reservation_id=res_id).delete()
+    Earning.query.filter_by(reservation_id=res_id).update({'reservation_id': None})
+    CleaningAccess.query.filter_by(reservation_id=res_id).update({'reservation_id': None})
+    label = f'{res.guest_name} {res.check_in} → {res.check_out} ({res.source})'
+    db.session.delete(res)
+    db.session.commit()
+    admin_audit_log('delete_history_reservation', 'Reservation', res_id, f'Deleted past stay {label} from History')
+    flash(f'Past stay #{res_id} ({label}) permanently deleted. Payout data (Earnings) is kept.', 'success')
+    return _back()
+
+
 @bp.route('/admin/calendar')
 @login_required
 def admin_calendar() -> Response | str:
@@ -1447,14 +1499,15 @@ def admin_send_access_link() -> Response | str:
         return redirect(url_for('routes.admin_dashboard'))
 
     try:
-        from app import mail
-        from flask_mail import Message
-        sender_addr = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME') or 'lotto235roma@gmail.com'
-        msg = Message(subject=subject, recipients=[res.guest_email], html=html, sender=('Lotto235 Garbatella', sender_addr))
-        mail.send(msg)
-        flash('Access link sent via Gmail SMTP.', 'success')
+        from app.services.email_service import send_email
+
+        ok = send_email([res.guest_email], subject, html)
+        if ok:
+            flash('Access link sent by email.', 'success')
+        else:
+            flash('Email delivery failed (check BREVO_API_KEY) — copy the access link from the guest page instead.', 'warning')
     except Exception as e:
-        current_app.logger.error('Access link SMTP failed: %s', e)
+        current_app.logger.error('Access link email failed: %s', e)
         flash(f'Error sending email: {e}', 'danger')
 
     return redirect(url_for('routes.admin_dashboard'))
