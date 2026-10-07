@@ -513,7 +513,7 @@ class ICalFeed(db.Model):
 
 
 class RunningCost(db.Model):
-    """Manual running cost entry (internet, cleaning, electricity, IMU, other).
+    """Manual running cost entry (internet, cleaning, electricity, condominium, IMU, other).
 
     Booked per period, not per day: ``month`` 1-12 for monthly costs,
     ``None`` for whole-year costs (IMU). Aggregated by month/year on the
@@ -531,7 +531,7 @@ class RunningCost(db.Model):
     note = db.Column(db.String(250), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    CATEGORIES = ('internet', 'cleaning', 'electricity', 'imu', 'other')
+    CATEGORIES = ('internet', 'cleaning', 'electricity', 'condominium', 'imu', 'other')
 
     @property
     def period_label(self) -> str:

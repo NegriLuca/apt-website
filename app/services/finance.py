@@ -19,7 +19,7 @@ Gross (= ota_gross + direct_gross)
   └─ Payout (= ota_amount + direct_net_of_stripe)
        ├─ cedolare (= |ota_withholding| + 21% of direct_gross) → AfterTax
        └─ AfterTax (= Payout - cedolare)
-            ├─ running costs (internet / cleaning / electricity / other [+ imu yearly])
+             ├─ running costs (internet / cleaning / electricity / condominium / other [+ imu yearly])
             └─ Net
 """
 
@@ -98,7 +98,7 @@ def compute_finance(year: int, month: int | None = None) -> dict[str, Any]:
     year_costs = RunningCost.query.filter_by(year=year).all()
     # Monthly view: only entries booked to that month (yearly rows have month NULL).
     costs = year_costs if month is None else [c for c in year_costs if c.month == month]
-    by_category: dict[str, float] = {'internet': 0.0, 'cleaning': 0.0, 'electricity': 0.0, 'imu': 0.0, 'other': 0.0}
+    by_category: dict[str, float] = {'internet': 0.0, 'cleaning': 0.0, 'electricity': 0.0, 'condominium': 0.0, 'imu': 0.0, 'other': 0.0}
     for c in costs:
         cat = (c.category or 'other') if (c.category or 'other') in by_category else 'other'
         by_category[cat] += c.amount or 0.0
@@ -150,10 +150,13 @@ def compute_finance(year: int, month: int | None = None) -> dict[str, Any]:
 
 
 def sankey_data(fin: dict[str, Any]) -> dict[str, Any]:
-    """Build Plotly Sankey ``{labels, sources, targets, values}`` from ``compute_finance``.
+    """Build Plotly Sankey ``{labels, sources, targets, values, x}`` from ``compute_finance``.
 
     Nodes: Gross → Fees, Payout → Cedolare, AfterTax → each cost → Net.
     Zero-value links are dropped so empty periods render cleanly.
+    ``x`` pins every node to its flow column so terminal branches
+    (fees, cedolare, cost buckets) stop mid-diagram instead of
+    stretching all the way to the Net column.
     """
     labels = [
         'Gross revenue',
@@ -164,11 +167,28 @@ def sankey_data(fin: dict[str, Any]) -> dict[str, Any]:
         'Internet',
         'Cleaning',
         'Electricity',
+        'Condominium',
         'Other costs',
     ]
     if fin['imu']:
         labels.append('IMU')
     labels.append('Net profit')
+
+    # Flow columns (left → right): source | fees+payout | cedolare+aftertax | costs | net.
+    layer_x = {
+        'Gross revenue': 0.01,
+        'OTA + Stripe fees': 0.30,
+        'Payout': 0.30,
+        'Cedolare secca 21%': 0.58,
+        'After tax': 0.58,
+        'Internet': 0.80,
+        'Cleaning': 0.80,
+        'Electricity': 0.80,
+        'Condominium': 0.80,
+        'Other costs': 0.80,
+        'IMU': 0.80,
+        'Net profit': 0.99,
+    }
 
     idx = {label: i for i, label in enumerate(labels)}
 
@@ -180,6 +200,7 @@ def sankey_data(fin: dict[str, Any]) -> dict[str, Any]:
         ('After tax', 'Internet', fin['costs']['internet']),
         ('After tax', 'Cleaning', fin['costs']['cleaning']),
         ('After tax', 'Electricity', fin['costs']['electricity']),
+        ('After tax', 'Condominium', fin['costs']['condominium']),
         ('After tax', 'Other costs', fin['costs']['other']),
     ]
     if fin['imu']:
@@ -194,7 +215,13 @@ def sankey_data(fin: dict[str, Any]) -> dict[str, Any]:
             targets.append(idx[t])
             values.append(round(v, 2))
 
-    return {'labels': labels, 'sources': sources, 'targets': targets, 'values': values}
+    return {
+        'labels': labels,
+        'sources': sources,
+        'targets': targets,
+        'values': values,
+        'x': [layer_x[label] for label in labels],
+    }
 
 
 def available_years() -> list[int]:

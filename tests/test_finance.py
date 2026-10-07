@@ -116,6 +116,23 @@ def test_sankey_balances(app):
         assert payout_out == round(fin['cedolare'] + fin['after_tax'], 2) == fin['payout']
 
 
+def test_sankey_early_stop_layers(app):
+    with app.app_context():
+        _add_earning()
+        _add_cost('cleaning', 50.0, 2026, 8)
+
+        fin = compute_finance(2026, 8)
+        sk = sankey_data(fin)
+        assert len(sk['x']) == len(sk['labels'])
+        pos = dict(zip(sk['labels'], sk['x']))
+        # flow columns run left → right
+        assert pos['Gross revenue'] < pos['Payout'] < pos['After tax'] < pos['Net profit']
+        # terminal branches stop before the Net column
+        assert pos['OTA + Stripe fees'] < pos['Net profit']
+        assert pos['Cedolare secca 21%'] < pos['Net profit']
+        assert pos['Cleaning'] < pos['Net profit']
+
+
 def test_finance_page_requires_admin(app, client):
     resp = client.get('/admin/finance')
     assert resp.status_code in (302, 401, 403)

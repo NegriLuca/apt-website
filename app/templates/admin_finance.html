@@ -98,7 +98,7 @@
                         <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-pie-chart me-1"></i>Cost breakdown</h5></div>
                         <div class="card-body">
                             {% set mop = monthly.operating %}
-                            {% for cat, val, cls in [('internet', monthly.costs.internet, 'info'), ('cleaning', monthly.costs.cleaning, 'warning'), ('electricity', monthly.costs.electricity, 'success'), ('other', monthly.costs.other, 'secondary')] %}
+                            {% for cat, val, cls in [('internet', monthly.costs.internet, 'info'), ('cleaning', monthly.costs.cleaning, 'warning'), ('electricity', monthly.costs.electricity, 'success'), ('condominium', monthly.costs.condominium, 'primary'), ('other', monthly.costs.other, 'secondary')] %}
                             <div class="d-flex justify-content-between small mb-1"><span class="text-capitalize fw-semibold">{{ cat }}</span><span class="font-monospace">€{{ '%.2f'|format(val) }}</span></div>
                             <div class="progress mb-3" style="height:8px;">
                                 <div class="progress-bar bg-{{ cls }}" style="width: {{ '%.1f'|format(val / mop * 100) if mop else 0 }}%"></div>
@@ -122,7 +122,7 @@
                                 <tbody>
                                     {% for c in month_costs %}
                                     <tr>
-                                        <td><span class="badge bg-{{ 'info' if c.category=='internet' else ('warning' if c.category=='cleaning' else ('primary' if c.category=='electricity' else 'secondary')) }}">{{ c.category }}</span></td>
+                                        <td><span class="badge bg-{{ 'info' if c.category=='internet' else ('warning' if c.category=='cleaning' else ('primary' if c.category=='electricity' else ('success' if c.category=='condominium' else 'secondary'))) }}">{{ c.category }}</span></td>
                                         <td class="small text-muted">{{ c.note or '—' }}</td>
                                         <td class="text-end font-monospace">€{{ '%.2f'|format(c.amount) }}</td>
                                         <td class="text-end">
@@ -135,7 +135,7 @@
                                         </td>
                                     </tr>
                                     {% else %}
-                                    <tr><td colspan="4" class="text-center text-muted py-4">No costs for {{ month_name }} yet — add internet, cleaning or electricity below.</td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted py-4">No costs for {{ month_name }} yet — add internet, cleaning, electricity or condominium below.</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -177,7 +177,7 @@
                         <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-pie-chart me-1"></i>{{ year }} cost breakdown</h5></div>
                         <div class="card-body">
                             {% set yop = yearly.running_total %}
-                            {% for cat, val, cls in [('internet', yearly.costs.internet, 'info'), ('cleaning', yearly.costs.cleaning, 'warning'), ('electricity', yearly.costs.electricity, 'success'), ('other', yearly.costs.other, 'secondary'), ('imu', yearly.costs.imu, 'dark')] %}
+                            {% for cat, val, cls in [('internet', yearly.costs.internet, 'info'), ('cleaning', yearly.costs.cleaning, 'warning'), ('electricity', yearly.costs.electricity, 'success'), ('condominium', yearly.costs.condominium, 'primary'), ('other', yearly.costs.other, 'secondary'), ('imu', yearly.costs.imu, 'dark')] %}
                             <div class="d-flex justify-content-between small mb-1"><span class="text-capitalize fw-semibold">{{ cat }}</span><span class="font-monospace">€{{ '%.2f'|format(val) }}</span></div>
                             <div class="progress mb-3" style="height:8px;">
                                 <div class="progress-bar bg-{{ cls }}" style="width: {{ '%.1f'|format(val / yop * 100) if yop else 0 }}%"></div>
@@ -291,6 +291,7 @@
         'Internet': '#0dcaf0',
         'Cleaning': '#ffc107',
         'Electricity': '#20c997',
+        'Condominium': '#e83e8c',
         'Other costs': '#adb5bd',
         'IMU': '#6c757d',
         'Net profit': '#198754'
@@ -299,6 +300,9 @@
         const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
         return `rgba(${r},${g},${b},${a})`;
     }
+    function fmtEUR(v){
+        return '€' + Number(v).toLocaleString('en-IE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
     function draw(id, data){
         const el = document.getElementById(id);
         if (!el || !window.Plotly) return;
@@ -306,26 +310,43 @@
             el.innerHTML = '<div class="text-center text-muted py-5">No revenue or costs in this period yet.</div>';
             return;
         }
+        // Per-node totals (max of in/out flow) → amounts shown under each label.
+        const n = data.labels.length;
+        const sumIn = new Array(n).fill(0), sumOut = new Array(n).fill(0);
+        data.sources.forEach((s, i) => { sumOut[s] += data.values[i]; });
+        data.targets.forEach((t, i) => { sumIn[t] += data.values[i]; });
+        const nodeVal = data.labels.map((_, i) => Math.max(sumIn[i] || 0, sumOut[i] || 0));
+        const gross = nodeVal[0] || 0;
+        const share = v => gross > 0 ? ` · ${(v / gross * 100).toFixed(1)}% of gross` : '';
+        const displayLabels = data.labels.map((l, i) => `${l}<br>${fmtEUR(nodeVal[i])}`);
+        const nodeHover = data.labels.map((l, i) => `${l}<br><b>${fmtEUR(nodeVal[i])}</b>${share(nodeVal[i])}`);
         const nodeColors = data.labels.map(l => NODE_COLORS[l] || '#6c757d');
-        const linkColors = data.sources.map(s => hexA(nodeColors[s] || '#6c757d', 0.35));
+        const linkColors = data.sources.map(s => hexA(nodeColors[s] || '#6c757d', 0.38));
+        const linkHover = data.sources.map((s, i) => {
+            const t = data.targets[i], v = data.values[i];
+            return `${data.labels[s]} → ${data.labels[t]}<br><b>${fmtEUR(v)}</b>${share(v)}`;
+        });
         Plotly.newPlot(el, [{
             type: 'sankey',
             arrangement: 'snap',
             orientation: 'h',
             node: {
-                label: data.labels,
+                label: displayLabels,
+                customdata: nodeHover,
+                x: data.x,
                 color: nodeColors,
-                pad: 18,
-                thickness: 22,
-                line: { color: '#dee2e6', width: 1 },
-                hovertemplate: '%{label}<br><b>€%{value:,.2f}</b><extra></extra>'
+                pad: 20,
+                thickness: 24,
+                line: { color: '#e9ecef', width: 1 },
+                hovertemplate: '%{customdata}<extra></extra>'
             },
             link: {
                 source: data.sources,
                 target: data.targets,
                 value: data.values,
+                customdata: linkHover,
                 color: linkColors,
-                hovertemplate: '%{source.label} → %{target.label}<br><b>€%{value:,.2f}</b><extra></extra>'
+                hovertemplate: '%{customdata}<extra></extra>'
             }
         }], {
             margin: { l: 8, r: 8, t: 8, b: 8 },
