@@ -50,12 +50,30 @@
                                         <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2" title="{{ _('Generate new code with current window') }}">↻ {{ _('Regenerate') }}</button>
                                     </form>
                                 </div>
+                                <form method="POST" action="{{ url_for('routes.admin_generate_keypad_code') }}" class="mt-2">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="reservation_id" value="{{ reservation.id }}"/>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control font-monospace" name="custom_code" placeholder="______" pattern="[0-9]{6}" maxlength="6" minlength="6" inputmode="numeric" title="{{ _('6 digits, cannot start with 12') }}"/>
+                                        <button type="submit" class="btn btn-outline-secondary">{{ _('Set code') }}</button>
+                                    </div>
+                                    <div class="form-text">{{ _('Restore / set a specific code (6 digits, cannot start with 12). Replaces the current one on Nuki.') }}</div>
+                                </form>
                                 <div class="form-text">{{ _('Uses current window') }} {{ reservation.access_window_display() if reservation.access_window_display is defined else '' }}</div>
                             {% else %}
                                 <form method="POST" action="{{ url_for('routes.admin_generate_keypad_code') }}" class="mt-1">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <input type="hidden" name="reservation_id" value="{{ reservation.id }}"/>
                                     <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2">＋ {{ _('Generate keypad') }}</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('routes.admin_generate_keypad_code') }}" class="mt-2">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="reservation_id" value="{{ reservation.id }}"/>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control font-monospace" name="custom_code" placeholder="______" pattern="[0-9]{6}" maxlength="6" minlength="6" inputmode="numeric" title="{{ _('6 digits, cannot start with 12') }}"/>
+                                        <button type="submit" class="btn btn-outline-secondary">{{ _('Set code') }}</button>
+                                    </div>
+                                    <div class="form-text">{{ _('Or type a specific code to restore (6 digits, cannot start with 12).') }}</div>
                                 </form>
                             {% endif %}
                         </div>

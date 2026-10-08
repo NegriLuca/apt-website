@@ -1577,9 +1577,68 @@ def admin_generate_keypad_code() -> Response | str:
         flash('Nuki door not configured. Set NUKI_SMARTLOCK_ID / NUKI_WEB_TOKEN or the Smart Access page.', 'danger')
         return redirect(url_for('routes.admin_dashboard'))
 
+    back = request.referrer or url_for('routes.admin_dashboard')
     try:
         start_utc, end_utc = access_window_utc(res)
         name = f'Res{res.id} {res.guest_name}'.strip()[:20]
+        # Manual code path: admin typed a specific 6-digit PIN (e.g. to
+        # restore a code that was already sent to the guest before a revoke).
+        custom_code = (request.form.get('custom_code') or '').strip()
+        if custom_code:
+            if not (custom_code.isdigit() and len(custom_code) == 6):
+                flash('Custom code must be exactly 6 digits.', 'danger')
+                return redirect(back)
+            if custom_code.startswith('12'):
+                flash('Code cannot start with “12” (reserved by Nuki).', 'danger')
+                return redirect(back)
+            try:
+                existing = {
+                    str(a.get('code'))
+                    for a in svc._get_auths()
+                    if a.get('type') == 13 and a.get('code')
+                }
+                if custom_code in existing and custom_code != (res.keypad_code or ''):
+                    flash(f'Code {custom_code} is already in use on the Nuki device. Choose another.', 'danger')
+                    return redirect(back)
+            except SmartLockError:
+                pass  # non-fatal — let the PUT decide
+            if res.keypad_auth_id:
+                try:
+                    svc.revoke_keypad_code(res.keypad_auth_id)
+                except SmartLockError:
+                    pass
+                import time as _time
+
+                _time.sleep(1)
+            import requests
+
+            payload = {
+                'name': name,
+                'type': 13,
+                'code': int(custom_code),
+                'smartlockIds': [int(apt.nuki_smartlock_id)],
+                'allowedFromDate': start_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                'allowedUntilDate': end_utc.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+                'allowedWeekDays': 127,
+                'allowedFromTime': 0,
+                'allowedUntilTime': 0,
+            }
+            try:
+                resp = requests.put(f'{svc.base_url}/smartlock/auth', headers=svc._get_headers(), json=payload, timeout=15)
+                resp.raise_for_status()
+            except Exception as e:
+                current_app.logger.warning('Custom-code create failed for res #%s code %s: %s', res.id, custom_code, e)
+                flash(f'Failed to set custom code {custom_code} on Nuki: {e}', 'danger')
+                return redirect(back)
+            res.keypad_code = custom_code
+            res.keypad_created_at = datetime.utcnow()
+            res.keypad_auth_id = svc.find_keypad_auth_id(custom_code)
+            db.session.commit()
+            window_str = res.access_window_display() if hasattr(res, 'access_window_display') else f"13:00 {res.check_in.strftime('%d/%m/%Y')} → 13:00 {res.check_out.strftime('%d/%m/%Y')} (Rome)"
+            flash(f'Keypad code {custom_code} set for {res.guest_name}. Valid {window_str}.', 'success')
+            if not res.keypad_auth_id:
+                flash('Note: the code was accepted but not yet confirmed on the Nuki device. It will be revocable once it syncs.', 'warning')
+            return redirect(back)
         # If a code already exists, try to keep same PIN on regenerate
         old_code = (res.keypad_code or '').strip()
         if old_code and old_code.isdigit() and len(old_code) == 6:
@@ -1613,7 +1672,7 @@ def admin_generate_keypad_code() -> Response | str:
                 flash(f'Keypad code {old_code} re-created for {res.guest_name} (same PIN). Valid {window_str}.', 'success')
                 if not res.keypad_auth_id:
                     flash('Note: the code was accepted but not yet confirmed on the Nuki device. It will be revocable once it syncs.', 'warning')
-                return redirect(url_for('routes.admin_dashboard'))
+                return redirect(back)
             except Exception as e:
                 current_app.logger.warning('Same-code recreate failed for res #%s code %s: %s — falling back to new code', res.id, old_code, e)
                 # fall through to generate new code
@@ -1639,7 +1698,7 @@ def admin_generate_keypad_code() -> Response | str:
     except SmartLockError as e:
         flash(f'Failed to create keypad code: {e}', 'danger')
 
-    return redirect(url_for('routes.admin_dashboard'))
+    return redirect(back)
 
 
 @bp.route('/admin/access/revoke-keypad-code', methods=['POST'])
@@ -1669,7 +1728,7 @@ def admin_revoke_keypad_code() -> Response | str:
     res.keypad_created_at = None
     db.session.commit()
     flash(f'Keypad code revoked for {res.guest_name}.', 'success')
-    return redirect(url_for('routes.admin_dashboard'))
+    return redirect(request.referrer or url_for('routes.admin_dashboard'))
 
 
 # ── Smart Lock Tests ────────────────────────────────────────────────────────
