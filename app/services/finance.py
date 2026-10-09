@@ -50,10 +50,15 @@ def _in_month(d: date | None, year: int, month: int | None) -> bool:
 
 def compute_finance(year: int, month: int | None = None) -> dict[str, Any]:
     """Aggregate revenue + costs for a month (``month`` set) or a year."""
+    excluded_ids = {
+        row[0] for row in Reservation.query.filter_by(stats_excluded=True).with_entities(Reservation.id).all()
+    }
     earnings = Earning.query.all()
     ota_gross = ota_amount = ota_withholding = 0.0
     ota_nights = ota_count = 0
     for e in earnings:
+        if e.reservation_id in excluded_ids:
+            continue  # friends/family stay kept as row but out of stats
         if not _in_month(_earning_period(e), year, month):
             continue
         ota_gross += e.gross_earnings or 0.0
@@ -69,6 +74,7 @@ def compute_finance(year: int, month: int | None = None) -> dict[str, Any]:
     reservations = Reservation.query.filter(
         Reservation.status == 'confirmed',
         Reservation.is_block.is_(False),
+        Reservation.stats_excluded.is_(False),
         Reservation.source.in_(DIRECT_SOURCES),
     ).all()
     direct_gross = 0.0

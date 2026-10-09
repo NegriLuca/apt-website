@@ -83,27 +83,32 @@ def _add_months(d: date, months: int) -> date:
 
 
 def _occupancy_rate(reservations, window_start: date, window_end: date) -> float:
-    """Occupancy rate = % of nights in [window_start, window_end) covered by a booking.
+    """Occupancy rate = % of available nights in [window_start, window_end) covered by a booking.
 
     Only the portion of each stay that falls inside the window counts, so stays
     starting before/after the window (or spanning its edges) don't skew the
-    number. Cancelled reservations are ignored.
+    number. Cancelled reservations are ignored. Stays flagged stats_excluded
+    (friends/family) are removed from BOTH sides: neither counted as occupied
+    nor as available inventory.
     """
     total_nights = (window_end - window_start).days
 
     occupied = set()
+    excluded = set()
     for r in reservations:
         if r.status != 'confirmed':
             continue
         overlap_start = max(r.check_in, window_start)
         overlap_end = min(r.check_out, window_end)
         if overlap_end > overlap_start:
+            target = excluded if r.stats_excluded else occupied
             day = overlap_start
             while day < overlap_end:
-                occupied.add(day)
+                target.add(day)
                 day += timedelta(days=1)
 
-    return round(len(occupied) / total_nights * 100, 1) if total_nights else 0
+    available = total_nights - len(excluded - occupied)
+    return round(len(occupied) / available * 100, 1) if available else 0
 
 
 @bp.route('/admin')
@@ -131,10 +136,10 @@ def admin_dashboard() -> Response | str:
     cancelled_count = Reservation.query.filter_by(status='cancelled').count()
     pending = [r for r in reservations if r.status == 'pending']
 
-    monthly_confirmed = [r for r in confirmed if r.check_in >= month_start]
+    monthly_confirmed = [r for r in confirmed if r.check_in >= month_start and not r.stats_excluded]
     monthly_revenue = sum(r.total_price for r in monthly_confirmed)
 
-    yearly_confirmed = [r for r in confirmed if r.check_in >= year_start]
+    yearly_confirmed = [r for r in confirmed if r.check_in >= year_start and not r.stats_excluded]
     yearly_revenue = sum(r.total_price for r in yearly_confirmed)
 
     source_counts = {}
@@ -160,7 +165,7 @@ def admin_dashboard() -> Response | str:
     past_revenue = sum(
         r.total_price
         for r in Reservation.query.filter(Reservation.status == 'confirmed', Reservation.check_out < today).all()
-        if not r.is_block
+        if not r.is_block and not r.stats_excluded
     )
 
     dashboard_data = {
@@ -243,9 +248,10 @@ def admin_history() -> Response | str:
     pagination = filtered_q.order_by(Reservation.check_in.desc()).paginate(page=page, per_page=25, error_out=False)
 
     # ── Aggregates for the filtered set ──────────────────────────────────
-    # For accurate financial stats we exclude calendar blocks (is_block=True) — they have no revenue.
+    # For accurate financial stats we exclude calendar blocks (is_block=True) — they have no revenue —
+    # and stays flagged stats_excluded (friends/family kept as rows but out of all stats).
     all_filtered = filtered_q.all()
-    all_filtered_confirmed = [r for r in all_filtered if r.status == 'confirmed' and not r.is_block]
+    all_filtered_confirmed = [r for r in all_filtered if r.status == 'confirmed' and not r.is_block and not r.stats_excluded]
 
     filtered_revenue = sum(r.total_price for r in all_filtered_confirmed)
     filtered_nights = sum(r.nights for r in all_filtered_confirmed)
@@ -256,7 +262,7 @@ def admin_history() -> Response | str:
     # Stats are always over confirmed past only (blocks excluded) — regardless of current filters,
     # so the header cards remain stable while the table is filtered.
     all_past = Reservation.query.filter(Reservation.status == 'confirmed', Reservation.check_out < today).all()
-    all_confirmed = [r for r in all_past if not r.is_block]
+    all_confirmed = [r for r in all_past if not r.is_block and not r.stats_excluded]
     total_revenue = sum(r.total_price for r in all_confirmed)
     total_nights = sum(r.nights for r in all_confirmed)
     avg_nightly = round(total_revenue / total_nights, 2) if total_nights else 0
@@ -264,9 +270,11 @@ def admin_history() -> Response | str:
     total_paid = sum(1 for r in all_confirmed if r.payment_status == 'paid')
     total_unpaid = len(all_confirmed) - total_paid
 
-    # Occupancy over the last 12 months (or from earliest check_in to today if shorter)
-    # Use all confirmed past (including blocks for occupancy denominator) — but revenue stats already exclude blocks.
+    # Occupancy over the last 12 months (or from earliest check_in to today if shorter).
+    # occupancy_base keeps stats_excluded rows: _occupancy_rate removes them from
+    # both numerator and denominator. Revenue stats above already exclude them.
     occupancy_base = Reservation.query.filter(Reservation.status == 'confirmed', Reservation.check_out < today).all()
+    excluded_count = sum(1 for r in occupancy_base if r.stats_excluded)
     if all_confirmed:
         earliest = min(r.check_in for r in all_confirmed)
         twelve_months_ago = _add_months(today, -12)
@@ -332,6 +340,7 @@ def admin_history() -> Response | str:
         total_unpaid=total_unpaid,
         occupancy_12m=occupancy_12m,
         occupancy_all=occupancy_all,
+        excluded_count=excluded_count,
         source_counts=source_counts,
         source_revenue=source_revenue,
         monthly_breakdown=monthly_breakdown,
@@ -436,6 +445,38 @@ def admin_history_delete(res_id: int) -> Response | str:
     db.session.commit()
     admin_audit_log('delete_history_reservation', 'Reservation', res_id, f'Deleted past stay {label} from History')
     flash(f'Past stay #{res_id} ({label}) permanently deleted. Payout data (Earnings) is kept.', 'success')
+    return _back()
+
+
+@bp.route('/admin/history/toggle-stats/<int:res_id>', methods=['POST'])
+@login_required
+def admin_history_toggle_stats(res_id: int) -> Response | str:
+    """Flag/unflag a stay as excluded from stats (friends/family kept as rows).
+
+    The row stays visible everywhere (dashboard/history/compliance) but its
+    nights and revenue no longer count in avg/nightly, occupancy (numerator
+    AND denominator) and finance aggregates. Questura/ROSS1000/tourist-tax
+    are unaffected — guests were physically present.
+    """
+    if not current_user.is_admin:
+        abort(403)
+
+    def _back():
+        args = {'status': request.args.get('status', 'all')}
+        if request.args.get('source'):
+            args['source'] = request.args.get('source')
+        if request.args.get('year'):
+            args['year'] = request.args.get('year')
+        if request.args.get('page'):
+            args['page'] = request.args.get('page')
+        return redirect(url_for('routes.admin_history', **args))
+
+    res = Reservation.query.get_or_404(res_id)
+    res.stats_excluded = not res.stats_excluded
+    db.session.commit()
+    state = 'excluded from' if res.stats_excluded else 'included back in'
+    admin_audit_log('toggle_stats_excluded', 'Reservation', res_id, f'Stay {state} stats')
+    flash(f'Reservation #{res_id} ({res.guest_name} {res.check_in} → {res.check_out}) {state} stats.', 'success')
     return _back()
 
 

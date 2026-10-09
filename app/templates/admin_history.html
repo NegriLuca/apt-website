@@ -80,7 +80,7 @@
             <div class="card border-0 shadow-sm text-center p-3 h-100">
                 <small class="text-muted text-uppercase fw-bold">{{ _('Total Past Revenue') }}</small>
                 <h3 class="mb-0 text-success font-monospace">€{{ "%.0f"|format(total_revenue) }}</h3>
-                <small class="text-muted">{{ reservations.total }} {{ _('stays') }} · {{ total_nights }} {{ _('nights') }}</small>
+                <small class="text-muted">{{ reservations.total }} {{ _('stays') }} · {{ total_nights }} {{ _('nights') }}{% if excluded_count %} · {{ excluded_count }} {{ _('excluded from stats') }}{% endif %}</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
@@ -205,11 +205,12 @@
                 </thead>
                 <tbody>
                     {% for r in reservations.items %}
-                    <tr {% if r.status == 'cancelled' %}class="table-light opacity-75"{% endif %}>
+                    <tr {% if r.status == 'cancelled' %}class="table-light opacity-75"{% elif r.stats_excluded %}class="table-warning opacity-75"{% endif %}>
                         <td><span class="text-muted">#{{ r.id }}</span></td>
                         <td>
                             <strong>{{ r.guest_name }}</strong>
                             {% if r.is_block %}<span class="badge bg-secondary ms-1">block</span>{% endif %}
+                            {% if r.stats_excluded %}<span class="badge bg-warning text-dark ms-1" title="{{ _('Kept as row but excluded from revenue/avg/occupancy/finance stats') }}">no-stats</span>{% endif %}
                             {% if r.guest_email %}<br><small class="text-muted">{{ r.guest_email }}</small>{% endif %}
                         </td>
                         <td>
@@ -275,6 +276,10 @@
                                     </form>
                                 {% endif %}
                                 <a href="{{ url_for('routes.admin_guest_message', reservation_id=r.id) }}" class="btn btn-sm btn-outline-info" title="{{ _('Message / details') }}">💬</a>
+                                <form method="POST" action="{{ url_for('routes.admin_history_toggle_stats', res_id=r.id, status=status_filter, source=source_filter, year=year_filter, page=reservations.page) }}" class="d-inline" title="{{ _('Include back in stats') if r.stats_excluded else _('Exclude from stats (keep row, e.g. friends/family stay)') }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-sm {{ 'btn-warning' if r.stats_excluded else 'btn-outline-secondary' }}"><i class="bi bi-bar-chart-line{{ '-fill' if r.stats_excluded else '' }}"></i></button>
+                                </form>
                                 {% if r.source in ['direct','stripe'] and r.receipt %}
                                     <a href="{{ url_for('routes.admin_receipt_pdf', receipt_id=r.receipt.id) }}" class="btn btn-sm btn-dark" title="Ricevuta {{ r.receipt.receipt_number }}">🧾</a>
                                 {% endif %}
@@ -312,7 +317,7 @@
     </div>
 
     <div class="alert alert-light border small">
-        <i class="bi bi-info-circle me-1"></i> {{ _('Past revenue counts confirmed stays only (blocks excluded). Occupancy = %% of nights in window covered by any confirmed stay (blocks excluded from revenue but counted for occupancy). Edit revenue/payment via ✏️ — changes apply to reports immediately.') }}
+        <i class="bi bi-info-circle me-1"></i> {{ _('Past revenue counts confirmed stays only (blocks and stays flagged no-stats excluded). Occupancy = %% of available nights covered by confirmed stays; no-stats stays are removed from both occupied and available nights. Flag friends/family stays with the chart button — rows are kept, compliance (Questura/ROSS1000/city tax) is unaffected. Edit revenue/payment via ✏️ — changes apply to reports immediately.') }}
     </div>
 </div>
 

@@ -285,6 +285,14 @@ class Reservation(db.Model):
     tourist_tax_paid = db.Column(db.Boolean, default=False)
     tourist_tax_excluded = db.Column(db.Boolean, default=False, comment='Exclude from tourist tax reports')
 
+    # Stats exclusion (friends/family stays, courtesy blocks kept as rows)
+    stats_excluded = db.Column(
+        db.Boolean,
+        nullable=False,
+        default=False,
+        comment='Keep the row but exclude from revenue/avg/occupancy/finance stats (compliance unaffected)',
+    )
+
     # ── Ricevuta — Dati cliente supplementari (indirizzo / CF) ─────────────────
     guest_residence_address = db.Column(db.String(250), nullable=True, comment='Via / indirizzo di residenza')
     guest_residence_city = db.Column(db.String(100), nullable=True, comment='Città di residenza')
