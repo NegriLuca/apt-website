@@ -26,17 +26,17 @@
     <!-- Upload -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Upload CSV</h5>
-            <span class="text-muted small">Airbnb: Date,Type,Confirmation code... | Booking.com: Tipologia,Numero prenotazione,Importo,Commissione,Ritenuta,Netto...</span>
+            <h5 class="mb-0"><i class="bi bi-upload me-2"></i>Upload CSV / XLS</h5>
+            <span class="text-muted small">Airbnb: Date,Type,Confirmation code... | Booking Finance: Tipologia,Numero prenotazione,Importo,Commissione,Ritenuta,Netto... | Booking Arrivi: .xls N° di prenotazione,Prezzo,Importo commissione...</span>
         </div>
         <div class="card-body p-4">
             <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="row g-4">
                     <div class="col-lg-6">
-                        <label class="form-label fw-semibold small text-uppercase">CSV file (Airbnb or Booking.com Earnings export)</label>
-                        <input type="file" class="form-control" name="csv_file" accept=".csv,text/csv">
-                        <div class="form-text">Export from Airbnb → Earnings → Download CSV, or Booking.com → Finance → Earnings → Export. Max 5 MB. Encoding auto-detected. Platform detected automatically.</div>
+                        <label class="form-label fw-semibold small text-uppercase">File (Airbnb / Booking Earnings CSV, or Booking Arrivi .xls)</label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv,.xls,.xlsx,text/csv">
+                        <div class="form-text">Airbnb → Earnings → Download CSV · Booking.com → Finance → Earnings → Export (con Ritenuta reale) · oppure Booking extranet → Prenotazioni → Arrivi (.xls: Prezzo − commissione 18%, senza ritenuta).</div>
                     </div>
                     <div class="col-lg-6">
                         <label class="form-label fw-semibold small text-uppercase">Or paste CSV text</label>
@@ -55,7 +55,7 @@
             </form>
             <div class="alert bg-light border-0 small mt-4 mb-0">
                 <i class="bi bi-info-circle me-1"></i>
-                File is parsed in memory. <strong>Airbnb:</strong> Withholding ~<code>21.74%</code> of gross (cedolare secca 21%) — <code>Net = Amount + Withholding</code>. <strong>Booking.com:</strong> <code>Net = Importo + Commissione + Ritenuta + VAT + Costo transazione</code> (all fees negative).
+                File is parsed in memory. <strong>Airbnb:</strong> Withholding ~<code>21.74%</code> of gross (cedolare secca 21%) — <code>Net = Amount + Withholding</code>. <strong>Booking Finance:</strong> <code>Net = Importo + Commissione + Ritenuta + VAT + Costo transazione</code> (all fees negative, ritenuta reale). <strong>Booking Arrivi (.xls):</strong> <code>Net = Prezzo − Importo commissione</code> (18%); ritenuta 21% NON nel file (stimata a parte) e tassa di soggiorno NON inclusa nel Prezzo.
             </div>
         </div>
     </div>
@@ -230,6 +230,12 @@
     </div>
 
     <!-- Monthly -->
+    {% if result.report == 'reservations' %}
+    <div class="alert alert-warning d-flex flex-wrap gap-3 align-items-center" role="alert">
+        <div><i class="bi bi-exclamation-triangle me-1"></i> <strong>Report Arrivi</strong> — {{ result.totals.cancelled }} cancellate escluse · payout Booking <strong>€{{ '%.2f'|format(result.totals.net) }}</strong> prima della cedolare.</div>
+        <div class="ms-auto small">Cedolare stimata 21%: <strong>€{{ '%.2f'|format(result.totals.cedolare_est) }}</strong> → dopo tasse <strong>€{{ '%.2f'|format(result.totals.after_tax_est) }}</strong> · City tax da incassare: <strong>€{{ '%.2f'|format(result.totals.city_tax_est) }}</strong></div>
+    </div>
+    {% endif %}
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-calendar-week me-1"></i> Monthly breakdown (by Start date)</h5></div>
         <div class="table-responsive">
@@ -307,7 +313,7 @@
                 <tbody>
                     {% for r in result.per_code %}
                     <tr>
-                        <td><strong>{{ r.guest }}</strong><br><small class="text-muted">{{ r.code }}</small></td>
+                        <td><strong>{{ r.guest }}</strong> {% if r.is_cancelled %}<span class="badge bg-secondary">cancelled</span>{% endif %}<br><small class="text-muted">{{ r.code }}</small></td>
                         <td class="font-monospace small">{{ r.code }}</td>
                         <td class="small">{{ r.start.strftime('%d/%m/%Y') if r.start else '—' }} → {{ r.end.strftime('%d/%m/%Y') if r.end else '—' }}</td>
                         <td class="text-end">{{ r.nights }}</td>
@@ -338,6 +344,11 @@
                 {% if result.platform == 'airbnb' %}
                 <li><strong>Amount</strong> = (room − discount + cleaning) − Airbnb service fee. <strong>Net = Amount + Withholding</strong> (withholding negative ~-21.74% cedolare secca). <strong>Gross</strong> shown for reference.</li>
                 <li>Service fee is Airbnb's host fee (already deducted from Amount). Cleaning fee is included in Amount.</li>
+                {% elif result.report == 'reservations' %}
+                <li><strong>Arrivi report (.xls): Net = Prezzo − Importo commissione</strong> (payout Booking prima della cedolare). Cancellate escluse dal totale ({{ result.totals.cancelled }} righe).</li>
+                <li>Cancellate: la prenotazione viene marcata <code>cancelled</code>; il payout viene <strong>rimosso solo se era una stima da Arrivi</strong>. I payout reali dal Finance export (penali no-show / tariffe non rimborsabili) vengono <strong>conservati</strong> — il file Arrivi non dice se la cancellazione era gratuita o a pagamento.</li>
+                <li>Cedolare secca stimata 21% sul lordo: <strong>€{{ '%.2f'|format(result.totals.cedolare_est) }}</strong> → dopo tasse stimato <strong>€{{ '%.2f'|format(result.totals.after_tax_est) }}</strong>. Valore reale solo nel Finance → Earnings export (colonna Ritenuta).</li>
+                <li>Tassa di soggiorno stimata (6 € × adulti × notti, max 10): <strong>€{{ '%.2f'|format(result.totals.city_tax_est) }}</strong> — NON inclusa nel Prezzo, da incassare a parte.</li>
                 {% else %}
                 <li><strong>Net = Importo + Commissione + Ritenuta + VAT + Costo transazione</strong> (all fees are negative). <strong>Gross = Importo</strong> (amount guest paid).</li>
                 <li>Commission = Booking.com host fee. VAT = VAT on platform services. Transaction = payment processing fee. Ritenuta = 21% cedolare secca withholding.</li>

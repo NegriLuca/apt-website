@@ -580,24 +580,35 @@ def admin_earnings() -> Response | str:
 
         if raw is not None and not error:
             try:
-                # Auto-detect platform from CSV headers
-                text_sample = raw[:2000].decode('utf-8', errors='ignore') if isinstance(raw, bytes) else raw[:2000]
-                is_booking = 'Tipologia' in text_sample or 'Numero prenotazione' in text_sample
-                is_airbnb = 'Confirmation code' in text_sample or 'Gross earnings' in text_sample
+                # Auto-detect platform from CSV headers (or .xls magic/filename)
+                is_xls = False
+                if isinstance(raw, bytes):
+                    if raw[:4] == b'\xd0\xcf\x11\xe0' or (filename or '').lower().endswith(('.xls', '.xlsx')):
+                        is_xls = True
+                text_sample = '' if is_xls else (raw[:4000].decode('utf-8', errors='ignore') if isinstance(raw, bytes) else raw[:4000])
+                is_booking_reservations = is_xls or ('di prenotazione' in text_sample and 'Importo commissione' in text_sample)
+                is_booking = 'Tipologia' in text_sample or ('Numero prenotazione' in text_sample and 'Importo commissione' not in text_sample)
 
-                if is_booking:
+                if is_booking_reservations:
+                    from app.services.booking_reservations import parse_reservations_report as parse_booking_res
+                    result = parse_booking_res(raw, filename or '')
+                    platform = 'booking'
+                    result['report'] = 'reservations'
+                elif is_booking:
                     from app.services.booking_earnings import parse_earnings_csv as parse_booking_csv
                     result = parse_booking_csv(raw)
                     platform = 'booking'
+                    result['report'] = 'earnings'
                 else:
                     from app.services.airbnb_earnings import parse_earnings_csv as parse_airbnb_csv
                     result = parse_airbnb_csv(raw)
                     platform = 'airbnb'
+                    result['report'] = 'earnings'
 
                 result['filename'] = filename
                 result['platform'] = platform
                 if result['totals']['count'] == 0:
-                    error = 'No reservations found — check the CSV format (Airbnb or Booking.com Earnings export).'
+                    error = 'No reservations found — check the file format (Airbnb / Booking Earnings CSV, or Booking Reservations .xls).'
                     result = None
                 else:
                     # store to DB + auto-sync to Reservation
@@ -605,8 +616,42 @@ def admin_earnings() -> Response | str:
                     if do_store:
                         stored_new = 0
                         synced_new = 0
+                        cancelled_marked = 0
+                        cancelled_earnings_deleted = 0
+                        cancelled_earnings_kept = 0
+                        is_res_report = result.get('report') == 'reservations'
+                        _ota_sources = ('airbnb', 'booking', 'booking_com', 'vrbo')
                         for entry in result['per_code']:
                             code = entry['code']
+                            if entry.get('is_cancelled'):
+                                # Stay didn't happen → cancel the reservation. Money follows
+                                # payout evidence (arrivals has NO free/paid-cancel signal):
+                                # delete only arrivals-sourced estimates; keep real Finance
+                                # payouts (e.g. non-refundable / no-show penalties).
+                                earn = Earning.query.filter_by(platform=platform, confirmation_code=code).first()
+                                if earn:
+                                    _raw = earn.raw_json or {}
+                                    _src = _raw.get('report') or ''
+                                    if not _src:
+                                        # legacy rows pre-tag: arrivals estimates carry cedolare_est
+                                        _src = 'reservations' if _raw.get('cedolare_est') is not None else 'earnings'
+                                    if _src == 'reservations':
+                                        db.session.delete(earn)
+                                        cancelled_earnings_deleted += 1
+                                    else:
+                                        cancelled_earnings_kept += 1
+                                res = Reservation.query.filter_by(external_uid=code).first()
+                                if not res and entry.get('start') and entry.get('end'):
+                                    res = Reservation.query.filter(
+                                        Reservation.check_in == entry['start'],
+                                        Reservation.check_out == entry['end'],
+                                        Reservation.status != 'cancelled',
+                                        Reservation.source.in_(_ota_sources),
+                                    ).first()
+                                if res and res.status != 'cancelled':
+                                    res.status = 'cancelled'
+                                    cancelled_marked += 1
+                                continue
                             # try find existing
                             earn = Earning.query.filter_by(platform=platform, confirmation_code=code).first()
                             if not earn:
@@ -630,7 +675,15 @@ def admin_earnings() -> Response | str:
                                 earn.airbnb_tax = entry.get('airbnb_tax', 0) or 0
                                 earn.withholding = entry.get('withholding', 0) or 0
                                 earn.net = entry.get('net', 0) or 0
-                            else:  # booking
+                            elif is_res_report:  # booking arrivals .xls: payout = Prezzo - commissione, ritenuta NOT in file
+                                earn.amount = entry.get('net', 0) or 0
+                                earn.service_fee = abs(entry.get('commission', 0)) or 0
+                                earn.cleaning_fee = 0
+                                earn.gross_earnings = entry.get('gross', 0) or 0
+                                earn.airbnb_tax = 0
+                                earn.withholding = 0
+                                earn.net = entry.get('net', 0) or 0
+                            else:  # booking finance earnings CSV
                                 earn.amount = entry.get('gross', 0) or 0  # gross = Importo
                                 earn.service_fee = abs(entry.get('commission', 0)) or 0
                                 earn.cleaning_fee = 0
@@ -661,15 +714,27 @@ def admin_earnings() -> Response | str:
                                     return [_j(x) for x in v]
                                 return v
                             earn.raw_json = _j(entry)
+                            earn.raw_json['report'] = result.get('report', 'earnings')
                             # auto-sync to reservation — update name/dates/financials so Dashboard revenue shows
                             def _find_reservation(code, guest, start, end):
                                 r = Reservation.query.filter_by(external_uid=code).first()
                                 if r:
                                     return r
                                 if guest and start and end:
+                                    # prefer OTA rows on exact dates (iCal imports), skip cancelled,
+                                    # fall back to any source only if no OTA row matches
                                     r = Reservation.query.filter(
                                         Reservation.check_in == start,
                                         Reservation.check_out == end,
+                                        Reservation.status != 'cancelled',
+                                        Reservation.source.in_(_ota_sources),
+                                    ).first()
+                                    if r:
+                                        return r
+                                    r = Reservation.query.filter(
+                                        Reservation.check_in == start,
+                                        Reservation.check_out == end,
+                                        Reservation.status != 'cancelled',
                                     ).first()
                                     if r:
                                         return r
@@ -723,6 +788,13 @@ def admin_earnings() -> Response | str:
                                     res.amount_paid = round(earn.net, 2)
                                     res.payment_status = 'paid'
                                     changed = True
+                                # N guests: arrivals .xls is authoritative (guest's booking) — overwrite when different
+                                if is_res_report and entry.get('adults'):
+                                    if res.num_adults != entry['adults'] or (res.num_guests or 0) != (entry.get('guests') or 0):
+                                        res.num_adults = entry['adults']
+                                        res.num_children = entry.get('children', 0) or 0
+                                        res.num_guests = entry.get('guests') or res.num_guests
+                                        changed = True
                                 # N guests: CSV doesn't have it — keep existing, don't overwrite
                                 if changed:
                                     # ensure external_uid is set for future exact matches
@@ -731,8 +803,19 @@ def admin_earnings() -> Response | str:
                                     # mark confirmed so it counts in revenue
                                     if res.status == 'pending':
                                         res.status = 'confirmed'
+                                    elif res.status == 'cancelled' and res.external_uid == code:
+                                        # arrivals file says ok + exact code match → resurrect
+                                        res.status = 'confirmed'
                         db.session.commit()
-                        flash(f'Stored {len(result["per_code"])} earnings ({stored_new} new) and auto-synced {synced_new} to reservations.', 'success')
+                        _stored_ok = sum(1 for e in result['per_code'] if not e.get('is_cancelled'))
+                        _msg = f'Stored {_stored_ok} earnings ({stored_new} new) and auto-synced {synced_new} to reservations.'
+                        if cancelled_marked or cancelled_earnings_deleted or cancelled_earnings_kept:
+                            _msg += (
+                                f' Cancelled: {cancelled_marked} reservations marked,'
+                                f' {cancelled_earnings_deleted} estimated payouts removed,'
+                                f' {cancelled_earnings_kept} real Finance payouts kept.'
+                            )
+                        flash(_msg, 'success')
                         # refresh stored
                         stored = Earning.query.order_by(Earning.payout_date.desc(), Earning.start_date.desc()).all()
                         # recompute stored totals after store
@@ -746,7 +829,7 @@ def admin_earnings() -> Response | str:
                                              avg_net_night=(_net/_nights if _nights else 0), avg_gross_night=(_gross/_nights if _nights else 0))
             except Exception as e:
                 current_app.logger.exception('Earnings parse failed')
-                error = f'Failed to parse CSV: {e}'
+                error = f'Failed to parse file: {e}'
 
     return render_template('admin_earnings.html', result=result, error=error, sample=sample, stored=stored, stored_totals=stored_totals)
 
