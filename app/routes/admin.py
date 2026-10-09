@@ -502,11 +502,13 @@ def admin_earnings() -> Response | str:
                              avg_net_night=(_net/_nights if _nights else 0), avg_gross_night=(_gross/_nights if _nights else 0))
 
     if request.method == 'POST':
-        # handle sync button — link + push name/dates/financials to Reservation so Dashboard revenue appears
+        # handle sync button — same rules as upload: link + push name/dates/guests/net.
+        # (Cancellations need the arrivals file, so cancelled stays are link-only here.)
         if request.form.get('action') == 'sync':
             synced = 0
             updated = 0
             for e in stored:
+                raw = e.raw_json or {}
                 res = None
                 if e.reservation_id:
                     res = Reservation.query.get(e.reservation_id)
@@ -516,7 +518,15 @@ def admin_earnings() -> Response | str:
                         res = Reservation.query.filter(
                             Reservation.check_in == e.start_date,
                             Reservation.check_out == e.end_date,
+                            Reservation.status != 'cancelled',
+                            Reservation.source.in_(('airbnb', 'booking', 'booking_com', 'vrbo')),
                         ).first()
+                        if not res:
+                            res = Reservation.query.filter(
+                                Reservation.check_in == e.start_date,
+                                Reservation.check_out == e.end_date,
+                                Reservation.status != 'cancelled',
+                            ).first()
                         if not res:
                             try:
                                 first = e.guest_name.split()[0]
@@ -530,8 +540,12 @@ def admin_earnings() -> Response | str:
                         e.reservation_id = res.id
                         synced += 1
                 if res:
+                    # Cancelled stay (e.g. kept no-show penalty): keep the link only,
+                    # never push stay data or resurrect — the arrivals file decides.
+                    if res.status == 'cancelled':
+                        continue
                     changed = False
-                    if e.guest_name and res.guest_name != e.guest_name and (not res.guest_name or 'Airbnb Guest' in res.guest_name or 'Booking Guest' in res.guest_name):
+                    if e.guest_name and res.guest_name != e.guest_name and (not res.guest_name or 'Airbnb Guest' in res.guest_name or 'Booking Guest' in res.guest_name or 'Guest' in res.guest_name and len(res.guest_name) < 30):
                         res.guest_name = e.guest_name
                         if not res.guest_first_name and ' ' in e.guest_name:
                             parts = e.guest_name.split()
@@ -553,11 +567,18 @@ def admin_earnings() -> Response | str:
                         if not res.external_uid:
                             res.external_uid = e.confirmation_code
                         changed = True
+                    # Guest counts from the arrivals report (stored in raw_json)
+                    _ad = raw.get('adults') or 0
+                    if _ad and (res.num_adults != _ad or (res.num_guests or 0) != (raw.get('guests') or 0)):
+                        res.num_adults = _ad
+                        res.num_children = raw.get('children', 0) or 0
+                        res.num_guests = raw.get('guests') or res.num_guests
+                        changed = True
                     if changed:
                         updated += 1
             db.session.commit()
             if synced or updated:
-                flash(f'Synced {synced} links and updated {updated} reservations (name/dates/net → Dashboard revenue).', 'success')
+                flash(f'Synced {synced} links and updated {updated} reservations (name/dates/guests/net → Dashboard revenue).', 'success')
             else:
                 flash(f'No new links — {len(stored)} earnings already synced.', 'info')
             return redirect(url_for('routes.admin_earnings'))

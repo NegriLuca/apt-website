@@ -218,3 +218,59 @@ def test_cancelled_keeps_finance_payout_penalty(client, app):
             for e in Earning.query.filter_by(platform='booking').all()
             if e.start_date and e.start_date.year == 2026 and e.start_date.month == 10
         )
+
+
+def test_sync_button_matches_upload_behavior(client, app):
+    """'Sync to reservations' links stored earnings and pushes the same fields
+    as upload (name/dates/guests/net), and leaves cancelled stays untouched."""
+    with app.app_context():
+        r_ok = Reservation(
+            guest_name='Booking Guest (xyz)', check_in=date(2026, 10, 23), check_out=date(2026, 10, 25),
+            num_guests=1, status='pending', source='booking_com', external_uid='ical-uid-sponsale',
+            is_block=False, total_price=0.0, payment_status='n/a', payment_method='automatic',
+        )
+        r_canc = Reservation(
+            guest_name='Georgios Banasakis', check_in=date(2026, 10, 8), check_out=date(2026, 10, 12),
+            num_guests=4, num_adults=4, status='cancelled', source='booking_com',
+            external_uid='5519483624', is_block=False, total_price=100.0,
+            payment_status='paid', payment_method='automatic',
+        )
+        db.session.add_all([r_ok, r_canc])
+        db.session.commit()
+        e_ok = Earning(
+            platform='booking', confirmation_code='5791136725', guest_name='Sara Sponsale',
+            start_date=date(2026, 10, 23), end_date=date(2026, 10, 25), payout_date=date(2026, 10, 23),
+            nights=2, currency='EUR', amount=268.26, service_fee=83.74, gross_earnings=352.0,
+            withholding=-73.92, net=194.34,
+            raw_json={'report': 'reservations', 'adults': 4, 'children': 0, 'guests': 4},
+        )
+        e_kept = Earning(
+            platform='booking', confirmation_code='5519483624', guest_name='Georgios Banasakis',
+            start_date=date(2026, 10, 8), end_date=date(2026, 10, 12), payout_date=date(2026, 10, 12),
+            nights=4, currency='EUR', amount=518.4, service_fee=93.31, gross_earnings=518.4,
+            withholding=-108.86, net=100.0, reservation_id=r_canc.id,
+            raw_json={'report': 'earnings', 'payment_id': 'PAY-1'},
+        )
+        db.session.add_all([e_ok, e_kept])
+        db.session.commit()
+        ok_id, canc_id = r_ok.id, r_canc.id
+
+    login_admin(client)
+    resp = client.post('/admin/earnings', data={'action': 'sync'}, follow_redirects=True)
+    assert resp.status_code == 200
+
+    with app.app_context():
+        r = Reservation.query.get(ok_id)
+        assert Earning.query.filter_by(confirmation_code='5791136725').first().reservation_id == ok_id
+        assert r.guest_name == 'Sara Sponsale'
+        assert r.num_adults == 4
+        assert r.num_guests == 4
+        assert r.total_price == 194.34
+        assert r.payment_status == 'paid'
+        assert r.status == 'confirmed'
+        assert r.external_uid == 'ical-uid-sponsale'  # iCal UID preserved, never overwritten
+        # cancelled stay with kept penalty: untouched
+        rc = Reservation.query.get(canc_id)
+        assert rc.status == 'cancelled'
+        assert rc.total_price == 100.0
+        assert rc.guest_name == 'Georgios Banasakis'
