@@ -240,16 +240,12 @@
                         </td>
                         <td class="text-nowrap"><span class="font-monospace text-muted">{% if r.total_price > 0 %}€{{ "%.2f"|format(r.revenue_per_night) }}{% else %}—{% endif %}</span></td>
                         <td>
-                            {% if r.payment_status == 'paid' %}
-                                <span class="badge bg-success">{{ _('Paid') }}</span>
-                            {% elif r.payment_status == 'deposit_paid' %}
+                            {% if r.payment_status == 'deposit_paid' %}
                                 <span class="badge bg-info text-dark">{{ _('Deposit') }}</span>
                             {% elif r.payment_status == 'unpaid' %}
                                 <span class="badge bg-warning text-dark">{{ _('Unpaid') }}</span>
                             {% elif r.payment_status == 'refunded' %}
                                 <span class="badge bg-danger">{{ _('Refunded') }}</span>
-                            {% else %}
-                                <span class="badge bg-secondary">{{ r.payment_status }}</span>
                             {% endif %}
                             <button type="button" class="btn btn-sm btn-outline-secondary ms-1 py-0 px-1" style="font-size:.70rem;"
                                     data-bs-toggle="modal" data-bs-target="#financeModalHist"
