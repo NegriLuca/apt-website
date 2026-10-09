@@ -232,8 +232,8 @@
     <!-- Monthly -->
     {% if result.report == 'reservations' %}
     <div class="alert alert-warning d-flex flex-wrap gap-3 align-items-center" role="alert">
-        <div><i class="bi bi-exclamation-triangle me-1"></i> <strong>Report Arrivi</strong> — {{ result.totals.cancelled }} cancellate escluse · payout Booking <strong>€{{ '%.2f'|format(result.totals.net) }}</strong> prima della cedolare.</div>
-        <div class="ms-auto small">Cedolare stimata 21%: <strong>€{{ '%.2f'|format(result.totals.cedolare_est) }}</strong> → dopo tasse <strong>€{{ '%.2f'|format(result.totals.after_tax_est) }}</strong> · City tax da incassare: <strong>€{{ '%.2f'|format(result.totals.city_tax_est) }}</strong></div>
+        <div><i class="bi bi-exclamation-triangle me-1"></i> <strong>Report Arrivi (stime)</strong> — netto stimato <strong>€{{ '%.2f'|format(result.totals.net) }}</strong> (banca) · {{ result.totals.cancelled }} cancellate escluse.</div>
+        <div class="ms-auto small">Payout prima ritenuta €{{ '%.2f'|format(result.totals.payout) }} · comm €{{ '%.2f'|format(result.totals.commission) }} + IVA €{{ '%.2f'|format(result.totals.vat) }} + trans €{{ '%.2f'|format(result.totals.transaction) }} · cedolare st. €{{ '%.2f'|format(result.totals.cedolare_est) }} · city tax €{{ '%.2f'|format(result.totals.city_tax_est) }}</div>
     </div>
     {% endif %}
     <div class="card border-0 shadow-sm mb-4">
@@ -345,10 +345,9 @@
                 <li><strong>Amount</strong> = (room − discount + cleaning) − Airbnb service fee. <strong>Net = Amount + Withholding</strong> (withholding negative ~-21.74% cedolare secca). <strong>Gross</strong> shown for reference.</li>
                 <li>Service fee is Airbnb's host fee (already deducted from Amount). Cleaning fee is included in Amount.</li>
                 {% elif result.report == 'reservations' %}
-                <li><strong>Arrivi report (.xls): Net = Prezzo − Importo commissione</strong> (payout Booking prima della cedolare). Cancellate escluse dal totale ({{ result.totals.cancelled }} righe).</li>
+                <li><strong>Arrivi report (.xls) — stime:</strong> <code>Payout = Prezzo − Commissione − IVA − Transazione</code>, <code>Netto = Payout − Ritenuta 21%</code> (= Netto del Finance). Formule dalla riga Finance Bosotti: transazione 1,5% del lordo, IVA 22% di (commissione+transazione), ritenuta 21% del lordo, commissione dal file (18%). Cancellate escluse ({{ result.totals.cancelled }} righe).</li>
                 <li>Cancellate: la prenotazione viene marcata <code>cancelled</code>; il payout viene <strong>rimosso solo se era una stima da Arrivi</strong>. I payout reali dal Finance export (penali no-show / tariffe non rimborsabili) vengono <strong>conservati</strong> — il file Arrivi non dice se la cancellazione era gratuita o a pagamento.</li>
-                <li>Cedolare secca stimata 21% sul lordo: <strong>€{{ '%.2f'|format(result.totals.cedolare_est) }}</strong> → dopo tasse stimato <strong>€{{ '%.2f'|format(result.totals.after_tax_est) }}</strong>. Valore reale solo nel Finance → Earnings export (colonna Ritenuta).</li>
-                <li>Tassa di soggiorno stimata (6 € × adulti × notti, max 10): <strong>€{{ '%.2f'|format(result.totals.city_tax_est) }}</strong> — NON inclusa nel Prezzo, da incassare a parte.</li>
+                <li>Il Finance export sovrascrive le stime con i valori reali (stessi codici). Tassa di soggiorno stimata (6 € × adulti × notti, max 10): <strong>€{{ '%.2f'|format(result.totals.city_tax_est) }}</strong> — NON inclusa nel Prezzo, da incassare a parte.</li>
                 {% else %}
                 <li><strong>Net = Importo + Commissione + Ritenuta + VAT + Costo transazione</strong> (all fees are negative). <strong>Gross = Importo</strong> (amount guest paid).</li>
                 <li>Commission = Booking.com host fee. VAT = VAT on platform services. Transaction = payment processing fee. Ritenuta = 21% cedolare secca withholding.</li>

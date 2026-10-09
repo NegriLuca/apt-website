@@ -13,10 +13,19 @@ Data di cancellazione,...
 
 Money semantics (verified on Ott 2026 file):
 - Prezzo = gross paid by guest (e.g. "208 EUR"), city tax NOT included.
-- Importo commissione = Booking commission incl. VAT (e.g. "37.44 EUR", 18%).
-  Net Booking payout = Prezzo - Importo commissione.
-- Ritenuta cedolare 21% is NOT in this file — estimated as 21% of gross
-  (authoritative value only in the Finance Earnings export).
+- Importo commissione = Booking commission (e.g. "37.44 EUR", 18%).
+- Ritenuta cedolare 21%, VAT 22%, transaction fee are NOT in this file —
+  estimated from the Sep 2026 Finance export (1 row: Bosotti 6738995981,
+  Importo 135.85, Commissione -24.45, Ritenuta -28.53, VAT -5.83,
+  Transazione -2.04, Netto 75.00 — reconciles to the cent):
+  - Commissione = % commissione x Prezzo (file value, rounded to cents)
+  - Ritenuta = 21% x Prezzo (cedolare secca, withheld by Booking)
+  - Transazione = 1.5% x Prezzo  (single-sample fit — confirm on more rows)
+  - VAT = 22% x (Commissione + Transazione)  (single-sample fit)
+  - Payout (bank before withholding) = Prezzo - Commissione - VAT - Transazione
+  - Netto full (== Finance Netto, bank) = Payout - Ritenuta
+  Authoritative values only in the Finance Earnings export, which overwrites
+  these estimates on upload (upsert on platform+code).
 - Tassa di soggiorno Roma (6 EUR/adult/night, max 10 nights) is NOT included
   in Prezzo — estimated from Adulti x notti for the compliance report.
 Cancelled rows (Stato != 'ok') are returned separately and excluded from totals.
@@ -28,6 +37,8 @@ from datetime import date, datetime
 from typing import Any
 
 CEDOLARE_RATE = 0.21
+VAT_RATE = 0.22
+TRANSACTION_RATE = 0.015
 CITY_TAX_RATE = 6.00
 CITY_TAX_MAX_NIGHTS = 10
 
@@ -155,9 +166,11 @@ def parse_reservations_report(file_bytes: bytes | str, filename: str = '') -> di
         if not commission:
             pct = _fnum(r.get('% commissione'))
             commission = round(gross * pct / 100.0, 2)
-        net = round(gross - commission, 2)
+        transaction_est = round(gross * TRANSACTION_RATE, 2)
+        vat_est = round((commission + transaction_est) * VAT_RATE, 2)
+        payout_est = round(gross - commission - vat_est - transaction_est, 2)
         cedolare_est = round(gross * CEDOLARE_RATE, 2)
-        after_tax_est = round(net - cedolare_est, 2)
+        net_full_est = round(payout_est - cedolare_est, 2)  # == Finance Netto
         city_tax_est = round(min(nights, CITY_TAX_MAX_NIGHTS) * adults * CITY_TAX_RATE, 2)
 
         entry = {
@@ -179,9 +192,12 @@ def parse_reservations_report(file_bytes: bytes | str, filename: str = '') -> di
             'gross': gross,
             'commission': commission,
             'commission_pct': round(commission / gross * 100, 2) if gross else 0.0,
-            'net': net,  # Booking payout before cedolare
-            'cedolare_est': cedolare_est,  # 21% of gross, NOT withheld in this file
-            'after_tax_est': after_tax_est,
+            'vat_est': vat_est,
+            'transaction_est': transaction_est,
+            'payout_est': payout_est,  # bank before withholding
+            'cedolare_est': cedolare_est,  # 21% of gross, withheld by Booking
+            'net': net_full_est,  # == Finance Netto (bank) — comparable across reports
+            'after_tax_est': net_full_est,
             'city_tax_est': city_tax_est,  # NOT included in Prezzo
             'payment_status': str(r.get('Stato del pagamento') or '').strip(),
             'booker_country': str(r.get('Booker country') or '').strip(),
@@ -189,10 +205,10 @@ def parse_reservations_report(file_bytes: bytes | str, filename: str = '') -> di
             # aliases so the earnings template (Finance CSV shape) renders as-is
             'service': commission,
             'cleaning': 0.0,
-            'vat': 0.0,
-            'transaction': 0.0,
-            'withholding': 0.0,
-            'amount': net,
+            'vat': vat_est,
+            'transaction': transaction_est,
+            'withholding': -cedolare_est,
+            'amount': payout_est,
         }
         if entry['is_cancelled']:
             cancelled.append(entry)
@@ -202,14 +218,16 @@ def parse_reservations_report(file_bytes: bytes | str, filename: str = '') -> di
 
     total_gross = round(sum(r['gross'] for r in reservations), 2)
     total_commission = round(sum(r['commission'] for r in reservations), 2)
+    total_vat = round(sum(r['vat_est'] for r in reservations), 2)
+    total_transaction = round(sum(r['transaction_est'] for r in reservations), 2)
+    total_payout = round(sum(r['payout_est'] for r in reservations), 2)
     total_net = round(sum(r['net'] for r in reservations), 2)
     total_cedolare = round(sum(r['cedolare_est'] for r in reservations), 2)
-    total_after_tax = round(sum(r['after_tax_est'] for r in reservations), 2)
     total_city_tax = round(sum(r['city_tax_est'] for r in reservations), 2)
     total_nights = sum(r['nights'] for r in reservations)
 
     monthly_map: dict[str, dict] = defaultdict(
-        lambda: {'gross': 0.0, 'commission': 0.0, 'net': 0.0, 'withholding': 0.0, 'cedolare_est': 0.0, 'city_tax_est': 0.0, 'nights': 0, 'count': 0}
+        lambda: {'gross': 0.0, 'commission': 0.0, 'vat': 0.0, 'transaction': 0.0, 'payout': 0.0, 'net': 0.0, 'withholding': 0.0, 'cedolare_est': 0.0, 'city_tax_est': 0.0, 'nights': 0, 'count': 0}
     )
     for r in reservations:
         if not r['start']:
@@ -218,7 +236,11 @@ def parse_reservations_report(file_bytes: bytes | str, filename: str = '') -> di
         m = monthly_map[key]
         m['gross'] += r['gross']
         m['commission'] += r['commission']
+        m['vat'] += r['vat_est']
+        m['transaction'] += r['transaction_est']
+        m['payout'] += r['payout_est']
         m['net'] += r['net']
+        m['withholding'] += r['withholding']
         m['cedolare_est'] += r['cedolare_est']
         m['city_tax_est'] += r['city_tax_est']
         m['nights'] += r['nights']
@@ -246,16 +268,17 @@ def parse_reservations_report(file_bytes: bytes | str, filename: str = '') -> di
         'commission': total_commission,
         'service': total_commission,
         'cleaning': 0.0,
-        'vat': 0.0,
-        'transaction': 0.0,
-        'withholding': 0.0,  # not present in arrivals file — see cedolare_est
-        'net': total_net,  # = bank payout from Booking before cedolare
+        'vat': total_vat,
+        'transaction': total_transaction,
+        'payout': total_payout,  # bank before withholding
+        'withholding': -total_cedolare,  # estimated cedolare 21%
+        'net': total_net,  # == Finance Netto (bank)
         'cedolare_est': total_cedolare,
-        'after_tax_est': total_after_tax,
+        'after_tax_est': total_net,
         'city_tax_est': total_city_tax,  # to collect separately, not in Prezzo
         'avg_gross_night': round(total_gross / total_nights, 2) if total_nights else 0,
         'avg_net_night': round(total_net / total_nights, 2) if total_nights else 0,
-        'withholding_rate': 0.0,
+        'withholding_rate': round(total_cedolare / total_gross * 100, 2) if total_gross else 0.0,
     }
 
     return {

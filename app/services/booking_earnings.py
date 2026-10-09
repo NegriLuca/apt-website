@@ -118,6 +118,11 @@ def parse_earnings_csv(file_bytes: bytes | str) -> dict:
         vat = _fnum(r.get('VAT for online platform services') or r.get('VAT') or 0)
         transaction = _fnum(r.get('Costo di transazione') or r.get('Transaction cost') or 0)
         net = _fnum(r.get('Netto') or r.get('Net') or 0)
+        # Netto must reconcile: Importo + Commissione + Ritenuta + VAT + Transazione
+        # (fees negative in the file). Warn on drift so formula changes get noticed.
+        _reconciled = round(gross + commission + withholding + vat + transaction, 2)
+        if net and abs(_reconciled - net) > 0.02:
+            errors.append(f'Riga {idx} {code}: Netto {net:.2f} != somma parti {_reconciled:.2f} — controlla le formule')
 
         start = checkin
         end = checkout

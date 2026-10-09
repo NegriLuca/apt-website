@@ -8,6 +8,11 @@ from app.services.booking_reservations import parse_reservations_report
 from app.services.finance import compute_finance
 from tests.conftest import login_admin
 
+
+def _read_downloads(name: str) -> bytes:
+    with open(f'/home/lucanegri/Downloads/{name}', 'rb') as f:
+        return f.read()
+
 SAMPLE_CSV = (
     'N° di prenotazione,Prenotato da,Nome ospite(i),Arrivo,Partenza,Data di prenotazione,Stato,'
     'Camere/unità,Persone,Adulti,Bambini,Età dei bambini,Prezzo,% commissione,Importo commissione,'
@@ -27,21 +32,26 @@ def test_parse_arrivals_csv_ok_and_cancelled():
     assert res['totals']['cancelled'] == 1
     assert res['totals']['gross'] == 560.0
     assert res['totals']['commission'] == 100.80
-    assert res['totals']['net'] == 459.20
+    assert res['totals']['transaction'] == 8.40  # 1.5% of gross
+    assert res['totals']['vat'] == 24.02  # 22% of (commission + transaction)
+    assert res['totals']['withholding'] == -117.60  # cedolare 21% est
+    assert res['totals']['payout'] == 426.78  # bank before withholding
+    assert res['totals']['net'] == 309.18  # == Finance Netto
     assert res['totals']['nights'] == 4
     # cedolare estimated 21% of gross, city tax 6€/adult/night
     assert res['totals']['cedolare_est'] == round(560.0 * 0.21, 2)
     assert res['totals']['city_tax_est'] == (2 * 2 * 6) + (4 * 2 * 6)
     by_code = {r['code']: r for r in res['reservations']}
-    assert by_code['5619010403']['net'] == 170.56
-    assert by_code['5791136725']['net'] == 288.64
+    assert by_code['5619010403']['payout_est'] == 158.52
+    assert by_code['5619010403']['net'] == 114.84
+    assert by_code['5791136725']['payout_est'] == 268.26
+    assert by_code['5791136725']['net'] == 194.34
     assert [c['code'] for c in res['cancelled']] == ['5519483624']
 
 
 def test_parse_arrivals_xls_october_file():
     try:
-        with open('/home/lucanegri/Downloads/Arrivo_ 2026-10-01 - 2026-10-31.xls', 'rb') as f:
-            raw = f.read()
+        raw = _read_downloads('Arrivo_ 2026-10-01 - 2026-10-31.xls')
     except OSError:
         import pytest
 
@@ -51,8 +61,44 @@ def test_parse_arrivals_xls_october_file():
     assert res['totals']['cancelled'] == 3
     assert res['totals']['gross'] == 1308.0
     assert res['totals']['commission'] == 235.44
-    assert res['totals']['net'] == 1072.56
+    assert res['totals']['transaction'] == 19.62
+    assert res['totals']['vat'] == 56.10
+    assert res['totals']['payout'] == 996.84
+    assert res['totals']['withholding'] == -274.68
+    assert res['totals']['net'] == 722.16
     assert res['totals']['nights'] == 11
+
+
+def test_finance_csv_reconciles_and_matches_arrivals_estimate():
+    """G0Vg64ch7JuIisvn.csv (Bosotti): Netto == sum of parts, and arrivals
+    estimates match the Finance row to the cent."""
+    from app.services.booking_earnings import parse_earnings_csv
+
+    try:
+        raw = _read_downloads('G0Vg64ch7JuIisvn.csv')
+    except OSError:
+        import pytest
+
+        pytest.skip('Finance CSV fixture not available')
+    fin = parse_earnings_csv(raw)
+    assert fin['errors'] == []
+    assert fin['totals']['count'] == 1
+    row = fin['per_code'][0]
+    assert row['gross'] == 135.85
+    assert row['commission'] == -24.45
+    assert row['withholding'] == -28.53
+    assert row['vat'] == -5.83
+    assert row['transaction'] == -2.04
+    assert row['net'] == 75.00
+
+    arr = parse_reservations_report(_read_downloads('Arrivo_ 2026-09-01 - 2026-09-30.xls'), 'Arrivo.xls')
+    est = {r['code']: r for r in arr['reservations']}['6738995981']
+    assert est['gross'] == row['gross']
+    assert est['commission'] == abs(row['commission'])
+    assert est['vat_est'] == abs(row['vat'])
+    assert est['transaction_est'] == abs(row['transaction'])
+    assert est['cedolare_est'] == abs(row['withholding'])
+    assert est['net'] == row['net']
 
 
 def test_arrivals_upload_updates_reservations_and_finance(client, app):
@@ -81,8 +127,7 @@ def test_arrivals_upload_updates_reservations_and_finance(client, app):
         ok_id, canc_id = r_ok.id, r_canc.id
 
     login_admin(client)
-    with open('/home/lucanegri/Downloads/Arrivo_ 2026-09-01 - 2026-09-30.xls', 'rb') as f:
-        raw = f.read()
+    raw = _read_downloads('Arrivo_ 2026-09-01 - 2026-09-30.xls')
     resp = client.post(
         '/admin/earnings',
         data={'csv_file': (io.BytesIO(raw), 'Arrivo_sett.xls')},
@@ -92,20 +137,20 @@ def test_arrivals_upload_updates_reservations_and_finance(client, app):
     assert resp.status_code == 200
 
     with app.app_context():
-        # ok booking: Earning payout = Prezzo - commissione, linked + reservation updated
+        # ok booking: full estimates stored (== Finance Netto), linked + reservation updated
         e = Earning.query.filter_by(platform='booking', confirmation_code='6738995981').first()
         assert e is not None
         assert e.gross_earnings == 135.85
-        assert e.service_fee == 24.45
-        assert e.amount == 111.40
-        assert e.net == 111.40
-        assert e.withholding == 0
+        assert e.service_fee == 32.32  # 24.45 comm + 5.83 VAT + 2.04 trans
+        assert e.amount == 103.53  # bank before withholding
+        assert e.withholding == -28.53
+        assert e.net == 75.00  # == Finance Netto
         assert e.nights == 1
         r = Reservation.query.get(ok_id)
         assert e.reservation_id == ok_id
         assert r.guest_name == 'Filippo Bosotti'
-        assert r.total_price == 111.40
-        assert r.amount_paid == 111.40
+        assert r.total_price == 75.00
+        assert r.amount_paid == 75.00
         assert r.payment_status == 'paid'
         assert r.num_adults == 1
         assert r.num_guests == 1
@@ -114,11 +159,15 @@ def test_arrivals_upload_updates_reservations_and_finance(client, app):
         assert Earning.query.filter_by(platform='booking', confirmation_code='5060277056').first() is None
         rc = Reservation.query.get(canc_id)
         assert rc.status == 'cancelled'
-        # Finance September OTA counts only the ok booking
+        # Finance September OTA counts only the ok booking, fees reconciled
         fin = compute_finance(2026, 9)
         assert fin['ota']['gross'] == 135.85
-        assert fin['ota']['amount'] == 111.40
-        assert fin['ota']['fees'] == 24.45
+        assert fin['ota']['amount'] == 103.53
+        assert fin['ota']['fees'] == 32.32
+        assert fin['ota']['withholding'] == -28.53
+        assert fin['payout'] == 103.53
+        assert fin['cedolare'] == 28.53
+        assert fin['after_tax'] == 75.00
         assert fin['ota']['count'] == 1
 
 

@@ -675,22 +675,26 @@ def admin_earnings() -> Response | str:
                                 earn.airbnb_tax = entry.get('airbnb_tax', 0) or 0
                                 earn.withholding = entry.get('withholding', 0) or 0
                                 earn.net = entry.get('net', 0) or 0
-                            elif is_res_report:  # booking arrivals .xls: payout = Prezzo - commissione, ritenuta NOT in file
-                                earn.amount = entry.get('net', 0) or 0
-                                earn.service_fee = abs(entry.get('commission', 0)) or 0
+                            elif is_res_report:  # booking arrivals .xls: estimates (Finance overwrites exact)
+                                earn.amount = entry.get('payout_est', 0) or 0  # bank before withholding
+                                earn.service_fee = round(abs(entry.get('commission', 0)) + abs(entry.get('vat', 0)) + abs(entry.get('transaction', 0)), 2)
                                 earn.cleaning_fee = 0
                                 earn.gross_earnings = entry.get('gross', 0) or 0
                                 earn.airbnb_tax = 0
-                                earn.withholding = 0
-                                earn.net = entry.get('net', 0) or 0
-                            else:  # booking finance earnings CSV
-                                earn.amount = entry.get('gross', 0) or 0  # gross = Importo
-                                earn.service_fee = abs(entry.get('commission', 0)) or 0
+                                earn.withholding = entry.get('withholding', 0) or 0  # -cedolare est
+                                earn.net = entry.get('net', 0) or 0  # == Finance Netto est
+                            else:  # booking finance earnings CSV (exact file values)
+                                _g = entry.get('gross', 0) or 0
+                                _c = abs(entry.get('commission', 0)) or 0
+                                _v = abs(entry.get('vat', 0)) or 0
+                                _t = abs(entry.get('transaction', 0)) or 0
+                                earn.amount = round(_g - _c - _v - _t, 2)  # bank before withholding
+                                earn.service_fee = round(_c + _v + _t, 2)
                                 earn.cleaning_fee = 0
-                                earn.gross_earnings = entry.get('gross', 0) or 0
+                                earn.gross_earnings = _g
                                 earn.airbnb_tax = 0
                                 earn.withholding = entry.get('withholding', 0) or 0
-                                earn.net = entry.get('net', 0) or 0
+                                earn.net = entry.get('net', 0) or 0  # file Netto
 
                             # JSON-safe raw (dates -> ISO strings)
                             def _j(v):
@@ -715,6 +719,7 @@ def admin_earnings() -> Response | str:
                                 return v
                             earn.raw_json = _j(entry)
                             earn.raw_json['report'] = result.get('report', 'earnings')
+                            earn.raw_json['estimated'] = bool(is_res_report)
                             # auto-sync to reservation — update name/dates/financials so Dashboard revenue shows
                             def _find_reservation(code, guest, start, end):
                                 r = Reservation.query.filter_by(external_uid=code).first()
