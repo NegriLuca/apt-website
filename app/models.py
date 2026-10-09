@@ -329,6 +329,12 @@ class Reservation(db.Model):
         return 0
 
     @property
+    def revenue_per_night(self) -> float:
+        """Average revenue per night (total_price / nights), 0 when empty."""
+        n = self.nights
+        return round((self.total_price or 0.0) / n, 2) if n else 0.0
+
+    @property
     def guest_full_name(self) -> str:
         """Return formatted full name for Questura"""
         if self.guest_surname and self.guest_first_name:

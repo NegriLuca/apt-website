@@ -198,6 +198,7 @@
                         <th>{{ _('Check-out') }}</th>
                         <th>{{ _('Nights') }}</th>
                         <th>{{ _('Revenue') }}</th>
+                        <th>{{ _('€/night') }}</th>
                         <th>{{ _('Payment') }}</th>
                         <th>{{ _('Status') }}</th>
                         <th>{{ _('Actions') }}</th>
@@ -237,6 +238,7 @@
                                     data-paid="{{ "%.2f"|format(r.amount_paid or 0) }}"
                                     data-status="{{ r.payment_status }}">✏️</button>
                         </td>
+                        <td class="text-nowrap"><span class="font-monospace text-muted">{% if r.total_price > 0 %}€{{ "%.2f"|format(r.revenue_per_night) }}{% else %}—{% endif %}</span></td>
                         <td>
                             {% if r.payment_status == 'paid' %}
                                 <span class="badge bg-success">{{ _('Paid') }}</span>
