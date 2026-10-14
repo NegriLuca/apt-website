@@ -28,16 +28,17 @@ def upgrade():
     cols = [c['name'] for c in inspector.get_columns('receipts')] if 'receipts' in inspector.get_table_names() else []
     with op.batch_alter_table('receipts', schema=None) as batch_op:
         if 'bollo_charged' not in cols:
-            batch_op.add_column(sa.Column('bollo_charged', sa.Boolean(), nullable=True, server_default='0'))
+            batch_op.add_column(sa.Column('bollo_charged', sa.Boolean(), nullable=True, server_default=sa.text('false')))
     # Stamp shown on every over-threshold receipt, ID present or not
+    # (TRUE/FALSE keywords — portable across SQLite and Postgres booleans)
     conn.execute(sa.text(
-        "UPDATE receipts SET bollo_required=1 "
-        "WHERE stay_amount > 77.47 AND (bollo_required IS NULL OR bollo_required = 0)"
+        "UPDATE receipts SET bollo_required=TRUE "
+        "WHERE stay_amount > 77.47 AND (bollo_required IS NULL OR bollo_required = FALSE)"
     ))
     # Charged only where the stored total already includes the €2
     conn.execute(sa.text(
-        "UPDATE receipts SET bollo_charged=1 "
-        "WHERE bollo_required = 1 AND total_amount >= stay_amount + tourist_tax_amount + 1.99"
+        "UPDATE receipts SET bollo_charged=TRUE "
+        "WHERE bollo_required = TRUE AND total_amount >= stay_amount + tourist_tax_amount + 1.99"
     ))
 
 
