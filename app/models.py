@@ -775,6 +775,11 @@ class Receipt(db.Model):
     stripe_charge_id = db.Column(db.String(128), nullable=True)
     stripe_receipt_url = db.Column(db.String(500), nullable=True)
 
+    # Origine OTA — snapshot piattaforma per ricevute Booking/Airbnb/VRBO
+    origin_source = db.Column(db.String(20), nullable=True, comment='direct/stripe/airbnb/booking/booking_com/vrbo snapshot')
+    external_ref = db.Column(db.String(128), nullable=True, comment='Booking N. / Airbnb confirmation code / external_uid')
+    platform_net = db.Column(db.Float, nullable=True, comment='Netto banca da Earning (solo info, non in totale ospite)')
+
     # Marca da bollo (obbligatoria se stay_amount > 77.47)
     bollo_required = db.Column(db.Boolean, default=False)
     bollo_amount = db.Column(db.Float, default=0.0, comment='2.00 se required altrimenti 0')
@@ -800,6 +805,12 @@ class Receipt(db.Model):
     guest_codice_fiscale = db.Column(db.String(20), nullable=True)
     guest_document_type = db.Column(db.String(20), nullable=True)
     guest_document_number = db.Column(db.String(50), nullable=True)
+
+    # Intestazione azienda (opzionale — ricevuta intestata a società/ente invece che a persona fisica)
+    entity_type = db.Column(db.String(10), nullable=True, default='person', comment='person / company')
+    company_name = db.Column(db.String(200), nullable=True, comment='Denominazione / ragione sociale')
+    company_vat = db.Column(db.String(20), nullable=True, comment='P.IVA 11 cifre')
+    company_address = db.Column(db.String(250), nullable=True, comment='Sede legale')
 
     # Dettaglio soggiorno snapshot
     check_in = db.Column(db.Date, nullable=True)

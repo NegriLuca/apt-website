@@ -5,7 +5,7 @@
     {% include 'admin_header.html' %}
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="page-title mb-0"><i class="bi bi-receipt me-2"></i>Ricevute fiscali (solo sito)</h1>
+        <h1 class="page-title mb-0"><i class="bi bi-receipt me-2"></i>Ricevute fiscali (sito + OTA)</h1>
         <a href="{{ url_for('routes.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
     </div>
 
@@ -107,19 +107,54 @@
     </div>
     {% endif %}
 
+    <!-- Pending OTA (Booking / Airbnb / Vrbo) -->
+    {% if pending_ota %}
+    <div class="card border-0 shadow-sm mb-4 border-primary">
+        <div class="card-header bg-primary bg-opacity-10"><h5 class="mb-0"><i class="bi bi-cloud-arrow-down me-2"></i>Prenotazioni Booking / Airbnb senza ricevuta ({{ pending_ota|length }})</h5></div>
+        <div class="card-body py-2">
+            <p class="small text-muted mb-2">La ricevuta OTA è intestata al <strong>lordo pagato dall'ospite</strong> (Prezzo Booking / Gross Airbnb) e cita il <strong>n. prenotazione piattaforma</strong> nella causale. Il netto banca resta in dashboard — non viene sovrascritto. Completa nome reale + indirizzo/CF e verifica l'importo suggerito dall'incasso.<br><i class="bi bi-clock-history me-1"></i>Vale anche per <strong>soggiorni passati</strong>: la ricevuta riporta <strong>data di oggi e numero progressivo corrente</strong> (non si retrodata — numerazione annuale obbligatoria), mentre la causale cita le date del soggiorno. Così è conforme per locazioni brevi private fuori campo IVA.</p>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light"><tr><th>#</th><th>Piattaforma / Rif.</th><th>Ospite</th><th>Date</th><th>Lordo suggerito</th><th>Tassa</th><th>Azione</th></tr></thead>
+                    <tbody>
+                        {% for r in pending_ota %}
+                        {% set sugg = ota_suggest.get(r.id, {}) %}
+                        <tr>
+                            <td>#{{ r.id }}</td>
+                            <td><span class="badge bg-primary">{{ r.source }}</span><br><small class="font-monospace">{{ sugg.code or r.external_uid or '—' }}</small>
+                                {% if sugg.net %}<br><small class="text-muted">netto {{ "%.2f"|format(sugg.net) }}</small>{% endif %}</td>
+                            <td><strong>{{ sugg.guest or r.guest_name }}</strong>{% if sugg.guest and sugg.guest != r.guest_name %}<br><small class="text-muted">iCal: {{ r.guest_name }}</small>{% endif %}<br><small class="text-muted">{{ r.guest_email or '' }}</small></td>
+                            <td>{{ r.check_in.strftime('%d/%m/%Y') }} → {{ r.check_out.strftime('%d/%m/%Y') }}<br><small>{{ r.nights }} notti · {{ r.num_guests }} osp.</small></td>
+                            <td><strong>€{{ "%.2f"|format(sugg.gross or r.total_price or 0) }}</strong></td>
+                            <td>€{{ "%.2f"|format(r.tourist_tax_amount or 0) }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createReceiptModal{{ r.id }}">🧾 Genera</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Elenco ricevute -->
     <div class="card border-0 shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0"><i class="bi bi-files me-2"></i>Ricevute emesse ({{ receipts|length }})</h5><small class="text-muted">Progressivo unico anno solare — reset 01/01/2027</small></div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-dark"><tr><th>Ricevuta</th><th>Data</th><th>Ospite</th><th>Soggiorno</th><th>Imponibile</th><th>Tassa</th><th>Totale</th><th>Bollo</th><th>Azioni</th></tr></thead>
+                    <thead class="table-dark"><tr><th>Ricevuta</th><th>Origine</th><th>Data</th><th>Ospite</th><th>Soggiorno</th><th>Imponibile</th><th>Tassa</th><th>Totale</th><th>Bollo</th><th>Azioni</th></tr></thead>
                     <tbody>
                         {% for rc in receipts %}
                         <tr>
                             <td><strong>{{ rc.receipt_number }}</strong><br><small class="text-muted">#{{ rc.reservation_id }}</small></td>
+                            <td>{% if rc.external_ref %}<span class="badge bg-{{ 'primary' if rc.origin_source not in ['direct','stripe'] else 'dark' }}">{{ rc.origin_source or '—' }}</span><br><small class="font-monospace">{{ rc.external_ref }}</small>{% elif rc.origin_source %}<span class="badge bg-dark">{{ rc.origin_source }}</span>{% else %}<span class="badge bg-secondary">sito</span>{% endif %}</td>
                             <td>{{ rc.issue_date.strftime('%d/%m/%Y') }}</td>
-                            <td><strong>{{ rc.guest_full_name }}</strong><br><small class="text-muted">{{ rc.guest_email }}</small><br>
+                            <td><strong>{{ rc.guest_full_name }}</strong>{% if rc.entity_type == 'company' %}<br><span class="badge bg-info text-dark"><i class="bi bi-briefcase me-1"></i>{{ rc.company_name }}</span><br><small class="font-monospace">P.IVA {{ rc.company_vat }}</small>{% endif %}<br><small class="text-muted">{{ rc.guest_email }}</small><br>
                                 <small>{{ rc.guest_residence_address or '' }} {{ rc.guest_residence_city or '' }}</small>{% if rc.guest_codice_fiscale %}<br><small>CF {{ rc.guest_codice_fiscale }}</small>{% elif rc.guest_document_number %}<br><small>{{ rc.guest_document_type }} {{ rc.guest_document_number }}</small>{% endif %}</td>
                             <td>{{ rc.check_in.strftime('%d/%m') if rc.check_in else '' }} → {{ rc.check_out.strftime('%d/%m/%Y') if rc.check_out else '' }}<br><small>{{ rc.nights }} notti · {{ rc.num_guests }} osp.</small></td>
                             <td>€{{ "%.2f"|format(rc.stay_amount) }}</td>
@@ -169,7 +204,7 @@
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="9" class="text-center text-muted py-4">Nessuna ricevuta ancora. Genera la prima (sarà 01/2026).</td></tr>
+                        <tr><td colspan="10" class="text-center text-muted py-4">Nessuna ricevuta ancora. Genera la prima (sarà 01/2026).</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -178,12 +213,15 @@
     </div>
 
     <div class="alert alert-light border small mt-4">
-        <strong>Note legali:</strong> Ricevuta fuori campo IVA — dicitura <em>"Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972"</em> già inclusa in PDF. Contributo di soggiorno su riga separata (non reddito). Marca da bollo 2€ se imponibile &gt; 77,47€ — indicare ID 14 cifre se PDF. Conservare 10 anni. Solo prenotazioni <code>direct/stripe</code> (sito); Airbnb/Booking esclusi (commissione piattaforma).
+        <strong>Note legali:</strong> Ricevuta fuori campo IVA — dicitura <em>"Operazione fuori campo di applicazione dell'IVA ai sensi dell'art. 1, comma 2, D.P.R. 633/1972"</em> già inclusa in PDF. Contributo di soggiorno su riga separata (non reddito). Marca da bollo 2€ se imponibile &gt; 77,47€ — indicare ID 14 cifre se PDF. Conservare 10 anni. Numerazione unica annuale (sito + OTA). Per OTA la ricevuta riporta il <strong>n. prenotazione piattaforma</strong> in causale ed è intestata al <strong>lordo pagato dall'ospite</strong>; il netto banca resta solo in dashboard/incassi. Come privato in locazione breve non emetti <em>fattura</em> — la <em>ricevuta</em> è il documento corretto.
     </div>
 </div>
 
 <!-- Modali Genera ricevuta — fuori dalla tabella per backdrop corretto -->
-{% for r in pending %}
+{% set all_pending = (pending or []) + (pending_ota or []) %}
+{% for r in all_pending %}
+{% set is_ota = r.source not in ['direct', 'stripe'] %}
+{% set sugg = ota_suggest.get(r.id, {}) if is_ota else {} %}
 <div class="modal fade" id="createReceiptModal{{ r.id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <form method="POST" action="{{ url_for('routes.admin_create_receipt', reservation_id=r.id) }}" class="modal-content shadow-lg" enctype="multipart/form-data">
@@ -193,12 +231,22 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Chiudi"></button>
       </div>
       <div class="modal-body bg-white">
+        {% if is_ota %}
+          <div class="alert alert-primary py-2 small"><i class="bi bi-cloud me-1"></i><strong>{{ r.source }}</strong> · Rif. piattaforma <strong class="font-monospace">{{ sugg.code or r.external_uid or '—' }}</strong> · {{ r.check_in.strftime('%d/%m/%Y') }} → {{ r.check_out.strftime('%d/%m/%Y') }} ({{ r.nights }} notti · {{ r.num_guests }} osp.){% if sugg.net %} · netto banca €{{ "%.2f"|format(sugg.net) }} (solo info){% endif %}<br>La causale in PDF citerà automaticamente il n. prenotazione.</div>
+          <div class="mb-2"><label class="form-label small fw-semibold">Intestatario ricevuta (nome reale ospite) *</label><input type="text" class="form-control" name="guest_full_name" value="{{ sugg.guest or '' }}" placeholder="Nome Cognome (da Booking/Airbnb o check-in)" required></div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="form-label small fw-semibold">Importo soggiorno LORDO ospite (€) *</label><input type="text" class="form-control" name="stay_amount" value="{{ "%.2f"|format(sugg.gross or r.total_price or 0) }}" placeholder="es. 135.85" required><div class="form-text">Prezzo Booking / Gross Airbnb — quello pagato dall'ospite, non il netto.</div></div>
+            <div class="col-3"><label class="form-label small">Tassa soggiorno (€)</label><input type="text" class="form-control" name="tourist_tax_amount" value="{{ "%.2f"|format(r.tourist_tax_amount or 0) }}" placeholder="es. 12.00"></div>
+            <div class="col-3"><label class="form-label small">Pagamento</label><select class="form-select" name="payment_method"><option value="{{ r.source }}" selected>{{ r.source }}</option><option value="cash">cash</option><option value="wire_transfer">wire_transfer</option><option value="stripe">stripe</option></select></div>
+          </div>
+        {% else %}
         {# Stripe auto-fill status #}
         {% set has_stripe_addr = r.guest_billing_address_line1 or r.guest_billing_city %}
         {% if has_stripe_addr %}
           <div class="alert alert-success py-2 small"><i class="bi bi-check-circle me-1"></i>Indirizzo recuperato da <strong>Stripe</strong> (billing). Verifica e completa solo il CF se ospite italiano.</div>
         {% else %}
           <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>Nessun indirizzo Stripe — compila manualmente (obbligatorio per ricevuta). Per future prenotazioni l'indirizzo verrà chiesto al checkout.</div>
+        {% endif %}
         {% endif %}
         <div class="mb-2"><label class="form-label small fw-semibold">Indirizzo residenza (via) *</label><input type="text" class="form-control" name="guest_residence_address" value="{{ r.guest_billing_address_line1 or r.guest_residence_address or '' }}" placeholder="Via Roma 1" required></div>
         <div class="row g-2 mb-2">
@@ -207,16 +255,37 @@
           <div class="col-3"><label class="form-label small">Nazione *</label><input type="text" class="form-control" name="guest_residence_country" value="{{ r.guest_billing_country or r.guest_residence_country or r.guest_nationality or 'IT' }}" placeholder="IT"></div>
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold">Codice Fiscale ospite (IT) <span class="text-muted fw-normal">— lascia vuoto se straniero</span></label>
+          <label class="form-label small fw-semibold">Codice Fiscale ospite (IT) <span class="text-muted fw-normal">— lascia vuoto se straniero o se intestata ad azienda</span></label>
           <input type="text" class="form-control text-uppercase" name="guest_codice_fiscale" value="{{ r.guest_codice_fiscale or '' }}" maxlength="16" pattern="[A-Z0-9]{16}" placeholder="RSSMRA80A01H501Z (16 char, solo IT)">
           <div class="form-text">Per ospiti stranieri basta documento (passaporto/CI) già raccolto al check-in; da Stripe non arriva. Per italiani il CF è obbligatorio in ricevuta.</div>
         </div>
-        {% set stay = r.total_price or 0 %}
+        <div class="border rounded p-2 mb-2 bg-light">
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="entity_company" value="1" id="companyCheck{{ r.id }}">
+            <label class="form-check-label small fw-semibold" for="companyCheck{{ r.id }}">Intesta ad <strong>azienda</strong> (invece che alla persona)</label>
+          </div>
+          <div class="form-text mb-2">Resta una <strong>ricevuta fuori campo IVA</strong> (non fattura elettronica): vale come giustificativo di spesa/rimborso, senza IVA da detrarre. L'ospite che ha soggiornato resta indicato come “soggiornante”.</div>
+          <div class="mb-2"><label class="form-label small">Denominazione / Ragione sociale</label><input type="text" class="form-control" name="company_name" placeholder="Es. Rossi S.r.l."></div>
+          <div class="row g-2">
+            <div class="col-5"><label class="form-label small">P.IVA (11 cifre)</label><input type="text" class="form-control font-monospace" name="company_vat" placeholder="01234567890" maxlength="11" pattern="\d{11}"></div>
+            <div class="col-7"><label class="form-label small">Sede legale</label><input type="text" class="form-control" name="company_address" placeholder="Via ..., CAP Città"></div>
+          </div>
+        </div>
+        {% if is_ota %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="charge_bollo" value="1" id="bolloCheck{{ r.id }}">
+          <label class="form-check-label small" for="bolloCheck{{ r.id }}">Addebita bollo €2 al cliente (default: no — solo soggiorno + tassa)</label>
+        </div>
+        <div class="mb-2"><label class="form-label small">Marca da bollo — ID 14 cifre <span class="text-muted">(solo se spunti l'addebito sopra)</span></label><input type="text" class="form-control" name="bollo_id" placeholder="01123456789012" maxlength="14" pattern="\d{14}"><div class="form-text">Contrassegno telematico del tabaccaio. Lascia vuoto → PDF mostra “DA INSERIRE”.</div></div>
+        <div class="mb-2"><label class="form-label small">Foto marca fisica (tabaccaio)</label><input type="file" class="form-control" name="bollo_image" accept="image/png,image/jpeg,image/webp"><div class="form-text">Stessa cosa del sito: foto nitida, stampata in alto a destra nel PDF. Se lasci vuoto, usa <code>marca_da_bollo.png</code> di default.</div></div>
+        {% else %}
+        {% if is_ota %}{% set stay = sugg.gross or r.total_price or 0 %}{% else %}{% set stay = r.total_price or 0 %}{% endif %}
         {% if stay > 77.47 %}
         <div class="mb-2"><label class="form-label small">Marca da bollo 2€ — ID 14 cifre <span class="text-muted">(tabaccaio, 14 cifre sul contrassegno)</span></label><input type="text" class="form-control" name="bollo_id" placeholder="01123456789012" maxlength="14" pattern="\d{14}"><div class="form-text">Obbligatoria perché imponibile €{{ "%.2f"|format(stay) }} &gt; 77,47€. Lascia vuoto → PDF mostra “DA INSERIRE”.</div></div>
         <div class="mb-2"><label class="form-label small">Foto marca fisica (tabaccaio) <span class="text-muted">— sostituisce il template nel PDF</span></label><input type="file" class="form-control" name="bollo_image" accept="image/png,image/jpeg,image/webp"><div class="form-text">Scatta foto nitida della marca (max 5MB, PNG/JPG/WEBP). Verrà stampata in alto a destra nella ricevuta. Se lasci vuoto, usa <code>marca_da_bollo.png</code> di default.</div></div>
         {% else %}
         <div class="alert alert-light border py-2 small text-success"><i class="bi bi-info-circle me-1"></i>Bollo non dovuto (imponibile €{{ "%.2f"|format(stay) }} ≤ 77,47€).</div>
+        {% endif %}
         {% endif %}
         {% if r.stripe_payment_intent_id %}<div class="small text-muted border-top pt-2 mt-2">Stripe PI: <code>{{ r.stripe_payment_intent_id }}</code>{% if r.stripe_charge_id %}<br>Charge: <code>{{ r.stripe_charge_id }}</code>{% endif %}{% if r.stripe_receipt_url %}<br><a href="{{ r.stripe_receipt_url }}" target="_blank">Ricevuta Stripe</a>{% endif %}</div>{% endif %}
       </div>

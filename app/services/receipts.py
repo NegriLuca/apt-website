@@ -101,6 +101,84 @@ def is_direct_reservation(reservation: Reservation) -> bool:
     return (reservation.source or 'direct') in ('direct', 'stripe')
 
 
+OTA_SOURCES = {'airbnb', 'booking', 'booking_com', 'vrbo'}
+
+PLATFORM_LABELS = {
+    'direct': 'Prenotazione diretta (sito)',
+    'stripe': 'Prenotazione diretta (sito)',
+    'airbnb': 'Airbnb',
+    'booking': 'Booking.com',
+    'booking_com': 'Booking.com',
+    'vrbo': 'Vrbo',
+}
+
+
+def platform_label(source: Optional[str]) -> str:
+    return PLATFORM_LABELS.get((source or 'direct').lower(), (source or 'direct').title())
+
+
+def get_linked_earning(reservation: Reservation):
+    """Return linked Earning row if any (by reservation_id or confirmation code)."""
+    try:
+        from app.models import Earning
+
+        if getattr(reservation, 'id', None):
+            e = Earning.query.filter_by(reservation_id=reservation.id).first()
+            if e:
+                return e
+        code = (reservation.external_uid or '').strip()
+        if code:
+            e = Earning.query.filter_by(confirmation_code=code).first()
+            if e:
+                return e
+    except Exception:
+        pass
+    return None
+
+
+def get_external_ref(reservation: Reservation, earning=None) -> Optional[str]:
+    """Best Booking number / Airbnb code for this reservation."""
+    if earning is not None and getattr(earning, 'confirmation_code', None):
+        return earning.confirmation_code
+    linked = earning if earning is not None else get_linked_earning(reservation)
+    if linked is not None and getattr(linked, 'confirmation_code', None):
+        return linked.confirmation_code
+    if getattr(reservation, 'external_uid', None):
+        return reservation.external_uid
+    return None
+
+
+def suggest_ota_amounts(reservation: Reservation) -> dict:
+    """Prefill helper for the admin form — gross paid by guest + net payout.
+
+    Gross (lordo ospite) goes on the receipt; net (bank payout) is stored
+    as platform_net for info only and never overwrites dashboard revenue.
+    """
+    earning = get_linked_earning(reservation)
+    gross = 0.0
+    net = None
+    guest = None
+    code = get_external_ref(reservation, earning)
+    if earning is not None:
+        gross = float(getattr(earning, 'gross_earnings', 0) or 0)
+        net = float(getattr(earning, 'net', 0) or 0) or None
+        if getattr(earning, 'guest_name', None):
+            guest = earning.guest_name
+    if not gross:
+        gross = float(reservation.total_price or 0.0)
+    return {'gross': round(gross, 2), 'net': round(net, 2) if net else None, 'guest': guest, 'code': code}
+
+
+def _is_generic_ota_name(name: Optional[str]) -> bool:
+    if not name:
+        return True
+    n = name.strip()
+    if len(n) < 3:
+        return True
+    low = n.lower()
+    return 'guest' in low or 'blocked' in low or 'external' in low
+
+
 def _format_receipt_number(sequence: int, year: int) -> str:
     return f"{sequence:02d}/{year}"
 
@@ -147,13 +225,38 @@ def _guest_address_snapshot(res: Reservation) -> dict:
     )
 
 
-def create_or_get_receipt(reservation: Reservation, issue_date: Optional[date] = None, bollo_id: Optional[str] = None) -> Receipt:
-    """Create receipt for direct reservation if not exists, else return existing.
+def create_or_get_receipt(
+    reservation: Reservation,
+    issue_date: Optional[date] = None,
+    bollo_id: Optional[str] = None,
+    stay_amount: Optional[float] = None,
+    tourist_tax_amount: Optional[float] = None,
+    guest_full_name: Optional[str] = None,
+    payment_method: Optional[str] = None,
+    external_ref: Optional[str] = None,
+    charge_bollo: Optional[bool] = None,
+    entity_type: Optional[str] = None,
+    company_name: Optional[str] = None,
+    company_vat: Optional[str] = None,
+    company_address: Optional[str] = None,
+) -> Receipt:
+    """Create receipt for any reservation (direct + OTA) if not exists, else return existing.
 
-    Raises ValueError if not direct or missing host data.
+    For direct stays amounts default to the reservation row (net stay + tourist tax).
+    For OTA stays (Booking/Airbnb/VRBO) the receipt is for the GROSS paid by the
+    guest — pass stay_amount explicitly (prefilled in admin from Earning.gross)
+    because Reservation.total_price stores the NET bank payout for the dashboard
+    and must NOT be overwritten.
+
+    Bollo: direct stays auto-apply €2 when stay > 77.47 (charge_bollo defaults
+    to True). OTA stays default to NO bollo surcharge (charge_bollo defaults
+    to False) — the receipt only references the Booking/Airbnb stay + tourist
+    tax, no €2 line. Pass charge_bollo=True to force it.
+
+    Company: pass entity_type='company' + company_name + 11-digit company_vat
+    to make the receipt out to a company (denominazione/P.IVA/sede) instead of
+    a natural person. Still a fuori-campo-IVA ricevuta, not an e-fattura.
     """
-    if not is_direct_reservation(reservation):
-        raise ValueError("Ricevuta solo per prenotazioni dirette dal sito (direct/stripe)")
 
     existing = Receipt.query.filter_by(reservation_id=reservation.id).first()
     if existing:
@@ -170,25 +273,76 @@ def create_or_get_receipt(reservation: Reservation, issue_date: Optional[date] =
     sequence = get_next_sequence(year)
     receipt_number = _format_receipt_number(sequence, year)
 
-    tourist_tax = float(reservation.tourist_tax_amount or 0.0)
-    # Imponibile cedolare = soggiorno netto (senza tassa/bollo)
-    # total_price in DB è sempre netto; totale lordo pagato = stay + tassa + bollo
-    stay_amount = float(reservation.total_price or 0.0)
-    # Nota: se reservation è vecchia con total_price lordo (188 già inclusivo),
-    # correggere DB: total_price = 162.10 (netto), amount_paid = 188.10 (lordo)
+    origin = (reservation.source or 'direct').lower()
+    is_direct = origin in ('direct', 'stripe')
+    earning = None if is_direct else get_linked_earning(reservation)
 
-    bollo_required = stay_amount > BOLLO_THRESHOLD
+    # Importi: override manuale (form admin) > suggerimento OTA > riga prenotazione
+    if stay_amount is not None:
+        stay = round(float(stay_amount), 2)
+    elif is_direct:
+        stay = float(reservation.total_price or 0.0)
+    else:
+        sugg = suggest_ota_amounts(reservation)
+        stay = sugg['gross'] or float(reservation.total_price or 0.0)
+        if stay <= 0:
+            raise ValueError("Inserisci l'importo lordo pagato dall'ospite (Prezzo Booking / Gross Airbnb) — non trovato in automatico")
+    if tourist_tax_amount is not None:
+        tourist_tax = round(float(tourist_tax_amount), 2)
+    else:
+        tourist_tax = float(reservation.tourist_tax_amount or 0.0)
+    # Imponibile = soggiorno (senza tassa/bollo); totale pagato = stay + tassa [+ bollo se addebitato]
+    # Nota direct: total_price in DB è netto; per OTA stay è il LORDO ospite
+    # (Prezzo Booking / Gross Airbnb), mentre Reservation.total_price resta il
+    # NETTO banca per la dashboard e non viene sovrascritto.
+
+    if charge_bollo is None:
+        charge_bollo = is_direct  # direct: auto si / OTA: no (solo causale + booking ref)
+    bollo_required = bool(charge_bollo) and stay > BOLLO_THRESHOLD
     bollo_amount = BOLLO_AMOUNT if bollo_required else 0.0
-    # ricalcola totale lordo coerente con stay netto
-    total = round(stay_amount + tourist_tax + bollo_amount, 2)
+    # ricalcola totale coerente
+    total = round(stay + tourist_tax + bollo_amount, 2)
 
     apartment = Apartment.query.first()
     host = _snapshot_host(apartment)
     guest_snap = _guest_address_snapshot(reservation)
 
-    guest_full = reservation.guest_full_name if hasattr(reservation, 'guest_full_name') else reservation.guest_name
+    if guest_full_name and guest_full_name.strip():
+        guest_full = guest_full_name.strip()
+    elif not is_direct and earning is not None and _is_generic_ota_name(reservation.guest_name) and getattr(earning, 'guest_name', None):
+        guest_full = earning.guest_name
+    else:
+        guest_full = reservation.guest_full_name if hasattr(reservation, 'guest_full_name') else reservation.guest_name
     # Prefer guest_codice_fiscale, fallback to document number for foreign
     guest_cf = reservation.guest_codice_fiscale or ''
+
+    if payment_method and payment_method.strip():
+        pay_method = payment_method.strip()
+    elif is_direct:
+        pay_method = reservation.payment_method or 'stripe'
+    else:
+        # default OTA: piattaforma (es. booking_com) salvo override admin
+        pay_method = reservation.payment_method if reservation.payment_method not in (None, '', 'n/a', 'automatic') else origin
+
+    ext_ref = (external_ref or '').strip() or get_external_ref(reservation, earning)
+    plat_net = None
+    if earning is not None:
+        try:
+            plat_net = round(float(getattr(earning, 'net', 0) or 0), 2) or None
+        except Exception:
+            plat_net = None
+
+    is_company = (entity_type or '').strip().lower() == 'company'
+    comp_name = (company_name or '').strip() or None
+    comp_vat_raw = ''.join(c for c in (company_vat or '') if c.isdigit())
+    comp_addr = (company_address or '').strip() or None
+    if is_company:
+        if not comp_name:
+            raise ValueError('Per intestazione azienda serve la denominazione / ragione sociale')
+        if len(comp_vat_raw) != 11:
+            raise ValueError('P.IVA azienda deve avere 11 cifre')
+        if not comp_addr:
+            raise ValueError("Per intestazione azienda serve la sede legale")
 
     receipt = Receipt(
         reservation_id=reservation.id,
@@ -196,13 +350,16 @@ def create_or_get_receipt(reservation: Reservation, issue_date: Optional[date] =
         sequence=sequence,
         receipt_number=receipt_number,
         issue_date=issue_date or date.today(),
-        stay_amount=round(stay_amount, 2),
+        stay_amount=round(stay, 2),
         tourist_tax_amount=round(tourist_tax, 2),
         total_amount=total,
-        payment_method=reservation.payment_method or 'stripe',
+        payment_method=pay_method,
         stripe_payment_intent_id=reservation.stripe_payment_intent_id,
         stripe_charge_id=reservation.stripe_charge_id,
         stripe_receipt_url=reservation.stripe_receipt_url,
+        origin_source=origin,
+        external_ref=ext_ref,
+        platform_net=plat_net,
         bollo_required=bollo_required,
         bollo_amount=bollo_amount,
         bollo_id=''.join(c for c in (bollo_id or '') if c.isdigit()) if bollo_id and len(''.join(c for c in bollo_id if c.isdigit())) == 14 else None,
@@ -220,6 +377,10 @@ def create_or_get_receipt(reservation: Reservation, issue_date: Optional[date] =
         guest_codice_fiscale=guest_cf,
         guest_document_type=reservation.guest_document_type,
         guest_document_number=reservation.guest_document_number,
+        entity_type='company' if is_company else 'person',
+        company_name=comp_name,
+        company_vat=comp_vat_raw or None,
+        company_address=comp_addr,
         check_in=reservation.check_in,
         check_out=reservation.check_out,
         nights=reservation.nights,
@@ -367,6 +528,41 @@ def enrich_reservation_from_stripe_session(reservation: Reservation, session_obj
 
 # ── PDF generation ────────────────────────────────────────────────────────────
 
+def _causale_dates(check_in, check_out) -> str:
+    """'dal 23 al 24 settembre 2026' style range for the causale line."""
+    try:
+        import locale
+
+        months = ['', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre']
+        if not check_in or not check_out:
+            return ''
+        if check_in.month == check_out.month and check_in.year == check_out.year:
+            return f"dal {check_in.day} al {check_out.day} {months[check_out.month]} {check_out.year}"
+        return f"dal {check_in.day} {months[check_in.month]} {check_in.year} al {check_out.day} {months[check_out.month]} {check_out.year}"
+    except Exception:
+        return ''
+
+
+def build_causale_text(receipt: "Receipt") -> str:
+    """Causale line: 'Saldo per locazione breve turistica ... (Prenotazione Booking n. X)'."""
+    dates = _causale_dates(receipt.check_in, receipt.check_out)
+    place = 'Roma, Garbatella'
+    base = f"Saldo per locazione breve turistica dell'immobile situato a {place}"
+    if dates:
+        base += f", relativo al soggiorno {dates}"
+    src = (getattr(receipt, 'origin_source', None) or '').lower()
+    ref = getattr(receipt, 'external_ref', None) or ''
+    if src in ('booking', 'booking_com') and ref:
+        base += f" (Prenotazione Booking n. {ref})"
+    elif src == 'airbnb' and ref:
+        base += f" (Prenotazione Airbnb n. {ref})"
+    elif src == 'vrbo' and ref:
+        base += f" (Prenotazione Vrbo n. {ref})"
+    elif ref and src not in ('direct', 'stripe'):
+        base += f" (Rif. piattaforma {ref})"
+    return base + '.'
+
+
 def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     """Generate PDF bytes for a receipt using fpdf2."""
     from fpdf import FPDF
@@ -476,7 +672,22 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     pdf.cell(95, 6, f"Data emissione: {receipt.issue_date.strftime('%d/%m/%Y')}", align='R', new_x='LMARGIN', new_y='NEXT')
     pdf.set_font('Helvetica', '', 7)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 4, f"ID prenotazione #{receipt.reservation_id}  |  Emessa il {receipt.created_at.strftime('%d/%m/%Y %H:%M') if receipt.created_at else ''}", new_x='LMARGIN', new_y='NEXT')
+    id_line = f"ID prenotazione #{receipt.reservation_id}  |  Emessa il {receipt.created_at.strftime('%d/%m/%Y %H:%M') if receipt.created_at else ''}"
+    pdf.cell(0, 4, id_line, new_x='LMARGIN', new_y='NEXT')
+    # Riferimento piattaforma (Booking N. / Airbnb code) — richiesto per ricevute OTA
+    _src = (getattr(receipt, 'origin_source', None) or '').lower()
+    _ref = getattr(receipt, 'external_ref', None) or ''
+    if _ref:
+        pdf.set_font('Helvetica', 'B', 7)
+        pdf.set_text_color(0, 0, 0)
+        if _src in ('booking', 'booking_com'):
+            pdf.cell(0, 4, f"Prenotazione Booking n. {_ref}  (ID interno #{receipt.reservation_id})", new_x='LMARGIN', new_y='NEXT')
+        elif _src == 'airbnb':
+            pdf.cell(0, 4, f"Prenotazione Airbnb n. {_ref}  (ID interno #{receipt.reservation_id})", new_x='LMARGIN', new_y='NEXT')
+        elif _src and _src not in ('direct', 'stripe'):
+            pdf.cell(0, 4, f"Riferimento {platform_label(_src)}: {_ref}  (ID interno #{receipt.reservation_id})", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', '', 7)
+        pdf.set_text_color(100, 100, 100)
     pdf.ln(3)
 
     # Emittente
@@ -491,21 +702,35 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     pdf.cell(0, 4, f"CIN: {receipt.cin_code or '—'}   |   CIR: {receipt.cir_code or '—'}", new_x='LMARGIN', new_y='NEXT')
     pdf.ln(3)
 
-    # Cliente
-    pdf.set_font('Helvetica', 'B', 9)
-    pdf.cell(0, 6, '  DATI OSPITE (Intestatario prenotazione)', fill=True, new_x='LMARGIN', new_y='NEXT')
-    pdf.set_font('Helvetica', '', 8)
-    pdf.cell(0, 4, f"Nome/Cognome: {receipt.guest_full_name or '—'}", new_x='LMARGIN', new_y='NEXT')
-    # Indirizzo: prefer billing snapshot
-    addr_parts = [p for p in [receipt.guest_residence_address, receipt.guest_residence_city, receipt.guest_residence_zip, receipt.guest_residence_country] if p]
-    addr_line = ', '.join(addr_parts) if addr_parts else '— (indirizzo non fornito — integrare da Stripe/check-in)'
-    pdf.cell(0, 4, f"Residenza: {addr_line}", new_x='LMARGIN', new_y='NEXT')
-    pdf.cell(0, 4, f"Email: {receipt.guest_email or '—'}", new_x='LMARGIN', new_y='NEXT')
-    if receipt.guest_codice_fiscale:
-        pdf.cell(0, 4, f"Codice Fiscale: {receipt.guest_codice_fiscale}", new_x='LMARGIN', new_y='NEXT')
+    # Intestatario: azienda oppure persona fisica
+    _is_company = (getattr(receipt, 'entity_type', None) or 'person') == 'company'
+    if _is_company:
+        pdf.set_font('Helvetica', 'B', 9)
+        pdf.cell(0, 6, '  DATI INTESTATARIO (Azienda)', fill=True, new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', '', 8)
+        pdf.cell(0, 4, f"Denominazione: {receipt.company_name or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 4, f"P.IVA: {receipt.company_vat or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 4, f"Sede legale: {receipt.company_address or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 4, f"Email: {receipt.guest_email or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', '', 7)
+        pdf.set_text_color(90, 90, 90)
+        pdf.cell(0, 4, f"Ospite soggiornante: {receipt.guest_full_name or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_text_color(0, 0, 0)
     else:
-        doc_line = f"{receipt.guest_document_type or ''} {receipt.guest_document_number or ''}".strip()
-        pdf.cell(0, 4, f"Documento: {doc_line or '— (CF/Passaporto da completare)'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', 'B', 9)
+        pdf.cell(0, 6, '  DATI OSPITE (Intestatario prenotazione)', fill=True, new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', '', 8)
+        pdf.cell(0, 4, f"Nome/Cognome: {receipt.guest_full_name or '—'}", new_x='LMARGIN', new_y='NEXT')
+        # Indirizzo: prefer billing snapshot
+        addr_parts = [p for p in [receipt.guest_residence_address, receipt.guest_residence_city, receipt.guest_residence_zip, receipt.guest_residence_country] if p]
+        addr_line = ', '.join(addr_parts) if addr_parts else '— (indirizzo non fornito — integrare da Stripe/check-in)'
+        pdf.cell(0, 4, f"Residenza: {addr_line}", new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 4, f"Email: {receipt.guest_email or '—'}", new_x='LMARGIN', new_y='NEXT')
+        if receipt.guest_codice_fiscale:
+            pdf.cell(0, 4, f"Codice Fiscale: {receipt.guest_codice_fiscale}", new_x='LMARGIN', new_y='NEXT')
+        else:
+            doc_line = f"{receipt.guest_document_type or ''} {receipt.guest_document_number or ''}".strip()
+            pdf.cell(0, 4, f"Documento: {doc_line or '— (CF/Passaporto da completare)'}", new_x='LMARGIN', new_y='NEXT')
     pdf.ln(3)
 
     # Soggiorno
@@ -514,6 +739,11 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     pdf.set_font('Helvetica', '', 8)
     pdf.cell(0, 4, f"Check-in: {receipt.check_in.strftime('%d/%m/%Y') if receipt.check_in else '—'}   Check-out: {receipt.check_out.strftime('%d/%m/%Y') if receipt.check_out else '—'}   Notti: {receipt.nights or '—'}   Ospiti: {receipt.num_guests or '—'}", new_x='LMARGIN', new_y='NEXT')
     pdf.cell(0, 4, f"Indirizzo alloggio: {receipt.host_address or '—'}", new_x='LMARGIN', new_y='NEXT')
+    # Causale estesa (stile richiesto: Saldo per locazione breve ... Prenotazione Booking n. X)
+    pdf.set_font('Helvetica', 'I', 7.5)
+    pdf.set_text_color(60, 60, 60)
+    pdf.multi_cell(0, 3.8, f"Causale: {build_causale_text(receipt)}")
+    pdf.set_text_color(0, 0, 0)
     pdf.ln(2)
 
     # Corrispettivi — tabella
@@ -554,8 +784,27 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
 
     # Pagamento + Stripe refs
     pdf.set_font('Helvetica', '', 8)
-    pay_label = {'stripe': 'Carta di Credito / Stripe', 'wire_transfer': 'Bonifico', 'cash': 'Contanti', 'n/a': '—'}.get(receipt.payment_method or '', receipt.payment_method or '—')
+    _pay_raw = receipt.payment_method or ''
+    _pay_map = {
+        'stripe': 'Carta di Credito / Stripe',
+        'wire_transfer': 'Bonifico',
+        'cash': 'Contanti',
+        'n/a': '—',
+        'booking': 'Booking.com (tramite piattaforma)',
+        'booking_com': 'Booking.com (tramite piattaforma)',
+        'airbnb': 'Airbnb (tramite piattaforma)',
+        'vrbo': 'Vrbo (tramite piattaforma)',
+    }
+    pay_label = _pay_map.get(_pay_raw, _pay_raw or '—')
     pdf.cell(0, 4, f"Modalità pagamento: {pay_label} — {_money(receipt.total_amount)}", new_x='LMARGIN', new_y='NEXT')
+    # Nota trasparenza OTA: netto banca vs lordo ospite (non in totale)
+    _pnet = getattr(receipt, 'platform_net', None)
+    if _pnet and _src not in ('direct', 'stripe', '') and abs(float(_pnet) - float(receipt.stay_amount or 0)) > 0.01:
+        pdf.set_font('Helvetica', '', 6.5)
+        pdf.set_text_color(100, 100, 100)
+        pdf.cell(0, 3.5, f"Nota: importo incassato tramite {platform_label(_src)} al netto di commissioni = {_money(_pnet)} (vedi estratto piattaforma).", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font('Helvetica', '', 8)
     if receipt.stripe_payment_intent_id:
         pdf.set_font('Helvetica', '', 7)
         pdf.set_text_color(80, 80, 80)

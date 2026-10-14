@@ -36,6 +36,9 @@
                 <strong>Ricevuta N. {{ receipt.receipt_number }}</strong>
                 <span>Data emissione: {{ receipt.issue_date.strftime('%d/%m/%Y') }}</span>
             </div>
+            {% if receipt.external_ref %}
+            <div class="alert alert-primary py-2 small mb-3"><i class="bi bi-tag me-1"></i><strong>{% if receipt.origin_source in ['booking','booking_com'] %}Prenotazione Booking n. {{ receipt.external_ref }}{% elif receipt.origin_source == 'airbnb' %}Prenotazione Airbnb n. {{ receipt.external_ref }}{% else %}Riferimento {{ receipt.origin_source }}: {{ receipt.external_ref }}{% endif %}</strong> · ID interno #{{ receipt.reservation_id }}{% if receipt.platform_net %} · netto banca €{{ "%.2f"|format(receipt.platform_net) }} (solo info){% endif %}</div>
+            {% endif %}
             <hr>
             <h6 class="fw-bold bg-light p-2">Dati emittente (locatore)</h6>
             <p class="mb-1">Nome/Cognome: <strong>{{ receipt.host_full_name or '—' }}</strong><br>
@@ -43,12 +46,21 @@
             Indirizzo struttura: {{ receipt.host_address or '—' }}<br>
             CIN: {{ receipt.cin_code or '—' }} — CIR: {{ receipt.cir_code or '—' }}</p>
 
+            {% if receipt.entity_type == 'company' %}
+            <h6 class="fw-bold bg-light p-2 mt-3">Dati intestatario (azienda)</h6>
+            <p class="mb-1">Denominazione: <strong>{{ receipt.company_name }}</strong><br>
+            P.IVA: {{ receipt.company_vat }}<br>
+            Sede legale: {{ receipt.company_address or '—' }}<br>
+            Email: {{ receipt.guest_email }}<br>
+            <small class="text-muted">Ospite soggiornante: {{ receipt.guest_full_name }}</small></p>
+            {% else %}
             <h6 class="fw-bold bg-light p-2 mt-3">Dati ospite</h6>
             <p class="mb-1">Nome/Cognome: <strong>{{ receipt.guest_full_name }}</strong><br>
             Residenza: {{ receipt.guest_residence_address or '' }} {{ receipt.guest_residence_city or '' }} {{ receipt.guest_residence_zip or '' }} {{ receipt.guest_residence_country or '' }}<br>
             Email: {{ receipt.guest_email }}<br>
             {% if receipt.guest_codice_fiscale %}Codice Fiscale: {{ receipt.guest_codice_fiscale }}
             {% else %}Documento: {{ receipt.guest_document_type or '' }} {{ receipt.guest_document_number or '' }}{% endif %}</p>
+            {% endif %}
 
             <h6 class="fw-bold bg-light p-2 mt-3">Dettaglio soggiorno</h6>
             <p class="mb-1">Check-in: {{ receipt.check_in.strftime('%d/%m/%Y') if receipt.check_in else '—' }} — Check-out: {{ receipt.check_out.strftime('%d/%m/%Y') if receipt.check_out else '—' }} — Notti: {{ receipt.nights }} — Ospiti: {{ receipt.num_guests }}<br>

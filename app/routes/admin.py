@@ -2917,20 +2917,30 @@ def admin_receipts() -> Response | str:
     if not current_user.is_admin:
         abort(403)
     from app.models import Receipt
+    from app.services.receipts import suggest_ota_amounts
 
     receipts = Receipt.query.order_by(Receipt.year.desc(), Receipt.sequence.desc()).all()
-    # direct reservations without receipt yet
-    pending = Reservation.query.filter(
-        Reservation.source.in_(['direct', 'stripe']),
+    # all non-cancelled, non-block reservations without receipt yet (direct + OTA)
+    pending_all = Reservation.query.filter(
         Reservation.status != 'cancelled',
+        Reservation.is_block.is_(False),
     ).order_by(Reservation.check_in.desc()).all()
-    pending_no_receipt = [r for r in pending if not getattr(r, 'receipt', None)]
+    pending_all = [r for r in pending_all if not getattr(r, 'receipt', None)]
+    pending_direct = [r for r in pending_all if (r.source or 'direct') in ('direct', 'stripe')]
+    pending_ota = [r for r in pending_all if (r.source or '') not in ('direct', 'stripe')]
+    # prefill OTA: gross/net/guest/code from Earning when available
+    ota_suggest = {}
+    for r in pending_ota:
+        try:
+            ota_suggest[r.id] = suggest_ota_amounts(r)
+        except Exception:
+            ota_suggest[r.id] = {'gross': float(r.total_price or 0), 'net': None, 'guest': None, 'code': r.external_uid}
     apartment = get_apartment()
     # ultima per anno per logica delete-solo-ultima
     max_seq_by_year = {}
     for rc in receipts:
         max_seq_by_year[rc.year] = max(max_seq_by_year.get(rc.year, 0), rc.sequence)
-    return render_template('admin_receipts.html', receipts=receipts, pending=pending_no_receipt, apartment=apartment, max_seq_by_year=max_seq_by_year)
+    return render_template('admin_receipts.html', receipts=receipts, pending=pending_direct, pending_ota=pending_ota, ota_suggest=ota_suggest, apartment=apartment, max_seq_by_year=max_seq_by_year)
 
 
 @bp.route('/admin/receipts/create/<int:reservation_id>', methods=['POST'])
@@ -2941,7 +2951,16 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
     res = Reservation.query.get_or_404(reservation_id)
     from app.services.receipts import create_or_get_receipt
 
+    is_direct = (res.source or 'direct') in ('direct', 'stripe')
     # allow admin to override guest billing data inline
+    if request.form.get('guest_full_name', '').strip():
+        full = request.form.get('guest_full_name', '').strip()
+        res.guest_name = full
+        # split for Questura if generic/empty
+        if ' ' in full and (not res.guest_first_name or 'Guest' in (res.guest_name or '')):
+            parts = full.split()
+            res.guest_first_name = parts[0]
+            res.guest_surname = ' '.join(parts[1:])
     if request.form.get('guest_residence_address'):
         res.guest_residence_address = request.form.get('guest_residence_address', '').strip() or None
     if request.form.get('guest_residence_city'):
@@ -2952,12 +2971,66 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
         res.guest_residence_country = request.form.get('guest_residence_country', '').strip() or None
     if request.form.get('guest_codice_fiscale'):
         res.guest_codice_fiscale = request.form.get('guest_codice_fiscale', '').strip().upper() or None
-    if any([request.form.get('guest_residence_address'), request.form.get('guest_codice_fiscale')]):
+    # tassa soggiorno manuale (vale per direct e OTA — aggiorna compliance report)
+    new_tax_raw = request.form.get('tourist_tax_amount', '').strip()
+    new_tax = None
+    if new_tax_raw:
+        try:
+            new_tax = float(new_tax_raw.replace(',', '.'))
+            res.tourist_tax_amount = new_tax
+        except ValueError:
+            flash('Importo tassa non valido — uso valore prenotazione.', 'warning')
+            new_tax = None
+    # importo soggiorno manuale: per OTA è il LORDO ospite (non tocca total_price netto dashboard);
+    # per direct resta informativo (la ricevuta usa comunque il netto prenotazione se vuoto)
+    new_stay_raw = request.form.get('stay_amount', '').strip()
+    new_stay = None
+    if new_tax_raw or new_stay_raw or request.form.get('guest_full_name', '').strip() or request.form.get('guest_residence_address') or request.form.get('guest_codice_fiscale'):
         db.session.commit()
+    if new_stay_raw:
+        try:
+            new_stay = float(new_stay_raw.replace(',', '.'))
+            if new_stay <= 0:
+                raise ValueError('zero')
+        except ValueError:
+            flash('Importo soggiorno non valido.', 'danger')
+            return redirect(url_for('routes.admin_receipts'))
+
+    pay_method_raw = request.form.get('payment_method', '').strip() or None
+    # default metodo: per OTA la piattaforma, per direct Stripe/BB esistente
+    if not pay_method_raw and not is_direct:
+        pay_method_raw = (res.source or '').strip() or None
+    guest_name_override = request.form.get('guest_full_name', '').strip() or None
+
+    # Intestazione azienda (opzionale, direct + OTA)
+    entity_type = 'company' if request.form.get('entity_company') else 'person'
+    company_name = request.form.get('company_name', '').strip() or None
+    company_vat = request.form.get('company_vat', '').strip() or None
+    company_address = request.form.get('company_address', '').strip() or None
 
     bollo_id = request.form.get('bollo_id', '').strip() or None
+    # OTA: nessun addebito bollo di default (solo causale + booking ref).
+    # Il checkbox 'charge_bollo' lo riattiva se serve; direct resta auto.
+    if is_direct:
+        charge_bollo = True if not bollo_id else True
+        if 'charge_bollo' in request.form:
+            charge_bollo = bool(request.form.get('charge_bollo'))
+    else:
+        charge_bollo = bool(request.form.get('charge_bollo'))
     try:
-        receipt = create_or_get_receipt(res, bollo_id=bollo_id)
+        receipt = create_or_get_receipt(
+            res,
+            bollo_id=bollo_id,
+            stay_amount=new_stay,
+            tourist_tax_amount=new_tax,
+            guest_full_name=guest_name_override,
+            payment_method=pay_method_raw,
+            charge_bollo=charge_bollo,
+            entity_type=entity_type,
+            company_name=company_name,
+            company_vat=company_vat,
+            company_address=company_address,
+        )
         # foto marca fisica dal tabaccaio — opzionale, per-ricevuta (sovrascrive template)
         bollo_file = request.files.get('bollo_image')
         if bollo_file and bollo_file.filename:
