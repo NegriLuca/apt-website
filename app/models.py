@@ -780,9 +780,12 @@ class Receipt(db.Model):
     external_ref = db.Column(db.String(128), nullable=True, comment='Booking N. / Airbnb confirmation code / external_uid')
     platform_net = db.Column(db.Float, nullable=True, comment='Netto banca da Earning (solo info, non in totale ospite)')
 
-    # Marca da bollo (obbligatoria se stay_amount > 77.47)
+    # Marca da bollo (soglia stay_amount > 77.47)
+    # required = timbro/ID visibili (sempre sopra soglia, pagato dal locatore);
+    # charged = i 2€ sono inclusi nel totale (solo vecchie ricevute, nuove mai).
     bollo_required = db.Column(db.Boolean, default=False)
-    bollo_amount = db.Column(db.Float, default=0.0, comment='2.00 se required altrimenti 0')
+    bollo_amount = db.Column(db.Float, default=0.0, comment='2.00 solo se addebitato (legacy) altrimenti 0')
+    bollo_charged = db.Column(db.Boolean, default=False, comment='True se i 2€ sono inclusi nel totale')
     bollo_id = db.Column(db.String(30), nullable=True, comment='14 cifre marca da bollo su copia cartacea')
     bollo_image_path = db.Column(
         db.String(300), nullable=True, comment='Path immagine marca (per-ricevuta, sovrascrive template globale)'

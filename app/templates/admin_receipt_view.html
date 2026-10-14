@@ -37,7 +37,7 @@
                 <span>Data emissione: {{ receipt.issue_date.strftime('%d/%m/%Y') }}</span>
             </div>
             {% if receipt.external_ref %}
-            <div class="alert alert-primary py-2 small mb-3"><i class="bi bi-tag me-1"></i><strong>{% if receipt.origin_source in ['booking','booking_com'] %}Prenotazione Booking n. {{ receipt.external_ref }}{% elif receipt.origin_source == 'airbnb' %}Prenotazione Airbnb n. {{ receipt.external_ref }}{% else %}Riferimento {{ receipt.origin_source }}: {{ receipt.external_ref }}{% endif %}</strong> · ID interno #{{ receipt.reservation_id }}{% if receipt.platform_net %} · netto banca €{{ "%.2f"|format(receipt.platform_net) }} (solo info){% endif %}</div>
+            <div class="alert alert-primary py-2 small mb-3"><i class="bi bi-tag me-1"></i><strong>{% if receipt.origin_source in ['booking','booking_com'] %}Prenotazione Booking n. {{ receipt.external_ref }}{% elif receipt.origin_source == 'airbnb' %}Prenotazione Airbnb n. {{ receipt.external_ref }}{% else %}Riferimento {{ receipt.origin_source }}: {{ receipt.external_ref }}{% endif %}</strong></div>
             {% endif %}
             <hr>
             <h6 class="fw-bold bg-light p-2">Dati emittente (locatore)</h6>
@@ -82,11 +82,15 @@
             </p>
 
             <h6 class="fw-bold mt-3">Imposta di bollo</h6>
-            {% if receipt.bollo_required %}
-                <p class="small mb-1">Marca da bollo da €2,00 dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} &gt; 77,47€) — sempre esposta in alto a destra.<br>
+            {% if receipt.bollo_required and receipt.bollo_charged %}
+                <p class="small mb-1">Marca da bollo da €2,00 dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} &gt; 77,47€) — sempre esposta in alto a destra, inclusa nel totale.<br>
                 Contrassegno: {% if receipt.bollo_id %}<code>{{ receipt.bollo_id }}</code> <span class="text-muted">(14 cifre identificativo)</span> — assolta sull'originale.
                 {% else %}<span class="text-danger fw-bold">DA INSERIRE</span> <span class="text-muted">— inserisci le 14 cifre in /admin/receipts (campo Bollo). Sia immagine che identificativo possono e devono coesistere.</span>{% endif %}</p>
                 <p class="small text-muted mb-1" style="font-size: 11px;">Sì, è ok avere <strong>sia</strong> l'immagine del contrassegno <strong>che</strong> l'identificativo a 14 cifre: l'identificativo è la prova legale dell'assolvimento (art.13 DPR 642/1972).</p>
+            {% elif receipt.bollo_required %}
+                <p class="small mb-1">Marca da bollo da €2,00 apposta dal locatore a proprio carico (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} &gt; 77,47€) — <strong>non addebitata al cliente, totale invariato</strong>.<br>
+                Contrassegno: {% if receipt.bollo_id %}<code>{{ receipt.bollo_id }}</code> <span class="text-muted">(14 cifre identificativo)</span> — assolta sull'originale.
+                {% else %}<span class="text-danger fw-bold">DA INSERIRE</span> <span class="text-muted">— inserisci le 14 cifre in /admin/receipts (campo Bollo).</span>{% endif %}</p>
             {% else %}
                 <p class="small">Non dovuta (imponibile €{{ "%.2f"|format(receipt.stay_amount) }} ≤ 77,47€) — marca non esposta.</p>
             {% endif %}

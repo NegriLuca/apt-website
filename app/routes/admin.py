@@ -3009,14 +3009,8 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
     company_address = request.form.get('company_address', '').strip() or None
 
     bollo_id = request.form.get('bollo_id', '').strip() or None
-    # OTA: nessun addebito bollo di default (solo causale + booking ref).
-    # Il checkbox 'charge_bollo' lo riattiva se serve; direct resta auto.
-    if is_direct:
-        charge_bollo = True if not bollo_id else True
-        if 'charge_bollo' in request.form:
-            charge_bollo = bool(request.form.get('charge_bollo'))
-    else:
-        charge_bollo = bool(request.form.get('charge_bollo'))
+    # Bollo: sopra 77,47€ il timbro c'è sempre (pagato dal locatore),
+    # mai incluso nel totale — nessun calcolo da fare qui.
     try:
         receipt = create_or_get_receipt(
             res,
@@ -3025,7 +3019,6 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
             tourist_tax_amount=new_tax,
             guest_full_name=guest_name_override,
             payment_method=pay_method_raw,
-            charge_bollo=charge_bollo,
             entity_type=entity_type,
             company_name=company_name,
             company_vat=company_vat,
@@ -3110,6 +3103,10 @@ def admin_receipt_bollo(receipt_id: int) -> Response | str:
     bollo_id = request.form.get('bollo_id', '').strip()
     try:
         update_receipt_bollo(receipt, bollo_id)
+        # sopra soglia il timbro c'è sempre (pagato dal locatore) — assicura visibilità
+        if (receipt.stay_amount or 0) > 77.47 and not receipt.bollo_required:
+            receipt.bollo_required = True
+            db.session.commit()
         # anche foto marca fisica se caricata in update
         bollo_file = request.files.get('bollo_image')
         if bollo_file and bollo_file.filename:

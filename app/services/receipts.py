@@ -234,7 +234,6 @@ def create_or_get_receipt(
     guest_full_name: Optional[str] = None,
     payment_method: Optional[str] = None,
     external_ref: Optional[str] = None,
-    charge_bollo: Optional[bool] = None,
     entity_type: Optional[str] = None,
     company_name: Optional[str] = None,
     company_vat: Optional[str] = None,
@@ -248,10 +247,10 @@ def create_or_get_receipt(
     because Reservation.total_price stores the NET bank payout for the dashboard
     and must NOT be overwritten.
 
-    Bollo: direct stays auto-apply €2 when stay > 77.47 (charge_bollo defaults
-    to True). OTA stays default to NO bollo surcharge (charge_bollo defaults
-    to False) — the receipt only references the Booking/Airbnb stay + tourist
-    tax, no €2 line. Pass charge_bollo=True to force it.
+    Bollo: sopra 77,47€ di soggiorno il timbro c'è sempre (lo appone il
+    locatore di tasca propria) ma NON entra mai nei totali: totale ricevuuta
+    = soggiorno + tassa di soggiorno. bollo_charged resta solo per vecchie
+    ricevute che lo includevano nel totale.
 
     Company: pass entity_type='company' + company_name + 11-digit company_vat
     to make the receipt out to a company (denominazione/P.IVA/sede) instead of
@@ -296,12 +295,14 @@ def create_or_get_receipt(
     # (Prezzo Booking / Gross Airbnb), mentre Reservation.total_price resta il
     # NETTO banca per la dashboard e non viene sovrascritto.
 
-    if charge_bollo is None:
-        charge_bollo = is_direct  # direct: auto si / OTA: no (solo causale + booking ref)
-    bollo_required = bool(charge_bollo) and stay > BOLLO_THRESHOLD
-    bollo_amount = BOLLO_AMOUNT if bollo_required else 0.0
-    # ricalcola totale coerente
-    total = round(stay + tourist_tax + bollo_amount, 2)
+    # Bollo: sopra soglia il timbro c'è sempre (pagato dal locatore),
+    # mai incluso nel totale: totale = soggiorno + tassa.
+    _bollo_digits = ''.join(c for c in (bollo_id or '') if c.isdigit())
+    _has_valid_id = len(_bollo_digits) == 14
+    bollo_required = stay > BOLLO_THRESHOLD
+    bollo_charged = False
+    bollo_amount = 0.0
+    total = round(stay + tourist_tax, 2)
 
     apartment = Apartment.query.first()
     host = _snapshot_host(apartment)
@@ -362,7 +363,8 @@ def create_or_get_receipt(
         platform_net=plat_net,
         bollo_required=bollo_required,
         bollo_amount=bollo_amount,
-        bollo_id=''.join(c for c in (bollo_id or '') if c.isdigit()) if bollo_id and len(''.join(c for c in bollo_id if c.isdigit())) == 14 else None,
+        bollo_charged=bollo_charged,
+        bollo_id=_bollo_digits if _has_valid_id else None,
         host_full_name=host['host_full_name'],
         host_codice_fiscale=host['host_codice_fiscale'],
         host_address=host['host_address'],
@@ -681,11 +683,11 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
         pdf.set_font('Helvetica', 'B', 7)
         pdf.set_text_color(0, 0, 0)
         if _src in ('booking', 'booking_com'):
-            pdf.cell(0, 4, f"Prenotazione Booking n. {_ref}  (ID interno #{receipt.reservation_id})", new_x='LMARGIN', new_y='NEXT')
+            pdf.cell(0, 4, f"Prenotazione Booking n. {_ref}", new_x='LMARGIN', new_y='NEXT')
         elif _src == 'airbnb':
-            pdf.cell(0, 4, f"Prenotazione Airbnb n. {_ref}  (ID interno #{receipt.reservation_id})", new_x='LMARGIN', new_y='NEXT')
+            pdf.cell(0, 4, f"Prenotazione Airbnb n. {_ref}", new_x='LMARGIN', new_y='NEXT')
         elif _src and _src not in ('direct', 'stripe'):
-            pdf.cell(0, 4, f"Riferimento {platform_label(_src)}: {_ref}  (ID interno #{receipt.reservation_id})", new_x='LMARGIN', new_y='NEXT')
+            pdf.cell(0, 4, f"Riferimento {platform_label(_src)}: {_ref}", new_x='LMARGIN', new_y='NEXT')
         pdf.set_font('Helvetica', '', 7)
         pdf.set_text_color(100, 100, 100)
     pdf.ln(3)
@@ -768,16 +770,16 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     pdf.cell(col_w[2], 6, _money(unit_tax) if unit_tax else '—', border=1, align='R')
     pdf.cell(col_w[3], 6, _money(receipt.tourist_tax_amount), border=1, align='R')
     pdf.ln()
-    # Riga bollo 2€ se dovuto — incluso nel totale pagato da sito (fuori reddito)
-    if receipt.bollo_required:
+    # Riga bollo solo se addebitato al cliente (vecchie ricevute) — mai per le nuove
+    if getattr(receipt, 'bollo_charged', False) and receipt.bollo_required:
         pdf.cell(col_w[0], 6, 'Imposta di bollo (art.13 DPR 642/1972)', border=1)
         pdf.cell(col_w[1], 6, '1', border=1, align='C')
         pdf.cell(col_w[2], 6, _money(2.00), border=1, align='R')
         pdf.cell(col_w[3], 6, _money(2.00), border=1, align='R')
         pdf.ln()
-    # Totale pagato dal sito = soggiorno (imponibile cedolare) + tassa + bollo
+    # Totale = soggiorno + tassa (il bollo pagato dal locatore non entra mai)
     pdf.set_font('Helvetica', 'B', 8)
-    label_tot = 'TOTALE PAGATO (soggiorno + tassa + bollo)' if receipt.bollo_required else 'TOTALE PAGATO (soggiorno + tassa)'
+    label_tot = 'TOTALE PAGATO (soggiorno + tassa + bollo)' if getattr(receipt, 'bollo_charged', False) and receipt.bollo_required else 'TOTALE PAGATO (soggiorno + tassa)'
     pdf.cell(col_w[0] + col_w[1] + col_w[2], 7, label_tot, border=1, align='R')
     pdf.cell(col_w[3], 7, _money(receipt.total_amount), border=1, align='R')
     pdf.ln(8)
@@ -797,14 +799,6 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     }
     pay_label = _pay_map.get(_pay_raw, _pay_raw or '—')
     pdf.cell(0, 4, f"Modalità pagamento: {pay_label} — {_money(receipt.total_amount)}", new_x='LMARGIN', new_y='NEXT')
-    # Nota trasparenza OTA: netto banca vs lordo ospite (non in totale)
-    _pnet = getattr(receipt, 'platform_net', None)
-    if _pnet and _src not in ('direct', 'stripe', '') and abs(float(_pnet) - float(receipt.stay_amount or 0)) > 0.01:
-        pdf.set_font('Helvetica', '', 6.5)
-        pdf.set_text_color(100, 100, 100)
-        pdf.cell(0, 3.5, f"Nota: importo incassato tramite {platform_label(_src)} al netto di commissioni = {_money(_pnet)} (vedi estratto piattaforma).", new_x='LMARGIN', new_y='NEXT')
-        pdf.set_text_color(0, 0, 0)
-        pdf.set_font('Helvetica', '', 8)
     if receipt.stripe_payment_intent_id:
         pdf.set_font('Helvetica', '', 7)
         pdf.set_text_color(80, 80, 80)
@@ -817,12 +811,15 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
         pdf.set_text_color(0, 0, 0)
     pdf.ln(2)
 
-    # Bollo — sempre visibile quando dovuto (>77.47), con identificativo manuale
+    # Bollo — timbro sempre visibile sopra soglia (pagato dal locatore, mai nel totale)
     if receipt.bollo_required:
         pdf.set_text_color(0, 0, 0)
         pdf.set_font('Helvetica', '', 7)
         id_display = receipt.bollo_id if receipt.bollo_id else 'DA INSERIRE (inserisci identificativo 14 cifre in /admin/receipts)'
-        pdf.cell(0, 4, f"Imposta di bollo 2,00 EUR assolta — Contrassegno: {id_display}", new_x='LMARGIN', new_y='NEXT')
+        if getattr(receipt, 'bollo_charged', False):
+            pdf.cell(0, 4, f"Imposta di bollo 2,00 EUR assolta — Contrassegno: {id_display}", new_x='LMARGIN', new_y='NEXT')
+        else:
+            pdf.cell(0, 4, f"Imposta di bollo 2,00 EUR assolta dal locatore (non addebitata) — Contrassegno: {id_display}", new_x='LMARGIN', new_y='NEXT')
         pdf.set_font('Helvetica', '', 6)
         pdf.set_text_color(100, 100, 100)
         pdf.cell(0, 3, "Marca da bollo apposta sull'originale — identificativo univoco 14 cifre (art.13 DPR 642/1972).", new_x='LMARGIN', new_y='NEXT')
