@@ -656,11 +656,15 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
         return f"EUR {v:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
 
     # Header
+    _is_company_head = (getattr(receipt, 'entity_type', None) or 'person') == 'company'
     pdf.set_font('Helvetica', 'B', 14)
     pdf.cell(0, 8, 'RICEVUTA DI LOCAZIONE BREVE', align='C', new_x='LMARGIN', new_y='NEXT')
     pdf.set_font('Helvetica', '', 8)
     pdf.set_text_color(90, 90, 90)
-    pdf.cell(0, 4, 'Documento non-fattura — Operazione fuori campo IVA art. 1 c.2 DPR 633/1972', align='C', new_x='LMARGIN', new_y='NEXT')
+    if _is_company_head:
+        pdf.cell(0, 4, 'Quietanza di pagamento — Documento non-fattura, fuori campo IVA art. 1 c.2 DPR 633/1972', align='C', new_x='LMARGIN', new_y='NEXT')
+    else:
+        pdf.cell(0, 4, 'Documento non-fattura — Operazione fuori campo IVA art. 1 c.2 DPR 633/1972', align='C', new_x='LMARGIN', new_y='NEXT')
     pdf.ln(4)
     pdf.set_draw_color(200, 200, 200)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
@@ -708,15 +712,24 @@ def generate_receipt_pdf_bytes(receipt: Receipt) -> bytes:
     _is_company = (getattr(receipt, 'entity_type', None) or 'person') == 'company'
     if _is_company:
         pdf.set_font('Helvetica', 'B', 9)
-        pdf.cell(0, 6, '  DATI INTESTATARIO (Azienda)', fill=True, new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 6, '  DATI INTESTATARIO (Azienda / Ente)', fill=True, new_x='LMARGIN', new_y='NEXT')
         pdf.set_font('Helvetica', '', 8)
         pdf.cell(0, 4, f"Denominazione: {receipt.company_name or '—'}", new_x='LMARGIN', new_y='NEXT')
-        pdf.cell(0, 4, f"P.IVA: {receipt.company_vat or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 4, f"P.IVA / C.F.: {receipt.company_vat or '—'}", new_x='LMARGIN', new_y='NEXT')
         pdf.cell(0, 4, f"Sede legale: {receipt.company_address or '—'}", new_x='LMARGIN', new_y='NEXT')
-        pdf.cell(0, 4, f"Email: {receipt.guest_email or '—'}", new_x='LMARGIN', new_y='NEXT')
-        pdf.set_font('Helvetica', '', 7)
-        pdf.set_text_color(90, 90, 90)
+        if receipt.guest_email:
+            pdf.cell(0, 4, f"Email: {receipt.guest_email}", new_x='LMARGIN', new_y='NEXT')
         pdf.cell(0, 4, f"Ospite soggiornante: {receipt.guest_full_name or '—'}", new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', 'I', 7)
+        pdf.set_text_color(90, 90, 90)
+        pdf.multi_cell(
+            0,
+            3.5,
+            'Quietanza di pagamento del canone di locazione, intestata alla società/ente indicata. '
+            'I dati fiscali del documento sono quelli dell’intestatario (denominazione, P.IVA, sede legale); '
+            'il soggiornante è indicato solo come fruitore del servizio. Valida come giustificativo di spesa '
+            'unitamente alla contabile di pagamento del bonifico o della carta aziendale.',
+        )
         pdf.set_text_color(0, 0, 0)
     else:
         pdf.set_font('Helvetica', 'B', 9)

@@ -2952,6 +2952,12 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
     from app.services.receipts import create_or_get_receipt
 
     is_direct = (res.source or 'direct') in ('direct', 'stripe')
+    # Intestazione azienda (opzionale, direct + OTA): quietanza intestata a
+    # società/ente. Va rilevata PRIMA dei dati ospite: in questo modo
+    # l'indirizzo del soggiornante non viene scritto sulla prenotazione
+    # (non è un dato fiscale della quietanza — contano P.IVA e sede legale).
+    entity_type = 'company' if request.form.get('entity_company') else 'person'
+    is_company = entity_type == 'company'
     # allow admin to override guest billing data inline
     if request.form.get('guest_full_name', '').strip():
         full = request.form.get('guest_full_name', '').strip()
@@ -2961,14 +2967,15 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
             parts = full.split()
             res.guest_first_name = parts[0]
             res.guest_surname = ' '.join(parts[1:])
-    if request.form.get('guest_residence_address'):
-        res.guest_residence_address = request.form.get('guest_residence_address', '').strip() or None
-    if request.form.get('guest_residence_city'):
-        res.guest_residence_city = request.form.get('guest_residence_city', '').strip() or None
-    if request.form.get('guest_residence_zip'):
-        res.guest_residence_zip = request.form.get('guest_residence_zip', '').strip() or None
-    if request.form.get('guest_residence_country'):
-        res.guest_residence_country = request.form.get('guest_residence_country', '').strip() or None
+    if not is_company:
+        if request.form.get('guest_residence_address'):
+            res.guest_residence_address = request.form.get('guest_residence_address', '').strip() or None
+        if request.form.get('guest_residence_city'):
+            res.guest_residence_city = request.form.get('guest_residence_city', '').strip() or None
+        if request.form.get('guest_residence_zip'):
+            res.guest_residence_zip = request.form.get('guest_residence_zip', '').strip() or None
+        if request.form.get('guest_residence_country'):
+            res.guest_residence_country = request.form.get('guest_residence_country', '').strip() or None
     if request.form.get('guest_codice_fiscale'):
         res.guest_codice_fiscale = request.form.get('guest_codice_fiscale', '').strip().upper() or None
     # tassa soggiorno manuale (vale per direct e OTA — aggiorna compliance report)
@@ -3002,11 +3009,12 @@ def admin_create_receipt(reservation_id: int) -> Response | str:
         pay_method_raw = (res.source or '').strip() or None
     guest_name_override = request.form.get('guest_full_name', '').strip() or None
 
-    # Intestazione azienda (opzionale, direct + OTA)
-    entity_type = 'company' if request.form.get('entity_company') else 'person'
+    # Intestazione azienda (opzionale, direct + OTA) — entity_type già calcolato sopra
     company_name = request.form.get('company_name', '').strip() or None
     company_vat = request.form.get('company_vat', '').strip() or None
     company_address = request.form.get('company_address', '').strip() or None
+    if is_company and not guest_name_override:
+        flash('Intestazione azienda: indica il nome del soggiornante (dipendente) — serve a identificare chi ha usufruito dell’alloggio.', 'warning')
 
     bollo_id = request.form.get('bollo_id', '').strip() or None
     # Bollo: sopra 77,47€ il timbro c'è sempre (pagato dal locatore),

@@ -245,14 +245,18 @@
         {% if has_stripe_addr %}
           <div class="alert alert-success py-2 small"><i class="bi bi-check-circle me-1"></i>Indirizzo recuperato da <strong>Stripe</strong> (billing). Verifica e completa solo il CF se ospite italiano.</div>
         {% else %}
-          <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>Nessun indirizzo Stripe — compila manualmente (obbligatorio per ricevuta). Per future prenotazioni l'indirizzo verrà chiesto al checkout.</div>
+          <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>Nessun indirizzo Stripe — compila manualmente (obbligatorio per ricevuta). Per future prenotazioni l'indirizzo verrà chiesto al checkout. <span class="text-muted">Se la ricevuta è intestata all’azienda (checkbox qui sotto) l’indirizzo del soggiornante non serve.</span></div>
         {% endif %}
         {% endif %}
-        <div class="mb-2"><label class="form-label small fw-semibold">Indirizzo residenza (via) *</label><input type="text" class="form-control" name="guest_residence_address" value="{{ r.guest_billing_address_line1 or r.guest_residence_address or '' }}" placeholder="Via Roma 1" required></div>
-        <div class="row g-2 mb-2">
-          <div class="col-6"><label class="form-label small fw-semibold">Città *</label><input type="text" class="form-control" name="guest_residence_city" value="{{ r.guest_billing_city or r.guest_residence_city or '' }}" placeholder="Roma" required></div>
+        <div class="mb-2" data-guest-block>
+          <label class="form-label small fw-semibold" data-guest-label>Indirizzo residenza (via) *</label>
+          <input type="text" class="form-control" name="guest_residence_address" value="{{ r.guest_billing_address_line1 or r.guest_residence_address or '' }}" placeholder="Via Roma 1" required>
+          <div class="form-text d-none" data-guest-optional-hint><i class="bi bi-info-circle me-1"></i>Intestazione azienda: l'indirizzo del soggiornante non è richiesto (i dati fiscali della quietanza sono quelli della società). Lascia vuoto.</div>
+        </div>
+        <div class="row g-2 mb-2" data-guest-block>
+          <div class="col-6"><label class="form-label small fw-semibold" data-guest-label>Città *</label><input type="text" class="form-control" name="guest_residence_city" value="{{ r.guest_billing_city or r.guest_residence_city or '' }}" placeholder="Roma" required></div>
           <div class="col-3"><label class="form-label small">CAP</label><input type="text" class="form-control" name="guest_residence_zip" value="{{ r.guest_billing_postal_code or r.guest_residence_zip or '' }}" placeholder="00153"></div>
-          <div class="col-3"><label class="form-label small">Nazione *</label><input type="text" class="form-control" name="guest_residence_country" value="{{ r.guest_billing_country or r.guest_residence_country or r.guest_nationality or 'IT' }}" placeholder="IT"></div>
+          <div class="col-3"><label class="form-label small" data-guest-label>Nazione *</label><input type="text" class="form-control" name="guest_residence_country" value="{{ r.guest_billing_country or r.guest_residence_country or r.guest_nationality or '' }}" placeholder="IT / FR / US" required></div>
         </div>
         <div class="mb-2">
           <label class="form-label small fw-semibold">Codice Fiscale ospite (IT) <span class="text-muted fw-normal">— lascia vuoto se straniero o se intestata ad azienda</span></label>
@@ -265,10 +269,12 @@
             <label class="form-check-label small fw-semibold" for="companyCheck{{ r.id }}">Intesta ad <strong>azienda</strong> (invece che alla persona)</label>
           </div>
           <div class="form-text mb-2">Resta una <strong>ricevuta fuori campo IVA</strong> (non fattura elettronica): vale come giustificativo di spesa/rimborso, senza IVA da detrarre. L'ospite che ha soggiornato resta indicato come “soggiornante”.</div>
-          <div class="mb-2"><label class="form-label small">Denominazione / Ragione sociale</label><input type="text" class="form-control" name="company_name" placeholder="Es. Rossi S.r.l."></div>
-          <div class="row g-2">
-            <div class="col-5"><label class="form-label small">P.IVA (11 cifre)</label><input type="text" class="form-control font-monospace" name="company_vat" placeholder="01234567890" maxlength="11" pattern="\d{11}"></div>
-            <div class="col-7"><label class="form-label small">Sede legale</label><input type="text" class="form-control" name="company_address" placeholder="Via ..., CAP Città"></div>
+          <div data-company-fields>
+            <div class="mb-2"><label class="form-label small">Denominazione / Ragione sociale</label><input type="text" class="form-control" name="company_name" placeholder="Es. Rossi S.r.l."></div>
+            <div class="row g-2">
+              <div class="col-5"><label class="form-label small">P.IVA (11 cifre)</label><input type="text" class="form-control font-monospace" name="company_vat" placeholder="01234567890" maxlength="11" pattern="\d{11}"></div>
+              <div class="col-7"><label class="form-label small">Sede legale</label><input type="text" class="form-control" name="company_address" placeholder="Via ..., CAP Città"></div>
+            </div>
           </div>
         </div>
         {% if is_ota %}{% set stay = sugg.gross or r.total_price or 0 %}{% else %}{% set stay = r.total_price or 0 %}{% endif %}
@@ -295,4 +301,58 @@
 .modal-backdrop.show { opacity: 1 !important; }
 .modal-content { border: 0; border-radius: 0; }
 </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Intestazione azienda: i dati fiscali della quietanza sono quelli della società
+// (denominazione + P.IVA + sede legale) → l'indirizzo del soggiornante non è
+// più obbligatorio. Toggle dei required + visibilità campi azienda.
+(function () {
+  var GUEST_REQUIRED = ['guest_residence_address', 'guest_residence_city', 'guest_residence_country'];
+  var COMPANY_REQUIRED = ['company_name', 'company_vat', 'company_address'];
+
+  function setRequired(form, names, required) {
+    names.forEach(function (name) {
+      var els = form.querySelectorAll('[name="' + name + '"]');
+      for (var i = 0; i < els.length; i++) els[i].required = required;
+    });
+  }
+
+  function apply(form, isCompany) {
+    setRequired(form, GUEST_REQUIRED, !isCompany);
+    setRequired(form, COMPANY_REQUIRED, isCompany);
+    var blocks = form.querySelectorAll('[data-company-fields]');
+    for (var i = 0; i < blocks.length; i++) blocks[i].classList.toggle('d-none', !isCompany);
+    var hints = form.querySelectorAll('[data-guest-optional-hint]');
+    for (var j = 0; j < hints.length; j++) hints[j].classList.toggle('d-none', !isCompany);
+    var labels = form.querySelectorAll('[data-guest-label]');
+    for (var k = 0; k < labels.length; k++) {
+      labels[k].textContent = labels[k].textContent.replace(/\s*\*$/, isCompany ? '' : ' *');
+    }
+  }
+
+  function sync(form) {
+    var cb = form.querySelector('input[name="entity_company"]');
+    if (cb) apply(form, cb.checked);
+  }
+
+  document.addEventListener('change', function (ev) {
+    var el = ev.target;
+    if (!el || el.name !== 'entity_company') return;
+    var form = el.closest ? el.closest('form') : null;
+    if (form) apply(form, el.checked);
+  });
+
+  function init() {
+    var forms = document.querySelectorAll('form');
+    for (var i = 0; i < forms.length; i++) {
+      if (forms[i].querySelector('input[name="entity_company"]')) sync(forms[i]);
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 {% endblock %}

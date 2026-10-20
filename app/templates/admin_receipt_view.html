@@ -30,7 +30,7 @@
             {% endif %}
             <div class="text-center mb-4">
                 <h2 class="h5 fw-bold text-uppercase mb-1">Ricevuta di locazione breve</h2>
-                <small class="text-muted">Documento non-fattura — Operazione fuori campo IVA art. 1 c.2 DPR 633/1972</small>
+                <small class="text-muted">{% if receipt.entity_type == 'company' %}Quietanza di pagamento — Documento non-fattura, fuori campo IVA art. 1 c.2 DPR 633/1972{% else %}Documento non-fattura — Operazione fuori campo IVA art. 1 c.2 DPR 633/1972{% endif %}</small>
             </div>
             <div class="d-flex justify-content-between mb-3">
                 <strong>Ricevuta N. {{ receipt.receipt_number }}</strong>
@@ -51,8 +51,9 @@
             <p class="mb-1">Denominazione: <strong>{{ receipt.company_name }}</strong><br>
             P.IVA: {{ receipt.company_vat }}<br>
             Sede legale: {{ receipt.company_address or '—' }}<br>
-            Email: {{ receipt.guest_email }}<br>
+            {% if receipt.guest_email %}Email: {{ receipt.guest_email }}<br>{% endif %}
             <small class="text-muted">Ospite soggiornante: {{ receipt.guest_full_name }}</small></p>
+            <p class="small fst-italic text-muted mb-1">Quietanza di pagamento del canone di locazione, intestata alla società/ente indicata. I dati fiscali del documento sono quelli dell’intestatario (denominazione, P.IVA, sede legale); il soggiornante è indicato solo come fruitore del servizio. Valida come giustificativo di spesa unitamente alla contabile di pagamento del bonifico o della carta aziendale.</p>
             {% else %}
             <h6 class="fw-bold bg-light p-2 mt-3">Dati ospite</h6>
             <p class="mb-1">Nome/Cognome: <strong>{{ receipt.guest_full_name }}</strong><br>
